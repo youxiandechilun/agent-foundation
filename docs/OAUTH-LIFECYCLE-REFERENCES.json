@@ -1,0 +1,64 @@
+{
+  "version": "0.9.0",
+  "checkedAt": "2026-10-16T16:25:47.953Z",
+  "sources": [
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8628.html",
+      "sections": ["3.1", "3.2", "3.4", "3.5", "4"],
+      "use": "Explicit device authorization, discovery, required polling interval, slow_down, denial, expiry and connection backoff"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc7592.html",
+      "status": "Experimental",
+      "sections": ["2.1", "2.2", "2.3", "3", "A.1", "B"],
+      "use": "Use issued management URI and bearer token; full metadata PUT; rotated credentials; 204 deletion; no blind replay after uncertain effects"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc7591.html",
+      "sections": ["2", "3.2.1"],
+      "use": "Client metadata, registration credentials and explicit secret expiration"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc7523.html",
+      "sections": ["2.2", "3"],
+      "use": "Signed client assertions, subject, audience, expiration and per-request jti"
+    }
+  ],
+  "localEvidence": [
+    "test/mcp-device.test.ts",
+    "test/mcp-registration-management.test.ts",
+    "test/mcp-keyring.test.ts"
+  ],
+  "externalValidation": [
+    {
+      "id": "live-vendors",
+      "status": "not-run",
+      "reason": "未提供真实文本/图片/视频/embedding 供应商联调凭据；本地协议服务不证明真实模型质量或账单。"
+    },
+    {
+      "id": "docker-runtime",
+      "status": "environment-unavailable",
+      "reason": "Docker 保持可选。源码插件和 MCP stdio 容器宿主已接入；本机缺少 Docker CLI/engine，真实容器运行、隔离与清理未验收，见 verification/docker-runtime.json。"
+    },
+    {
+      "id": "third-party-mcp-oauth-ecosystem",
+      "status": "not-exhaustive",
+      "reason": "已声明 MCP task/CIMD/OAuth profile、设备流、RFC 7592 管理与自动签名钥轮换使用实际本地 stdio、HTTP/SSE、受测试 CA 信任的 HTTPS 验证；真实第三方身份平台与 MCP 服务未全面联调。"
+    },
+    {
+      "id": "posix-pty",
+      "status": "not-run",
+      "reason": "POSIX PTY 桥接源码已有；当前 Windows 主机实测管道与 ConPTY，Linux/macOS 待验收。"
+    },
+    {
+      "id": "cross-os-migration",
+      "status": "not-run",
+      "reason": "独立内核数据目录之间的 HTTP 会话/字节迁移、数据库重启恢复已通过；Windows/Linux/macOS 实际不同机器传输待验收。"
+    },
+    {
+      "id": "public-oauth-hosting",
+      "status": "not-run",
+      "reason": "未部署真实公网 HTTPS Client Metadata URL，也未验证第三方 AS 的缓存、设备授权 UI 或企业策略。生产需自有 HTTPS 发布和可信客户端配置。"
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "version": "0.11.0",
+  "status": "acceptance-derived-from-verification/application-report.json",
+  "goal": "Add independently enabled browser, Windows computer-control and office application plugins to the source-owned Agent foundation; retain a separately installable core and optional Docker.",
+  "baseline": {
+    "version": "0.9.0",
+    "coreTestsPassed": 279,
+    "coreAcceptancePassed": 254,
+    "sourceArchiveSha256": "D8093E3CC4104BB27F387316ABBA40DE16F726218A3B82DAC02D0E687295743F"
+  },
+  "acceptance": [
+    {
+      "id": "application-packs",
+      "requirement": "Independent browser/computer/office integration entry points and selective CLI activation; disabled application tools do not enter the model context; preserve existing core isolation.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "application browser pack independently exposes only browser tools and enforces API, owner and upload policies"
+        },
+        {
+          "file": "test/computer-app.integration.ts",
+          "title": "native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "office pack exposes independent tools and authenticated APIs with project, schema and preview-write enforcement"
+        }
+      ]
+    },
+    {
+      "id": "browser-managed",
+      "requirement": "Actual Chromium persistent sessions, tabs, bounded accessibility snapshots and stable element references, navigation, input, selection, screenshots, uploads/downloads, cancellation and deterministic lifecycle cleanup.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "managed browser handles explicit dialogs and actual proxied WebSocket traffic"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "managed browser cancellation destroys its context, stops queued work and releases profile capacity"
+        },
+        {
+          "file": "test/browser.integration.ts",
+          "title": "actual Chromium navigation, DOM input/click, screenshots, file upload and download"
+        }
+      ]
+    },
+    {
+      "id": "browser-boundaries",
+      "requirement": "Safe profile paths and ownership, current policy checks before actions, approved endpoints, bounded capacity, reviewed URL/network policy including request and WebSocket paths; CDP detachment preserves user tabs.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "browser proxy terminates an actual open WebSocket when a project network grant is revoked"
+        }
+      ]
+    },
+    {
+      "id": "user-browser",
+      "requirement": "Explicitly paired browser extension and configured CDP connection; tab grants, token isolation, revocation and actual extension/transport tests where the host permits.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/browser-bridge-app.integration.ts",
+          "title": "independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation"
+        },
+        {
+          "file": "test/browser-bridge-app.integration.ts",
+          "title": "browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller"
+        },
+        {
+          "file": "test/browser.integration.ts",
+          "title": "actual CDP attachment controls a separate browser and disconnect preserves its tabs"
+        }
+      ]
+    },
+    {
+      "id": "computer-native",
+      "requirement": "Windows native window and accessibility inspection, targeted interaction, screenshot and keyboard/pointer control with exclusive project/run lease, serialized work, cancellation and emergency stop; use a dedicated test application for input verification.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/computer-app.integration.ts",
+          "title": "native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture"
+        },
+        {
+          "file": "test/computer-app.integration.ts",
+          "title": "native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates"
+        },
+        {
+          "file": "test/computer-app.integration.ts",
+          "title": "computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues"
+        },
+        {
+          "file": "test/computer-app.integration.ts",
+          "title": "active native processes recheck revoked permissions and timeouts without retaining their lease queue"
+        }
+      ]
+    },
+    {
+      "id": "office-editing",
+      "requirement": "Real CSV/XLSX/DOCX/PPTX/PDF reading, structured inspection, generation and source-preserving edits; XLSX range operations and formulas with truthful calculation status; PDF composition and preview; deterministic asset ownership and resource limits.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "office pack exposes independent tools and authenticated APIs with project, schema and preview-write enforcement"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "DOCX edits span real styled runs, preserve opaque parts and styles, and enforce exact matches and immutable source digests"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "PPTX inspection follows presentation relationships and source-preserving edits retain images and slide order"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "XLSX range edits preserve styles and unknown parts, invalidate formula caches and report recalculation honestly"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "PDF generation, page composition, rotation, extraction and raster preview execute on actual PDFs"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "Office ZIP preflight rejects actual CRC damage, expanded data, XML entities, duplicate names and macros"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "Office worker cancellation, bounded capacity, closing and CSV formula-neutralization do real work without publishing cancelled output"
+        },
+        {
+          "file": "test/office-app.integration.ts",
+          "title": "office edits recheck exact tool policy and source-read authorization after actual worker processing before publishing a derived asset"
+        }
+      ]
+    },
+    {
+      "id": "application-api",
+      "requirement": "Application tools and authenticated HTTP/fetch interfaces share foundation permissions, event streams, asset storage and project/session ownership.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/applications-flow.integration.ts",
+          "title": "application tools execute real office, browser and native work within a continuous multi-reply Agent run and publish durable owned assets"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "application browser pack independently exposes only browser tools and enforces API, owner and upload policies"
+        },
+        {
+          "file": "test/browser-app.integration.ts",
+          "title": "aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context"
+        }
+      ]
+    },
+    {
+      "id": "release-proof",
+      "requirement": "Existing core regression, new meaningful application integration tests, optional dependency audit and clean source-package rebuild; report every unimplemented or environment-limited item explicitly.",
+      "status": "requires-recorded-test-evidence",
+      "evidence": [
+        {
+          "file": "test/applications-flow.integration.ts",
+          "title": "application tools execute real office, browser and native work within a continuous multi-reply Agent run and publish durable owned assets"
+        }
+      ]
+    }
+  ],
+  "deferredByUser": [
+    "Client UI design",
+    "ESP32 and physical hardware"
+  ],
+  "externalValidation": [
+    {
+      "id": "real-models",
+      "status": "not-run",
+      "detail": "Paid text/image/video/embedding vendors and model quality/billing require actual credentials."
+    },
+    {
+      "id": "production-browser",
+      "status": "not-exhaustive",
+      "detail": "Actual local Chromium/CDP/loaded extension passed. Installed-user-browser distribution, real production sites/login/CAPTCHA remain separate."
+    },
+    {
+      "id": "office-visual-fidelity",
+      "status": "not-run",
+      "detail": "Actual formats, XML edits, PDF pages and raster output passed locally. Installed Microsoft Office/LibreOffice recalculation and full visual fidelity not validated."
+    },
+    {
+      "id": "docker",
+      "status": "environment-unavailable",
+      "detail": "Docker remains optional; CLI/engine not installed."
+    }
+  ],
+  "notImplemented": [
+    {
+      "id": "other-native-platforms",
+      "detail": "Linux/macOS native computer adapters are not implemented; current native adapter returns 501 off Windows."
+    },
+    {
+      "id": "full-office-engine",
+      "detail": "No full Excel formula evaluator, full office editor, OCR, arbitrary format conversion or PDF interactive-form flattening."
+    },
+    {
+      "id": "os-and-multi-tenant-isolation",
+      "detail": "No native OS file/network sandbox, multi-tenant boundary or distributed computer lease."
+    },
+    {
+      "id": "extension-upload-and-frames",
+      "detail": "User-browser extension does not implement file upload/download or iframe/ref actions. Managed Chromium supports these operations."
+    }
+  ],
+  "boundaries": [
+    "Core can install/build without all optional dependencies; Docker is optional.",
+    "External CDP/extension reviews actions; it does not proxy all traffic in an existing user browser.",
+    "Windows native control runs in the user session; started input cannot be rolled back.",
+    "Office workers bound time/heap/concurrency and preflight real archive bytes; not an OS security sandbox.",
+    "Unknown disconnected/cancelled remote effects are not automatically replayed."
+  ]
+}

@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>Agent host connection</title>
+<form id="connection"><p>只会接管你通过这个按钮授权的标签页。</p>
+<label>服务地址 <input name="baseUrl" type="url" value="http://127.0.0.1:4317" required></label><br>
+<label>节点 ID <input name="nodeId" required></label><br>
+<label>节点令牌 <input name="token" type="password" required></label><br>
+<button type="submit">连接并授权当前标签页</button><button type="button" id="disconnect">断开</button><p id="status"></p></form>
+<script src="connect.js"></script>

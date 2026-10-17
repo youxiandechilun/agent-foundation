@@ -1,0 +1,58 @@
+{
+  "version": "0.11.0",
+  "checkedAt": "2026-10-16T20:33:06.4723095Z",
+  "passed": true,
+  "archiveVerified": "E:\\codex\\2026-10-16\\g\\work\\agent-foundation-0.11-precheck.zip",
+  "testedArchiveSha256": "FF9569F19802C708537C49FF5064FA70E0296F15C0276B8BFCD3BAA4DC08F9C2",
+  "extractedProject": "E:\\codex\\2026-10-16\\g\\work\\source-rebuild-d9966dd72bed4312ba2bc2274935c68f\\agent-foundation",
+  "nodeVersion": "v22.23.2",
+  "steps": [
+    {
+      "name": "npm-ci",
+      "durationMs": 9130,
+      "log": "clean-source-npm-ci.log",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "durationMs": 3861,
+      "log": "clean-source-build.log",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "name": "source-check",
+      "durationMs": 88,
+      "log": "clean-source-source-check.log",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "name": "core-isolation",
+      "durationMs": 317,
+      "log": "clean-source-core-isolation.log",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "name": "core-tests",
+      "durationMs": 195720,
+      "log": "clean-source-core-tests.log",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "name": "compiled-smoke",
+      "durationMs": 796,
+      "log": "clean-source-compiled-smoke.log",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "sourceHashesMatch": true,
+  "sourceFiles": 198,
+  "prerequisites": "Core requires Node/npm. This Windows rebuild exercises native ConPTY plus optional AppContainer commands/plugins/MCP/persistent pipes and lifecycle denial/cleanup by compiling bundled C# source with the OS .NET Framework csc. Isolated PTY and legacy Node child capture pipes remain unsupported. POSIX PTY and non-Windows OS sandboxes are not platform-validated here. No Docker, Chromium, Office libraries, old dist or runtime state used.",
+  "optionalDependenciesOmitted": true,
+  "note": "Repacking this report changes the ZIP hash; testedArchiveSha256 identifies the first tested archive. Source hashes remain identical."
+}

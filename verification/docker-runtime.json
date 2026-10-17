@@ -1,0 +1,7 @@
+{
+  "version": "0.11.0",
+  "checkedAt": "2026-10-16T20:25:42.557Z",
+  "status": "environment-unavailable",
+  "tests": [],
+  "reason": "spawn docker ENOENT"
+}

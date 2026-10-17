@@ -1,0 +1,256 @@
+{
+  "checkedAt": "2026-10-16T06:50:07.756Z",
+  "timezone": "Asia/Shanghai",
+  "description": "Immutable GitHub snapshots downloaded for source comparison; third-party source is kept outside this deliverable.",
+  "repositories": [
+    {
+      "repository": "earendil-works/pi",
+      "commit": "4954d760504c11df9b2cbdc040346107b6a8153d",
+      "commitDate": "2026-10-15T19:21:57Z",
+      "checkedAt": "2026-10-16T06:15:46.420Z",
+      "treeTruncated": false,
+      "files": [
+        {
+          "path": "packages/agent/src/agent-loop.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/agent/src/agent-loop.ts",
+          "bytes": 29513,
+          "gitBlob": "f406aba5647adeb6d879a94d946a52436bfb6af3",
+          "sha256": "28a2b03e34a7e32f004aa851e54d3b5be9dad71c392205614cbc9abdf3a9020a"
+        },
+        {
+          "path": "packages/agent/src/types.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/agent/src/types.ts",
+          "bytes": 21234,
+          "gitBlob": "dbfba74a084f71951e48285869730b70a405ba3a",
+          "sha256": "2e116ef60fdaca4e26be5a1ace8d8b47f545d648d365de60b8c9f9d1ba629ee4"
+        },
+        {
+          "path": "packages/coding-agent/docs/compaction.md",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/docs/compaction.md",
+          "bytes": 24107,
+          "gitBlob": "72a7c94090d093fa139ea5858100c2b4a35ec9fb",
+          "sha256": "163e80b4ec1580c6e967507492715a0acd878db8d4e4586dfd8a6001d8ec7822"
+        },
+        {
+          "path": "packages/coding-agent/examples/extensions/custom-compaction.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/examples/extensions/custom-compaction.ts",
+          "bytes": 3971,
+          "gitBlob": "447b5e27f1ed55f4872d99b4f479777cab148ee6",
+          "sha256": "ea797b3508fd8600526f381466e8b08bb84f3d234932a9d6ce512698527d0aa9"
+        },
+        {
+          "path": "packages/coding-agent/src/core/compaction/branch-summarization.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/src/core/compaction/branch-summarization.ts",
+          "bytes": 12714,
+          "gitBlob": "0e0408b50183e7e3d7d6c64c4d66cc64cfe62489",
+          "sha256": "0279195d2cddfe99d4e42a1327d18c7f55ff15a8807d2c5d6cd465b2ab163011"
+        },
+        {
+          "path": "packages/coding-agent/src/core/compaction/compaction.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/src/core/compaction/compaction.ts",
+          "bytes": 35513,
+          "gitBlob": "6bcfbb2b5136fe31ba3304a61ef51cbe39d04f23",
+          "sha256": "d5aebd41333957b57fa3f1bee2a18b3c00b5d47bb1b4af6f913cf8cd791099c8"
+        },
+        {
+          "path": "packages/coding-agent/src/core/compaction/index.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/src/core/compaction/index.ts",
+          "bytes": 156,
+          "gitBlob": "7fae5f2c3f95189a2e2cc199d72f43fd16a209b3",
+          "sha256": "f82bde781410ae1a638989ff91bde9cc7045341a76bb9757de2ea6beea4c077d"
+        },
+        {
+          "path": "packages/coding-agent/src/core/compaction/utils.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/src/core/compaction/utils.ts",
+          "bytes": 5951,
+          "gitBlob": "1f05a14b4e787259b71d3dee4eef2c7f7d028a9c",
+          "sha256": "37eab7698cdbff8b5987d4529005ea16d7e1ae4a5344d7d0443c3466444aa90e"
+        },
+        {
+          "path": "packages/coding-agent/src/core/extensions/types.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/src/core/extensions/types.ts",
+          "bytes": 84883,
+          "gitBlob": "60388c0eb6ddc8c46fd44191b7d872a14a53decd",
+          "sha256": "cb54c7a4fedb3473bb995694bbc1f2988c144fb0b802bfd1b656816bc25d0f25"
+        },
+        {
+          "path": "packages/coding-agent/src/core/session-manager.ts",
+          "url": "https://raw.githubusercontent.com/earendil-works/pi/4954d760504c11df9b2cbdc040346107b6a8153d/packages/coding-agent/src/core/session-manager.ts",
+          "bytes": 63809,
+          "gitBlob": "df5281a0a4258462b14faa7d055efa09783ea6aa",
+          "sha256": "450d82c529933214e088b8422f00061815e617f352f6c834689787a314064bff"
+        }
+      ]
+    },
+    {
+      "repository": "openai/codex",
+      "commit": "6ae8b8aa7c608730d4315d59c5c081897ae02780",
+      "commitDate": "2026-10-16T06:06:54Z",
+      "checkedAt": "2026-10-16T06:15:52.729Z",
+      "treeTruncated": false,
+      "files": [
+        {
+          "path": "codex-rs/core/src/compact.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/compact.rs",
+          "bytes": 33855,
+          "gitBlob": "0bc35f63ad4bbe6d660dcbdffc61e111368eb488",
+          "sha256": "9b37f42e826e45ebf2fe3115355fde5ced2f67183c19fab84119b57b0c6bd13b"
+        },
+        {
+          "path": "codex-rs/core/src/compact_remote_history.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/compact_remote_history.rs",
+          "bytes": 7384,
+          "gitBlob": "82fc5e3f0e2dabf03b30d56a0453702e4257402a",
+          "sha256": "8c6d8d22d9236f44707ae4b77ec8e169fd8e7de5ad53d796944b058bddf1db46"
+        },
+        {
+          "path": "codex-rs/core/src/compact_remote_history_tests.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/compact_remote_history_tests.rs",
+          "bytes": 876,
+          "gitBlob": "c1dde7d9d67c56b070e28448485c4afe392f849b",
+          "sha256": "36eb1f76ab4ee09e013851a03490cbfc3335c419d4c6c0fffc709cd1ce4ae480"
+        },
+        {
+          "path": "codex-rs/core/src/config/permission_path.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permission_path.rs",
+          "bytes": 2666,
+          "gitBlob": "0e36c20fd225d8e15e9a34b6fcefa102ebc73718",
+          "sha256": "07b5d3c9a9d1cd897b49db3caccb88c6d7295dc5761dc815cbd5c0e435a5bbb6"
+        },
+        {
+          "path": "codex-rs/core/src/config/permission_path_tests.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permission_path_tests.rs",
+          "bytes": 18588,
+          "gitBlob": "34fb5c73e865cc88c6a1d082f2fcd09014346369",
+          "sha256": "4e2ccdc4c0673c16a1b18b17431cca228dde843d81d19d0cdfe97da571ac3943"
+        },
+        {
+          "path": "codex-rs/core/src/config/permission_profile_catalog.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permission_profile_catalog.rs",
+          "bytes": 5440,
+          "gitBlob": "1ebad6ab9bcd0742bb0eeed504598e7d92f06c8a",
+          "sha256": "ae2264cbf214bf6928ef3c45f505d37aba955a65705bb4e2400a67a9c0539425"
+        },
+        {
+          "path": "codex-rs/core/src/config/permission_profile_selection.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permission_profile_selection.rs",
+          "bytes": 1536,
+          "gitBlob": "025fc9b9a5d58a62f4eb3aacd85f8c3ffde315eb",
+          "sha256": "8f5fb8814985bec37da32f4bc98381dd56c63d5c43ffed0e6381e69dc8e8db49"
+        },
+        {
+          "path": "codex-rs/core/src/config/permission_profile_selection_tests.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permission_profile_selection_tests.rs",
+          "bytes": 2617,
+          "gitBlob": "5392c5a3df34903522b37fe91e0b8ee766d1a43c",
+          "sha256": "03ad97997b552f5c6c354503b74cda7edc75a697d23fc2d94bf39038864db8da"
+        },
+        {
+          "path": "codex-rs/core/src/config/permissions.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permissions.rs",
+          "bytes": 34342,
+          "gitBlob": "bd6ddb1f091c330761251e0265ffd323abc471bc",
+          "sha256": "b65ea4be765ad3fba86084b4f2774934d1702db586ab694e4a9b2cca0f52d1f0"
+        },
+        {
+          "path": "codex-rs/core/src/config/permissions_tests.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/config/permissions_tests.rs",
+          "bytes": 19217,
+          "gitBlob": "b3c5d9bcb743ec91f5128e4f2c218e69db1d4a9c",
+          "sha256": "c84b4f6311356ea8c47b5d91f0f1993c98d7d10f08a21ca89fe3f5f631ed1b37"
+        },
+        {
+          "path": "codex-rs/core/src/tools/approvals.rs",
+          "url": "https://raw.githubusercontent.com/openai/codex/6ae8b8aa7c608730d4315d59c5c081897ae02780/codex-rs/core/src/tools/approvals.rs",
+          "bytes": 31059,
+          "sha256": "30e74481f6e65ae42ee320ce4518f30260c93b88a62b222a43badf5d3a9596e6"
+        }
+      ]
+    },
+    {
+      "repository": "openclaw/openclaw",
+      "commit": "bf1848705bd90ff1a33d5afe73bc60b0054d3061",
+      "commitDate": "2026-10-16T06:15:23Z",
+      "checkedAt": "2026-10-16T06:16:01.090Z",
+      "treeTruncated": false,
+      "files": [
+        {
+          "path": "src/agents/agent-tools.before-tool-call.policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/agent-tools.before-tool-call.policy.ts",
+          "bytes": 16597,
+          "gitBlob": "9d2e3623939906dcbd34f328f27fbec1db3f3ef5",
+          "sha256": "0b3673eb625256bfb4e19b83e088092b0a88b095ff47b0a8cafa61a7795bf5f8"
+        },
+        {
+          "path": "src/agents/agent-tools.message-provider-policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/agent-tools.message-provider-policy.ts",
+          "bytes": 2085,
+          "gitBlob": "00bb35f7f2e62539301f0040a3895221b2433ee3",
+          "sha256": "390d439d7547d5bd0deabc8c74a09daad73eded7e1ef97c122aaef201c5c2d88"
+        },
+        {
+          "path": "src/agents/agent-tools.model-provider-policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/agent-tools.model-provider-policy.ts",
+          "bytes": 2097,
+          "gitBlob": "6654c3ee7f97970dd917968f101c38ed01379e6e",
+          "sha256": "fc5c0cf248eced0318c54ee452f3234826075f09e99fbd30cd51461904458c12"
+        },
+        {
+          "path": "src/agents/agent-tools.policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/agent-tools.policy.ts",
+          "bytes": 23620,
+          "gitBlob": "890bfd2b8714c8e5d55ca6bb1568d5d88bcf4d9e",
+          "sha256": "53236531a574ac37c2b6e1fc618b95e5c92a173a7cbc69a72c817ef9eeccbaa3"
+        },
+        {
+          "path": "src/agents/bash-tools.exec-host-node-policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/bash-tools.exec-host-node-policy.ts",
+          "bytes": 2105,
+          "gitBlob": "75c1ba56b6e313e9993262a18f0e21eaa4f5543a",
+          "sha256": "9bf7490428f09bfd8b99c8f038aa02df21bbf54bfad2cac954584465c811994d"
+        },
+        {
+          "path": "src/agents/cli-runner/prepare-tool-policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/cli-runner/prepare-tool-policy.ts",
+          "bytes": 4369,
+          "gitBlob": "dd4dedf6d1a1366bbca2da306b1f6fc66c0cb20b",
+          "sha256": "5e3d0874d8eaad391e28fd2a1ea8953c2c92c7cbf5d01eec55648fb5e5c21e65"
+        },
+        {
+          "path": "src/agents/cli-runner/tool-policy.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/cli-runner/tool-policy.ts",
+          "bytes": 1291,
+          "gitBlob": "9cbcb827a0b0664de470c6169874cdae64c0306b",
+          "sha256": "f79c75667588b1b4d80ee7df83f37dfab91d71501ad6c90ceaaa51a30b256953"
+        },
+        {
+          "path": "src/agents/command/cli-compaction.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/command/cli-compaction.ts",
+          "bytes": 23782,
+          "gitBlob": "6d6633caefdf91e7b8e100ebbf0d9159a4320a56",
+          "sha256": "f378e954ceb8abfb4353cc56c02ed8a6369d352913cf7f2520e24220b8132dbe"
+        },
+        {
+          "path": "src/agents/compaction.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/compaction.ts",
+          "bytes": 4756,
+          "gitBlob": "6aea7e844bc9acdfd36cc20d385582260452b9cb",
+          "sha256": "9e4f75e1a47e5c8b38b0939bc427aab9afd14d6907f7c4a974fd4fbc7e0cb088"
+        },
+        {
+          "path": "src/agents/conversation-tool-policy-pipeline.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/agents/conversation-tool-policy-pipeline.ts",
+          "bytes": 5911,
+          "gitBlob": "6aef32a0e3a753de5b0816a2713f0f9530b5b85a",
+          "sha256": "9ea438fbff2184daa607027c0fc66e7d4a2ac4f587fa93f00e1518aa58289783"
+        },
+        {
+          "path": "src/process/command-queue.ts",
+          "url": "https://raw.githubusercontent.com/openclaw/openclaw/bf1848705bd90ff1a33d5afe73bc60b0054d3061/src/process/command-queue.ts",
+          "bytes": 27858,
+          "sha256": "c76c30e10547df2340762efb534812f129a079988d3c6c504917afbcca1c5a76"
+        }
+      ]
+    }
+  ]
+}

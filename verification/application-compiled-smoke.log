@@ -1,0 +1,11 @@
+{
+  "version": "0.11.0",
+  "compiledHost": true,
+  "optionalFormatWorker": true,
+  "actualChromium": true,
+  "windowsBridge": true,
+  "pairing": true,
+  "modelCalled": false
+}
+(node:24244) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

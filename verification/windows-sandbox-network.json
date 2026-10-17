@@ -1,0 +1,23 @@
+{
+  "version": "0.11.0",
+  "checkedAt": "2026-10-16T20:23:03.357Z",
+  "status": "passed-real-public-network",
+  "endpoint": "1.1.1.1:443",
+  "tests": [
+    {
+      "network": "none",
+      "osSandbox": true,
+      "connected": false,
+      "error": "EACCES"
+    },
+    {
+      "network": "internet",
+      "osSandbox": true,
+      "connected": true
+    }
+  ],
+  "host": {
+    "connected": true
+  },
+  "cleanupConfirmed": true
+}

@@ -1,0 +1,51 @@
+{
+  "version": "0.11.0",
+  "checkedAt": "2026-10-16T20:30:37.5833271Z",
+  "passed": true,
+  "archiveVerified": "E:\\codex\\2026-10-16\\g\\work\\agent-foundation-0.11-precheck.zip",
+  "testedArchiveSha256": "FF9569F19802C708537C49FF5064FA70E0296F15C0276B8BFCD3BAA4DC08F9C2",
+  "extractedProject": "E:\\codex\\2026-10-16\\g\\work\\source-rebuild-2218002fdbd04894b158767cae37548a\\agent-foundation",
+  "nodeVersion": "v22.23.2",
+  "steps": [
+    {
+      "passed": true,
+      "name": "npm-ci",
+      "durationMs": 10933,
+      "exitCode": 0,
+      "log": "clean-host-source-npm-ci.log"
+    },
+    {
+      "passed": true,
+      "name": "build",
+      "durationMs": 3304,
+      "exitCode": 0,
+      "log": "clean-host-source-build.log"
+    },
+    {
+      "passed": true,
+      "name": "source-check",
+      "durationMs": 100,
+      "exitCode": 0,
+      "log": "clean-host-source-source-check.log"
+    },
+    {
+      "passed": true,
+      "name": "host-tests",
+      "durationMs": 41657,
+      "exitCode": 0,
+      "log": "clean-host-source-host-tests.log"
+    },
+    {
+      "passed": true,
+      "name": "compiled-smoke",
+      "durationMs": 5044,
+      "exitCode": 0,
+      "log": "clean-host-source-compiled-smoke.log"
+    }
+  ],
+  "sourceHashesMatch": true,
+  "sourceFiles": 198,
+  "prerequisites": "Fresh host npm install and host build. Actual cached Playwright Chromium, Chrome extension, optional Office/PDF/canvas libraries and Windows native APIs tested; no Docker or old dist/runtime state used.",
+  "optionalDependenciesOmitted": false,
+  "note": "Repacking this report changes the ZIP hash; testedArchiveSha256 identifies the first tested archive. Source hashes remain identical."
+}

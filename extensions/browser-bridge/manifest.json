@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Agent Foundation Browser Bridge",
+  "version": "0.2.0",
+  "description": "Connect explicitly selected tabs to your own Agent host.",
+  "permissions": ["debugger", "tabs", "storage", "alarms"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Allow Agent control for this tab", "default_popup": "connect.html" }
+}

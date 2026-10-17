@@ -1,0 +1,4856 @@
+{
+  "schemaVersion": 1,
+  "version": "0.11.0",
+  "checkedAt": "2026-10-16T20:27:29.978Z",
+  "coreCriteriaPassed": 275,
+  "testsPassed": 300,
+  "criteria": [
+    {
+      "id": "loop",
+      "requirement": "持续执行与多条回复",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/runtime.test.ts",
+        "title": "own runtime commits replies before actual tools and continues; durable effects and input IDs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "protocols",
+      "requirement": "三种文本协议与工具",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/providers/sse.ts"
+      ],
+      "evidence": {
+        "file": "test/runtime.test.ts",
+        "title": "own anthropic-messages wire serializer/parser and tools"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "vision",
+      "requirement": "三种协议的工具图像回传",
+      "scope": "core",
+      "source": [
+        "src/providers/serialize.ts"
+      ],
+      "evidence": {
+        "file": "test/protocol.test.ts",
+        "title": "tool screenshots reach all three vision wire formats after a complete tool result batch"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "permissions",
+      "requirement": "权限交集和审批",
+      "scope": "core",
+      "source": [
+        "src/permissions.ts"
+      ],
+      "evidence": {
+        "file": "test/runtime.test.ts",
+        "title": "approval, planning mode, model/project policy intersection block side effects"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "plugin-integrity",
+      "requirement": "实际安装树验证与信任撤销",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/extensions/source-bundle.ts"
+      ],
+      "evidence": {
+        "file": "test/security-core.test.ts",
+        "title": "plugin integrity rejects changed entry, dependencies and added source, then revokes trust"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "plugin-snapshot",
+      "requirement": "已验证快照执行",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugin-worker.mjs"
+      ],
+      "evidence": {
+        "file": "test/security-core.test.ts",
+        "title": "plugin runs its verified snapshot even if the installation changes during invocation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "mcp-planning",
+      "requirement": "外部只读标记不能绕过 plan",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp.ts",
+        "src/permissions.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-client.test.ts",
+        "title": "a false remote readOnlyHint cannot cause an actual side effect in a planning run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "mcp-stdio",
+      "requirement": "自有 MCP stdio、请求关联、取消、进度",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-client.test.ts",
+        "title": "own stdio MCP correlates concurrent responses, handles server ping, progress and explicit cancellation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "mcp-http",
+      "requirement": "自有 MCP HTTP/SSE、会话与恢复",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-client.test.ts",
+        "title": "own HTTP MCP negotiates session headers, JSON/SSE, server requests, stream recovery and never replays an expired effect"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "mcp-shutdown",
+      "requirement": "MCP 初始化与关闭竞争",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp.ts"
+      ],
+      "evidence": {
+        "file": "test/core-boundaries.test.ts",
+        "title": "MCP shutdown aborts in-flight initialization and same-turn connection races without waiting for request timeout"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "context",
+      "requirement": "分层压缩处理全部分段",
+      "scope": "core",
+      "source": [
+        "src/context.ts"
+      ],
+      "evidence": {
+        "file": "test/context.test.ts",
+        "title": "Chinese context uses UTF-8 weighted budgets and hierarchical consolidation processes the tail segment"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "token-counter",
+      "requirement": "模型计数器注册与精度",
+      "scope": "core",
+      "source": [
+        "src/runtime/token-counter.ts"
+      ],
+      "evidence": {
+        "file": "test/core-lifecycle.test.ts",
+        "title": "a registered model counter receives tool declarations and reports its precision; missing counters fail explicitly"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "memory-data",
+      "requirement": "记忆版本、过滤与事务",
+      "scope": "core",
+      "source": [
+        "src/memory.ts"
+      ],
+      "evidence": {
+        "file": "test/core-data.test.ts",
+        "title": "memory namespaces filter before ranking limits, revisions detect conflicts, and imports/merge/prune are transactional"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "memory-proposal",
+      "requirement": "自动提取先审核",
+      "scope": "core",
+      "source": [
+        "src/memory.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/core-data.test.ts",
+        "title": "automatic memory extraction creates reviewable proposals and never silently persists a fact"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "memory-vector",
+      "requirement": "实际 embedding 线协议与持久向量",
+      "scope": "core",
+      "source": [
+        "src/memory.ts"
+      ],
+      "evidence": {
+        "file": "test/resilience.test.ts",
+        "title": "embedding adapter sends real HTTP payload and project semantic ranking uses persisted vectors"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "skills",
+      "requirement": "Skill 版本与文本/二进制资源",
+      "scope": "core",
+      "source": [
+        "src/extensions/skills.ts"
+      ],
+      "evidence": {
+        "file": "test/core-data.test.ts",
+        "title": "Skill bundles preserve text and binary resources, directory snapshots and safe paths without executing scripts"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "routes",
+      "requirement": "路由与默认值原子持久化",
+      "scope": "core",
+      "source": [
+        "src/config.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/core-data.test.ts",
+        "title": "route CRUD changes defaults atomically and persists them, while invalid or referenced deletion is rejected"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "modes",
+      "requirement": "自定义模式持久化与权限限制",
+      "scope": "core",
+      "source": [
+        "src/modes/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/core-boundaries.test.ts",
+        "title": "custom mode persists across restart, restricts advertised tools, and cannot elevate a denied capability"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "core-boundary",
+      "requirement": "无桌面默认内核与源码工具注册/撤销",
+      "scope": "core",
+      "source": [
+        "src/runtime/registry.ts",
+        "tsconfig.core.json"
+      ],
+      "evidence": {
+        "file": "test/core-lifecycle.test.ts",
+        "title": "default kernel has no desktop services and registered source tools execute through the shared loop with revocation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "cancel-tool",
+      "requirement": "不配合取消的工具保留 unknown",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/core-lifecycle.test.ts",
+        "title": "cancellation settles an uncooperative tool promptly and records its uncertain effect"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "cancel-context",
+      "requirement": "不配合取消的上下文计数器不阻塞运行",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/core-lifecycle.test.ts",
+        "title": "cancellation settles a run blocked in an uncooperative context counter"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "recover-input",
+      "requirement": "显式恢复 pending 输入一次",
+      "scope": "core",
+      "source": [
+        "src/kernel.ts",
+        "src/store.ts"
+      ],
+      "evidence": {
+        "file": "test/core-lifecycle.test.ts",
+        "title": "explicit resume applies durable pending input once and never replays unknown effects automatically"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "store",
+      "requirement": "历史迁移、追加与分页事务",
+      "scope": "core",
+      "source": [
+        "src/store.ts"
+      ],
+      "evidence": {
+        "file": "test/core-data.test.ts",
+        "title": "legacy transcripts migrate losslessly into append-only paged messages and rollback atomically"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "session-import",
+      "requirement": "会话导入不重放工具",
+      "scope": "core",
+      "source": [
+        "src/session-codec.ts"
+      ],
+      "evidence": {
+        "file": "test/session-import.test.ts",
+        "title": "session snapshot round-trips into an assist session without executing historical effects or reusing provider state"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "import-validation",
+      "requirement": "会话角色、工具组与归属校验",
+      "scope": "core",
+      "source": [
+        "src/session-codec.ts"
+      ],
+      "evidence": {
+        "file": "test/session-import.test.ts",
+        "title": "session import rejects privileged roles, invalid tool groups, duplicate messages and cross-project data atomically"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "credentials",
+      "requirement": "任意命名凭据引用脱敏",
+      "scope": "core",
+      "source": [
+        "src/util.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/core-boundaries.test.ts",
+        "title": "configured credential refs with ordinary environment names are redacted before inbox, model input and events"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "attachments",
+      "requirement": "附件合计与摘录预算",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/core-boundaries.test.ts",
+        "title": "aggregate attachment byte and excerpt budgets are enforced while original bytes remain available"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "media",
+      "requirement": "统一媒体、幂等、原路由恢复、不重新提交",
+      "scope": "core",
+      "source": [
+        "src/media.ts",
+        "src/media/adapters.ts"
+      ],
+      "evidence": {
+        "file": "test/media-nodes.test.ts",
+        "title": "canonical media requests support image bytes, async video, mapped fields, cancellation and unknown-job recovery without resubmission"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "media-timeout",
+      "requirement": "自定义媒体适配器超时",
+      "scope": "core",
+      "source": [
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/media-adapters.test.ts",
+        "title": "uncooperative media adapters time out without stranding shutdown or being resubmitted"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "events",
+      "requirement": "SSE 断线游标去重",
+      "scope": "core",
+      "source": [
+        "src/client.ts",
+        "src/event-stream.ts"
+      ],
+      "evidence": {
+        "file": "test/client-stream.test.ts",
+        "title": "client reconnects only GET streams with a durable cursor and deduplicates replayed events"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "backpressure",
+      "requirement": "大事件重放与实时结算",
+      "scope": "core",
+      "source": [
+        "src/event-stream.ts"
+      ],
+      "evidence": {
+        "file": "test/client-stream.test.ts",
+        "title": "event delivery handles a large durable replay and live completion without discarding its initial event"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-data-1",
+      "requirement": "automatic memory excerpts are bounded and failed semantic retrieval falls back with an explicit event",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/media.ts",
+        "src/memory.ts",
+        "src/runtime/tool-result.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-data.test.ts",
+        "title": "automatic memory excerpts are bounded and failed semantic retrieval falls back with an explicit event"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-data-2",
+      "requirement": "recreating a deleted memory preserves prior revisions and cannot reassign another project's ID",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/media.ts",
+        "src/memory.ts",
+        "src/runtime/tool-result.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-data.test.ts",
+        "title": "recreating a deleted memory preserves prior revisions and cannot reassign another project's ID"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-data-3",
+      "requirement": "media cannot claim completion with an empty payload, text-only image, or another project's asset",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/media.ts",
+        "src/memory.ts",
+        "src/runtime/tool-result.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-data.test.ts",
+        "title": "media cannot claim completion with an empty payload, text-only image, or another project's asset"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-data-4",
+      "requirement": "asset reads and HTTP downloads reject changed bytes instead of returning a mismatched digest",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/media.ts",
+        "src/memory.ts",
+        "src/runtime/tool-result.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-data.test.ts",
+        "title": "asset reads and HTTP downloads reject changed bytes instead of returning a mismatched digest"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-data-5",
+      "requirement": "oversized tool output is archived and replaced by an explicit bounded reference, including details",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/media.ts",
+        "src/memory.ts",
+        "src/runtime/tool-result.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-data.test.ts",
+        "title": "oversized tool output is archived and replaced by an explicit bounded reference, including details"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-data-6",
+      "requirement": "attachment preparation is cancelable during shutdown and keeps the session configuration stable",
+      "scope": "core",
+      "source": [
+        "src/assets.ts",
+        "src/media.ts",
+        "src/memory.ts",
+        "src/runtime/tool-result.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-data.test.ts",
+        "title": "attachment preparation is cancelable during shutdown and keeps the session configuration stable"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-1",
+      "requirement": "settlement hooks cannot keep a completed run or its session alive forever",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "settlement hooks cannot keep a completed run or its session alive forever"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-2",
+      "requirement": "failed kernel initialization releases the single-writer lease",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "failed kernel initialization releases the single-writer lease"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-3",
+      "requirement": "actual command stdout preserves UTF-8 characters split between process writes",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "actual command stdout preserves UTF-8 characters split between process writes"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-4",
+      "requirement": "reinstalling reviewed plugin source repairs added files without retaining old trust",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "reinstalling reviewed plugin source repairs added files without retaining old trust"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-5",
+      "requirement": "media plugins declare actual capabilities and adapter IDs cannot silently bind another plugin",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "media plugins declare actual capabilities and adapter IDs cannot silently bind another plugin"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-6",
+      "requirement": "route deletion respects reusable mode and agent references",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "route deletion respects reusable mode and agent references"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-extensions-7",
+      "requirement": "a failing integration cleanup cannot leave the store lease or other resources open",
+      "scope": "core",
+      "source": [
+        "src/extensions/plugins.ts",
+        "src/media/adapters.ts",
+        "src/kernel.ts",
+        "src/execution/process.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-extensions.test.ts",
+        "title": "a failing integration cleanup cannot leave the store lease or other resources open"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-1",
+      "requirement": "provider context overflow triggers one model compaction retry and preserves canonical history",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "provider context overflow triggers one model compaction retry and preserves canonical history"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-2",
+      "requirement": "repeated identical tool results stop the loop with durable results and a failed run",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "repeated identical tool results stop the loop with durable results and a failed run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-3",
+      "requirement": "registered execute tools without capability declarations inherit exec permission checks",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "registered execute tools without capability declarations inherit exec permission checks"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-4",
+      "requirement": "planning mode may persist its internal plan while external file writes remain denied",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "planning mode may persist its internal plan while external file writes remain denied"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-5",
+      "requirement": "file search counts actual directory entries and stops at its configured budget",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "file search counts actual directory entries and stops at its configured budget"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-6",
+      "requirement": "Skill selection in a steering input delivers its actual instructions in the continuing run",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "Skill selection in a steering input delivers its actual instructions in the continuing run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-7",
+      "requirement": "disconnect during MCP initialization revokes the pending connection instead of re-enabling it",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "disconnect during MCP initialization revokes the pending connection instead of re-enabling it"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-features-8",
+      "requirement": "integration authorization cannot downgrade the tool's original capabilities or risk",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/context.ts",
+        "src/providers/text.ts",
+        "src/extensions/mcp.ts",
+        "src/runtime/registry.ts",
+        "src/permissions.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-features.test.ts",
+        "title": "integration authorization cannot downgrade the tool's original capabilities or risk"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-permissions-1",
+      "requirement": "automatic memory retrieval respects host, route and project denial and never bypasses ask",
+      "scope": "core",
+      "source": [
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/extensions/mcp.ts",
+        "src/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-permissions.test.ts",
+        "title": "automatic memory retrieval respects host, route and project denial and never bypasses ask"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-permissions-2",
+      "requirement": "a policy revoked while approval is pending is enforced before the file effect begins",
+      "scope": "core",
+      "source": [
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/extensions/mcp.ts",
+        "src/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-permissions.test.ts",
+        "title": "a policy revoked while approval is pending is enforced before the file effect begins"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-permissions-3",
+      "requirement": "git inspection cannot execute repository helpers under read-only permissions",
+      "scope": "core",
+      "source": [
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/extensions/mcp.ts",
+        "src/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-permissions.test.ts",
+        "title": "git inspection cannot execute repository helpers under read-only permissions"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-permissions-4",
+      "requirement": "an MCP tool closure is revoked after disconnect and cannot call a replacement server",
+      "scope": "core",
+      "source": [
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/extensions/mcp.ts",
+        "src/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-permissions.test.ts",
+        "title": "an MCP tool closure is revoked after disconnect and cannot call a replacement server"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-1",
+      "requirement": "automatic memory is excluded from a fallback model that denies memory reads",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "automatic memory is excluded from a fallback model that denies memory reads"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-2",
+      "requirement": "fallback context is budgeted for the actual smaller model before sending its request",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "fallback context is budgeted for the actual smaller model before sending its request"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-3",
+      "requirement": "Responses argument deltas are emitted before the completed tool declaration",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "Responses argument deltas are emitted before the completed tool declaration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-4",
+      "requirement": "session message budgets stop before another model call and keep the executed tool result",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "session message budgets stop before another model call and keep the executed tool result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-5",
+      "requirement": "steering between tools skips remaining effects and records matching results before continuing",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "steering between tools skips remaining effects and records matching results before continuing"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-6",
+      "requirement": "old registration disposers cannot revoke replacement tools or counters",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "old registration disposers cannot revoke replacement tools or counters"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-runtime-7",
+      "requirement": "escaped configured secrets never enter model inputs or durable tool effect results",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/util.ts",
+        "src/runtime/registry.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-runtime.test.ts",
+        "title": "escaped configured secrets never enter model inputs or durable tool effect results"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "audit-storage-1",
+      "requirement": "another live kernel cannot recover active runs; a dead owner's lease is recovered atomically",
+      "scope": "core",
+      "source": [
+        "src/store.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/audit-storage.test.ts",
+        "title": "another live kernel cannot recover active runs; a dead owner's lease is recovered atomically"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-process-1",
+      "requirement": "persistent pipe processes accept input across calls, preserve cursors and enforce session ownership",
+      "scope": "core",
+      "source": [
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/native/ConPtyHost.cs",
+        "src/execution/native/pty_host.py",
+        "src/execution/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-process.test.ts",
+        "title": "persistent pipe processes accept input across calls, preserve cursors and enforce session ownership"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-process-2",
+      "requirement": "real PTY exposes a terminal, accepts raw input and applies window resizing",
+      "scope": "core",
+      "source": [
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/native/ConPtyHost.cs",
+        "src/execution/native/pty_host.py",
+        "src/execution/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-process.test.ts",
+        "title": "real PTY exposes a terminal, accepts raw input and applies window resizing"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-process-3",
+      "requirement": "process brokers reconnect after kernel restart without rerunning commands",
+      "scope": "core",
+      "source": [
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/native/ConPtyHost.cs",
+        "src/execution/native/pty_host.py",
+        "src/execution/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-process.test.ts",
+        "title": "process brokers reconnect after kernel restart without rerunning commands"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-process-4",
+      "requirement": "persistent processes enforce lifetime, output retention and global process capacity",
+      "scope": "core",
+      "source": [
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/native/ConPtyHost.cs",
+        "src/execution/native/pty_host.py",
+        "src/execution/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-process.test.ts",
+        "title": "persistent processes enforce lifetime, output retention and global process capacity"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-process-5",
+      "requirement": "stopping a managed process terminates its actual child tree",
+      "scope": "core",
+      "source": [
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/native/ConPtyHost.cs",
+        "src/execution/native/pty_host.py",
+        "src/execution/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-process.test.ts",
+        "title": "stopping a managed process terminates its actual child tree"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-process-6",
+      "requirement": "cancelled process startup cannot leave a running managed process",
+      "scope": "core",
+      "source": [
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/native/ConPtyHost.cs",
+        "src/execution/native/pty_host.py",
+        "src/execution/tools.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-process.test.ts",
+        "title": "cancelled process startup cannot leave a running managed process"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-scheduler-1",
+      "requirement": "independent tools actually overlap and all results reach the next model step",
+      "scope": "core",
+      "source": [
+        "src/runtime/scheduler.ts",
+        "src/runtime/engine.ts",
+        "src/runtime/types.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-scheduler.test.ts",
+        "title": "independent tools actually overlap and all results reach the next model step"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-scheduler-2",
+      "requirement": "kernel scheduler enforces shared/exclusive locks, fairness, capacity and cancelled waiters",
+      "scope": "core",
+      "source": [
+        "src/runtime/scheduler.ts",
+        "src/runtime/engine.ts",
+        "src/runtime/types.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-scheduler.test.ts",
+        "title": "kernel scheduler enforces shared/exclusive locks, fairness, capacity and cancelled waiters"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-scheduler-3",
+      "requirement": "undeclared native tools remain exclusive and denied parallel tools never execute",
+      "scope": "core",
+      "source": [
+        "src/runtime/scheduler.ts",
+        "src/runtime/engine.ts",
+        "src/runtime/types.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-scheduler.test.ts",
+        "title": "undeclared native tools remain exclusive and denied parallel tools never execute"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-scheduler-4",
+      "requirement": "steering stops undispatched parallel work and retains a result for every declared call",
+      "scope": "core",
+      "source": [
+        "src/runtime/scheduler.ts",
+        "src/runtime/engine.ts",
+        "src/runtime/types.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-scheduler.test.ts",
+        "title": "steering stops undispatched parallel work and retains a result for every declared call"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-scheduler-5",
+      "requirement": "different sessions share the kernel-wide tool concurrency ceiling",
+      "scope": "core",
+      "source": [
+        "src/runtime/scheduler.ts",
+        "src/runtime/engine.ts",
+        "src/runtime/types.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-scheduler.test.ts",
+        "title": "different sessions share the kernel-wide tool concurrency ceiling"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-1",
+      "requirement": "real protocol usage settles the configured model price and exposes durable cost APIs",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "real protocol usage settles the configured model price and exposes durable cost APIs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-2",
+      "requirement": "cost ceilings and missing prices stop before any model HTTP request",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "cost ceilings and missing prices stop before any model HTTP request"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-3",
+      "requirement": "reservations are atomic across concurrent scopes and ambiguous charges stay held until reconciliation",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "reservations are atomic across concurrent scopes and ambiguous charges stay held until reconciliation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-4",
+      "requirement": "cache accounting distinguishes inclusive OpenAI usage from Anthropic cache token categories",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "cache accounting distinguishes inclusive OpenAI usage from Anthropic cache token categories"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-5",
+      "requirement": "fallback attempts keep distinct price snapshots and the failed attempt's reservation",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "fallback attempts keep distinct price snapshots and the failed attempt's reservation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-6",
+      "requirement": "media requests reserve their configured maximum and idempotent replay does not reserve twice",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "media requests reserve their configured maximum and idempotent replay does not reserve twice"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-7",
+      "requirement": "embedding work inside a run inherits its financial scope and settles actual input usage",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "embedding work inside a run inherits its financial scope and settles actual input usage"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-8",
+      "requirement": "automatic memory extraction is charged to the same run with its own purpose",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "automatic memory extraction is charged to the same run with its own purpose"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-9",
+      "requirement": "media adapter billing settles the job reservation and keeps the configured price snapshot",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "media adapter billing settles the job reservation and keeps the configured price snapshot"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-10",
+      "requirement": "run, session, project, UTC-day and total ceilings account for outstanding reservations",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "run, session, project, UTC-day and total ceilings account for outstanding reservations"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-11",
+      "requirement": "cancelled model streams retain reservations instead of inventing zero-cost success",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "cancelled model streams retain reservations instead of inventing zero-cost success"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-12",
+      "requirement": "missing credentials release a provably unsent reservation and settlement overruns preserve the actual charge",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "missing credentials release a provably unsent reservation and settlement overruns preserve the actual charge"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-cost-13",
+      "requirement": "hierarchical compaction model calls are charged to the originating run",
+      "scope": "core",
+      "source": [
+        "src/runtime/cost.ts",
+        "src/providers/text.ts",
+        "src/context.ts",
+        "src/memory.ts",
+        "src/media.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-cost.test.ts",
+        "title": "hierarchical compaction model calls are charged to the originating run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-isolation-1",
+      "requirement": "container commands use non-root bounded isolation and cannot inject Docker flags or escape the workspace",
+      "scope": "core",
+      "source": [
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-isolation.test.ts",
+        "title": "container commands use non-root bounded isolation and cannot inject Docker flags or escape the workspace"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-isolation-2",
+      "requirement": "required isolation rejects native plugin and MCP stdio execution before launching any source",
+      "scope": "core",
+      "source": [
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-isolation.test.ts",
+        "title": "required isolation rejects native plugin and MCP stdio execution before launching any source"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-isolation-3",
+      "requirement": "process HTTP actions require approval, respect plan restrictions and publish real results",
+      "scope": "core",
+      "source": [
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-isolation.test.ts",
+        "title": "process HTTP actions require approval, respect plan restrictions and publish real results"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-isolation-4",
+      "requirement": "managed output redacts known secrets split across writes before durable journal persistence",
+      "scope": "core",
+      "source": [
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-isolation.test.ts",
+        "title": "managed output redacts known secrets split across writes before durable journal persistence"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-isolation-5",
+      "requirement": "an unavailable Docker backend fails closed without running the command on the host",
+      "scope": "core",
+      "source": [
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-isolation.test.ts",
+        "title": "an unavailable Docker backend fails closed without running the command on the host"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-isolation-6",
+      "requirement": "process RPC authenticates replies, hides its control secret and rejects replayed requests",
+      "scope": "core",
+      "source": [
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/permissions.ts",
+        "src/kernel.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-isolation.test.ts",
+        "title": "process RPC authenticates replies, hides its control secret and rejects replayed requests"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-1",
+      "requirement": "portable migration moves actual binary assets and balanced tool evidence between independent hosts without replay",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "portable migration moves actual binary assets and balanced tool evidence between independent hosts without replay"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-2",
+      "requirement": "migration rejects corruption, missing dependencies, extra assets and traversal before writing any destination state",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "migration rejects corruption, missing dependencies, extra assets and traversal before writing any destination state"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-3",
+      "requirement": "migration rolls back promoted files and metadata if destination route validation fails",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "migration rolls back promoted files and metadata if destination route validation fails"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-4",
+      "requirement": "migration recovery deletes only orphan promotions and preserves committed assets",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "migration recovery deletes only orphan promotions and preserves committed assets"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-5",
+      "requirement": "migration enforces total bytes and refuses foreign-project asset references",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "migration enforces total bytes and refuses foreign-project asset references"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-6",
+      "requirement": "migration startup recovery works after reopening the actual database and preserves committed data",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "migration startup recovery works after reopening the actual database and preserves committed data"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-migration-7",
+      "requirement": "portable migration supports histories larger than the legacy 8 MiB snapshot while respecting the configured total budget",
+      "scope": "core",
+      "source": [
+        "src/migration.ts",
+        "src/session-codec.ts",
+        "src/assets.ts",
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/migration.test.ts",
+        "title": "portable migration supports histories larger than the legacy 8 MiB snapshot while respecting the configured total budget"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-1",
+      "requirement": "modern stdio MCP discovers without initialization and completes MRTR with exact state and distinct IDs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "modern stdio MCP discovers without initialization and completes MRTR with exact state and distinct IDs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-2",
+      "requirement": "MCP auto negotiation falls back only for a legacy discovery error and handles bidirectional requests",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP auto negotiation falls back only for a legacy discovery error and handles bidirectional requests"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-3",
+      "requirement": "modern MCP rejects undeclared inputs and bounds server-driven continuation loops",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "modern MCP rejects undeclared inputs and bounds server-driven continuation loops"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-4",
+      "requirement": "modern subscriptions require acknowledgement, filter unrelated events and cancel the real stdio request",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "modern subscriptions require acknowledgement, filter unrelated events and cancel the real stdio request"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-5",
+      "requirement": "headless MCP elicitation validates responses, scopes roots and never accepts an expired answer",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "headless MCP elicitation validates responses, scopes roots and never accepts an expired answer"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-6",
+      "requirement": "MCP sampling requires explicit consent, uses the configured route and bills the originating run",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP sampling requires explicit consent, uses the configured route and bills the originating run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-7",
+      "requirement": "MCP required legacy tasks persist remote identity, poll completion and return actual peer output",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP required legacy tasks persist remote identity, poll completion and return actual peer output"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-8",
+      "requirement": "modern HTTP MCP mirrors encoded routing headers and never opens a legacy GET or DELETE channel",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "modern HTTP MCP mirrors encoded routing headers and never opens a legacy GET or DELETE channel"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-9",
+      "requirement": "modern HTTP SSE carries MRTR and cancellation without Last-Event-ID resumption or effect replay",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "modern HTTP SSE carries MRTR and cancellation without Last-Event-ID resumption or effect replay"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-10",
+      "requirement": "MCP sampling consent cannot override a newly denied capability or a cancelled originating run",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP sampling consent cannot override a newly denied capability or a cancelled originating run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-11",
+      "requirement": "MCP denies ambiguous legacy callbacks instead of attaching them to an arbitrary concurrent caller",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP denies ambiguous legacy callbacks instead of attaching them to an arbitrary concurrent caller"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-12",
+      "requirement": "MCP task cancellation preserves its remote identity for explicit inspection",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP task cancellation preserves its remote identity for explicit inspection"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-13",
+      "requirement": "MCP client inputs retain the effective fallback route's capability restrictions",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP client inputs retain the effective fallback route's capability restrictions"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-14",
+      "requirement": "MCP JSON Schema 2020-12 validates tuple inputs and rejects invalid structured output",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP JSON Schema 2020-12 validates tuple inputs and rejects invalid structured output"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-15",
+      "requirement": "MCP root changes notify the peer and reject paths outside configured host roots",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP root changes notify the peer and reject paths outside configured host roots"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-protocol-16",
+      "requirement": "MCP completion and logging use declared server capabilities and real peer notifications",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-interactions.ts",
+        "src/extensions/mcp-headers.ts",
+        "src/runtime/json-schema.ts",
+        "src/kernel.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-protocol.test.ts",
+        "title": "MCP completion and logging use declared server capabilities and real peer notifications"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-1",
+      "requirement": "source OAuth performs real PKCE exchange, encrypts tokens and refreshes once across concurrent MCP requests",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "source OAuth performs real PKCE exchange, encrypts tokens and refreshes once across concurrent MCP requests"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-2",
+      "requirement": "OAuth rejects state substitution, issuer mix-up and redirect mismatch before sending a token exchange",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "OAuth rejects state substitution, issuer mix-up and redirect mismatch before sending a token exchange"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-3",
+      "requirement": "OAuth invalid_grant clears local authorization and never retries the uncertain tool effect",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "OAuth invalid_grant clears local authorization and never retries the uncertain tool effect"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-4",
+      "requirement": "OAuth scope challenges require explicit reauthorization and do not replay a tool call",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "OAuth scope challenges require explicit reauthorization and do not replay a tool call"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-5",
+      "requirement": "OAuth tokens are bound to the reviewed resource and HTTP or unapproved issuers are rejected",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "OAuth tokens are bound to the reviewed resource and HTTP or unapproved issuers are rejected"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-6",
+      "requirement": "revoking OAuth while a refresh is in flight cannot restore the token vault",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "revoking OAuth while a refresh is in flight cannot restore the token vault"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-oauth-7",
+      "requirement": "closing the MCP host aborts pending OAuth refresh instead of leaving background authorization work",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-oauth.test.ts",
+        "title": "closing the MCP host aborts pending OAuth refresh instead of leaving background authorization work"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-extension-isolation-1",
+      "requirement": "Docker remains optional for actual native plugin and stdio MCP execution",
+      "scope": "core",
+      "source": [
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/plugin-container-worker.mjs",
+        "src/extensions/mcp.ts",
+        "src/permissions.ts"
+      ],
+      "evidence": {
+        "file": "test/extension-isolation.test.ts",
+        "title": "Docker remains optional for actual native plugin and stdio MCP execution"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-extension-isolation-2",
+      "requirement": "extension host generates restrictive mounts and container limits without placing credentials in argv",
+      "scope": "core",
+      "source": [
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/plugin-container-worker.mjs",
+        "src/extensions/mcp.ts",
+        "src/permissions.ts"
+      ],
+      "evidence": {
+        "file": "test/extension-isolation.test.ts",
+        "title": "extension host generates restrictive mounts and container limits without placing credentials in argv"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-extension-isolation-3",
+      "requirement": "extension isolation rejects out-of-root mounts, disabled network and unsafe container policy",
+      "scope": "core",
+      "source": [
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/plugin-container-worker.mjs",
+        "src/extensions/mcp.ts",
+        "src/permissions.ts"
+      ],
+      "evidence": {
+        "file": "test/extension-isolation.test.ts",
+        "title": "extension isolation rejects out-of-root mounts, disabled network and unsafe container policy"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-extension-isolation-4",
+      "requirement": "isolated plugin and MCP stdio fail closed and clean staging when Docker is unavailable",
+      "scope": "core",
+      "source": [
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/plugin-container-worker.mjs",
+        "src/extensions/mcp.ts",
+        "src/permissions.ts"
+      ],
+      "evidence": {
+        "file": "test/extension-isolation.test.ts",
+        "title": "isolated plugin and MCP stdio fail closed and clean staging when Docker is unavailable"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-1",
+      "requirement": "MCP tool sampling performs a real server file effect and result continuation over openai-completions",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP tool sampling performs a real server file effect and result continuation over openai-completions"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-2",
+      "requirement": "MCP tool sampling performs a real server file effect and result continuation over openai-responses",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP tool sampling performs a real server file effect and result continuation over openai-responses"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-3",
+      "requirement": "MCP tool sampling performs a real server file effect and result continuation over anthropic-messages",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP tool sampling performs a real server file effect and result continuation over anthropic-messages"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-4",
+      "requirement": "MCP sampling validates opt-in, schemas, grouped tool history and bounded tool declarations",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP sampling validates opt-in, schemas, grouped tool history and bounded tool declarations"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-5",
+      "requirement": "MCP sampling rejects forged provider tool names, invalid arguments and violated tool choices",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP sampling rejects forged provider tool names, invalid arguments and violated tool choices"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-6",
+      "requirement": "legacy MCP sampling runs the complete tool and tool-result cycle through real stdio",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "legacy MCP sampling runs the complete tool and tool-result cycle through real stdio"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-7",
+      "requirement": "MCP tool sampling remains disabled unless explicitly declared and never prompts or spends without opt-in",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP tool sampling remains disabled unless explicitly declared and never prompts or spends without opt-in"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-8",
+      "requirement": "MCP sampling fallback cannot select tools excluded by its effective route",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP sampling fallback cannot select tools excluded by its effective route"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-9",
+      "requirement": "MCP sampling rechecks permissions after model completion before returning a server tool call",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP sampling rechecks permissions after model completion before returning a server tool call"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-10",
+      "requirement": "MCP sampling obeys the originating run cost ceiling before sending model HTTP",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP sampling obeys the originating run cost ceiling before sending model HTTP"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-11",
+      "requirement": "MCP sampling tool continuations share one per-origin request quota",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP sampling tool continuations share one per-origin request quota"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-12",
+      "requirement": "MCP task reverse input retains its origin after creation for immediate callbacks",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task reverse input retains its origin after creation for immediate callbacks"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-13",
+      "requirement": "MCP task reverse input retains its origin after creation for wait callbacks",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task reverse input retains its origin after creation for wait callbacks"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-14",
+      "requirement": "MCP concurrent tasks route reverse callbacks by exact task ID and shared origin only",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP concurrent tasks route reverse callbacks by exact task ID and shared origin only"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-15",
+      "requirement": "MCP asynchronous task sampling executes server tools and keeps both model charges on the originating run",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP asynchronous task sampling executes server tools and keeps both model charges on the originating run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-16",
+      "requirement": "MCP task rejects foreign reverse callbacks without granting another origin",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task rejects foreign reverse callbacks without granting another origin"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-17",
+      "requirement": "MCP task rejects no-meta reverse callbacks without granting another origin",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task rejects no-meta reverse callbacks without granting another origin"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-18",
+      "requirement": "MCP task cancellation aborts an active reverse callback and rejects late callbacks",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task cancellation aborts an active reverse callback and rejects late callbacks"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-19",
+      "requirement": "MCP task TTL aborts stalled callback consent and prevents file effects",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task TTL aborts stalled callback consent and prevents file effects"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-20",
+      "requirement": "MCP rejects result-no-meta task results instead of accepting an unbound result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP rejects result-no-meta task results instead of accepting an unbound result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-21",
+      "requirement": "MCP rejects result-foreign task results instead of accepting an unbound result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP rejects result-foreign task results instead of accepting an unbound result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-22",
+      "requirement": "MCP task progress survives initial RPC completion with the original progress token",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP task progress survives initial RPC completion with the original progress token"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-23",
+      "requirement": "MCP HTTP task callbacks on GET streams keep their related-task origin",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP HTTP task callbacks on GET streams keep their related-task origin"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-advanced-24",
+      "requirement": "MCP HTTP task callbacks on unrelated POST streams keep their related-task origin",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-sampling.ts",
+        "src/extensions/mcp-task-context.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/providers/text.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-advanced.test.ts",
+        "title": "MCP HTTP task callbacks on unrelated POST streams keep their related-task origin"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-1",
+      "requirement": "OAuth dynamic none client completes actual registration, PKCE and refresh without SDKs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth dynamic none client completes actual registration, PKCE and refresh without SDKs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-2",
+      "requirement": "OAuth dynamic client_secret_basic client completes actual registration, PKCE and refresh without SDKs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth dynamic client_secret_basic client completes actual registration, PKCE and refresh without SDKs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-3",
+      "requirement": "OAuth dynamic client_secret_post client completes actual registration, PKCE and refresh without SDKs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth dynamic client_secret_post client completes actual registration, PKCE and refresh without SDKs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-4",
+      "requirement": "OAuth DCR deduplicates concurrent registration and reuses encrypted credentials after host restart",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR deduplicates concurrent registration and reuses encrypted credentials after host restart"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-5",
+      "requirement": "OAuth DCR scopes initial access tokens and software statements to the reviewed registration POST",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR scopes initial access tokens and software statements to the reviewed registration POST"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-6",
+      "requirement": "OAuth DCR uncertain network outcome survives restart and requires explicit acknowledgement before retry",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR uncertain network outcome survives restart and requires explicit acknowledgement before retry"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-7",
+      "requirement": "OAuth DCR rejects redirect response changes and prevents automatic re-registration",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR rejects redirect response changes and prevents automatic re-registration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-8",
+      "requirement": "OAuth DCR rejects auth response changes and prevents automatic re-registration",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR rejects auth response changes and prevents automatic re-registration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-9",
+      "requirement": "OAuth DCR rejects grant response changes and prevents automatic re-registration",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR rejects grant response changes and prevents automatic re-registration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-10",
+      "requirement": "OAuth DCR rejects missing-secret response changes and prevents automatic re-registration",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR rejects missing-secret response changes and prevents automatic re-registration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-11",
+      "requirement": "OAuth DCR denies unreviewed endpoint origins and rejects contradictory registration configuration",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR denies unreviewed endpoint origins and rejects contradictory registration configuration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-12",
+      "requirement": "OAuth DCR known rejection permits an explicit retry and local reset preserves truthful remote status",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR known rejection permits an explicit retry and local reset preserves truthful remote status"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-13",
+      "requirement": "OAuth DCR configuration replacement and reset cannot race an in-flight registration",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR configuration replacement and reset cannot race an in-flight registration"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-14",
+      "requirement": "OAuth DCR host shutdown leaves an uncertain attempt instead of committing late credentials",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR host shutdown leaves an uncertain attempt instead of committing late credentials"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-registration-15",
+      "requirement": "OAuth DCR server failure is not replayed and expired client secrets require an explicit reset",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration.test.ts",
+        "title": "OAuth DCR server failure is not replayed and expired client secrets require an explicit reset"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-1",
+      "requirement": "MCP client receives a real asynchronous elicitation task with durable state and deferred result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP client receives a real asynchronous elicitation task with durable state and deferred result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-2",
+      "requirement": "MCP client receives a real asynchronous sampling task with durable state and deferred result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP client receives a real asynchronous sampling task with durable state and deferred result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-3",
+      "requirement": "MCP client tasks require explicit capabilities and matching enabled input handlers",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP client tasks require explicit capabilities and matching enabled input handlers"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-4",
+      "requirement": "MCP received task cancellation aborts consent, stays terminal and creates no file effect",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP received task cancellation aborts consent, stays terminal and creates no file effect"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-5",
+      "requirement": "MCP received task TTL cancels pending input and expired handles cannot retrieve a result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP received task TTL cancels pending input and expired handles cannot retrieve a result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-6",
+      "requirement": "MCP client tasks cannot outlive an originating tool call or charge after its run has ended",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP client tasks cannot outlive an originating tool call or charge after its run has ended"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-7",
+      "requirement": "MCP received task pagination uses scoped opaque cursors and preserves every actual result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP received task pagination uses scoped opaque cursors and preserves every actual result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-8",
+      "requirement": "MCP received task handles from another connection never expose private state",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP received task handles from another connection never expose private state"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-9",
+      "requirement": "MCP receiver persists interrupted tasks on shutdown and startup never resumes model work",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP receiver persists interrupted tasks on shutdown and startup never resumes model work"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-10",
+      "requirement": "modern MCP task extension polls and submits actual user input before returning real server output",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern MCP task extension polls and submits actual user input before returning real server output"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-11",
+      "requirement": "modern MCP task sampling preserves tool results, real file bytes and the originating cost scope",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern MCP task sampling preserves tool results, real file bytes and the originating cost scope"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-12",
+      "requirement": "modern MCP tasks require negotiated extension support and may still return an immediate result",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern MCP tasks require negotiated extension support and may still return an immediate result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-13",
+      "requirement": "modern task input deduplication tolerates eventually consistent acknowledgement without repeating a prompt",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task input deduplication tolerates eventually consistent acknowledgement without repeating a prompt"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-14",
+      "requirement": "modern task input keys cannot be reused for different payloads before showing another prompt",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task input keys cannot be reused for different payloads before showing another prompt"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-15",
+      "requirement": "modern task cancellation acknowledges intent while keeping uncertain remote effects distinct from cancellation",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task cancellation acknowledges intent while keeping uncertain remote effects distinct from cancellation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-16",
+      "requirement": "modern task TTL bounds polling and records an uncertain outcome without replaying tools",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task TTL bounds polling and records an uncertain outcome without replaying tools"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-17",
+      "requirement": "modern task protocol errors, tool errors and terminal seed states keep their distinct semantics",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task protocol errors, tool errors and terminal seed states keep their distinct semantics"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-18",
+      "requirement": "modern task rejects wrong-id polling results before accepting success",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task rejects wrong-id polling results before accepting success"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-19",
+      "requirement": "modern task rejects bad-shape polling results before accepting success",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task rejects bad-shape polling results before accepting success"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-20",
+      "requirement": "modern terminal task snapshots cannot be changed back to a working task",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern terminal task snapshots cannot be changed back to a working task"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-21",
+      "requirement": "modern task subscriptions require acknowledgement and reject notifications for unrequested tasks",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task subscriptions require acknowledgement and reject notifications for unrequested tasks"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-22",
+      "requirement": "modern task records preserve remote IDs across disconnect and reject a changed server binding",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task records preserve remote IDs across disconnect and reject a changed server binding"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-23",
+      "requirement": "modern HTTP task requests mirror the task ID in routing headers without legacy task methods",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern HTTP task requests mirror the task ID in routing headers without legacy task methods"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-24",
+      "requirement": "modern task input round limits stop before another model or user handler runs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task input round limits stop before another model or user handler runs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-25",
+      "requirement": "modern task sampling consent cannot override a newly denied capability",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task sampling consent cannot override a newly denied capability"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-26",
+      "requirement": "received sampling tasks share one originating quota across concurrent client task handles",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "received sampling tasks share one originating quota across concurrent client task handles"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-27",
+      "requirement": "MCP task receiver fails closed when durable task creation cannot be persisted",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "MCP task receiver fails closed when durable task creation cannot be persisted"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-28",
+      "requirement": "modern task update connection loss retains unknown state without repeating input or tool effects",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern task update connection loss retains unknown state without repeating input or tool effects"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-29",
+      "requirement": "legacy HTTP peer can create a client task and fetch its deferred result over the notification stream",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "legacy HTTP peer can create a client task and fetch its deferred result over the notification stream"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-30",
+      "requirement": "modern seed-invalid cannot be counted as a completed validated task",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern seed-invalid cannot be counted as a completed validated task"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-task-interop-31",
+      "requirement": "modern invalid-tool cannot be counted as a completed validated task",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-task-receiver.ts",
+        "src/extensions/mcp-modern-tasks.ts",
+        "src/extensions/mcp-client.ts",
+        "src/extensions/mcp.ts",
+        "src/store.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-task-interop.test.ts",
+        "title": "modern invalid-tool cannot be counted as a completed validated task"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-1",
+      "requirement": "CIMD none completes PKCE and refresh over trusted HTTPS using published client metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD none completes PKCE and refresh over trusted HTTPS using published client metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-2",
+      "requirement": "CIMD RS256 completes PKCE and refresh over trusted HTTPS using published client metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD RS256 completes PKCE and refresh over trusted HTTPS using published client metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-3",
+      "requirement": "CIMD ES256 completes PKCE and refresh over trusted HTTPS using published client metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD ES256 completes PKCE and refresh over trusted HTTPS using published client metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-4",
+      "requirement": "CIMD EdDSA completes PKCE and refresh over trusted HTTPS using published client metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD EdDSA completes PKCE and refresh over trusted HTTPS using published client metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-5",
+      "requirement": "CIMD refuses an unsupported authorization server without silently registering another client",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD refuses an unsupported authorization server without silently registering another client"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-6",
+      "requirement": "CIMD uses explicit DCR fallback only when metadata support is absent",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD uses explicit DCR fallback only when metadata support is absent"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-7",
+      "requirement": "CIMD configuration rejects insecure or ambiguous client identifiers before publication",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD configuration rejects insecure or ambiguous client identifiers before publication"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-8",
+      "requirement": "CIMD documents include the exact callback and prohibit shared-secret authentication",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD documents include the exact callback and prohibit shared-secret authentication"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-9",
+      "requirement": "CIMD private key JWT uses public JWKS and a short audience-bound assertion with unique IDs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD private key JWT uses public JWKS and a short audience-bound assertion with unique IDs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-10",
+      "requirement": "CIMD public endpoint exposes only the configured document and rejects conflicting paths",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD public endpoint exposes only the configured document and rejects conflicting paths"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-11",
+      "requirement": "CIMD can export a document for external HTTPS hosting without exposing a local public endpoint",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD can export a document for external HTTPS hosting without exposing a local public endpoint"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-mcp-cimd-12",
+      "requirement": "CIMD rejects a client assertion algorithm excluded by authorization server metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-cimd.test.ts",
+        "title": "CIMD rejects a client assertion algorithm excluded by authorization server metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-1",
+      "requirement": "OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-2",
+      "requirement": "OAuth device polling persists authorization_pending and slow_down with the required five-second increase",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device polling persists authorization_pending and slow_down with the required five-second increase"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-3",
+      "requirement": "OAuth device flow uses the five-second default and never polls early after restart",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device flow uses the five-second default and never polls early after restart"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-4",
+      "requirement": "OAuth device access_denied is terminal and cannot trigger automatic authorization or polling",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device access_denied is terminal and cannot trigger automatic authorization or polling"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-5",
+      "requirement": "OAuth device expired_token is terminal and cannot trigger automatic authorization or polling",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device expired_token is terminal and cannot trigger automatic authorization or polling"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-6",
+      "requirement": "OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-7",
+      "requirement": "OAuth device flow expires locally without contacting the token endpoint",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device flow expires locally without contacting the token endpoint"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-8",
+      "requirement": "OAuth device connection failure doubles the persisted polling interval",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device connection failure doubles the persisted polling interval"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-9",
+      "requirement": "OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-10",
+      "requirement": "OAuth device start cancellation and logout during discovery leave no resumable grant",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device start cancellation and logout during discovery leave no resumable grant"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-11",
+      "requirement": "OAuth device dynamic none registration uses the issued credentials and device grant metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device dynamic none registration uses the issued credentials and device grant metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-12",
+      "requirement": "OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-13",
+      "requirement": "OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-14",
+      "requirement": "OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-15",
+      "requirement": "OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-16",
+      "requirement": "OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-17",
+      "requirement": "OAuth device continuous waiting honors cancellation and can resume the same pending grant",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device continuous waiting honors cancellation and can resume the same pending grant"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-18",
+      "requirement": "OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-device-19",
+      "requirement": "OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-device.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts",
+        "src/client.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-device.test.ts",
+        "title": "OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-1",
+      "requirement": "OAuth registration refuses an issued client secret without an explicit expiration and retains unknown outcome",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth registration refuses an issued client secret without an explicit expiration and retains unknown outcome"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-2",
+      "requirement": "OAuth management refuses an issued client secret without an explicit expiration and retains unknown outcome",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth management refuses an issued client secret without an explicit expiration and retains unknown outcome"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-3",
+      "requirement": "OAuth RFC 7592 reads remote registration and atomically adopts rotated management and client credentials",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 reads remote registration and atomically adopts rotated management and client credentials"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-4",
+      "requirement": "OAuth RFC 7592 updates send complete metadata, preserve unknown extensions and omit registration-only fields",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 updates send complete metadata, preserve unknown extensions and omit registration-only fields"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-5",
+      "requirement": "OAuth RFC 7592 rejects credential injection and incompatible grants without sending a remote mutation",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 rejects credential injection and incompatible grants without sending a remote mutation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-6",
+      "requirement": "OAuth RFC 7592 successful remote deletion removes registration and authorization while local reset reports no remote deletion",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 successful remote deletion removes registration and authorization while local reset reports no remote deletion"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-7",
+      "requirement": "OAuth RFC 7592 uncertain management outcome persists across restart and blocks replay until an acknowledged reconciliation read",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 uncertain management outcome persists across restart and blocks replay until an acknowledged reconciliation read"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-8",
+      "requirement": "OAuth RFC 7592 known unsupported method preserves credentials and permits an explicit retry",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 known unsupported method preserves credentials and permits an explicit retry"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-9",
+      "requirement": "OAuth RFC 7592 rejects a changed registration_client_uri response and keeps the operation outcome unknown",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 rejects a changed registration_client_uri response and keeps the operation outcome unknown"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-10",
+      "requirement": "OAuth RFC 7592 rejects a changed client_id response and keeps the operation outcome unknown",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 rejects a changed client_id response and keeps the operation outcome unknown"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-11",
+      "requirement": "OAuth RFC 7592 cannot race configuration replacement, local reset or another remote mutation",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 cannot race configuration replacement, local reset or another remote mutation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-12",
+      "requirement": "OAuth RFC 7592 is unavailable when registration returns no management credentials and rejects incomplete management pairs",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 is unavailable when registration returns no management credentials and rejects incomplete management pairs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-registration-management-13",
+      "requirement": "OAuth RFC 7592 shutdown cannot commit a late credential rotation and vault files contain no plaintext credentials",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-registration.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/management-api.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-registration-management.test.ts",
+        "title": "OAuth RFC 7592 shutdown cannot commit a late credential rotation and vault files contain no plaintext credentials"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-1",
+      "requirement": "OAuth short-lived assertion redaction expires without removing persistent credential redaction",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth short-lived assertion redaction expires without removing persistent credential redaction"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-2",
+      "requirement": "OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-3",
+      "requirement": "OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-4",
+      "requirement": "OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-5",
+      "requirement": "OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-6",
+      "requirement": "OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-7",
+      "requirement": "OAuth managed concurrent publication, signing and rotation share one active key and one successor",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed concurrent publication, signing and rotation share one active key and one successor"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-8",
+      "requirement": "OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-9",
+      "requirement": "OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-10",
+      "requirement": "OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-11",
+      "requirement": "OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-oauth-keyring-12",
+      "requirement": "OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window",
+      "scope": "core",
+      "source": [
+        "src/extensions/mcp-keyring.ts",
+        "src/extensions/mcp-client-metadata.ts",
+        "src/extensions/oauth-vault.ts",
+        "src/extensions/mcp-oauth.ts",
+        "src/extensions/mcp.ts",
+        "src/server.ts",
+        "src/util.ts"
+      ],
+      "evidence": {
+        "file": "test/mcp-keyring.test.ts",
+        "title": "OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "asset-cancellation",
+      "requirement": "取消资产写入不发布元数据或遗留部分产物",
+      "scope": "core",
+      "source": [
+        "src/assets.ts"
+      ],
+      "evidence": {
+        "file": "test/asset-cancellation.test.ts",
+        "title": "cancelled asset writes never publish metadata or leave a partial artifact"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-1",
+      "requirement": "Windows AppContainer runs actual Node code with verified lowbox token, project file access, denied sibling data and blocked loopback networking",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows AppContainer runs actual Node code with verified lowbox token, project file access, denied sibling data and blocked loopback networking"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-2",
+      "requirement": "legacy Node pipe incompatibility fails explicitly inside the real sandbox while inherited subprocess isolation remains usable",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "legacy Node pipe incompatibility fails explicitly inside the real sandbox while inherited subprocess isolation remains usable"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-3",
+      "requirement": "Windows isolated persistent pipes have actual interactive IO, verified child state and confirmed cleanup",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows isolated persistent pipes have actual interactive IO, verified child state and confirmed cleanup"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-4",
+      "requirement": "Windows isolation rejects unsupported PTY and overbroad filesystem or network grants without native effects",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows isolation rejects unsupported PTY and overbroad filesystem or network grants without native effects"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-5",
+      "requirement": "Windows isolated source plugins perform actual project writes, deny private reads and cannot modify reviewed source",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows isolated source plugins perform actual project writes, deny private reads and cannot modify reviewed source"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-6",
+      "requirement": "Windows isolated MCP stdio completes actual protocol calls, read-only filesystem denial, scoped roots and explicit secret forwarding",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows isolated MCP stdio completes actual protocol calls, read-only filesystem denial, scoped roots and explicit secret forwarding"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-7",
+      "requirement": "Windows sandbox timeout and cancellation terminate actual descendant processes and revoke project ACLs",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox timeout and cancellation terminate actual descendant processes and revoke project ACLs"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-8",
+      "requirement": "Windows sandbox recovery preserves live owners, cleans a killed launcher's actual job and resumes through kernel startup",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox recovery preserves live owners, cleans a killed launcher's actual job and resumes through kernel startup"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-9",
+      "requirement": "Windows process cancellation during sandbox preparation cleans staged runtime and never launches requested code",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows process cancellation during sandbox preparation cleans staged runtime and never launches requested code"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-10",
+      "requirement": "Windows sandbox cannot traverse a project junction into private host data and preserves the private ACL",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox cannot traverse a project junction into private host data and preserves the private ACL"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-11",
+      "requirement": "Windows sandbox persistent process survives kernel restart with one launch and can still be explicitly stopped",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox persistent process survives kernel restart with one launch and can still be explicitly stopped"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-12",
+      "requirement": "Windows sandbox automatically terminates and cleans the actual job when its nonpersistent owner crashes",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox automatically terminates and cleans the actual job when its nonpersistent owner crashes"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-13",
+      "requirement": "Windows sandbox job enforces the configured process limit against real inherited and detached child launches",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox job enforces the configured process limit against real inherited and detached child launches"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-14",
+      "requirement": "kernel shutdown drains actual isolated commands and source plugin cleanup before releasing the single-user kernel",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "kernel shutdown drains actual isolated commands and source plugin cleanup before releasing the single-user kernel"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-15",
+      "requirement": "Windows execution probe and capability API report actual isolation and the explicit unsupported PTY boundary",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows execution probe and capability API report actual isolation and the explicit unsupported PTY boundary"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-16",
+      "requirement": "persistent broker revokes actual sandbox grants after the isolated launcher is killed without a stop request",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "persistent broker revokes actual sandbox grants after the isolated launcher is killed without a stop request"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-windows-sandbox-17",
+      "requirement": "Windows sandbox read-only policy is enforced by the OS and child processes retain the same file isolation",
+      "scope": "core",
+      "source": [
+        "src/execution/windows-sandbox.ts",
+        "src/execution/native/AppContainerHost.cs",
+        "src/execution/native/node-appcontainer-guard.cjs",
+        "src/execution/process.ts",
+        "src/execution/sessions.ts",
+        "src/execution/process-broker.mjs",
+        "src/execution/extension-host.ts",
+        "src/extensions/plugins.ts",
+        "src/extensions/mcp.ts",
+        "src/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/foundation-windows-sandbox.test.ts",
+        "title": "Windows sandbox read-only policy is enforced by the OS and child processes retain the same file isolation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-kernel-scope-1",
+      "requirement": "single-user kernel serves authenticated clients without account login or constructing an MCP OAuth service",
+      "scope": "core",
+      "source": [
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-client.ts"
+      ],
+      "evidence": {
+        "file": "test/kernel-scope.test.ts",
+        "title": "single-user kernel serves authenticated clients without account login or constructing an MCP OAuth service"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-kernel-scope-2",
+      "requirement": "MCP close exposes an unconfirmed execution cleanup instead of silently reporting success",
+      "scope": "core",
+      "source": [
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-client.ts"
+      ],
+      "evidence": {
+        "file": "test/kernel-scope.test.ts",
+        "title": "MCP close exposes an unconfirmed execution cleanup instead of silently reporting success"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "foundation-kernel-scope-3",
+      "requirement": "route network denial blocks one-shot, persistent and Git commands before an internet-enabled execution backend starts",
+      "scope": "core",
+      "source": [
+        "src/kernel.ts",
+        "src/management-api.ts",
+        "src/extensions/mcp.ts",
+        "src/extensions/mcp-client.ts"
+      ],
+      "evidence": {
+        "file": "test/kernel-scope.test.ts",
+        "title": "route network denial blocks one-shot, persistent and Git commands before an internet-enabled execution backend starts"
+      },
+      "status": "passed-local-acceptance"
+    }
+  ],
+  "externalValidation": [
+    {
+      "id": "live-vendors",
+      "status": "not-run",
+      "reason": "未提供真实文本/图片/视频/embedding 供应商联调凭据；本地协议服务不证明真实模型质量或账单。"
+    },
+    {
+      "id": "docker-runtime",
+      "status": "environment-unavailable",
+      "reason": "Docker 保持可选。源码插件和 MCP stdio 容器宿主已接入；本机缺少 Docker CLI/engine，真实容器运行、隔离与清理未验收，见 verification/docker-runtime.json。"
+    },
+    {
+      "id": "third-party-mcp-oauth-ecosystem",
+      "status": "not-exhaustive",
+      "reason": "已声明 MCP task/CIMD/OAuth profile、设备流、RFC 7592 管理与自动签名钥轮换使用实际本地 stdio、HTTP/SSE、受测试 CA 信任的 HTTPS 验证；真实第三方身份平台与 MCP 服务未全面联调。"
+    },
+    {
+      "id": "posix-pty",
+      "status": "not-run",
+      "reason": "POSIX PTY 桥接源码已有；当前 Windows 主机实测管道与 ConPTY，Linux/macOS 待验收。"
+    },
+    {
+      "id": "cross-os-migration",
+      "status": "not-run",
+      "reason": "独立内核数据目录之间的 HTTP 会话/字节迁移、数据库重启恢复已通过；Windows/Linux/macOS 实际不同机器传输待验收。"
+    },
+    {
+      "id": "public-oauth-hosting",
+      "status": "not-run",
+      "reason": "未部署真实公网 HTTPS Client Metadata URL，也未验证第三方 AS 的缓存、设备授权 UI 或企业策略。生产需自有 HTTPS 发布和可信客户端配置。"
+    },
+    {
+      "id": "windows-public-network",
+      "status": "separate-explicit-probe",
+      "reason": "可选脚本对同一公网 TCP 端点验证宿主可达、AppContainer none 拒绝和 internet 允许，并确认清理；实际状态见 verification/windows-sandbox-network.json。普通核心测试不依赖公网连通性。"
+    }
+  ],
+  "deferredByUser": [
+    "UI",
+    "ESP32 和其他实物硬件"
+  ],
+  "supportedBoundary": [
+    "默认依赖仅 Ajv/TypeBox/Zod/YAML；无 Agent、模型、MCP 或 PTY SDK 运行依赖；Node/通用库仍受原许可约束。",
+    "Docker 可选，默认 native。0.11.0 增加显式 Windows AppContainer 命令、持久管道、源码 Plugin、MCP stdio 后端，实际验证 token、文件/网络拒绝和清理；native 默认仍有宿主用户权限，审批不是 OS 沙箱。强制隔离失败不回退。",
+    "源码 Plugin 与 MCP stdio 的 Docker 后端已实现和参数/拒绝路径已测；本机没有真实 Docker，不宣称容器验收通过。",
+    "默认 tokenizer 为有精度标记的保守估算；精确计数需注册实际模型对应计数器。",
+    "单用户可信宿主，HTTP 使用独立宿主 token；不开发账户登录、多租户或跨主机共享数据目录租约。OAuth 只为显式配置的外部 MCP 服务授权，默认不构造 OAuth 服务或凭据目录。",
+    "MCP 同时支持现代/旧版已声明能力；sampling 需单次用户确认，保留主模型、实际降级模型和采样路由权限约束及费用归属。",
+    "迁移包包含空闲会话历史和实际引用资产字节，不是整个项目备份或多主机实时同步；不迁移凭据、审批、进程与源主机权限。",
+    "原生进程效果不能通用撤销；不确定结果保留 unknown，不自动重提可能已执行的工具、MCP 任务或媒体任务。",
+    "成本使用宿主配置 USD 价格，未知费用保留待核对；未接全部厂商的自动账单接口。",
+    "0.7.0 sampling.tools 由宿主逐服务器显式启用；服务端声明的工具只在 MCP 服务端执行。任务回调按连接与 related-task 绑定，取消/终态/TTL/断线结束权限；重启不自动恢复授权回调。",
+    "RFC 7591 动态注册显式启用，注册凭据加密且不迁移。结果未知的 POST 留持久意图并阻止自动重试；本地重置不代表已在远端注销客户端。",
+    "0.8.0 客户端接收任务限 2025-11-25 sampling/elicitation，逐连接隔离并持久保存，关闭/重启后不自动恢复授权执行；现代 task 扩展限已声明 tools/call，轮询与已确认订阅更新状态，输入保持原运行权限和预算。",
+    "CIMD 提供公开 JSON 元数据、HTTP 缓存和 none / private_key_jwt（RS256/ES256/EdDSA），默认底座 HTTP 可经 HTTPS 反向代理发布；本地受信 CA 的 HTTPS 全流程已测，真实公网域名和第三方授权服务器未部署验收。测试 TLS 私钥是公开的测试夹具，不是生产凭据。",
+    "0.9.0 设备流仅由宿主显式启用和发起，保留轮询间隔、slow_down、退避、重启与取消保护；CIMD 和 DCR 必须明确声明设备 grant，不保证所有第三方 AS 支持。",
+    "RFC 7592 远端 GET/PUT/DELETE 使用独立加密管理凭据；不确定结果不重试，需显式恢复读取。PUT 保留完整扩展元数据并固定已审核认证/回调/grant；远端收到 204 才报告删除，本地 reset 始终不代表远端注销。",
+    "托管 OAuth 签名钥支持 RS256/ES256/EdDSA，先公开 JWKS 再按缓存窗口启用，旧公钥保留且旧私钥从当前状态移除；实际等待 60 秒的受信 HTTPS 切换验签已覆盖。主 vault 加密密钥不自动轮换；生产公网元数据/第三方身份平台未验收。",
+    "0.10.0 可选应用包独立实现并验收管理浏览器、配对扩展、Windows 原生控制和声明的办公格式操作；默认核心不加载可选引擎，具体支持与未实现项见 APPLICATIONS.md。",
+    "0.11.0 Windows AppContainer 支持当前实测 Node 工作负载和持久管道；隔离 PTY 明确拒绝。Node/libuv 旧版子管道拒绝并报兼容错误，继承/文件 stdio 实测有效；DLL 和复杂语言运行时需额外配置与验收。详见 CORE-FOUNDATION.md。"
+  ],
+  "notImplemented": [
+    {
+      "id": "mcp-optional-profiles",
+      "status": "not-implemented",
+      "detail": "未声明 sampling.context 隐式跨会话上下文与音频采样。sampling.tools、旧版任务关联回调、客户端异步任务接收，以及现代 io.modelcontextprotocol/tasks 已有源码和本地验收；其他未声明 MCP 扩展仍不代表已实现。"
+    },
+    {
+      "id": "native-nonwindows-isolation",
+      "status": "not-implemented",
+      "detail": "Linux/macOS 原生 OS 文件/网络隔离后端未实现；可选 Docker 源码已有，实际容器环境验收另列。Windows AppContainer 当前有界支持与实测见 CORE-FOUNDATION.md。"
+    },
+    {
+      "id": "isolated-windows-pty",
+      "status": "not-implemented",
+      "detail": "Windows AppContainer 与 PTY 的组合尚未实现可用 I/O；调用明确拒绝，未使用 native 偷换隔离。旧版 Node/libuv 子 stdio/IPC 管道不兼容，预加载仅快速报告限制，不代表已解决全部构建工具兼容。"
+    },
+    {
+      "id": "optional-external-oauth-profiles",
+      "status": "not-implemented-optional-integration",
+      "detail": "外部 MCP 所需已声明 OAuth profile 保留；RFC 7009 token 撤销、RFC 7662 introspection、外部 jwks_uri 和主 vault key 轮换未实现，不作为当前最小内核完成条件。业务身份登录和企业 SSO 移至当前目标之外。"
+    }
+  ],
+  "outOfScope": [
+    {
+      "id": "accounts-and-tenants",
+      "detail": "账户注册、业务登录、用户组织和多租户管理不属于当前单用户 Agent 内核目标。"
+    },
+    {
+      "id": "enterprise-identity-and-cloud-keys",
+      "detail": "企业 SSO、OIDC 登录、HSM/KMS 与共享多主机密钥环不作为当前底座待办；未来有具体外部集成需求再扩展。"
+    },
+    {
+      "id": "distributed-execution",
+      "detail": "分布式 Gateway、跨主机执行租约、实时同步合并、进程迁移和完整项目/Git 备份不在当前目标；已有有界会话/资产离线迁移保留。"
+    }
+  ]
+}

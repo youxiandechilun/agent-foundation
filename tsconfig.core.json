@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "files": ["src/index.ts", "src/cli.ts"],
+  "include": [],
+  "exclude": [
+    "src/host/**",
+    "src/office.ts",
+    "src/browser.ts",
+    "src/computer.ts",
+    "src/nodes.ts"
+  ]
+}

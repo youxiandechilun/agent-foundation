@@ -1,0 +1,64 @@
+[
+  {
+    "id": "device-static",
+    "name": "Pre-registered device client",
+    "transport": "http",
+    "url": "https://mcp.example/mcp",
+    "oauth": {
+      "clientId": "YOUR_PRE_REGISTERED_CLIENT_ID",
+      "deviceFlow": true,
+      "allowedIssuers": ["https://identity.example"],
+      "scopes": ["read"]
+    }
+  },
+  {
+    "id": "device-dynamic",
+    "name": "DCR device client with optional remote management",
+    "transport": "http",
+    "url": "https://mcp.example/mcp",
+    "oauth": {
+      "deviceFlow": true,
+      "allowedIssuers": ["https://identity.example"],
+      "registration": {
+        "mode": "dynamic",
+        "clientName": "My Agent",
+        "tokenEndpointAuthMethod": "client_secret_post",
+        "grantTypes": [
+          "urn:ietf:params:oauth:grant-type:device_code",
+          "refresh_token"
+        ]
+      }
+    }
+  },
+  {
+    "id": "cimd-managed",
+    "name": "CIMD with rotating client assertion keys",
+    "transport": "http",
+    "url": "https://mcp.example/mcp",
+    "oauth": {
+      "deviceFlow": true,
+      "redirectUri": "http://127.0.0.1:4317/oauth/callback",
+      "allowLoopbackHttp": true,
+      "allowedIssuers": ["https://identity.example"],
+      "clientMetadata": {
+        "clientId": "https://agent.example/oauth/client.json",
+        "clientName": "My Agent",
+        "cacheMaxAge": 300,
+        "grantTypes": [
+          "authorization_code",
+          "refresh_token",
+          "urn:ietf:params:oauth:grant-type:device_code"
+        ],
+        "authentication": {
+          "method": "private_key_jwt",
+          "alg": "ES256",
+          "managed": {
+            "rotationIntervalSeconds": 86400,
+            "prepublishSeconds": 600,
+            "retainSeconds": 3600
+          }
+        }
+      }
+    }
+  }
+]

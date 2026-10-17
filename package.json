@@ -1,0 +1,73 @@
+{
+  "name": "@local/agent-foundation",
+  "version": "0.11.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./host": {
+      "types": "./dist/host/index.d.ts",
+      "import": "./dist/host/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "npm run build && node dist/cli.js serve",
+    "start": "node dist/cli.js serve",
+    "build": "tsc -p tsconfig.core.json && node scripts/copy-runtime.mjs",
+    "check": "tsc -p tsconfig.core.json --noEmit",
+    "test": "node scripts/run-core-tests.mjs",
+    "test:browser": "node scripts/run-core-tests.mjs --browser",
+    "browser:install": "playwright install chromium",
+    "demo": "npm run build && node scripts/demo.mjs",
+    "verify:source": "node scripts/verify-source.mjs",
+    "verify": "node scripts/verify-release.mjs",
+    "build:host": "tsc -p tsconfig.json && node scripts/copy-runtime.mjs --host",
+    "check:host": "tsc -p tsconfig.json --noEmit",
+    "test:host": "node scripts/run-core-tests.mjs --host",
+    "test:docker": "npm run build && node scripts/test-docker.mjs",
+    "test:windows-network": "npm run build && node scripts/test-windows-sandbox-network.mjs",
+    "verify:host": "node scripts/verify-applications.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "typebox": "1.3.27",
+    "yaml": "2.9.1",
+    "zod": "4.1.12"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1"
+    },
+    "pptxgenjs": {
+      "image-size": "2.0.4"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "22.18.10",
+    "@types/ws": "8.18.2",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3"
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas": "1.0.11",
+    "@xmldom/xmldom": "0.9.12",
+    "docx": "9.5.1",
+    "exceljs": "4.4.0",
+    "jszip": "3.10.2",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.4.299",
+    "playwright": "1.64.1",
+    "pptxgenjs": "4.0.1",
+    "ws": "8.22.0"
+  }
+}

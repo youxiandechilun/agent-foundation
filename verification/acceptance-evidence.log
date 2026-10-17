@@ -1,0 +1,45 @@
+{
+  "coreCriteriaPassed": 275,
+  "testsPassed": 300,
+  "externalValidation": [
+    {
+      "id": "live-vendors",
+      "status": "not-run",
+      "reason": "未提供真实文本/图片/视频/embedding 供应商联调凭据；本地协议服务不证明真实模型质量或账单。"
+    },
+    {
+      "id": "docker-runtime",
+      "status": "environment-unavailable",
+      "reason": "Docker 保持可选。源码插件和 MCP stdio 容器宿主已接入；本机缺少 Docker CLI/engine，真实容器运行、隔离与清理未验收，见 verification/docker-runtime.json。"
+    },
+    {
+      "id": "third-party-mcp-oauth-ecosystem",
+      "status": "not-exhaustive",
+      "reason": "已声明 MCP task/CIMD/OAuth profile、设备流、RFC 7592 管理与自动签名钥轮换使用实际本地 stdio、HTTP/SSE、受测试 CA 信任的 HTTPS 验证；真实第三方身份平台与 MCP 服务未全面联调。"
+    },
+    {
+      "id": "posix-pty",
+      "status": "not-run",
+      "reason": "POSIX PTY 桥接源码已有；当前 Windows 主机实测管道与 ConPTY，Linux/macOS 待验收。"
+    },
+    {
+      "id": "cross-os-migration",
+      "status": "not-run",
+      "reason": "独立内核数据目录之间的 HTTP 会话/字节迁移、数据库重启恢复已通过；Windows/Linux/macOS 实际不同机器传输待验收。"
+    },
+    {
+      "id": "public-oauth-hosting",
+      "status": "not-run",
+      "reason": "未部署真实公网 HTTPS Client Metadata URL，也未验证第三方 AS 的缓存、设备授权 UI 或企业策略。生产需自有 HTTPS 发布和可信客户端配置。"
+    },
+    {
+      "id": "windows-public-network",
+      "status": "separate-explicit-probe",
+      "reason": "可选脚本对同一公网 TCP 端点验证宿主可达、AppContainer none 拒绝和 internet 允许，并确认清理；实际状态见 verification/windows-sandbox-network.json。普通核心测试不依赖公网连通性。"
+    }
+  ],
+  "deferredByUser": [
+    "UI",
+    "ESP32 和其他实物硬件"
+  ]
+}

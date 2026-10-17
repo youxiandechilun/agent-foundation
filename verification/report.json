@@ -1,0 +1,78 @@
+{
+  "version": "0.11.0",
+  "checkedAt": "2026-10-16T20:27:29.989Z",
+  "node": "v22.23.2",
+  "platform": "win32",
+  "runtime": "foundation-owned",
+  "checks": [
+    {
+      "name": "build",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2415
+    },
+    {
+      "name": "source-independence",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 76
+    },
+    {
+      "name": "core-integration",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 184940,
+      "tests": {
+        "passed": 300,
+        "failed": 0
+      }
+    },
+    {
+      "name": "production-dependency-audit",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1022
+    },
+    {
+      "name": "compiled-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 815
+    },
+    {
+      "name": "acceptance-evidence",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 96
+    }
+  ],
+  "tests": {
+    "passed": 300,
+    "failed": 0
+  },
+  "dependencyAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "sourceManifest": "source-manifest.json",
+  "lockfileSha256": "e2b43ef65a32db23f4cd832bc9e5fc30a0329e7e91286f507edcb7082f865d91",
+  "validationBoundary": {
+    "paidModelQualityTest": false,
+    "textProtocols": "three real HTTP/SSE parsers tested against protocol servers",
+    "optionalHostIntegrations": "application plugins have separate actual-host acceptance in application-report.json; default core stays independent",
+    "esp32": "deferred by user",
+    "docker": "optional command, source-plugin and stdio hosts implemented; real Docker runtime acceptance is separate in docker-runtime.json",
+    "mcp": "declared modern/legacy profiles and OAuth exercised over real local stdio/HTTP/SSE; external vendor compatibility not exhaustive",
+    "oauth": "RFC 8628 device authorization, RFC 7592 registration management and managed multi-key JWT rotation exercised against local HTTP and trusted HTTPS peers; one rotation test waits the real 60-second publication window; external identity providers and public HTTPS hosting not validated",
+    "migration": "independent data directories, real binary assets and restart recovery tested; live cross-OS machine transfer not run",
+    "posixPty": "POSIX bridge source implemented; Linux/macOS runtime validation not run on this Windows host",
+    "nativePty": "Windows ConPTY exercised against actual terminal input, resizing and process exit",
+    "windowsIsolation": "Optional AppContainer backend tested with real commands, persistent pipes, source plugins, stdio MCP, verified child tokens, private-file and network denials, process limits, cancellation, owner crash, ACL revocation and restart recovery. Isolated PTY remains unavailable; legacy Node child stdio/IPC pipes are explicitly rejected. DLL and complex toolchain compatibility is not exhaustive.",
+    "deployment": "Single-user embedded kernel; no application account login or multi-tenant target. OAuth is optional external MCP authorization and is not instantiated without an explicit server declaration.",
+    "financials": "Configured USD prices, real protocol usage, reservations and operator reconciliation; live vendor invoices not reconciled"
+  }
+}

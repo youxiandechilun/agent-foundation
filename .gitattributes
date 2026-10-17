@@ -1,0 +1,2 @@
+# Preserve audited source bytes: source-manifest hashes include line endings.
+* -text

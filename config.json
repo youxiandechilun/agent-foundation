@@ -1,0 +1,82 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 4317,
+    "allowedOrigins": []
+  },
+  "dataDir": ".agent-data-v2",
+  "workspaceRoots": [
+    "workspace"
+  ],
+  "defaultRoutes": {
+    "chat": "text-completions",
+    "code": "text-completions",
+    "office": "text-completions"
+  },
+  "routes": {
+    "text-completions": {
+      "kind": "text",
+      "adapter": "openai-completions",
+      "model": "YOUR_MODEL_ID",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKeyEnv": "OPENAI_API_KEY",
+      "contextWindow": 128000,
+      "maxOutputTokens": 8192
+    },
+    "text-responses": {
+      "kind": "text",
+      "adapter": "openai-responses",
+      "model": "YOUR_MODEL_ID",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKeyEnv": "OPENAI_API_KEY",
+      "contextWindow": 128000,
+      "maxOutputTokens": 8192
+    },
+    "text-anthropic": {
+      "kind": "text",
+      "adapter": "anthropic-messages",
+      "model": "YOUR_MODEL_ID",
+      "baseUrl": "https://api.anthropic.com",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "contextWindow": 128000,
+      "maxOutputTokens": 8192
+    }
+  },
+  "permissions": {
+    "exec": "ask",
+    "media": "ask",
+    "browser": "ask",
+    "computer": "ask",
+    "mcp": "ask",
+    "plugin": "ask",
+    "node": "ask"
+  },
+  "execution": {
+    "boundary": "native",
+    "requireIsolation": false,
+    "maxProcesses": 8,
+    "processLifetimeMs": 3600000,
+    "processBufferBytes": 262144,
+    "processShutdown": "terminate"
+  },
+  "browser": {
+    "enabled": true,
+    "headless": false,
+    "allowedHosts": [
+      "*"
+    ],
+    "allowPrivateNetwork": false,
+    "cdpEndpoints": []
+  },
+  "memory": {
+    "enabled": true,
+    "autoExtract": false,
+    "maxEntriesInPrompt": 6
+  },
+  "limits": {
+    "maxConcurrentTools": 4
+  },
+  "budgets": {
+    "enabled": false
+  }
+}

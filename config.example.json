@@ -1,0 +1,164 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 4317,
+    "allowedOrigins": ["http://localhost:5173"]
+  },
+  "dataDir": ".agent-data-custom",
+  "workspaceRoots": ["workspace"],
+  "defaultRoutes": {
+    "chat": "local-text",
+    "code": "local-text",
+    "office": "local-text",
+    "compact": "local-text"
+  },
+  "routes": {
+    "local-text": {
+      "kind": "text",
+      "adapter": "openai-completions",
+      "model": "YOUR_LOCAL_MODEL_ID",
+      "baseUrl": "http://127.0.0.1:11434/v1",
+      "contextWindow": 128000,
+      "maxOutputTokens": 8192,
+      "compat": {
+        "supportsUsageInStreaming": false,
+        "maxTokensField": "max_tokens"
+      }
+    },
+    "responses": {
+      "kind": "text",
+      "adapter": "openai-responses",
+      "model": "YOUR_MODEL_ID",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKeyEnv": "OPENAI_API_KEY",
+      "contextWindow": 128000,
+      "maxOutputTokens": 8192
+    },
+    "anthropic": {
+      "kind": "text",
+      "adapter": "anthropic-messages",
+      "model": "YOUR_MODEL_ID",
+      "baseUrl": "https://api.anthropic.com",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "contextWindow": 128000,
+      "maxOutputTokens": 8192
+    },
+    "images": {
+      "kind": "image",
+      "adapter": "image-json",
+      "model": "YOUR_IMAGE_MODEL",
+      "baseUrl": "https://your-provider.example.invalid/v1",
+      "apiKeyEnv": "IMAGE_API_KEY",
+      "submitPath": "/images/generations",
+      "allowedOutputHosts": ["your-cdn.example.invalid"],
+      "enabled": false
+    },
+    "videos": {
+      "kind": "video",
+      "adapter": "media-http",
+      "model": "YOUR_VIDEO_MODEL",
+      "baseUrl": "https://your-provider.example.invalid/v1",
+      "apiKeyEnv": "VIDEO_API_KEY",
+      "submitPath": "/tasks",
+      "pollPath": "/tasks/{id}",
+      "cancelPath": "/tasks/{id}/cancel",
+      "mapping": {
+        "requestTemplate": {
+          "engine": "{{model}}",
+          "input": {
+            "text": "{{prompt}}",
+            "options": "{{parameters}}"
+          }
+        },
+        "id": "task.id",
+        "status": "task.state",
+        "outputs": "task.files",
+        "progress": "task.progress",
+        "statuses": {
+          "PENDING": "queued",
+          "PROCESSING": "running",
+          "SUCCEEDED": "completed",
+          "FAILED": "failed",
+          "CANCELLED": "cancelled"
+        }
+      },
+      "enabled": false
+    },
+    "embedding": {
+      "kind": "embedding",
+      "adapter": "openai-embeddings",
+      "model": "YOUR_EMBEDDING_MODEL",
+      "baseUrl": "https://your-provider.example.invalid/v1",
+      "apiKeyEnv": "EMBEDDING_API_KEY",
+      "enabled": false
+    }
+  },
+  "permissions": {
+    "exec": "ask",
+    "media": "ask",
+    "browser": "ask",
+    "computer": "ask",
+    "mcp": "ask",
+    "plugin": "ask",
+    "node": "ask"
+  },
+  "browser": {
+    "enabled": true,
+    "headless": false,
+    "allowPrivateNetwork": false,
+    "cdpEndpoints": [],
+    "cdpAllowExistingTabs": false,
+    "maxSessions": 8,
+    "maxTabs": 32
+  },
+  "execution": {
+    "boundary": "native",
+    "dockerImage": "node:22-bookworm-slim",
+    "dockerNetwork": false,
+    "readOnlyRoot": true,
+    "requireIsolation": false,
+    "maxProcesses": 8,
+    "processLifetimeMs": 3600000,
+    "processBufferBytes": 262144,
+    "processShutdown": "terminate",
+    "windowsSandbox": {
+      "network": "none",
+      "readOnlyRoots": [],
+      "maxRuntimeBytes": 268435456
+    }
+  },
+  "memory": {
+    "enabled": true,
+    "autoExtract": false,
+    "maxEntriesInPrompt": 6
+  },
+  "extensions": {
+    "allowedRoots": ["extensions"],
+    "timeoutMs": 30000,
+    "executionBoundary": "native"
+  },
+  "limits": {
+    "maxConcurrentTools": 4
+  },
+  "budgets": {
+    "enabled": false
+  },
+  "computer": {
+    "enabled": true,
+    "allowGlobalInput": false,
+    "allowDesktopCapture": false,
+    "allowedProcessIds": [],
+    "leaseMs": 120000,
+    "timeoutMs": 15000
+  },
+  "office": {
+    "maxConcurrentJobs": 2,
+    "maxHeapMb": 256,
+    "timeoutMs": 30000,
+    "maxArchiveBytes": 67108864,
+    "maxArchiveEntries": 3000,
+    "maxCells": 200000,
+    "maxTextChars": 2000000,
+    "maxPages": 1000
+  }
+}
