@@ -10,8 +10,15 @@ import {
   redactSecrets,
   redactJson,
   registerSecret,
+  delay as wait,
 } from "../util.js";
-import { sse, readJson, ProviderError } from "./sse.js";
+import {
+  sse,
+  readJson,
+  ProviderError,
+  retryAfter,
+  TRANSIENT_STATUSES,
+} from "./sse.js";
 import type { CostLedger, CostScope } from "../runtime/cost.js";
 import {
   completionsMessages,
@@ -221,6 +228,7 @@ export class HttpTextProvider implements TextProvider {
           description: t.description,
           input_schema: t.parameters,
         }));
+      if (r.promptCache !== false) applyCacheBreakpoints(body);
     }
     if (request.toolChoice) {
       invariant(
@@ -299,6 +307,7 @@ export class HttpTextProvider implements TextProvider {
           response.status,
           false,
           contextOverflow,
+          retryAfter(response.headers),
         );
       }
       const processEvent = async (event: any) => {
@@ -580,6 +589,7 @@ export class RouteRouter implements TextProvider {
       signal?: AbortSignal,
     ) => Promise<ModelRequest>,
     readonly billing?: { ledger: CostLedger; scope: CostScope },
+    readonly onRetry?: (notice: RetryNotice) => void,
   ) {}
   async complete(
     request: ModelRequest,
@@ -593,10 +603,8 @@ export class RouteRouter implements TextProvider {
       503,
     );
     let last: unknown;
-    for (const [index, routeId] of [
-      request.routeId,
-      ...primary.fallbackRouteIds,
-    ].entries()) {
+    const chain = [request.routeId, ...primary.fallbackRouteIds];
+    for (const [index, routeId] of chain.entries()) {
       const route = this.config.routes[routeId];
       if (!route?.enabled || route.kind !== "text") continue;
       const tools = request.tools.filter(
@@ -644,32 +652,132 @@ export class RouteRouter implements TextProvider {
                 () => provider.complete(req, delta, signal),
               )
             : provider.complete(req, delta, signal);
-        try {
-          return await complete(effective);
-        } catch (error) {
-          if (
-            !(error instanceof ProviderError) ||
-            !error.contextOverflow ||
-            error.started ||
-            signal?.aborted ||
-            !this.repairContext
-          )
-            throw error;
-          // Exactly one retry after explicit context repair, with no already-visible output or tool effect.
-          const repaired = await this.repairContext(effective, signal);
-          return await complete(repaired);
+        const attempt = async () => {
+          try {
+            return await complete(effective);
+          } catch (error) {
+            if (
+              !(error instanceof ProviderError) ||
+              !error.contextOverflow ||
+              error.started ||
+              signal?.aborted ||
+              !this.repairContext
+            )
+              throw error;
+            // Exactly one retry after explicit context repair, with no already-visible output or tool effect.
+            const repaired = await this.repairContext(effective, signal);
+            return await complete(repaired);
+          }
+        };
+        // Fallback routes absorb transient failures first; the last route in the chain retries in place.
+        const lastInChain = !chain
+          .slice(index + 1)
+          .some((id) => this.config.routes[id]?.enabled);
+        const policy = { ...DEFAULT_RETRY, ...route.retry };
+        for (let retry = 0; ; retry++) {
+          try {
+            return await attempt();
+          } catch (error) {
+            const delay = retryDelay(error, retry, policy);
+            if (!lastInChain || signal?.aborted || delay === undefined)
+              throw error;
+            this.onRetry?.({
+              routeId,
+              attempt: retry + 1,
+              maxRetries: policy.maxRetries,
+              delayMs: delay,
+              status: (error as ProviderError).upstreamStatus,
+              error: errorText(error),
+            });
+            await wait(delay, signal);
+          }
         }
       } catch (error) {
         last = error;
-        if (
-          signal?.aborted ||
-          !(error instanceof ProviderError) ||
-          error.started ||
-          ![429, 502, 503, 504].includes(error.upstreamStatus)
-        )
-          throw error;
+        if (!isTransient(error) || signal?.aborted) throw error;
       }
     }
     throw last || new ProviderError("No available text provider");
   }
+}
+const CACHEABLE = new Set([
+  "text",
+  "image",
+  "tool_use",
+  "tool_result",
+  "document",
+]);
+/**
+ * Marks Anthropic prompt-cache breakpoints (max 4): tool declarations, the system prompt
+ * and the two most recent user turns, so each step re-reads the stable prefix from cache.
+ * Blocks are copied, never mutated, because assistant blocks may be replayed provider state.
+ */
+export function applyCacheBreakpoints(body: {
+  system?: unknown;
+  tools?: Record<string, unknown>[];
+  messages: { role: string; content: Record<string, any>[] }[];
+}) {
+  const mark = { type: "ephemeral" };
+  if (body.tools?.length)
+    body.tools[body.tools.length - 1] = {
+      ...body.tools.at(-1),
+      cache_control: mark,
+    };
+  if (typeof body.system === "string" && body.system)
+    body.system = [{ type: "text", text: body.system, cache_control: mark }];
+  let remaining = 2;
+  for (let i = body.messages.length - 1; i >= 0 && remaining; i--) {
+    const message = body.messages[i];
+    if (message.role !== "user") continue;
+    const at = message.content.findLastIndex(
+      (b) => CACHEABLE.has(b.type) && !(b.type === "text" && !b.text),
+    );
+    if (at < 0) continue;
+    const content = message.content.slice();
+    content[at] = { ...content[at], cache_control: mark };
+    body.messages[i] = { ...message, content };
+    remaining--;
+  }
+  return body;
+}
+export interface RetryPolicy {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+}
+export const DEFAULT_RETRY: RetryPolicy = {
+  maxRetries: 2,
+  initialDelayMs: 1000,
+  maxDelayMs: 30_000,
+};
+export interface RetryNotice {
+  routeId: string;
+  attempt: number;
+  maxRetries: number;
+  delayMs: number;
+  status: number;
+  error: string;
+}
+const isTransient = (error: unknown): error is ProviderError =>
+  error instanceof ProviderError &&
+  !error.started &&
+  !error.contextOverflow &&
+  TRANSIENT_STATUSES.has(error.upstreamStatus);
+/**
+ * Delay before the next attempt, or undefined when the error must surface.
+ * Exponential backoff with ±25% jitter; a server Retry-After wins but is never exceeded silently.
+ */
+export function retryDelay(
+  error: unknown,
+  retry: number,
+  policy: RetryPolicy,
+  random = Math.random,
+) {
+  if (!isTransient(error) || retry >= policy.maxRetries) return undefined;
+  if (error.retryAfterMs !== undefined)
+    return error.retryAfterMs <= policy.maxDelayMs
+      ? error.retryAfterMs
+      : undefined;
+  const base = Math.min(policy.maxDelayMs, policy.initialDelayMs * 2 ** retry);
+  return Math.round(base * (0.75 + random() * 0.5));
 }

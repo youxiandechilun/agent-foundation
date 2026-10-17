@@ -9,7 +9,9 @@ import {
   abortable,
   deepFreeze,
   redactJson,
+  AppError,
 } from "../util.js";
+import type { EngineHooks } from "./hooks.js";
 import type { ToolEffect, InboxEntry } from "../contracts.js";
 import { Store } from "../store.js";
 import { normalizedResultDigest } from "./tool-result.js";
@@ -22,6 +24,7 @@ import {
   type ToolCall,
   type AssistantMessage,
   type TextProvider,
+  textOf,
 } from "./types.js";
 
 export interface EngineOptions {
@@ -44,6 +47,10 @@ export interface EngineOptions {
     signal: AbortSignal,
   ) => Promise<import("./types.js").ToolResult>;
   timeoutMs: number;
+  /** Context-bound lifecycle hooks; they may restrict or annotate, never authorize. */
+  hooks?: EngineHooks;
+  /** Upper bound on Stop-hook continuations per run (default 3). */
+  maxStopContinuations?: number;
   store: Store;
   publish: (
     type: string,
@@ -160,8 +167,14 @@ export class ExecutionEngine {
     let stepOpen = false;
     try {
       for (const recovered of this.options.recoveredInputs || [])
-        this.commit(recovered);
-      this.commit(input);
+        await this.admit(recovered);
+      if (!(await this.admit(input)))
+        return {
+          status: "failed",
+          error: `Input blocked by UserPromptSubmit hook: ${this.lastRejection}`,
+          steps: this.steps,
+        };
+      let stopContinuations = 0;
       while (this.steps < this.options.maxSteps) {
         signal.throwIfAborted();
         invariant(
@@ -272,16 +285,34 @@ export class ExecutionEngine {
           usage: assistant.usage,
         });
         stepOpen = false;
-        const steering = this.steerQueue.shift();
-        if (steering) {
-          this.commit(steering);
-          continue;
-        }
+        if (await this.admitNext(this.steerQueue)) continue;
         if (calls.length) continue;
-        const followUp = this.followQueue.shift();
-        if (followUp) {
-          this.commit(followUp);
-          continue;
+        if (await this.admitNext(this.followQueue)) continue;
+        const hooks = this.options.hooks;
+        if (
+          hooks &&
+          stopContinuations < (this.options.maxStopContinuations ?? 3)
+        ) {
+          const feedback = await abortable(
+            hooks.stop(textOf(assistant), stopContinuations, signal),
+            signal,
+          );
+          if (feedback) {
+            stopContinuations++;
+            this.options.publish("hook.continued", {
+              event: "Stop",
+              continuation: stopContinuations,
+              reason: feedback,
+            });
+            this.commit({
+              role: "user",
+              content: `<hook_feedback source="Stop">
+${feedback}
+</hook_feedback>`,
+              timestamp: Date.now(),
+            });
+            continue;
+          }
         }
         return { status: "completed", steps: this.steps };
       }
@@ -308,6 +339,41 @@ export class ExecutionEngine {
       this.isRunning = false;
     }
   }
+  private lastRejection = "";
+  /** Run UserPromptSubmit hooks, then commit; a blocked input is marked rejected, never applied. */
+  private async admit(message: UserMessage) {
+    const hooks = this.options.hooks,
+      signal = this.controller.signal;
+    if (hooks) {
+      const outcome = await abortable(
+        hooks.userPromptSubmit(message, signal),
+        signal,
+      );
+      if (outcome.block) {
+        this.lastRejection = outcome.block;
+        if (message.inputId) {
+          const inbox = this.options.store.find<InboxEntry>(
+            "inbox",
+            message.inputId,
+          );
+          if (inbox)
+            this.options.store.put("inbox", { ...inbox, status: "rejected" });
+        }
+        this.options.publish("input.rejected", {
+          inputId: message.inputId,
+          reason: outcome.block,
+        });
+        return false;
+      }
+      message = outcome.message;
+    }
+    this.commit(message);
+    return true;
+  }
+  private async admitNext(queue: UserMessage[]) {
+    while (queue.length) if (await this.admit(queue.shift()!)) return true;
+    return false;
+  }
   private async executeBatch(calls: ToolCall[], route: string) {
     const scheduler = this.options.scheduler || new ToolScheduler(1);
     let index = 0,
@@ -321,11 +387,14 @@ export class ExecutionEngine {
         }
         let release: (() => void) | undefined;
         try {
-          release = await scheduler.acquire(
-            this.tools.get(call.name),
-            call.arguments,
-            this.controller.signal,
-          );
+          const tool = this.tools.get(call.name);
+          release = tool?.scheduling?.detached
+            ? undefined
+            : await scheduler.acquire(
+                tool,
+                call.arguments,
+                this.controller.signal,
+              );
           if (this.steerQueue.length) {
             this.skip(call);
             continue;
@@ -351,8 +420,15 @@ export class ExecutionEngine {
         }
       }
     };
+    // Detached calls hold no slot, so each gets its own worker on top of the slot bound.
+    const detached = calls.filter(
+      (c) => this.tools.get(c.name)?.scheduling?.detached,
+    ).length;
     await Promise.all(
-      Array.from({ length: Math.min(scheduler.limit, calls.length) }, worker),
+      Array.from(
+        { length: Math.min(scheduler.limit + detached, calls.length) },
+        worker,
+      ),
     );
     if (failure) throw failure;
     this.controller.signal.throwIfAborted();
@@ -422,9 +498,50 @@ export class ExecutionEngine {
           risk: tool.risk,
           source: tool.source,
         });
+        let args = call.arguments;
+        if (this.options.hooks) {
+          const decision = await abortable(
+            this.options.hooks.preToolUse(call, tool, signal),
+            signal,
+          );
+          if (decision.deny) {
+            publish("hook.denied", {
+              toolCallId: call.id,
+              name: call.name,
+              reason: decision.deny,
+            });
+            throw new AppError(
+              403,
+              "hook_denied",
+              `Denied by PreToolUse hook: ${decision.deny}`,
+            );
+          }
+          if (decision.updatedInput) {
+            invariant(
+              validate(decision.updatedInput),
+              `PreToolUse hook produced invalid arguments for ${call.name}: ${JSON.stringify(validate.errors)}`,
+              502,
+            );
+            // Scheduler locks were taken for the original arguments.
+            const resources = tool.scheduling?.resources;
+            invariant(
+              !resources ||
+                JSON.stringify(resources(decision.updatedInput)) ===
+                  JSON.stringify(resources(call.arguments)),
+              "PreToolUse hook cannot change the resources a tool locks",
+              409,
+            );
+            args = decision.updatedInput;
+            publish("tool.input.updated", {
+              toolCallId: call.id,
+              name: call.name,
+              args,
+            });
+          }
+        }
         await this.options.authorize?.(
           tool,
-          call.arguments,
+          args,
           call.id,
           signal,
           effectiveRoute,
@@ -440,7 +557,7 @@ export class ExecutionEngine {
         result = await abortable(
           tool.execute(
             call.id,
-            call.arguments,
+            args,
             signal,
             (partial) =>
               !signal.aborted &&
@@ -470,6 +587,15 @@ export class ExecutionEngine {
           result,
           updatedAt: now(),
         });
+        if (this.options.hooks && !result.isError)
+          result = await abortable(
+            this.options.hooks.postToolUse(
+              { ...call, arguments: args },
+              result,
+              signal,
+            ),
+            signal,
+          );
       }
     } catch (error) {
       result = {

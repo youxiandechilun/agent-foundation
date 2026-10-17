@@ -12,6 +12,13 @@ const endpoint = z
     "HTTP(S) URL required",
   );
 const policy = z.enum(["deny", "ask", "allow"]);
+const hookCommand = z
+  .object({
+    matcher: z.string().max(500).optional(),
+    command: z.string().min(1).max(8000),
+    timeoutMs: z.number().int().min(100).max(600_000).optional(),
+  })
+  .strict();
 export const routeSchema = z
   .object({
     kind: z.enum(["text", "image", "video", "embedding"]),
@@ -43,6 +50,17 @@ export const routeSchema = z
       .partialRecord(z.enum(CAPABILITIES), policy)
       .default({}),
     fallbackRouteIds: z.array(z.string()).max(5).default([]),
+    /** Same-route retries for transient upstream failures before any output streamed. */
+    retry: z
+      .object({
+        maxRetries: z.number().int().min(0).max(10).default(2),
+        initialDelayMs: z.number().int().min(0).max(60_000).default(1000),
+        maxDelayMs: z.number().int().min(0).max(300_000).default(30_000),
+      })
+      .strict()
+      .optional(),
+    /** Anthropic prompt-cache breakpoints on system, tools and recent turns. */
+    promptCache: z.boolean().default(true),
     pricing: z
       .object({
         currency: z.literal("USD").default("USD"),
@@ -267,6 +285,18 @@ export const configSchema = z
         maxHeapMb: z.number().int().min(32).max(2048).default(128),
       })
       .prefault({}),
+    /** Host-trusted lifecycle hook commands (Claude Code compatible stdin/exit-code protocol). */
+    hooks: z
+      .object({
+        timeoutMs: z.number().int().min(100).max(600_000).default(30_000),
+        maxStopContinuations: z.number().int().min(0).max(20).default(3),
+        UserPromptSubmit: z.array(hookCommand).max(16).default([]),
+        PreToolUse: z.array(hookCommand).max(16).default([]),
+        PostToolUse: z.array(hookCommand).max(16).default([]),
+        Stop: z.array(hookCommand).max(16).default([]),
+      })
+      .strict()
+      .prefault({}),
     memory: z
       .object({
         enabled: z.boolean().default(true),
@@ -404,6 +434,8 @@ export function publicConfig(config: Config) {
       contextWindow: r.contextWindow,
       maxOutputTokens: r.maxOutputTokens,
       pricing: r.pricing,
+      retry: r.retry,
+      promptCache: r.promptCache,
       toolAllowlist: r.toolAllowlist,
       mediaRouteAllowlist: r.mediaRouteAllowlist,
       headersEnv: Object.keys(r.headersEnv),

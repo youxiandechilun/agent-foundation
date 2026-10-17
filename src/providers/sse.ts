@@ -100,7 +100,25 @@ export class ProviderError extends AppError {
     public upstreamStatus = 502,
     public started = false,
     public contextOverflow = false,
+    /** Server-requested delay from Retry-After / retry-after-ms, when present. */
+    public retryAfterMs?: number,
   ) {
     super(502, "provider_error", message);
   }
+}
+/** Upstream statuses that are worth retrying when no output was streamed yet. */
+export const TRANSIENT_STATUSES = new Set([
+  408, 409, 429, 500, 502, 503, 504, 529,
+]);
+/** Parses retry-after-ms, then Retry-After (delta seconds or HTTP date). */
+export function retryAfter(headers: Headers, at = Date.now()) {
+  const ms = Number(headers.get("retry-after-ms"));
+  if (headers.get("retry-after-ms") && Number.isFinite(ms) && ms >= 0)
+    return ms;
+  const value = headers.get("retry-after");
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+  const date = Date.parse(value);
+  return Number.isNaN(date) ? undefined : Math.max(0, date - at);
 }

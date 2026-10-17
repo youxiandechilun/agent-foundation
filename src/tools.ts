@@ -12,6 +12,7 @@ import type {
 import { processTools } from "./execution/tools.js";
 import { executionCapabilities } from "./execution/process.js";
 import { atomicWrite, safePath, invariant, truncate, now } from "./util.js";
+import { textOf } from "./runtime/types.js";
 
 export interface ToolContext {
   signal?: AbortSignal;
@@ -329,6 +330,101 @@ export async function makeTools(ctx: ToolContext): Promise<ToolDefinition[]> {
       return plan;
     },
   );
+  if (!session.parentSessionId) {
+    const catalog = k.agents
+      .list()
+      .filter((a) => a.mode === session.mode)
+      .slice(0, 20)
+      .map((a) => `${a.id}: ${a.name}`);
+    add(
+      "agent_delegate",
+      `Delegate a self-contained subtask to a sub-agent with its own fresh context, in this project and mode, with the same permissions. Give it a complete brief: it cannot see this conversation. Returns its final answer. Several delegations in one step run in parallel.${catalog.length ? ` Agent definitions: ${catalog.join("; ")}.` : ""}`,
+      Type.Object({
+        description: Type.String({ minLength: 1, maxLength: 120 }),
+        prompt: Type.String({ minLength: 1, maxLength: 40000 }),
+        agentId: Type.Optional(Type.String({ maxLength: 80 })),
+      }),
+      "read",
+      [],
+      async (args, signal, callId) => {
+        const definition = args.agentId
+          ? k.agents.get(args.agentId)
+          : undefined;
+        invariant(
+          !definition || definition.mode === session.mode,
+          `Agent ${args.agentId} runs in ${definition?.mode} mode; sub-agents must use the parent's mode (${session.mode})`,
+          403,
+        );
+        const created = k.createSession(
+          session.projectId,
+          session.mode,
+          `Sub-agent: ${args.description}`,
+          session.routeId,
+          definition?.id,
+        );
+        const child = k.store.put("sessions", {
+          ...created,
+          autonomy: session.autonomy || "assist",
+          parentSessionId: session.id,
+        });
+        const { runId: childRunId } = await k.submit(child.id, {
+          text: args.prompt,
+        });
+        k.store.emit(runId, "subagent.started", {
+          toolCallId: callId,
+          sessionId: child.id,
+          runId: childRunId,
+          agentId: definition?.id,
+          description: args.description,
+        });
+        const stop = () => {
+          try {
+            k.cancel(childRunId);
+          } catch {
+            // Already finished.
+          }
+        };
+        signal?.addEventListener("abort", stop, { once: true });
+        try {
+          const run = await k.wait(childRunId);
+          const last = k.store
+            .transcript(child.id)
+            .filter(
+              (m) => m.runId === childRunId && m.message.role === "assistant",
+            )
+            .at(-1)?.message;
+          const answer = last ? textOf(last) : "";
+          k.store.emit(runId, "subagent.completed", {
+            toolCallId: callId,
+            sessionId: child.id,
+            runId: childRunId,
+            status: run.status,
+          });
+          invariant(
+            run.status === "completed",
+            `Sub-agent ${run.status}: ${run.error || "no error detail"}${
+              answer
+                ? `
+Last output:
+${truncate(answer, 4000)}`
+                : ""
+            }`,
+            502,
+          );
+          return {
+            sessionId: child.id,
+            runId: childRunId,
+            status: run.status,
+            result: answer,
+          };
+        } finally {
+          signal?.removeEventListener("abort", stop);
+        }
+      },
+    );
+    // Waiting on the child must not occupy a scheduler slot its own tools need.
+    tools.at(-1)!.scheduling = { parallelSafe: true, detached: true };
+  }
   add(
     "transcript_read",
     "Read earlier canonical session messages to recover details omitted from model context.",

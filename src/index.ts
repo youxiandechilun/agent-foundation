@@ -57,7 +57,25 @@ export type { CostEntry, CostScope } from "./runtime/cost.js";
 export { ProcessManager } from "./execution/sessions.js";
 export type { ProcessRecord, StartProcess } from "./execution/sessions.js";
 export { CommandRunner, prepareCommand } from "./execution/process.js";
-export { RouteRouter, HttpTextProvider } from "./providers/text.js";
+export {
+  RouteRouter,
+  HttpTextProvider,
+  DEFAULT_RETRY,
+  retryDelay,
+  applyCacheBreakpoints,
+} from "./providers/text.js";
+export type { RetryPolicy, RetryNotice } from "./providers/text.js";
+export { bindHooks, commandHooks, runHookCommand } from "./runtime/hooks.js";
+export type {
+  RunHooks,
+  EngineHooks,
+  HookContext,
+  CommandHook,
+  PromptHookResult,
+  PreToolHookResult,
+  PostToolHookResult,
+  StopHookResult,
+} from "./runtime/hooks.js";
 export { MediaAdapterRegistry } from "./media/adapters.js";
 export type {
   MediaAdapter,

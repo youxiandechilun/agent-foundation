@@ -98,6 +98,11 @@ export interface ToolDefinition<T = any> {
   /** Trusted host declaration. Undeclared tools take an exclusive global lock. */
   scheduling?: {
     parallelSafe: boolean;
+    /**
+     * The tool only waits on other runs (e.g. sub-agents): it takes no execution slot or lock,
+     * so the work it waits for can use the shared scheduler without deadlocking.
+     */
+    detached?: boolean;
     resources?: (params: T) => { key: string; access: "read" | "write" }[];
   };
   execute: (

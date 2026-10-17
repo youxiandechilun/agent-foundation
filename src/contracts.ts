@@ -28,6 +28,8 @@ export interface Session {
   autonomy?: Autonomy;
   archived?: boolean;
   agentId?: string;
+  /** Set on sub-agent sessions created by agent_delegate; they cannot delegate further. */
+  parentSessionId?: string;
 }
 export interface Run {
   id: string;
@@ -197,7 +199,7 @@ export interface InboxEntry {
   runId: string;
   delivery: "start" | "steer" | "enqueue";
   message: Message;
-  status: "pending" | "applied";
+  status: "pending" | "applied" | "rejected";
   createdAt: string;
 }
 export interface ToolEffect {

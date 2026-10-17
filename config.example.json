@@ -41,7 +41,13 @@
       "baseUrl": "https://api.anthropic.com",
       "apiKeyEnv": "ANTHROPIC_API_KEY",
       "contextWindow": 128000,
-      "maxOutputTokens": 8192
+      "maxOutputTokens": 8192,
+      "promptCache": true,
+      "retry": {
+        "maxRetries": 3,
+        "initialDelayMs": 1000,
+        "maxDelayMs": 30000
+      }
     },
     "images": {
       "kind": "image",
@@ -160,5 +166,13 @@
     "maxCells": 200000,
     "maxTextChars": 2000000,
     "maxPages": 1000
+  },
+  "hooks": {
+    "timeoutMs": 30000,
+    "maxStopContinuations": 3,
+    "PreToolUse": [],
+    "PostToolUse": [],
+    "UserPromptSubmit": [],
+    "Stop": []
   }
 }

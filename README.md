@@ -26,7 +26,7 @@ npm start
 
 | 能力              | 当前行为                                                                                                             | 主要源码                                                   |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 持续执行循环      | 流式增量、完整回复提交、工具校验/审批/执行/结算、继续下一步；一条回复不自动结束任务                                  | src/runtime/engine.ts                                      |
+| 持续执行循环      | 流式增量、完整回复提交、工具校验/审批/执行/结算、继续下一步；一条回复不自动结束任务；生命周期钩子与子 Agent 委托     | src/runtime/engine.ts、src/runtime/hooks.ts                |
 | 输入与恢复        | start/steer/enqueue、会话内幂等、持久 inbox、取消、超时、崩溃恢复；显式 resume 接回未应用输入                        | src/kernel.ts、src/store.ts                                |
 | 文本模型          | 自行实现 OpenAI Chat Completions、OpenAI Responses、Anthropic Messages 的 HTTP/SSE、工具参数、图像输入和公开推理状态 | src/providers/                                             |
 | 路由管理          | 自定义地址/模型/凭据引用、参数、工具范围、媒体路由、权限；批量原子更新、默认值切换与持久化                           | src/config.ts、src/kernel.ts                               |
@@ -34,7 +34,7 @@ npm start
 | 权限              | 宿主/项目规则/主模型/实际模型/模式/扩展取交集，deny 优先；逐次审批、到期、取消，plan 禁止外部原生扩展执行            | src/permissions.ts                                         |
 | 模式与 Agent 定义 | 内置三种策略、自定义模式、工具范围与能力策略；独立 Agent 指令/路由/Skill/步数/记忆空间                               | src/modes/、src/agents.ts                                  |
 | 工具与集成注册    | 可撤销工具工厂、重复名称/能力校验、准备阶段取消、集成生命周期与 HTTP 扩展点                                          | src/runtime/registry.ts                                    |
-| 文件与命令        | 相对项目路径读取/搜索/原子写入/精确编辑、Git、实际子进程；native、可选 Docker、可选 Windows AppContainer 后端           | src/tools.ts、src/execution/                               |
+| 文件与命令        | 相对项目路径读取/搜索/原子写入/精确编辑、Git、实际子进程；native、可选 Docker、可选 Windows AppContainer 后端        | src/tools.ts、src/execution/                               |
 | 附件资产          | 任意字节上传下载、项目归属、SHA-256、总输入预算、共享摘要预算；文本提取与可注入解析器                                | src/assets.ts、src/runtime/extractors.ts                   |
 | 上下文管理        | 保留近期完整工具组、分层模型总结、缓存、原始历史保留、工具声明预算、可注册模型计数器与精度标记                       | src/context.ts、src/runtime/token-counter.ts               |
 | 记忆              | 中文/英文全文搜索、命名空间/有效期、修订冲突、历史、合并/导入/清理；可选 embedding 与混合检索                        | src/memory.ts                                              |
@@ -150,3 +150,14 @@ Docker 是可选命令隔离后端，默认 native，无需 Docker 即可使用�
 增加独立应用包、真实浏览器网络代理/元素引用、显式配对的用户浏览器桥接、Windows 窗口/控件/键鼠/截图桥接、串行独占租约与紧急停止，以及资源有界的 Office 格式工作线程、源结构保留编辑、PDF 合成和预览。核心资产写入支持取消，避免部分产物发布。旧 office-worker 和 mammoth 已删除。
 
 `npm run verify:host` 执行宿主构建、真实应用集成、可选依赖审计和编译宿主冒烟；报告是 `verification/application-report.json`。源码包可分别进行最小内核和完整可选宿主的全新目录重建。支持范围与未完成项请以 [应用说明](docs/APPLICATIONS.md) 和 [验收计划](docs/APPLICATIONS-PLAN.json) 为准，不以“所有未来功能全部完成”概括。
+
+## 0.12.0（开发中）执行循环增强
+
+参考 Claude Code 与 pi 的公开设计，在自有源码中补齐通用 Agent 底座常用的四项能力，均不引入外部框架或 SDK：
+
+- **模型请求重试**：未流出内容的 408/409/429/5xx/529 与连接失败按指数退避重试，遵循 `Retry-After`；先走回退链，链尾原地重试；路由级 `retry` 配置，事件 `model.retry`。
+- **Anthropic 提示缓存**：默认在工具声明、系统提示与最近两条用户侧消息放置缓存断点（最多 4 个），路由级 `promptCache: false` 关闭。
+- **生命周期钩子**：`UserPromptSubmit`、`PreToolUse`、`PostToolUse`、`Stop`；可通过集成 `hooks`、`kernel.addHooks()` 或配置 `hooks` 命令（Claude Code 兼容的 stdin JSON/退出码协议）接入。钩子只能拒绝、改写（重新校验并仍受权限约束）、注释或要求继续，不能放行。
+- **子 Agent**：内置 `agent_delegate` 工具，同模式/同路由/同自主级别的全新上下文子会话，可并行、可级联取消，深度为 1，等待期间不占工具槽位。
+
+配置、协议、安全规则与测试范围见 [CORE-AGENT-LOOP.md](docs/CORE-AGENT-LOOP.md)。版本号与验收报告在正式发布时再更新。

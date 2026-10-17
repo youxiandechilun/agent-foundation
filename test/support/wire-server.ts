@@ -15,6 +15,7 @@ export interface Reply {
   finish?: string;
   status?: number;
   error?: { code?: string; type?: string; message: string };
+  headers?: Record<string, string>;
 }
 export type Responder = (request: any, index: number) => Reply | Promise<Reply>;
 export async function wireServer(
@@ -29,7 +30,10 @@ export async function wireServer(
       requests.push({ url: req.url, body, headers: req.headers });
       const reply = await respond(body, requests.length - 1);
       if (reply.status && reply.status !== 200) {
-        res.writeHead(reply.status, { "Content-Type": "application/json" });
+        res.writeHead(reply.status, {
+          "Content-Type": "application/json",
+          ...reply.headers,
+        });
         res.end(
           JSON.stringify({ error: reply.error || { message: "wire error" } }),
         );

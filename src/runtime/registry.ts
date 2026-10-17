@@ -4,6 +4,7 @@ import type { Session } from "../contracts.js";
 import type { ToolDefinition } from "./types.js";
 import { CAPABILITIES } from "./types.js";
 import { invariant, abortable } from "../util.js";
+import type { RunHooks } from "./hooks.js";
 
 export interface ToolContext {
   signal?: AbortSignal;
@@ -41,6 +42,8 @@ export interface KernelIntegration {
   ) => Promise<IntegrationResponse | undefined>;
   upgrade?: (req: IncomingMessage, socket: any, head: Buffer) => boolean;
   settled?: (runId: string, signal?: AbortSignal) => void | Promise<void>;
+  /** Lifecycle hooks applied to every run, after config command hooks. */
+  hooks?: RunHooks;
   close?: () => void | Promise<void>;
 }
 /** Source-level extension registry. Unregistration revokes previously resolved tool closures. */

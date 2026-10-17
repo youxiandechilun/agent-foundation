@@ -54,6 +54,7 @@ import {
 } from "./runtime/types.js";
 import { makeTools } from "./tools.js";
 import { ToolRegistry, type KernelIntegration } from "./runtime/registry.js";
+import { bindHooks, commandHooks, type RunHooks } from "./runtime/hooks.js";
 import {
   id,
   now,
@@ -91,6 +92,7 @@ export interface KernelOptions {
 export class Kernel {
   readonly modes = new ModeRegistry();
   readonly toolRegistry = new ToolRegistry();
+  private runHooks = new Set<RunHooks>();
   readonly integrations: readonly KernelIntegration[];
   private initialization?: Promise<void>;
   readonly store: Store;
@@ -121,6 +123,35 @@ export class Kernel {
     string,
     { controller: AbortController; done: Promise<void> }
   >();
+  /** Register lifecycle hooks for subsequent runs; returns an unregister function. */
+  addHooks(hooks: RunHooks) {
+    const entry = { ...hooks };
+    this.runHooks.add(entry);
+    return () => this.runHooks.delete(entry);
+  }
+  private hooksFor(runId: string, session: Session, root: string) {
+    const configured = commandHooks(this.config.hooks);
+    return bindHooks(
+      {
+        runId,
+        sessionId: session.id,
+        projectId: session.projectId,
+        projectRoot: root,
+        mode: session.mode,
+        routeId: session.routeId,
+      },
+      [
+        ...(configured ? [configured] : []),
+        ...this.integrations.flatMap((i) => (i.hooks ? [i.hooks] : [])),
+        ...this.runHooks,
+      ],
+      (event, error) =>
+        this.store.emit(runId, "hook.failed", {
+          event,
+          error: errorText(error),
+        }),
+    );
+  }
   constructor(
     readonly config: Config,
     options: KernelOptions = {},
@@ -1097,6 +1128,7 @@ export class Kernel {
                   purpose: "agent",
                 },
               },
+              (notice) => this.store.emit(runId, "model.retry", { ...notice }),
             ),
             maxSteps: Math.min(
               definition?.maxSteps || this.config.limits.maxSteps,
@@ -1105,6 +1137,8 @@ export class Kernel {
             maxToolCalls: this.config.limits.maxToolCalls,
             scheduler: this.scheduler,
             maxRepeatedToolResults: this.config.limits.maxRepeatedToolResults,
+            hooks: this.hooksFor(runId, session, root),
+            maxStopContinuations: this.config.hooks.maxStopContinuations,
             maxMessages: this.config.limits.maxSessionMessages,
             normalizeResult: (result, signal) =>
               normalizeToolResult(
