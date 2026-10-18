@@ -18,7 +18,13 @@ import type {
   StoredMessage,
   ToolEffect,
 } from "../contracts.js";
-import { id, now, invariant, redactJson, redactJsonText } from "../core/util.js";
+import {
+  id,
+  now,
+  invariant,
+  redactJson,
+  redactJsonText,
+} from "../core/util.js";
 import {
   entityIndexes,
   entityWhere,
@@ -81,8 +87,6 @@ export class Store {
   readonly db: DatabaseSync;
   readonly events = new EventEmitter();
   private readonly statements = new Map<string, StatementSync>();
-  // Run -> session is immutable; caching it removes a JSON query from every streamed event.
-  private readonly runSessions = new Map<string, string>();
   private transactionDepth = 0;
   private leaseOwner?: string;
   private closed = false;
@@ -108,6 +112,7 @@ export class Store {
       CREATE INDEX IF NOT EXISTS memory_revisions_latest ON entities(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC) WHERE kind='memory-revisions';
       CREATE INDEX IF NOT EXISTS memory_proposals_project ON entities(json_extract(body,'$.projectId')) WHERE kind='memory-proposals';
       CREATE INDEX IF NOT EXISTS cost_ledger_day ON entities(substr(json_extract(body,'$.createdAt'),1,10)) WHERE kind='cost-ledger';
+      CREATE INDEX IF NOT EXISTS runs_session ON entities(id,json_extract(body,'$.sessionId')) WHERE kind='runs';
     `);
     try {
       if (options.exclusiveKernel) this.acquireKernelLease();
@@ -193,8 +198,6 @@ export class Store {
     this.prepare(
       "INSERT INTO entities(kind,id,body) VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET body=excluded.body",
     ).run(kind, item.id, body);
-    const sessionId = (item as Partial<Run>).sessionId;
-    if (kind === "runs" && sessionId) this.cacheRunSession(item.id, sessionId);
     return body;
   }
   /** Persist when the caller does not need a redacted copy of the record. */
@@ -204,18 +207,13 @@ export class Store {
   put<T extends { id: string }>(kind: Table, item: T): T {
     return JSON.parse(this.insert(kind, item));
   }
-  private cacheRunSession(runId: string, sessionId: string) {
-    this.runSessions.delete(runId);
-    this.runSessions.set(runId, sessionId);
-    if (this.runSessions.size > 4096)
-      this.runSessions.delete(this.runSessions.keys().next().value!);
-  }
   private runSession(runId: string): string {
-    const cached = this.runSessions.get(runId);
-    if (cached) return cached;
-    const sessionId = this.run(runId).sessionId;
-    this.cacheRunSession(runId, sessionId);
-    return sessionId;
+    // Read the persisted index value without reparsing large Run JSON records.
+    const row = this.prepare(
+      "SELECT json_extract(body,'$.sessionId') AS sessionId FROM entities INDEXED BY runs_session WHERE kind='runs' AND id=?",
+    ).get(runId) as { sessionId: string } | undefined;
+    invariant(row, `runs/${runId} not found`, 404, "not_found");
+    return row.sessionId;
   }
   get<T>(kind: Table, entityId: string): T {
     const item = this.find<T>(kind, entityId);
@@ -275,7 +273,6 @@ export class Store {
       kind,
       entityId,
     );
-    if (kind === "runs") this.runSessions.delete(entityId);
   }
   transaction<T>(operation: () => T): T {
     const depth = this.transactionDepth,
@@ -289,8 +286,6 @@ export class Store {
     } catch (error) {
       this.db.exec(depth ? `ROLLBACK TO SAVEPOINT ${savepoint}` : "ROLLBACK");
       if (depth) this.db.exec(`RELEASE SAVEPOINT ${savepoint}`);
-      // A rolled-back insert must not leave a cached run -> session binding.
-      if (this.runSessions.size) this.runSessions.clear();
       throw error;
     } finally {
       this.transactionDepth--;
@@ -505,7 +500,6 @@ export class Store {
       );
     this.db.close();
     this.statements.clear();
-    this.runSessions.clear();
     this.closed = true;
   }
 }

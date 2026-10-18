@@ -1,0 +1,40 @@
+TAP version 13
+# (node:25552) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: paired node HTTP transport uses scoped auth, actual queued tasks and explicit results
+ok 1 - paired node HTTP transport uses scoped auth, actual queued tasks and explicit results
+  ---
+  duration_ms: 546.0556
+  type: 'test'
+  ...
+# Subtest: real WebSocket node channel authenticates, dispatches once and records results
+ok 2 - real WebSocket node channel authenticates, dispatches once and records results
+  ---
+  duration_ms: 115.4835
+  type: 'test'
+  ...
+# (node:40364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX
+ok 3 - office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX
+  ---
+  duration_ms: 3174.2357
+  type: 'test'
+  ...
+# (node:32820) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: desktop and application routes reject extra segments before host effects
+ok 4 - desktop and application routes reject extra segments before host effects
+  ---
+  duration_ms: 832.1793
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7181.8482

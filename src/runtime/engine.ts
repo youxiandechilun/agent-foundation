@@ -249,7 +249,7 @@ export class ExecutionEngine {
                 routeId: this.options.routeId,
                 ...this.options.modelSettings,
                 messages: context,
-                tools: this.toolList,
+                tools: this.toolList.slice(),
               },
               async (event) => {
                 this.options.publish(

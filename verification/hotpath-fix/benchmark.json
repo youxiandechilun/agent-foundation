@@ -1,0 +1,6317 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-10-18T05:02:52.241Z",
+  "completedAt": "2026-10-18T05:06:25.041Z",
+  "smoke": false,
+  "rounds": 6,
+  "warmups": 1,
+  "method": "Fresh Node process per version/scenario/round; in-process warmups on separate fresh databases; rotate version order and reverse every other round (two versions alternate directly); GC before each timed region; setup and post-run verification excluded; timed Engine includes loopback fixture parsing, validation and response generation; sequential workers.",
+  "limitation": "Local microbenchmarks and a deterministic loopback HTTP/SSE Engine scenario. No external model inference/network latency, native desktop UI, or full Kernel authorization path. Smoke results are correctness checks only. A forcibly terminated worker can leave its isolated OS temporary directory; successful workers clean up.",
+  "environment": {
+    "node": "v22.22.0",
+    "versions": {
+      "node": "22.22.0",
+      "acorn": "8.15.0",
+      "ada": "2.9.2",
+      "amaro": "1.1.4",
+      "ares": "1.34.6",
+      "brotli": "1.1.0",
+      "cjs_module_lexer": "2.1.0",
+      "cldr": "47.0",
+      "icu": "77.1",
+      "llhttp": "9.3.0",
+      "modules": "127",
+      "napi": "10",
+      "nbytes": "0.1.1",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.64.0",
+      "openssl": "3.5.4",
+      "simdjson": "3.13.0",
+      "simdutf": "6.4.2",
+      "sqlite": "3.50.4",
+      "tz": "2025b",
+      "undici": "6.23.0",
+      "unicode": "16.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "12.4.254.21-node.33",
+      "zlib": "1.3.1-470d3a2",
+      "zstd": "1.5.7"
+    },
+    "platform": "win32",
+    "arch": "x64",
+    "osRelease": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "logicalCpus": 20,
+    "totalMemoryBytes": 25447112704,
+    "childEnvironmentKeys": [
+      "PATH",
+      "Path",
+      "PATHEXT",
+      "SystemRoot",
+      "WINDIR",
+      "TEMP",
+      "TMP",
+      "TMPDIR",
+      "HOME",
+      "USERPROFILE",
+      "LANG",
+      "NODE_ENV",
+      "TZ"
+    ],
+    "secretFixture": "Three fixed synthetic credentials; user credential environment is not inherited"
+  },
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\scripts\\benchmark-hotpaths.mjs",
+    "--version=eb88ae5=.agent-data-hotpath-fix/baseline-eb88ae5/dist",
+    "--source=eb88ae5=.agent-data-hotpath-fix/baseline-eb88ae5/src",
+    "--version=a531661=.agent-data-review-a531661/checkout/dist",
+    "--source=a531661=.agent-data-review-a531661/checkout/src",
+    "--version=fixed=dist",
+    "--source=fixed=src",
+    "--rounds=6",
+    "--output=verification/hotpath-fix/benchmark.json"
+  ],
+  "scripts": {
+    "benchmark-hotpaths-engine.mjs": "5160c3f15ffe689a3c508919c86d0ee07cd6ee810a3c9db067ec0ebd0ed34fdd",
+    "benchmark-hotpaths-fixtures.mjs": "1ccca9810e4c16baedce2dfb6d1338d3e7c6fd6377ed16c86ec850272b223a45",
+    "benchmark-hotpaths-report.mjs": "5b334b7852fdcf03910a4cc1d54802d8ace5c7f4d2cbcedf51b9876ed51f47f7",
+    "benchmark-hotpaths-worker.mjs": "b3e4832dfacd7e380ef8c6a5984db4af8672b8d37067d2569be33ed97ee24b20",
+    "benchmark-hotpaths.mjs": "1f94c0d1533fc8af0d04c20736822cca3c9c0e2b607a54b65f51acc0766fec7e"
+  },
+  "identities": [
+    {
+      "label": "eb88ae5",
+      "directory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-hotpath-fix\\baseline-eb88ae5\\dist",
+      "source": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-hotpath-fix\\baseline-eb88ae5\\src",
+      "compiled": {
+        "files": 113,
+        "bytes": 864185,
+        "sha256": "dc1547aa7fdcfef4ba8c169cd3d12d1cfbcb860c54de3bf4ede37531d8b31723"
+      },
+      "sourceFiles": {
+        "files": 139,
+        "bytes": 1131715,
+        "sha256": "799dc76af73badb7624201199fed2f4e7d1f26a1d873f30b8a995b6948321cda"
+      }
+    },
+    {
+      "label": "a531661",
+      "directory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-review-a531661\\checkout\\dist",
+      "source": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-review-a531661\\checkout\\src",
+      "compiled": {
+        "files": 113,
+        "bytes": 865944,
+        "sha256": "5ee015e332c819366af5325ca0fc41c95fe294f0113e73b3ce8fbfb139851fda"
+      },
+      "sourceFiles": {
+        "files": 139,
+        "bytes": 1133448,
+        "sha256": "c53c159e74da9bee995a2dc4abd638a303dbb623e3e3689348a44645aa410a26"
+      }
+    },
+    {
+      "label": "fixed",
+      "directory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\dist",
+      "source": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src",
+      "compiled": {
+        "files": 139,
+        "bytes": 1087361,
+        "sha256": "0fe0f930017b6deaa5c20f8157454d7d812d9a60a78acb4aa771376c0d9b2581"
+      },
+      "sourceFiles": {
+        "files": 139,
+        "bytes": 1133001,
+        "sha256": "bc0a930503ab4b39aafa37c35125e510402e809014947b0c0dca0a4a7f840614"
+      }
+    }
+  ],
+  "results": {
+    "request-json": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            138.5797,
+            142.51550000000003,
+            141.6268,
+            127.06630000000001,
+            135.13320000000004,
+            134.38750000000005
+          ],
+          "medianMs": 136.85645000000002,
+          "minMs": 127.06630000000001,
+          "maxMs": 142.51550000000003,
+          "operations": 200,
+          "parameters": {
+            "messages": 200,
+            "tools": 40,
+            "inputBytes": 72282,
+            "api": "JSON.stringify(redactJson)"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            100.87029999999999,
+            104.32650000000001,
+            94.35159999999999,
+            88.82959999999997,
+            94.31569999999996,
+            91.0952
+          ],
+          "medianMs": 94.33364999999998,
+          "minMs": 88.82959999999997,
+          "maxMs": 104.32650000000001,
+          "operations": 200,
+          "parameters": {
+            "messages": 200,
+            "tools": 40,
+            "inputBytes": 72282,
+            "api": "redactJsonText"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            103.23500000000001,
+            93.1594,
+            99.20040000000003,
+            97.29929999999996,
+            88.13939999999997,
+            100.04390000000001
+          ],
+          "medianMs": 98.24985,
+          "minMs": 88.13939999999997,
+          "maxMs": 103.23500000000001,
+          "operations": 200,
+          "parameters": {
+            "messages": 200,
+            "tools": 40,
+            "inputBytes": 72282,
+            "api": "redactJsonText"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1.4507702182625188,
+        "fixed": 1.392943093551797
+      }
+    },
+    "durable-events-small": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            1046.6075,
+            1045.7226,
+            1014.4848999999999,
+            1042.6614,
+            996.3332,
+            1011.1228000000001
+          ],
+          "medianMs": 1028.57315,
+          "minMs": 996.3332,
+          "maxMs": 1046.6075,
+          "operations": 2000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": true,
+            "liveListener": false,
+            "api": "Store.emit"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            984.3135000000002,
+            997.3881000000001,
+            961.3537000000001,
+            941.2411999999999,
+            981.4929000000002,
+            970.3925999999997
+          ],
+          "medianMs": 975.9427499999999,
+          "minMs": 941.2411999999999,
+          "maxMs": 997.3881000000001,
+          "operations": 2000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": true,
+            "liveListener": false,
+            "api": "Store.emit"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            998.6370000000002,
+            1039.8964,
+            1001.4279000000001,
+            976.1846999999998,
+            994.7356,
+            1015.5234000000003
+          ],
+          "medianMs": 1000.0324500000002,
+          "minMs": 976.1846999999998,
+          "maxMs": 1039.8964,
+          "operations": 2000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": true,
+            "liveListener": false,
+            "api": "Store.emit"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1.0539277534466034,
+        "fixed": 1.0285397738843371
+      }
+    },
+    "durable-events-large": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            1206.4414,
+            1242.8826999999999,
+            1243.6018000000001,
+            1217.1256,
+            1424.3656999999998,
+            1296.1504999999997
+          ],
+          "medianMs": 1243.24225,
+          "minMs": 1206.4414,
+          "maxMs": 1424.3656999999998,
+          "operations": 2000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": true,
+            "liveListener": false,
+            "api": "Store.emit"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            934.4943000000001,
+            974.7446999999997,
+            984.6702999999998,
+            965.8088,
+            1000.1025999999997,
+            1032.6895000000002
+          ],
+          "medianMs": 979.7074999999998,
+          "minMs": 934.4943000000001,
+          "maxMs": 1032.6895000000002,
+          "operations": 2000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": true,
+            "liveListener": false,
+            "api": "Store.emit"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            1000.5248000000001,
+            1039.3375999999998,
+            1002.8539000000001,
+            977.1329000000001,
+            1057.3682,
+            1010.1614000000002
+          ],
+          "medianMs": 1006.5076500000001,
+          "minMs": 977.1329000000001,
+          "maxMs": 1057.3682,
+          "operations": 2000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": true,
+            "liveListener": false,
+            "api": "Store.emit"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1.2689932964685893,
+        "fixed": 1.2352039748530474
+      }
+    },
+    "ephemeral-observed-small": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            364.8125,
+            360.6799,
+            349.6056,
+            358.5757,
+            367.84169999999995,
+            362.14660000000003
+          ],
+          "medianMs": 361.41325,
+          "minMs": 349.6056,
+          "maxMs": 367.84169999999995,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": true,
+            "api": "Store.emit(false)"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            324.8125,
+            311.7981,
+            322.23030000000006,
+            306.745,
+            333.9683,
+            325.7948
+          ],
+          "medianMs": 323.5214,
+          "minMs": 306.745,
+          "maxMs": 333.9683,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": true,
+            "api": "Store.emitEphemeral"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            356.15330000000006,
+            349.43279999999993,
+            363.0934000000001,
+            351.4579,
+            343.3628,
+            357.0404
+          ],
+          "medianMs": 353.8056,
+          "minMs": 343.3628,
+          "maxMs": 363.0934000000001,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": true,
+            "api": "Store.emitEphemeral"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1.1171231640318073,
+        "fixed": 1.0215023447904725
+      }
+    },
+    "ephemeral-observed-large": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            692.0555999999999,
+            752.1121,
+            710.8844999999999,
+            681.1743000000001,
+            732.4535000000001,
+            721.5684000000001
+          ],
+          "medianMs": 716.22645,
+          "minMs": 681.1743000000001,
+          "maxMs": 752.1121,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": true,
+            "api": "Store.emit(false)"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            333.8117,
+            313.2128,
+            290.35389999999995,
+            334.1993,
+            298.2029,
+            316.7604
+          ],
+          "medianMs": 314.9866,
+          "minMs": 290.35389999999995,
+          "maxMs": 334.1993,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": true,
+            "api": "Store.emitEphemeral"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            345.47710000000006,
+            360.7261,
+            346.0594000000001,
+            347.0244,
+            349.3195999999999,
+            355.19000000000005
+          ],
+          "medianMs": 348.17199999999997,
+          "minMs": 345.47710000000006,
+          "maxMs": 360.7261,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": true,
+            "api": "Store.emitEphemeral"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 2.2738314899744942,
+        "fixed": 2.057105252576313
+      }
+    },
+    "ephemeral-unobserved-small": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            374.7341,
+            378.71590000000003,
+            381.1271999999999,
+            397.4565000000001,
+            349.35990000000004,
+            358.4012
+          ],
+          "medianMs": 376.725,
+          "minMs": 349.35990000000004,
+          "maxMs": 397.4565000000001,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": false,
+            "api": "Store.emit(false)"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            0.6914999999999907,
+            0.6137000000000228,
+            0.6362000000000023,
+            0.7518000000000029,
+            0.6367999999999938,
+            0.6953000000000031
+          ],
+          "medianMs": 0.6641499999999922,
+          "minMs": 0.6137000000000228,
+          "maxMs": 0.7518000000000029,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": false,
+            "api": "Store.emitEphemeral"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            0.6515999999999735,
+            0.7690000000000055,
+            0.9699999999999989,
+            0.7475999999999772,
+            0.6662000000000035,
+            0.686000000000007
+          ],
+          "medianMs": 0.7167999999999921,
+          "minMs": 0.6515999999999735,
+          "maxMs": 0.9699999999999989,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 512,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": false,
+            "api": "Store.emitEphemeral"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 567.2287886772633,
+        "fixed": 525.5650111607201
+      }
+    },
+    "ephemeral-unobserved-large": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            689.8713,
+            715.6087,
+            715.816,
+            717.2349000000002,
+            709.4042,
+            687.7717
+          ],
+          "medianMs": 712.50645,
+          "minMs": 687.7717,
+          "maxMs": 717.2349000000002,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": false,
+            "api": "Store.emit(false)"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            0.6206999999999994,
+            0.5891000000000304,
+            0.7000000000000455,
+            0.6543000000000347,
+            0.622600000000034,
+            0.587600000000009
+          ],
+          "medianMs": 0.6216500000000167,
+          "minMs": 0.587600000000009,
+          "maxMs": 0.7000000000000455,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": false,
+            "api": "Store.emitEphemeral"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            0.681699999999978,
+            0.6832999999999743,
+            0.6621000000000095,
+            0.6594000000000051,
+            0.7590000000000146,
+            0.6290000000000191
+          ],
+          "medianMs": 0.6718999999999937,
+          "minMs": 0.6290000000000191,
+          "maxMs": 0.7590000000000146,
+          "operations": 5000,
+          "parameters": {
+            "runCount": 64,
+            "runInputBytes": 65536,
+            "eventInputBytes": 332,
+            "durable": false,
+            "liveListener": false,
+            "api": "Store.emitEphemeral"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1146.1537038526194,
+        "fixed": 1060.4352582229596
+      }
+    },
+    "transcript-append": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            551.9384,
+            606.6639000000001,
+            586.0086,
+            557.9337,
+            543.7306,
+            532.1831999999999
+          ],
+          "medianMs": 554.93605,
+          "minMs": 532.1831999999999,
+          "maxMs": 606.6639000000001,
+          "operations": 1250,
+          "parameters": {
+            "freshMessages": 1000,
+            "identicalRetries": 250,
+            "messageBytes": 368,
+            "transaction": "one normal append at a time"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            516.8587000000001,
+            559.8011999999999,
+            543.4550999999999,
+            570.8916999999999,
+            523.8819,
+            568.3971999999999
+          ],
+          "medianMs": 551.6281499999999,
+          "minMs": 516.8587000000001,
+          "maxMs": 570.8916999999999,
+          "operations": 1250,
+          "parameters": {
+            "freshMessages": 1000,
+            "identicalRetries": 250,
+            "messageBytes": 368,
+            "transaction": "one normal append at a time"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            576.264,
+            546.5874,
+            553.1691999999999,
+            534.1378000000001,
+            555.2181,
+            524.0431000000001
+          ],
+          "medianMs": 549.8783,
+          "minMs": 524.0431000000001,
+          "maxMs": 576.264,
+          "operations": 1250,
+          "parameters": {
+            "freshMessages": 1000,
+            "identicalRetries": 250,
+            "messageBytes": 368,
+            "transaction": "one normal append at a time"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1.0059966120293176,
+        "fixed": 1.0091979443451398
+      }
+    },
+    "engine-local": {
+      "versions": {
+        "eb88ae5": {
+          "samplesMs": [
+            287.7688999999998,
+            282.8758,
+            267.63689999999997,
+            265.2993999999999,
+            264.59809999999993,
+            280.4003
+          ],
+          "medianMs": 274.0186,
+          "minMs": 264.59809999999993,
+          "maxMs": 287.7688999999998,
+          "operations": 10,
+          "parameters": {
+            "engineRuns": 10,
+            "modelStepsPerRun": 3,
+            "toolsPerRun": 2,
+            "historyMessages": 24,
+            "historyBytes": 7469,
+            "toolOutputPaddingCharacters": 1024,
+            "finalResponseBytes": 597,
+            "deltaCharacters": 32,
+            "liveListener": false,
+            "transport": "loopback HTTP/SSE; no external model inference"
+          }
+        },
+        "a531661": {
+          "samplesMs": [
+            248.89020000000005,
+            292.4667999999999,
+            251.29450000000008,
+            241.77030000000013,
+            251.56280000000004,
+            259.46170000000006
+          ],
+          "medianMs": 251.42865000000006,
+          "minMs": 241.77030000000013,
+          "maxMs": 292.4667999999999,
+          "operations": 10,
+          "parameters": {
+            "engineRuns": 10,
+            "modelStepsPerRun": 3,
+            "toolsPerRun": 2,
+            "historyMessages": 24,
+            "historyBytes": 7469,
+            "toolOutputPaddingCharacters": 1024,
+            "finalResponseBytes": 597,
+            "deltaCharacters": 32,
+            "liveListener": false,
+            "transport": "loopback HTTP/SSE; no external model inference"
+          }
+        },
+        "fixed": {
+          "samplesMs": [
+            248.06229999999982,
+            241.15229999999985,
+            253.40330000000006,
+            254.2337000000001,
+            267.82539999999995,
+            247.4555999999999
+          ],
+          "medianMs": 250.73279999999994,
+          "minMs": 241.15229999999985,
+          "maxMs": 267.82539999999995,
+          "operations": 10,
+          "parameters": {
+            "engineRuns": 10,
+            "modelStepsPerRun": 3,
+            "toolsPerRun": 2,
+            "historyMessages": 24,
+            "historyBytes": 7469,
+            "toolOutputPaddingCharacters": 1024,
+            "finalResponseBytes": 597,
+            "deltaCharacters": 32,
+            "liveListener": false,
+            "transport": "loopback HTTP/SSE; no external model inference"
+          }
+        }
+      },
+      "speedupRelativeToFirst": {
+        "eb88ae5": 1,
+        "a531661": 1.0898463639684655,
+        "fixed": 1.0928709765934097
+      }
+    }
+  },
+  "samples": [
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "JSON.stringify(redactJson)"
+      },
+      "measured": {
+        "elapsedMs": 138.5797,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 55562240,
+        "rssAfterBytes": 55713792
+      },
+      "warmups": [
+        {
+          "elapsedMs": 130.5469,
+          "cpuUserMicros": 94000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48685056,
+          "rssAfterBytes": 55214080
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46140,
+      "stderr": "(node:46140) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 100.87029999999999,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51888128,
+        "rssAfterBytes": 55898112
+      },
+      "warmups": [
+        {
+          "elapsedMs": 105.5348,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 32000,
+          "rssBeforeBytes": 48812032,
+          "rssAfterBytes": 51372032
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 24452,
+      "stderr": "(node:24452) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 103.23500000000001,
+        "cpuUserMicros": 78000,
+        "cpuSystemMicros": 78000,
+        "rssBeforeBytes": 51597312,
+        "rssAfterBytes": 56131584
+      },
+      "warmups": [
+        {
+          "elapsedMs": 97.7286,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48320512,
+          "rssAfterBytes": 51228672
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 10724,
+      "stderr": "(node:10724) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "JSON.stringify(redactJson)"
+      },
+      "measured": {
+        "elapsedMs": 142.51550000000003,
+        "cpuUserMicros": 172000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 55914496,
+        "rssAfterBytes": 55930880
+      },
+      "warmups": [
+        {
+          "elapsedMs": 136.92399999999998,
+          "cpuUserMicros": 125000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 48861184,
+          "rssAfterBytes": 55750656
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 7424,
+      "stderr": "(node:7424) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 93.1594,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51998720,
+        "rssAfterBytes": 56147968
+      },
+      "warmups": [
+        {
+          "elapsedMs": 104.9527,
+          "cpuUserMicros": 79000,
+          "cpuSystemMicros": 32000,
+          "rssBeforeBytes": 48574464,
+          "rssAfterBytes": 51224576
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 15208,
+      "stderr": "(node:15208) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 104.32650000000001,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 49692672,
+        "rssAfterBytes": 53993472
+      },
+      "warmups": [
+        {
+          "elapsedMs": 96.28250000000001,
+          "cpuUserMicros": 94000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 46592000,
+          "rssAfterBytes": 49209344
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 33320,
+      "stderr": "(node:33320) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 99.20040000000003,
+        "cpuUserMicros": 78000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 51695616,
+        "rssAfterBytes": 55824384
+      },
+      "warmups": [
+        {
+          "elapsedMs": 94.2646,
+          "cpuUserMicros": 94000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 48603136,
+          "rssAfterBytes": 51408896
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40516,
+      "stderr": "(node:40516) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "JSON.stringify(redactJson)"
+      },
+      "measured": {
+        "elapsedMs": 141.6268,
+        "cpuUserMicros": 140000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 55779328,
+        "rssAfterBytes": 56242176
+      },
+      "warmups": [
+        {
+          "elapsedMs": 151.06560000000002,
+          "cpuUserMicros": 172000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 48308224,
+          "rssAfterBytes": 55275520
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 41956,
+      "stderr": "(node:41956) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 94.35159999999999,
+        "cpuUserMicros": 47000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 51453952,
+        "rssAfterBytes": 55881728
+      },
+      "warmups": [
+        {
+          "elapsedMs": 98.93119999999999,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 15000,
+          "rssBeforeBytes": 48500736,
+          "rssAfterBytes": 51097600
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 13888,
+      "stderr": "(node:13888) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 97.29929999999996,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 51527680,
+        "rssAfterBytes": 56107008
+      },
+      "warmups": [
+        {
+          "elapsedMs": 100.4974,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48492544,
+          "rssAfterBytes": 51167232
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46208,
+      "stderr": "(node:46208) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 88.82959999999997,
+        "cpuUserMicros": 63000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 51879936,
+        "rssAfterBytes": 56283136
+      },
+      "warmups": [
+        {
+          "elapsedMs": 97.9477,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48730112,
+          "rssAfterBytes": 51310592
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40508,
+      "stderr": "(node:40508) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "JSON.stringify(redactJson)"
+      },
+      "measured": {
+        "elapsedMs": 127.06630000000001,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 55832576,
+        "rssAfterBytes": 55971840
+      },
+      "warmups": [
+        {
+          "elapsedMs": 133.7715,
+          "cpuUserMicros": 109000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48766976,
+          "rssAfterBytes": 55533568
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 29620,
+      "stderr": "(node:29620) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 94.31569999999996,
+        "cpuUserMicros": 79000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 51589120,
+        "rssAfterBytes": 56000512
+      },
+      "warmups": [
+        {
+          "elapsedMs": 97.6208,
+          "cpuUserMicros": 62000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 48656384,
+          "rssAfterBytes": 51343360
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 37916,
+      "stderr": "(node:37916) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 88.13939999999997,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51576832,
+        "rssAfterBytes": 55922688
+      },
+      "warmups": [
+        {
+          "elapsedMs": 93.54209999999999,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 48574464,
+          "rssAfterBytes": 51240960
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25556,
+      "stderr": "(node:25556) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "JSON.stringify(redactJson)"
+      },
+      "measured": {
+        "elapsedMs": 135.13320000000004,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 55799808,
+        "rssAfterBytes": 55967744
+      },
+      "warmups": [
+        {
+          "elapsedMs": 136.6201,
+          "cpuUserMicros": 109000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48701440,
+          "rssAfterBytes": 55644160
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 31868,
+      "stderr": "(node:31868) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 91.0952,
+        "cpuUserMicros": 78000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51892224,
+        "rssAfterBytes": 56049664
+      },
+      "warmups": [
+        {
+          "elapsedMs": 83.77329999999999,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 48640000,
+          "rssAfterBytes": 51339264
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 30024,
+      "stderr": "(node:30024) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "JSON.stringify(redactJson)"
+      },
+      "measured": {
+        "elapsedMs": 134.38750000000005,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53866496,
+        "rssAfterBytes": 53858304
+      },
+      "warmups": [
+        {
+          "elapsedMs": 134.596,
+          "cpuUserMicros": 140000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 46604288,
+          "rssAfterBytes": 53518336
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 12416,
+      "stderr": "(node:12416) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "request-json",
+      "operations": 200,
+      "parameters": {
+        "messages": 200,
+        "tools": 40,
+        "inputBytes": 72282,
+        "api": "redactJsonText"
+      },
+      "measured": {
+        "elapsedMs": 100.04390000000001,
+        "cpuUserMicros": 78000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51650560,
+        "rssAfterBytes": 56070144
+      },
+      "warmups": [
+        {
+          "elapsedMs": 94.72470000000001,
+          "cpuUserMicros": 62000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48267264,
+          "rssAfterBytes": 51015680
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 31244,
+      "stderr": "(node:31244) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1046.6075,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 282000,
+        "rssBeforeBytes": 52183040,
+        "rssAfterBytes": 53936128
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1083.0997,
+          "cpuUserMicros": 312000,
+          "cpuSystemMicros": 312000,
+          "rssBeforeBytes": 50008064,
+          "rssAfterBytes": 52813824
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 8268,
+      "stderr": "(node:8268) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 984.3135000000002,
+        "cpuUserMicros": 172000,
+        "cpuSystemMicros": 188000,
+        "rssBeforeBytes": 51765248,
+        "rssAfterBytes": 53379072
+      },
+      "warmups": [
+        {
+          "elapsedMs": 971.3497,
+          "cpuUserMicros": 281000,
+          "cpuSystemMicros": 219000,
+          "rssBeforeBytes": 49889280,
+          "rssAfterBytes": 52645888
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 38156,
+      "stderr": "(node:38156) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 998.6370000000002,
+        "cpuUserMicros": 266000,
+        "cpuSystemMicros": 141000,
+        "rssBeforeBytes": 52088832,
+        "rssAfterBytes": 53497856
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1000.0548999999999,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 219000,
+          "rssBeforeBytes": 49463296,
+          "rssAfterBytes": 52903936
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26552,
+      "stderr": "(node:26552) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1045.7226,
+        "cpuUserMicros": 172000,
+        "cpuSystemMicros": 234000,
+        "rssBeforeBytes": 51912704,
+        "rssAfterBytes": 53747712
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1030.124,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 250000,
+          "rssBeforeBytes": 50020352,
+          "rssAfterBytes": 52506624
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46168,
+      "stderr": "(node:46168) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1039.8964,
+        "cpuUserMicros": 328000,
+        "cpuSystemMicros": 266000,
+        "rssBeforeBytes": 50212864,
+        "rssAfterBytes": 51953664
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1046.5202000000002,
+          "cpuUserMicros": 187000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 47579136,
+          "rssAfterBytes": 50855936
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 35404,
+      "stderr": "(node:35404) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 997.3881000000001,
+        "cpuUserMicros": 265000,
+        "cpuSystemMicros": 234000,
+        "rssBeforeBytes": 51781632,
+        "rssAfterBytes": 53407744
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1221.5797,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 406000,
+          "rssBeforeBytes": 49717248,
+          "rssAfterBytes": 52531200
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 9880,
+      "stderr": "(node:9880) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1001.4279000000001,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 328000,
+        "rssBeforeBytes": 52158464,
+        "rssAfterBytes": 53813248
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1037.054,
+          "cpuUserMicros": 266000,
+          "cpuSystemMicros": 297000,
+          "rssBeforeBytes": 49643520,
+          "rssAfterBytes": 52797440
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 10144,
+      "stderr": "(node:10144) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1014.4848999999999,
+        "cpuUserMicros": 250000,
+        "cpuSystemMicros": 312000,
+        "rssBeforeBytes": 52101120,
+        "rssAfterBytes": 53862400
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1019.7446,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 187000,
+          "rssBeforeBytes": 50032640,
+          "rssAfterBytes": 52568064
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 1924,
+      "stderr": "(node:1924) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 961.3537000000001,
+        "cpuUserMicros": 172000,
+        "cpuSystemMicros": 343000,
+        "rssBeforeBytes": 50114560,
+        "rssAfterBytes": 51580928
+      },
+      "warmups": [
+        {
+          "elapsedMs": 981.0088000000001,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 110000,
+          "rssBeforeBytes": 47689728,
+          "rssAfterBytes": 50929664
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 21808,
+      "stderr": "(node:21808) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 976.1846999999998,
+        "cpuUserMicros": 187000,
+        "cpuSystemMicros": 265000,
+        "rssBeforeBytes": 52121600,
+        "rssAfterBytes": 53846016
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1026.2714,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 140000,
+          "rssBeforeBytes": 49602560,
+          "rssAfterBytes": 52723712
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 32808,
+      "stderr": "(node:32808) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 941.2411999999999,
+        "cpuUserMicros": 156000,
+        "cpuSystemMicros": 219000,
+        "rssBeforeBytes": 52051968,
+        "rssAfterBytes": 53465088
+      },
+      "warmups": [
+        {
+          "elapsedMs": 985.3555999999999,
+          "cpuUserMicros": 156000,
+          "cpuSystemMicros": 266000,
+          "rssBeforeBytes": 49741824,
+          "rssAfterBytes": 52666368
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46392,
+      "stderr": "(node:46392) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1042.6614,
+        "cpuUserMicros": 234000,
+        "cpuSystemMicros": 282000,
+        "rssBeforeBytes": 51920896,
+        "rssAfterBytes": 53903360
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1027.4017000000001,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 234000,
+          "rssBeforeBytes": 49983488,
+          "rssAfterBytes": 52883456
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 4324,
+      "stderr": "(node:4324) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 981.4929000000002,
+        "cpuUserMicros": 328000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 50036736,
+        "rssAfterBytes": 51331072
+      },
+      "warmups": [
+        {
+          "elapsedMs": 982.5152999999999,
+          "cpuUserMicros": 219000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 47828992,
+          "rssAfterBytes": 50626560
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45524,
+      "stderr": "(node:45524) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 994.7356,
+        "cpuUserMicros": 187000,
+        "cpuSystemMicros": 250000,
+        "rssBeforeBytes": 51937280,
+        "rssAfterBytes": 53747712
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1016.4061000000002,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 250000,
+          "rssBeforeBytes": 49528832,
+          "rssAfterBytes": 52731904
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 15208,
+      "stderr": "(node:15208) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 996.3332,
+        "cpuUserMicros": 234000,
+        "cpuSystemMicros": 140000,
+        "rssBeforeBytes": 52056064,
+        "rssAfterBytes": 53694464
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1055.8184999999999,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 219000,
+          "rssBeforeBytes": 49827840,
+          "rssAfterBytes": 52649984
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40080,
+      "stderr": "(node:40080) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 970.3925999999997,
+        "cpuUserMicros": 234000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 51965952,
+        "rssAfterBytes": 53551104
+      },
+      "warmups": [
+        {
+          "elapsedMs": 965.0649999999999,
+          "cpuUserMicros": 125000,
+          "cpuSystemMicros": 282000,
+          "rssBeforeBytes": 50065408,
+          "rssAfterBytes": 52883456
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42576,
+      "stderr": "(node:42576) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1011.1228000000001,
+        "cpuUserMicros": 344000,
+        "cpuSystemMicros": 172000,
+        "rssBeforeBytes": 51994624,
+        "rssAfterBytes": 54075392
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1026.6986,
+          "cpuUserMicros": 188000,
+          "cpuSystemMicros": 204000,
+          "rssBeforeBytes": 50044928,
+          "rssAfterBytes": 52703232
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46952,
+      "stderr": "(node:46952) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "durable-events-small",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1015.5234000000003,
+        "cpuUserMicros": 250000,
+        "cpuSystemMicros": 266000,
+        "rssBeforeBytes": 52293632,
+        "rssAfterBytes": 53313536
+      },
+      "warmups": [
+        {
+          "elapsedMs": 978.6929,
+          "cpuUserMicros": 218000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 49664000,
+          "rssAfterBytes": 52854784
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26940,
+      "stderr": "(node:26940) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1206.4414,
+        "cpuUserMicros": 203000,
+        "cpuSystemMicros": 406000,
+        "rssBeforeBytes": 54685696,
+        "rssAfterBytes": 55738368
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1247.6852,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 375000,
+          "rssBeforeBytes": 52891648,
+          "rssAfterBytes": 53981184
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42980,
+      "stderr": "(node:42980) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 934.4943000000001,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 109000,
+        "rssBeforeBytes": 52420608,
+        "rssAfterBytes": 52871168
+      },
+      "warmups": [
+        {
+          "elapsedMs": 994.6878,
+          "cpuUserMicros": 219000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 50823168,
+          "rssAfterBytes": 52023296
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 30084,
+      "stderr": "(node:30084) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1000.5248000000001,
+        "cpuUserMicros": 187000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 54628352,
+        "rssAfterBytes": 55095296
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1059.6918999999998,
+          "cpuUserMicros": 312000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 53002240,
+          "rssAfterBytes": 54169600
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45500,
+      "stderr": "(node:45500) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1242.8826999999999,
+        "cpuUserMicros": 438000,
+        "cpuSystemMicros": 406000,
+        "rssBeforeBytes": 54607872,
+        "rssAfterBytes": 55754752
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1240.8419999999999,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 375000,
+          "rssBeforeBytes": 52600832,
+          "rssAfterBytes": 53768192
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42964,
+      "stderr": "(node:42964) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1039.3375999999998,
+        "cpuUserMicros": 266000,
+        "cpuSystemMicros": 312000,
+        "rssBeforeBytes": 54738944,
+        "rssAfterBytes": 55173120
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1025.8515,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 250000,
+          "rssBeforeBytes": 52875264,
+          "rssAfterBytes": 54136832
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40100,
+      "stderr": "(node:40100) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 974.7446999999997,
+        "cpuUserMicros": 250000,
+        "cpuSystemMicros": 219000,
+        "rssBeforeBytes": 54312960,
+        "rssAfterBytes": 54620160
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1021.4157,
+          "cpuUserMicros": 172000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 52944896,
+          "rssAfterBytes": 53719040
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 17896,
+      "stderr": "(node:17896) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1002.8539000000001,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 312000,
+        "rssBeforeBytes": 54140928,
+        "rssAfterBytes": 54382592
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1037.2747,
+          "cpuUserMicros": 234000,
+          "cpuSystemMicros": 250000,
+          "rssBeforeBytes": 52699136,
+          "rssAfterBytes": 53944320
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46856,
+      "stderr": "(node:46856) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1243.6018000000001,
+        "cpuUserMicros": 344000,
+        "cpuSystemMicros": 344000,
+        "rssBeforeBytes": 54452224,
+        "rssAfterBytes": 55672832
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1269.3682000000001,
+          "cpuUserMicros": 219000,
+          "cpuSystemMicros": 359000,
+          "rssBeforeBytes": 52850688,
+          "rssAfterBytes": 53579776
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 3452,
+      "stderr": "(node:3452) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 984.6702999999998,
+        "cpuUserMicros": 266000,
+        "cpuSystemMicros": 328000,
+        "rssBeforeBytes": 54513664,
+        "rssAfterBytes": 54984704
+      },
+      "warmups": [
+        {
+          "elapsedMs": 959.5058999999999,
+          "cpuUserMicros": 187000,
+          "cpuSystemMicros": 187000,
+          "rssBeforeBytes": 52776960,
+          "rssAfterBytes": 54013952
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 19788,
+      "stderr": "(node:19788) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 977.1329000000001,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 406000,
+        "rssBeforeBytes": 54185984,
+        "rssAfterBytes": 55099392
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1035.0798,
+          "cpuUserMicros": 141000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 52854784,
+          "rssAfterBytes": 54247424
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 47040,
+      "stderr": "(node:47040) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 965.8088,
+        "cpuUserMicros": 203000,
+        "cpuSystemMicros": 141000,
+        "rssBeforeBytes": 54247424,
+        "rssAfterBytes": 55025664
+      },
+      "warmups": [
+        {
+          "elapsedMs": 964.8788,
+          "cpuUserMicros": 218000,
+          "cpuSystemMicros": 218000,
+          "rssBeforeBytes": 52727808,
+          "rssAfterBytes": 53620736
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 31876,
+      "stderr": "(node:31876) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1217.1256,
+        "cpuUserMicros": 219000,
+        "cpuSystemMicros": 328000,
+        "rssBeforeBytes": 52559872,
+        "rssAfterBytes": 53080064
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1228.9578999999999,
+          "cpuUserMicros": 313000,
+          "cpuSystemMicros": 359000,
+          "rssBeforeBytes": 50683904,
+          "rssAfterBytes": 51826688
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 38468,
+      "stderr": "(node:38468) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1000.1025999999997,
+        "cpuUserMicros": 172000,
+        "cpuSystemMicros": 188000,
+        "rssBeforeBytes": 54321152,
+        "rssAfterBytes": 54448128
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1023.7814000000001,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 52928512,
+          "rssAfterBytes": 53862400
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25212,
+      "stderr": "(node:25212) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1057.3682,
+        "cpuUserMicros": 281000,
+        "cpuSystemMicros": 125000,
+        "rssBeforeBytes": 54882304,
+        "rssAfterBytes": 55025664
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1106.8417,
+          "cpuUserMicros": 391000,
+          "cpuSystemMicros": 297000,
+          "rssBeforeBytes": 53288960,
+          "rssAfterBytes": 54128640
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 28580,
+      "stderr": "(node:28580) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1424.3656999999998,
+        "cpuUserMicros": 281000,
+        "cpuSystemMicros": 422000,
+        "rssBeforeBytes": 54652928,
+        "rssAfterBytes": 55263232
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1335.5412,
+          "cpuUserMicros": 406000,
+          "cpuSystemMicros": 344000,
+          "rssBeforeBytes": 53022720,
+          "rssAfterBytes": 53874688
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 13104,
+      "stderr": "(node:13104) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1032.6895000000002,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 312000,
+        "rssBeforeBytes": 54575104,
+        "rssAfterBytes": 54898688
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1069.5862,
+          "cpuUserMicros": 172000,
+          "cpuSystemMicros": 375000,
+          "rssBeforeBytes": 53460992,
+          "rssAfterBytes": 53796864
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40672,
+      "stderr": "(node:40672) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1296.1504999999997,
+        "cpuUserMicros": 265000,
+        "cpuSystemMicros": 641000,
+        "rssBeforeBytes": 54439936,
+        "rssAfterBytes": 54702080
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1355.6496,
+          "cpuUserMicros": 281000,
+          "cpuSystemMicros": 297000,
+          "rssBeforeBytes": 52879360,
+          "rssAfterBytes": 53760000
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40356,
+      "stderr": "(node:40356) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "durable-events-large",
+      "operations": 2000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": true,
+        "liveListener": false,
+        "api": "Store.emit"
+      },
+      "measured": {
+        "elapsedMs": 1010.1614000000002,
+        "cpuUserMicros": 234000,
+        "cpuSystemMicros": 234000,
+        "rssBeforeBytes": 52338688,
+        "rssAfterBytes": 52891648
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1031.6096,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 219000,
+          "rssBeforeBytes": 51232768,
+          "rssAfterBytes": 51695616
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 30100,
+      "stderr": "(node:30100) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 364.8125,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 52535296,
+        "rssAfterBytes": 52723712
+      },
+      "warmups": [
+        {
+          "elapsedMs": 384.26930000000004,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 50135040,
+          "rssAfterBytes": 52637696
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 21500,
+      "stderr": "(node:21500) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 324.8125,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 51978240,
+        "rssAfterBytes": 52174848
+      },
+      "warmups": [
+        {
+          "elapsedMs": 341.9669,
+          "cpuUserMicros": 329000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 50167808,
+          "rssAfterBytes": 52027392
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 13668,
+      "stderr": "(node:13668) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 356.15330000000006,
+        "cpuUserMicros": 328000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 52408320,
+        "rssAfterBytes": 52559872
+      },
+      "warmups": [
+        {
+          "elapsedMs": 371.362,
+          "cpuUserMicros": 360000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 49565696,
+          "rssAfterBytes": 52293632
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42236,
+      "stderr": "(node:42236) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 360.6799,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 52948992,
+        "rssAfterBytes": 53153792
+      },
+      "warmups": [
+        {
+          "elapsedMs": 376.88,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 50057216,
+          "rssAfterBytes": 52916224
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 8248,
+      "stderr": "(node:8248) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 349.43279999999993,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 52637696,
+        "rssAfterBytes": 52842496
+      },
+      "warmups": [
+        {
+          "elapsedMs": 368.89429999999993,
+          "cpuUserMicros": 344000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 49582080,
+          "rssAfterBytes": 52432896
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 30508,
+      "stderr": "(node:30508) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 311.7981,
+        "cpuUserMicros": 266000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 52322304,
+        "rssAfterBytes": 52764672
+      },
+      "warmups": [
+        {
+          "elapsedMs": 342.8772,
+          "cpuUserMicros": 343000,
+          "cpuSystemMicros": 79000,
+          "rssBeforeBytes": 49680384,
+          "rssAfterBytes": 52232192
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42980,
+      "stderr": "(node:42980) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 363.0934000000001,
+        "cpuUserMicros": 282000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 52641792,
+        "rssAfterBytes": 53035008
+      },
+      "warmups": [
+        {
+          "elapsedMs": 381.5567,
+          "cpuUserMicros": 375000,
+          "cpuSystemMicros": 93000,
+          "rssBeforeBytes": 49692672,
+          "rssAfterBytes": 52150272
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 35596,
+      "stderr": "(node:35596) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 349.6056,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 50810880,
+        "rssAfterBytes": 50962432
+      },
+      "warmups": [
+        {
+          "elapsedMs": 381.45670000000007,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 48070656,
+          "rssAfterBytes": 50733056
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 37836,
+      "stderr": "(node:37836) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 322.23030000000006,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 52191232,
+        "rssAfterBytes": 52359168
+      },
+      "warmups": [
+        {
+          "elapsedMs": 334.56870000000004,
+          "cpuUserMicros": 360000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 49942528,
+          "rssAfterBytes": 52137984
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 37504,
+      "stderr": "(node:37504) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 351.4579,
+        "cpuUserMicros": 313000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 52686848,
+        "rssAfterBytes": 52969472
+      },
+      "warmups": [
+        {
+          "elapsedMs": 373.04820000000007,
+          "cpuUserMicros": 313000,
+          "cpuSystemMicros": 78000,
+          "rssBeforeBytes": 49553408,
+          "rssAfterBytes": 52592640
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 1452,
+      "stderr": "(node:1452) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 306.745,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 52232192,
+        "rssAfterBytes": 52486144
+      },
+      "warmups": [
+        {
+          "elapsedMs": 347.9975,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 32000,
+          "rssBeforeBytes": 49889280,
+          "rssAfterBytes": 52367360
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 36156,
+      "stderr": "(node:36156) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 358.5757,
+        "cpuUserMicros": 344000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 50831360,
+        "rssAfterBytes": 51097600
+      },
+      "warmups": [
+        {
+          "elapsedMs": 386.381,
+          "cpuUserMicros": 375000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 48181248,
+          "rssAfterBytes": 50917376
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 15004,
+      "stderr": "(node:15004) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 333.9683,
+        "cpuUserMicros": 265000,
+        "cpuSystemMicros": 32000,
+        "rssBeforeBytes": 50388992,
+        "rssAfterBytes": 50450432
+      },
+      "warmups": [
+        {
+          "elapsedMs": 344.0474,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 47468544,
+          "rssAfterBytes": 50081792
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 35760,
+      "stderr": "(node:35760) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 343.3628,
+        "cpuUserMicros": 328000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 52674560,
+        "rssAfterBytes": 52834304
+      },
+      "warmups": [
+        {
+          "elapsedMs": 374.0432,
+          "cpuUserMicros": 375000,
+          "cpuSystemMicros": 79000,
+          "rssBeforeBytes": 49389568,
+          "rssAfterBytes": 52228096
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42160,
+      "stderr": "(node:42160) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 367.84169999999995,
+        "cpuUserMicros": 359000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 51118080,
+        "rssAfterBytes": 51507200
+      },
+      "warmups": [
+        {
+          "elapsedMs": 357.89289999999994,
+          "cpuUserMicros": 312000,
+          "cpuSystemMicros": 62000,
+          "rssBeforeBytes": 47980544,
+          "rssAfterBytes": 50962432
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 20092,
+      "stderr": "(node:20092) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 325.7948,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 32000,
+        "rssBeforeBytes": 51892224,
+        "rssAfterBytes": 52015104
+      },
+      "warmups": [
+        {
+          "elapsedMs": 326.376,
+          "cpuUserMicros": 312000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 50040832,
+          "rssAfterBytes": 51961856
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42232,
+      "stderr": "(node:42232) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 362.14660000000003,
+        "cpuUserMicros": 328000,
+        "cpuSystemMicros": 32000,
+        "rssBeforeBytes": 51027968,
+        "rssAfterBytes": 51236864
+      },
+      "warmups": [
+        {
+          "elapsedMs": 374.6236,
+          "cpuUserMicros": 375000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 48070656,
+          "rssAfterBytes": 50561024
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 29656,
+      "stderr": "(node:29656) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "ephemeral-observed-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 357.0404,
+        "cpuUserMicros": 265000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 52875264,
+        "rssAfterBytes": 53063680
+      },
+      "warmups": [
+        {
+          "elapsedMs": 366.6983,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 49618944,
+          "rssAfterBytes": 52871168
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 33100,
+      "stderr": "(node:33100) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 692.0555999999999,
+        "cpuUserMicros": 421000,
+        "cpuSystemMicros": 281000,
+        "rssBeforeBytes": 59031552,
+        "rssAfterBytes": 59273216
+      },
+      "warmups": [
+        {
+          "elapsedMs": 755.199,
+          "cpuUserMicros": 625000,
+          "cpuSystemMicros": 203000,
+          "rssBeforeBytes": 53284864,
+          "rssAfterBytes": 55128064
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 41244,
+      "stderr": "(node:41244) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 333.8117,
+        "cpuUserMicros": 250000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 54763520,
+        "rssAfterBytes": 54906880
+      },
+      "warmups": [
+        {
+          "elapsedMs": 356.6402,
+          "cpuUserMicros": 343000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 52957184,
+          "rssAfterBytes": 54349824
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40744,
+      "stderr": "(node:40744) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 345.47710000000006,
+        "cpuUserMicros": 296000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 55336960,
+        "rssAfterBytes": 55545856
+      },
+      "warmups": [
+        {
+          "elapsedMs": 369.2166,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 93000,
+          "rssBeforeBytes": 52826112,
+          "rssAfterBytes": 54751232
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26788,
+      "stderr": "(node:26788) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 752.1121,
+        "cpuUserMicros": 547000,
+        "cpuSystemMicros": 172000,
+        "rssBeforeBytes": 58834944,
+        "rssAfterBytes": 59203584
+      },
+      "warmups": [
+        {
+          "elapsedMs": 768.2698,
+          "cpuUserMicros": 641000,
+          "cpuSystemMicros": 156000,
+          "rssBeforeBytes": 52527104,
+          "rssAfterBytes": 54452224
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45160,
+      "stderr": "(node:45160) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 360.7261,
+        "cpuUserMicros": 375000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 53157888,
+        "rssAfterBytes": 53395456
+      },
+      "warmups": [
+        {
+          "elapsedMs": 371.8946000000001,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 50814976,
+          "rssAfterBytes": 52424704
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 36580,
+      "stderr": "(node:36580) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 313.2128,
+        "cpuUserMicros": 250000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 52928512,
+        "rssAfterBytes": 53268480
+      },
+      "warmups": [
+        {
+          "elapsedMs": 343.5135,
+          "cpuUserMicros": 297000,
+          "cpuSystemMicros": 93000,
+          "rssBeforeBytes": 51593216,
+          "rssAfterBytes": 52842496
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 9428,
+      "stderr": "(node:9428) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 346.0594000000001,
+        "cpuUserMicros": 296000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 52703232,
+        "rssAfterBytes": 53063680
+      },
+      "warmups": [
+        {
+          "elapsedMs": 365.8481,
+          "cpuUserMicros": 313000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 50810880,
+          "rssAfterBytes": 52473856
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25288,
+      "stderr": "(node:25288) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 710.8844999999999,
+        "cpuUserMicros": 500000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 56532992,
+        "rssAfterBytes": 56795136
+      },
+      "warmups": [
+        {
+          "elapsedMs": 727.1454,
+          "cpuUserMicros": 500000,
+          "cpuSystemMicros": 282000,
+          "rssBeforeBytes": 50806784,
+          "rssAfterBytes": 52674560
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 41860,
+      "stderr": "(node:41860) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 290.35389999999995,
+        "cpuUserMicros": 282000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 54583296,
+        "rssAfterBytes": 54820864
+      },
+      "warmups": [
+        {
+          "elapsedMs": 320.4782,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 52854784,
+          "rssAfterBytes": 53932032
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26984,
+      "stderr": "(node:26984) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 347.0244,
+        "cpuUserMicros": 312000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 55316480,
+        "rssAfterBytes": 55545856
+      },
+      "warmups": [
+        {
+          "elapsedMs": 356.8048,
+          "cpuUserMicros": 344000,
+          "cpuSystemMicros": 32000,
+          "rssBeforeBytes": 52756480,
+          "rssAfterBytes": 54878208
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 29976,
+      "stderr": "(node:29976) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 334.1993,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 54358016,
+        "rssAfterBytes": 54554624
+      },
+      "warmups": [
+        {
+          "elapsedMs": 328.5444,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 53018624,
+          "rssAfterBytes": 54697984
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 39320,
+      "stderr": "(node:39320) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 681.1743000000001,
+        "cpuUserMicros": 531000,
+        "cpuSystemMicros": 157000,
+        "rssBeforeBytes": 58638336,
+        "rssAfterBytes": 58785792
+      },
+      "warmups": [
+        {
+          "elapsedMs": 719.5459,
+          "cpuUserMicros": 562000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 53256192,
+          "rssAfterBytes": 54652928
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 36356,
+      "stderr": "(node:36356) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 298.2029,
+        "cpuUserMicros": 250000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 54661120,
+        "rssAfterBytes": 54845440
+      },
+      "warmups": [
+        {
+          "elapsedMs": 324.2074,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 46000,
+          "rssBeforeBytes": 52744192,
+          "rssAfterBytes": 53964800
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46352,
+      "stderr": "(node:46352) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 349.3195999999999,
+        "cpuUserMicros": 296000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 55566336,
+        "rssAfterBytes": 55943168
+      },
+      "warmups": [
+        {
+          "elapsedMs": 362.31489999999997,
+          "cpuUserMicros": 343000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 52768768,
+          "rssAfterBytes": 54886400
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 38016,
+      "stderr": "(node:38016) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 732.4535000000001,
+        "cpuUserMicros": 468000,
+        "cpuSystemMicros": 234000,
+        "rssBeforeBytes": 58957824,
+        "rssAfterBytes": 58691584
+      },
+      "warmups": [
+        {
+          "elapsedMs": 720.8376000000001,
+          "cpuUserMicros": 531000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 53297152,
+          "rssAfterBytes": 55103488
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45668,
+      "stderr": "(node:45668) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 316.7604,
+        "cpuUserMicros": 281000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 54812672,
+        "rssAfterBytes": 55115776
+      },
+      "warmups": [
+        {
+          "elapsedMs": 334.8885,
+          "cpuUserMicros": 312000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 52920320,
+          "rssAfterBytes": 54996992
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25260,
+      "stderr": "(node:25260) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 721.5684000000001,
+        "cpuUserMicros": 500000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 58826752,
+        "rssAfterBytes": 59138048
+      },
+      "warmups": [
+        {
+          "elapsedMs": 736.853,
+          "cpuUserMicros": 375000,
+          "cpuSystemMicros": 313000,
+          "rssBeforeBytes": 52838400,
+          "rssAfterBytes": 54915072
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46640,
+      "stderr": "(node:46640) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "ephemeral-observed-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": true,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 355.19000000000005,
+        "cpuUserMicros": 313000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 55599104,
+        "rssAfterBytes": 56082432
+      },
+      "warmups": [
+        {
+          "elapsedMs": 368.8419,
+          "cpuUserMicros": 329000,
+          "cpuSystemMicros": 79000,
+          "rssBeforeBytes": 52879360,
+          "rssAfterBytes": 55238656
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46116,
+      "stderr": "(node:46116) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 374.7341,
+        "cpuUserMicros": 360000,
+        "cpuSystemMicros": 16000,
+        "rssBeforeBytes": 52555776,
+        "rssAfterBytes": 52645888
+      },
+      "warmups": [
+        {
+          "elapsedMs": 386.0298,
+          "cpuUserMicros": 328000,
+          "cpuSystemMicros": 32000,
+          "rssBeforeBytes": 50085888,
+          "rssAfterBytes": 52584448
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 3200,
+      "stderr": "(node:3200) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6914999999999907,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 48893952,
+        "rssAfterBytes": 49016832
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.9161000000000001,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 47661056,
+          "rssAfterBytes": 47697920
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 37836,
+      "stderr": "(node:37836) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6515999999999735,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 50941952,
+        "rssAfterBytes": 51101696
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.1646000000000072,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49553408,
+          "rssAfterBytes": 49700864
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46488,
+      "stderr": "(node:46488) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 378.71590000000003,
+        "cpuUserMicros": 344000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 52801536,
+        "rssAfterBytes": 53035008
+      },
+      "warmups": [
+        {
+          "elapsedMs": 430.91049999999996,
+          "cpuUserMicros": 312000,
+          "cpuSystemMicros": 156000,
+          "rssBeforeBytes": 49926144,
+          "rssAfterBytes": 52772864
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 47000,
+      "stderr": "(node:47000) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.7690000000000055,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 50888704,
+        "rssAfterBytes": 51056640
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.1252000000000066,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49635328,
+          "rssAfterBytes": 49733632
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 35256,
+      "stderr": "(node:35256) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6137000000000228,
+        "cpuUserMicros": 32000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 50876416,
+        "rssAfterBytes": 50933760
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.9106999999999914,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49680384,
+          "rssAfterBytes": 49717248
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 10684,
+      "stderr": "(node:10684) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.9699999999999989,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 48848896,
+        "rssAfterBytes": 48992256
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.2240999999999929,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 47665152,
+          "rssAfterBytes": 47693824
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 15880,
+      "stderr": "(node:15880) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 381.1271999999999,
+        "cpuUserMicros": 344000,
+        "cpuSystemMicros": 32000,
+        "rssBeforeBytes": 53030912,
+        "rssAfterBytes": 52981760
+      },
+      "warmups": [
+        {
+          "elapsedMs": 395.1305,
+          "cpuUserMicros": 390000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49901568,
+          "rssAfterBytes": 52719616
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 9972,
+      "stderr": "(node:9972) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6362000000000023,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51269632,
+        "rssAfterBytes": 51339264
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.8812999999999818,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49799168,
+          "rssAfterBytes": 49819648
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 41748,
+      "stderr": "(node:41748) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.7475999999999772,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51126272,
+        "rssAfterBytes": 51290112
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.2898000000000138,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49631232,
+          "rssAfterBytes": 49803264
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 28232,
+      "stderr": "(node:28232) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.7518000000000029,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51118080,
+        "rssAfterBytes": 51183616
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.0825000000000102,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49672192,
+          "rssAfterBytes": 49688576
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 1268,
+      "stderr": "(node:1268) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 397.4565000000001,
+        "cpuUserMicros": 375000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 50421760,
+        "rssAfterBytes": 50212864
+      },
+      "warmups": [
+        {
+          "elapsedMs": 425.9115,
+          "cpuUserMicros": 390000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 48070656,
+          "rssAfterBytes": 50352128
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42896,
+      "stderr": "(node:42896) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6367999999999938,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51277824,
+        "rssAfterBytes": 51372032
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.0118999999999971,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49549312,
+          "rssAfterBytes": 49840128
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40016,
+      "stderr": "(node:40016) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6662000000000035,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 49164288,
+        "rssAfterBytes": 49373184
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.1470999999999947,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 47562752,
+          "rssAfterBytes": 47669248
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25212,
+      "stderr": "(node:25212) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 349.35990000000004,
+        "cpuUserMicros": 343000,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 52920320,
+        "rssAfterBytes": 53329920
+      },
+      "warmups": [
+        {
+          "elapsedMs": 368.139,
+          "cpuUserMicros": 343000,
+          "cpuSystemMicros": 79000,
+          "rssBeforeBytes": 50118656,
+          "rssAfterBytes": 52875264
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 7488,
+      "stderr": "(node:7488) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6953000000000031,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 51388416,
+        "rssAfterBytes": 51449856
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.0361000000000047,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49823744,
+          "rssAfterBytes": 49872896
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 37100,
+      "stderr": "(node:37100) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 358.4012,
+        "cpuUserMicros": 297000,
+        "cpuSystemMicros": 62000,
+        "rssBeforeBytes": 52588544,
+        "rssAfterBytes": 52862976
+      },
+      "warmups": [
+        {
+          "elapsedMs": 364.94130000000007,
+          "cpuUserMicros": 359000,
+          "cpuSystemMicros": 32000,
+          "rssBeforeBytes": 49856512,
+          "rssAfterBytes": 52621312
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42928,
+      "stderr": "(node:42928) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-small",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 512,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.686000000000007,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 50769920,
+        "rssAfterBytes": 50929664
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.2383000000000095,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 49532928,
+          "rssAfterBytes": 49635328
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46368,
+      "stderr": "(node:46368) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 689.8713,
+        "cpuUserMicros": 406000,
+        "cpuSystemMicros": 235000,
+        "rssBeforeBytes": 55336960,
+        "rssAfterBytes": 55500800
+      },
+      "warmups": [
+        {
+          "elapsedMs": 724.5125,
+          "cpuUserMicros": 563000,
+          "cpuSystemMicros": 109000,
+          "rssBeforeBytes": 53272576,
+          "rssAfterBytes": 55033856
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 43648,
+      "stderr": "(node:43648) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6206999999999994,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53985280,
+        "rssAfterBytes": 54099968
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.0620000000000118,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 53547008,
+          "rssAfterBytes": 53575680
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 12908,
+      "stderr": "(node:12908) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.681699999999978,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53886976,
+        "rssAfterBytes": 53886976
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.016300000000001,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52690944,
+          "rssAfterBytes": 52883456
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 43772,
+      "stderr": "(node:43772) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 715.6087,
+        "cpuUserMicros": 484000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 55009280,
+        "rssAfterBytes": 55324672
+      },
+      "warmups": [
+        {
+          "elapsedMs": 733.0717999999999,
+          "cpuUserMicros": 515000,
+          "cpuSystemMicros": 219000,
+          "rssBeforeBytes": 53235712,
+          "rssAfterBytes": 54943744
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 548,
+      "stderr": "(node:548) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6832999999999743,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53850112,
+        "rssAfterBytes": 53850112
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.3862000000000023,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52895744,
+          "rssAfterBytes": 53182464
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40456,
+      "stderr": "(node:40456) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.5891000000000304,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53694464,
+        "rssAfterBytes": 53874688
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.975200000000001,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52752384,
+          "rssAfterBytes": 52826112
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26888,
+      "stderr": "(node:26888) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6621000000000095,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53805056,
+        "rssAfterBytes": 53886976
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.018999999999977,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52752384,
+          "rssAfterBytes": 52965376
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 4996,
+      "stderr": "(node:4996) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 715.816,
+        "cpuUserMicros": 390000,
+        "cpuSystemMicros": 312000,
+        "rssBeforeBytes": 55173120,
+        "rssAfterBytes": 55427072
+      },
+      "warmups": [
+        {
+          "elapsedMs": 714.7201,
+          "cpuUserMicros": 515000,
+          "cpuSystemMicros": 171000,
+          "rssBeforeBytes": 53186560,
+          "rssAfterBytes": 54833152
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 33928,
+      "stderr": "(node:33928) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.7000000000000455,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 54128640,
+        "rssAfterBytes": 54259712
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.8765999999999963,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 52989952,
+          "rssAfterBytes": 53047296
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 32528,
+      "stderr": "(node:32528) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6594000000000051,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 15000,
+        "rssBeforeBytes": 53936128,
+        "rssAfterBytes": 54042624
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.1821999999999946,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52781056,
+          "rssAfterBytes": 52920320
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45484,
+      "stderr": "(node:45484) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6543000000000347,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53837824,
+        "rssAfterBytes": 53985280
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.8882999999999868,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 53403648,
+          "rssAfterBytes": 53415936
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 32088,
+      "stderr": "(node:32088) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 717.2349000000002,
+        "cpuUserMicros": 500000,
+        "cpuSystemMicros": 188000,
+        "rssBeforeBytes": 54804480,
+        "rssAfterBytes": 55336960
+      },
+      "warmups": [
+        {
+          "elapsedMs": 715.924,
+          "cpuUserMicros": 437000,
+          "cpuSystemMicros": 328000,
+          "rssBeforeBytes": 52781056,
+          "rssAfterBytes": 54792192
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 19600,
+      "stderr": "(node:19600) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.622600000000034,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 54157312,
+        "rssAfterBytes": 54288384
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.9063999999999908,
+          "cpuUserMicros": 63000,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52846592,
+          "rssAfterBytes": 53051392
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 39444,
+      "stderr": "(node:39444) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.7590000000000146,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53837824,
+        "rssAfterBytes": 53841920
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.3155999999999892,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 52682752,
+          "rssAfterBytes": 52862976
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46916,
+      "stderr": "(node:46916) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 709.4042,
+        "cpuUserMicros": 406000,
+        "cpuSystemMicros": 266000,
+        "rssBeforeBytes": 53030912,
+        "rssAfterBytes": 53301248
+      },
+      "warmups": [
+        {
+          "elapsedMs": 730.0301,
+          "cpuUserMicros": 484000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 50880512,
+          "rssAfterBytes": 53424128
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26680,
+      "stderr": "(node:26680) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.587600000000009,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53981184,
+        "rssAfterBytes": 54013952
+      },
+      "warmups": [
+        {
+          "elapsedMs": 0.9796999999999798,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 53039104,
+          "rssAfterBytes": 53157888
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42744,
+      "stderr": "(node:42744) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emit(false)"
+      },
+      "measured": {
+        "elapsedMs": 687.7717,
+        "cpuUserMicros": 484000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 55255040,
+        "rssAfterBytes": 55910400
+      },
+      "warmups": [
+        {
+          "elapsedMs": 717.2957,
+          "cpuUserMicros": 516000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 52678656,
+          "rssAfterBytes": 55099392
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 37504,
+      "stderr": "(node:37504) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "ephemeral-unobserved-large",
+      "operations": 5000,
+      "parameters": {
+        "runCount": 64,
+        "runInputBytes": 65536,
+        "eventInputBytes": 332,
+        "durable": false,
+        "liveListener": false,
+        "api": "Store.emitEphemeral"
+      },
+      "measured": {
+        "elapsedMs": 0.6290000000000191,
+        "cpuUserMicros": 0,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 53870592,
+        "rssAfterBytes": 53919744
+      },
+      "warmups": [
+        {
+          "elapsedMs": 1.0383999999999958,
+          "cpuUserMicros": 0,
+          "cpuSystemMicros": 0,
+          "rssBeforeBytes": 53055488,
+          "rssAfterBytes": 53161984
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 46448,
+      "stderr": "(node:46448) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 551.9384,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 52551680,
+        "rssAfterBytes": 56958976
+      },
+      "warmups": [
+        {
+          "elapsedMs": 592.4833,
+          "cpuUserMicros": 219000,
+          "cpuSystemMicros": 16000,
+          "rssBeforeBytes": 48627712,
+          "rssAfterBytes": 52105216
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 10684,
+      "stderr": "(node:10684) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 516.8587000000001,
+        "cpuUserMicros": 235000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 52699136,
+        "rssAfterBytes": 57540608
+      },
+      "warmups": [
+        {
+          "elapsedMs": 561.9159000000001,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 15000,
+          "rssBeforeBytes": 48726016,
+          "rssAfterBytes": 52457472
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25000,
+      "stderr": "(node:25000) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 576.264,
+        "cpuUserMicros": 219000,
+        "cpuSystemMicros": 78000,
+        "rssBeforeBytes": 52494336,
+        "rssAfterBytes": 57389056
+      },
+      "warmups": [
+        {
+          "elapsedMs": 556.3644,
+          "cpuUserMicros": 31000,
+          "cpuSystemMicros": 125000,
+          "rssBeforeBytes": 48369664,
+          "rssAfterBytes": 52576256
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 9972,
+      "stderr": "(node:9972) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 606.6639000000001,
+        "cpuUserMicros": 110000,
+        "cpuSystemMicros": 188000,
+        "rssBeforeBytes": 52314112,
+        "rssAfterBytes": 57319424
+      },
+      "warmups": [
+        {
+          "elapsedMs": 647.5254,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 281000,
+          "rssBeforeBytes": 48791552,
+          "rssAfterBytes": 52445184
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 10772,
+      "stderr": "(node:10772) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 546.5874,
+        "cpuUserMicros": 62000,
+        "cpuSystemMicros": 172000,
+        "rssBeforeBytes": 50589696,
+        "rssAfterBytes": 55603200
+      },
+      "warmups": [
+        {
+          "elapsedMs": 668.1171,
+          "cpuUserMicros": 110000,
+          "cpuSystemMicros": 187000,
+          "rssBeforeBytes": 46546944,
+          "rssAfterBytes": 50487296
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 1268,
+      "stderr": "(node:1268) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 559.8011999999999,
+        "cpuUserMicros": 140000,
+        "cpuSystemMicros": 110000,
+        "rssBeforeBytes": 52744192,
+        "rssAfterBytes": 57724928
+      },
+      "warmups": [
+        {
+          "elapsedMs": 588.2567,
+          "cpuUserMicros": 218000,
+          "cpuSystemMicros": 94000,
+          "rssBeforeBytes": 48852992,
+          "rssAfterBytes": 52604928
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 10280,
+      "stderr": "(node:10280) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 553.1691999999999,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 140000,
+        "rssBeforeBytes": 52617216,
+        "rssAfterBytes": 57376768
+      },
+      "warmups": [
+        {
+          "elapsedMs": 615.5805,
+          "cpuUserMicros": 141000,
+          "cpuSystemMicros": 297000,
+          "rssBeforeBytes": 48545792,
+          "rssAfterBytes": 52355072
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 6176,
+      "stderr": "(node:6176) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 586.0086,
+        "cpuUserMicros": 62000,
+        "cpuSystemMicros": 203000,
+        "rssBeforeBytes": 52838400,
+        "rssAfterBytes": 57376768
+      },
+      "warmups": [
+        {
+          "elapsedMs": 568.3205,
+          "cpuUserMicros": 125000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 48676864,
+          "rssAfterBytes": 52158464
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 39328,
+      "stderr": "(node:39328) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 543.4550999999999,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 78000,
+        "rssBeforeBytes": 52748288,
+        "rssAfterBytes": 57450496
+      },
+      "warmups": [
+        {
+          "elapsedMs": 555.5006999999999,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 188000,
+          "rssBeforeBytes": 48717824,
+          "rssAfterBytes": 52375552
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45840,
+      "stderr": "(node:45840) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 534.1378000000001,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 172000,
+        "rssBeforeBytes": 52350976,
+        "rssAfterBytes": 57356288
+      },
+      "warmups": [
+        {
+          "elapsedMs": 558.9799,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 48611328,
+          "rssAfterBytes": 52342784
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 44620,
+      "stderr": "(node:44620) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 570.8916999999999,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 141000,
+        "rssBeforeBytes": 52572160,
+        "rssAfterBytes": 57212928
+      },
+      "warmups": [
+        {
+          "elapsedMs": 575.4885,
+          "cpuUserMicros": 234000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 48685056,
+          "rssAfterBytes": 52285440
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 34024,
+      "stderr": "(node:34024) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 557.9337,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 141000,
+        "rssBeforeBytes": 50606080,
+        "rssAfterBytes": 55627776
+      },
+      "warmups": [
+        {
+          "elapsedMs": 576.395,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 46649344,
+          "rssAfterBytes": 50429952
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 25920,
+      "stderr": "(node:25920) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 523.8819,
+        "cpuUserMicros": 172000,
+        "cpuSystemMicros": 109000,
+        "rssBeforeBytes": 52690944,
+        "rssAfterBytes": 57356288
+      },
+      "warmups": [
+        {
+          "elapsedMs": 546.284,
+          "cpuUserMicros": 125000,
+          "cpuSystemMicros": 125000,
+          "rssBeforeBytes": 48467968,
+          "rssAfterBytes": 52420608
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 31700,
+      "stderr": "(node:31700) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 555.2181,
+        "cpuUserMicros": 140000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 50417664,
+        "rssAfterBytes": 55357440
+      },
+      "warmups": [
+        {
+          "elapsedMs": 571.7857,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 125000,
+          "rssBeforeBytes": 46678016,
+          "rssAfterBytes": 50413568
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 40948,
+      "stderr": "(node:40948) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 543.7306,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 52797440,
+        "rssAfterBytes": 57421824
+      },
+      "warmups": [
+        {
+          "elapsedMs": 552.0253,
+          "cpuUserMicros": 140000,
+          "cpuSystemMicros": 140000,
+          "rssBeforeBytes": 48726016,
+          "rssAfterBytes": 52350976
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 34968,
+      "stderr": "(node:34968) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 568.3971999999999,
+        "cpuUserMicros": 203000,
+        "cpuSystemMicros": 156000,
+        "rssBeforeBytes": 52506624,
+        "rssAfterBytes": 57192448
+      },
+      "warmups": [
+        {
+          "elapsedMs": 546.0454,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 48734208,
+          "rssAfterBytes": 52260864
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 35628,
+      "stderr": "(node:35628) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 532.1831999999999,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 93000,
+        "rssBeforeBytes": 52752384,
+        "rssAfterBytes": 57397248
+      },
+      "warmups": [
+        {
+          "elapsedMs": 551.1024,
+          "cpuUserMicros": 78000,
+          "cpuSystemMicros": 172000,
+          "rssBeforeBytes": 48566272,
+          "rssAfterBytes": 52318208
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 42412,
+      "stderr": "(node:42412) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "transcript-append",
+      "operations": 1250,
+      "parameters": {
+        "freshMessages": 1000,
+        "identicalRetries": 250,
+        "messageBytes": 368,
+        "transaction": "one normal append at a time"
+      },
+      "measured": {
+        "elapsedMs": 524.0431000000001,
+        "cpuUserMicros": 32000,
+        "cpuSystemMicros": 125000,
+        "rssBeforeBytes": 52379648,
+        "rssAfterBytes": 57245696
+      },
+      "warmups": [
+        {
+          "elapsedMs": 527.5654999999999,
+          "cpuUserMicros": 109000,
+          "cpuSystemMicros": 141000,
+          "rssBeforeBytes": 48545792,
+          "rssAfterBytes": 52232192
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 26484,
+      "stderr": "(node:26484) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 1,
+      "position": 1,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 287.7688999999998,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 78000,
+        "rssBeforeBytes": 101916672,
+        "rssAfterBytes": 102871040
+      },
+      "warmups": [
+        {
+          "elapsedMs": 355.1907,
+          "cpuUserMicros": 265000,
+          "cpuSystemMicros": 94000,
+          "rssBeforeBytes": 82075648,
+          "rssAfterBytes": 97091584
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 18416,
+      "stderr": "(node:18416) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 1,
+      "position": 2,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 248.89020000000005,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 31000,
+        "rssBeforeBytes": 97218560,
+        "rssAfterBytes": 98398208
+      },
+      "warmups": [
+        {
+          "elapsedMs": 326.4297,
+          "cpuUserMicros": 172000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 81543168,
+          "rssAfterBytes": 93405184
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 28508,
+      "stderr": "(node:28508) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 1,
+      "position": 3,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 248.06229999999982,
+        "cpuUserMicros": 94000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 96432128,
+        "rssAfterBytes": 97492992
+      },
+      "warmups": [
+        {
+          "elapsedMs": 329.9297,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 62000,
+          "rssBeforeBytes": 82169856,
+          "rssAfterBytes": 92553216
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 36364,
+      "stderr": "(node:36364) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 2,
+      "position": 1,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 282.8758,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 102219776,
+        "rssAfterBytes": 102993920
+      },
+      "warmups": [
+        {
+          "elapsedMs": 355.5385,
+          "cpuUserMicros": 266000,
+          "cpuSystemMicros": 79000,
+          "rssBeforeBytes": 82427904,
+          "rssAfterBytes": 96972800
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45968,
+      "stderr": "(node:45968) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 2,
+      "position": 2,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 241.15229999999985,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 78000,
+        "rssBeforeBytes": 97284096,
+        "rssAfterBytes": 97968128
+      },
+      "warmups": [
+        {
+          "elapsedMs": 325.5822999999999,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 82132992,
+          "rssAfterBytes": 93310976
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 34800,
+      "stderr": "(node:34800) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 2,
+      "position": 3,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 292.4667999999999,
+        "cpuUserMicros": 47000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 97591296,
+        "rssAfterBytes": 98750464
+      },
+      "warmups": [
+        {
+          "elapsedMs": 528.0104,
+          "cpuUserMicros": 282000,
+          "cpuSystemMicros": 94000,
+          "rssBeforeBytes": 82735104,
+          "rssAfterBytes": 94199808
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 11000,
+      "stderr": "(node:11000) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 3,
+      "position": 1,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 253.40330000000006,
+        "cpuUserMicros": 110000,
+        "cpuSystemMicros": 78000,
+        "rssBeforeBytes": 96686080,
+        "rssAfterBytes": 97390592
+      },
+      "warmups": [
+        {
+          "elapsedMs": 334.06499999999994,
+          "cpuUserMicros": 266000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 81965056,
+          "rssAfterBytes": 92823552
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 29548,
+      "stderr": "(node:29548) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 3,
+      "position": 2,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 267.63689999999997,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 102010880,
+        "rssAfterBytes": 102281216
+      },
+      "warmups": [
+        {
+          "elapsedMs": 367.3596,
+          "cpuUserMicros": 266000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 82497536,
+          "rssAfterBytes": 97021952
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45616,
+      "stderr": "(node:45616) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 3,
+      "position": 3,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 251.29450000000008,
+        "cpuUserMicros": 157000,
+        "cpuSystemMicros": 46000,
+        "rssBeforeBytes": 96735232,
+        "rssAfterBytes": 97865728
+      },
+      "warmups": [
+        {
+          "elapsedMs": 316.0194,
+          "cpuUserMicros": 141000,
+          "cpuSystemMicros": 62000,
+          "rssBeforeBytes": 81719296,
+          "rssAfterBytes": 93122560
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 47000,
+      "stderr": "(node:47000) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 4,
+      "position": 1,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 254.2337000000001,
+        "cpuUserMicros": 110000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 96477184,
+        "rssAfterBytes": 97550336
+      },
+      "warmups": [
+        {
+          "elapsedMs": 328.6091,
+          "cpuUserMicros": 187000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 81633280,
+          "rssAfterBytes": 92528640
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 38144,
+      "stderr": "(node:38144) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 4,
+      "position": 2,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 241.77030000000013,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 63000,
+        "rssBeforeBytes": 96157696,
+        "rssAfterBytes": 97402880
+      },
+      "warmups": [
+        {
+          "elapsedMs": 333.3447,
+          "cpuUserMicros": 156000,
+          "cpuSystemMicros": 157000,
+          "rssBeforeBytes": 82227200,
+          "rssAfterBytes": 92372992
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 5460,
+      "stderr": "(node:5460) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 4,
+      "position": 3,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 265.2993999999999,
+        "cpuUserMicros": 188000,
+        "cpuSystemMicros": 0,
+        "rssBeforeBytes": 100720640,
+        "rssAfterBytes": 101085184
+      },
+      "warmups": [
+        {
+          "elapsedMs": 346.5855,
+          "cpuUserMicros": 157000,
+          "cpuSystemMicros": 110000,
+          "rssBeforeBytes": 81145856,
+          "rssAfterBytes": 95383552
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 15712,
+      "stderr": "(node:15712) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 5,
+      "position": 1,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 251.56280000000004,
+        "cpuUserMicros": 141000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 96808960,
+        "rssAfterBytes": 97792000
+      },
+      "warmups": [
+        {
+          "elapsedMs": 324.7008000000001,
+          "cpuUserMicros": 250000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 81301504,
+          "rssAfterBytes": 92934144
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 41192,
+      "stderr": "(node:41192) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 5,
+      "position": 2,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 267.82539999999995,
+        "cpuUserMicros": 47000,
+        "cpuSystemMicros": 110000,
+        "rssBeforeBytes": 94691328,
+        "rssAfterBytes": 95518720
+      },
+      "warmups": [
+        {
+          "elapsedMs": 336.04459999999995,
+          "cpuUserMicros": 218000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 80195584,
+          "rssAfterBytes": 90947584
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 12580,
+      "stderr": "(node:12580) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 5,
+      "position": 3,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 264.59809999999993,
+        "cpuUserMicros": 125000,
+        "cpuSystemMicros": 94000,
+        "rssBeforeBytes": 102486016,
+        "rssAfterBytes": 103460864
+      },
+      "warmups": [
+        {
+          "elapsedMs": 344.94169999999997,
+          "cpuUserMicros": 297000,
+          "cpuSystemMicros": 31000,
+          "rssBeforeBytes": 82464768,
+          "rssAfterBytes": 97386496
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 31000,
+      "stderr": "(node:31000) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "a531661",
+      "round": 6,
+      "position": 1,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 259.46170000000006,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 32000,
+        "rssBeforeBytes": 97284096,
+        "rssAfterBytes": 97808384
+      },
+      "warmups": [
+        {
+          "elapsedMs": 317.5376,
+          "cpuUserMicros": 234000,
+          "cpuSystemMicros": 63000,
+          "rssBeforeBytes": 82046976,
+          "rssAfterBytes": 92962816
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 45580,
+      "stderr": "(node:45580) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "eb88ae5",
+      "round": 6,
+      "position": 2,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 280.4003,
+        "cpuUserMicros": 109000,
+        "cpuSystemMicros": 94000,
+        "rssBeforeBytes": 102576128,
+        "rssAfterBytes": 102526976
+      },
+      "warmups": [
+        {
+          "elapsedMs": 334.9688,
+          "cpuUserMicros": 297000,
+          "cpuSystemMicros": 47000,
+          "rssBeforeBytes": 82325504,
+          "rssAfterBytes": 97087488
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 4564,
+      "stderr": "(node:4564) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "fixed",
+      "round": 6,
+      "position": 3,
+      "scenario": "engine-local",
+      "operations": 10,
+      "parameters": {
+        "engineRuns": 10,
+        "modelStepsPerRun": 3,
+        "toolsPerRun": 2,
+        "historyMessages": 24,
+        "historyBytes": 7469,
+        "toolOutputPaddingCharacters": 1024,
+        "finalResponseBytes": 597,
+        "deltaCharacters": 32,
+        "liveListener": false,
+        "transport": "loopback HTTP/SSE; no external model inference"
+      },
+      "measured": {
+        "elapsedMs": 247.4555999999999,
+        "cpuUserMicros": 110000,
+        "cpuSystemMicros": 47000,
+        "rssBeforeBytes": 96391168,
+        "rssAfterBytes": 97320960
+      },
+      "warmups": [
+        {
+          "elapsedMs": 323.95270000000005,
+          "cpuUserMicros": 203000,
+          "cpuSystemMicros": 93000,
+          "rssBeforeBytes": 81928192,
+          "rssAfterBytes": 92635136
+        }
+      ],
+      "node": "v22.22.0",
+      "pid": 15928,
+      "stderr": "(node:15928) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    }
+  ]
+}

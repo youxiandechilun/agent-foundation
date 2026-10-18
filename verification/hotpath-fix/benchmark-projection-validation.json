@@ -1,0 +1,22 @@
+{
+  "name": "benchmark-run",
+  "status": "passed",
+  "exitCode": 0,
+  "durationMs": 228868,
+  "stdoutLog": "benchmark-projection.log",
+  "stderrLog": "benchmark-projection.stderr.log",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "scripts/benchmark-hotpaths.mjs",
+    "--version=eb88ae5=.agent-data-hotpath-fix/baseline-eb88ae5/dist",
+    "--source=eb88ae5=.agent-data-hotpath-fix/baseline-eb88ae5/src",
+    "--version=a531661=.agent-data-review-a531661/checkout/dist",
+    "--source=a531661=.agent-data-review-a531661/checkout/src",
+    "--version=fixed=dist",
+    "--source=fixed=src",
+    "--rounds=6",
+    "--output=verification/hotpath-fix/benchmark.json"
+  ],
+  "report": "benchmark-projection.json",
+  "retentionNote": "Original projection-stage benchmark artifacts retained under stage-specific filenames; command records the original output path."
+}

@@ -1,0 +1,102 @@
+{
+  "scope": "Store事件归属及脱敏修复的定向验证",
+  "evidenceKind": "基于已完成工具输出整理的结构摘要及摘录，不是完整原始stdout日志",
+  "baseline": "a5316616db53c9cf80e1c32b06bb09ee6a855722",
+  "sourceFiles": [
+    "src/storage/store.ts",
+    "test/storage-event-consistency.test.ts"
+  ],
+  "workingDirectory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation",
+  "results": [
+    {
+      "stage": "新增回归测试后的修前验证",
+      "command": "node scripts/run-core-tests.mjs --filter=storage-event-consistency",
+      "toolOutputChunkId": "70f4f2",
+      "exitCode": 1,
+      "tests": 4,
+      "passed": 1,
+      "failed": 3,
+      "skipped": 0,
+      "durationMsFromTap": 460.3665,
+      "retainedCompiledDirectory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-ujn7nm",
+      "excerptKind": "原始工具输出中的选取字段，省略堆栈和其它TAP行",
+      "excerpts": [
+        "not ok 1 - events observe run updates and deletion committed through another connection",
+        "actual: 'original'; expected: updated-'\"\\中文",
+        "not ok 2 - event session identifiers use persisted redaction for put and write",
+        "actual sessionId: event-secret-\"\\中文-d58b1d2a-e7f8-4f9f-a87f-3964a5e500fa; expected sessionId: [REDACTED]",
+        "ok 3 - event session projections respect savepoints and transaction rollback",
+        "not ok 4 - events observe a run update committed by a separate Store process",
+        "actual: 'original'; expected: 'from-child'"
+      ]
+    },
+    {
+      "stage": "修复后的组合定向回归",
+      "command": "node scripts/run-core-tests.mjs --filter=storage-event-consistency --filter=query-execution --filter=event-stream-backpressure",
+      "toolOutputChunkId": "463efe",
+      "exitCode": 0,
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "durationMsFromTap": 4738.1332,
+      "coverage": [
+        "新增Store事件一致性4项",
+        "query-execution4项",
+        "event-stream-backpressure3项"
+      ],
+      "sourceStateNote": "之后仅强化了新增测试的最后回放断言；生产Store实现未再改动。"
+    },
+    {
+      "stage": "最后回放断言强化后的新增测试复验",
+      "command": "node scripts/run-core-tests.mjs --filter=storage-event-consistency",
+      "toolOutputChunkId": "9ca3ca",
+      "exitCode": 0,
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "durationMsFromTap": 437.3973
+    },
+    {
+      "stage": "最终TypeScript严格类型检查",
+      "command": "node node_modules/typescript/bin/tsc --noEmit --module NodeNext --target ES2023 --moduleResolution NodeNext --skipLibCheck --strict --noUnusedLocals --noUnusedParameters test/storage-event-consistency.test.ts",
+      "toolOutputChunkId": "ed2504",
+      "exitCode": 0,
+      "scope": "新增测试及其导入依赖",
+      "stdout": ""
+    },
+    {
+      "stage": "最终Prettier检查",
+      "command": "node node_modules/prettier/bin/prettier.cjs --check src/storage/store.ts test/storage-event-consistency.test.ts",
+      "toolOutputChunkId": "c394ab",
+      "exitCode": 0,
+      "stdoutExcerpt": "Checking formatting...\nAll matched files use Prettier code style!"
+    }
+  ],
+  "behaviorNotes": [
+    "runSession通过复用prepared statement读取数据库json_extract投影，不保留run-session值缓存。",
+    "覆盖跨连接与独立进程更新、删除后的404/not_found且不生成事件、持久化脱敏、嵌套保存点及插入/删除回滚。",
+    "emitEphemeral有订阅者时保留脱敏、seq=null、不持久化及删除404行为。",
+    "emitEphemeral无订阅者时跳过run存在性和data序列化校验是a531661既有优化；本轮没有改变，也不声称该路径与emit(...,false)错误契约完全等价。"
+  ],
+  "limitations": [
+    "未保留上述命令的独立完整stdout文件；此文件准确记录已有工具输出摘要、结果和可定位chunkId。",
+    "没有执行全量测试、性能基准或原生UI输入；这些不计入本报告。",
+    "保存本报告没有重跑测试或修改生产及测试源码。"
+  ],
+  "recordedAt": "2026-10-18T04:43:45.0778291Z",
+  "currentSourceHashesAtEvidenceWrite": [
+    {
+      "path": "src/storage/store.ts",
+      "sha256": "f0d3c8b258a8dd5ef1085f4545f3ac75b46891485a221d8c2680279a6ce9317b",
+      "physicalLines": 504
+    },
+    {
+      "path": "test/storage-event-consistency.test.ts",
+      "sha256": "40951ff4624d980964dd8ecb10a732b93a51c0c9daab8a5d5a5e6db22f899db3",
+      "physicalLines": 161
+    }
+  ],
+  "stage": "Initial SQL projection repair, before adding runs_session index; final indexed validation is recorded separately."
+}

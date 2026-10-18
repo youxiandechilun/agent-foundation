@@ -1,0 +1,9 @@
+{
+  "version": "0.12.1",
+  "compiledHost": true,
+  "optionalFormatWorker": true,
+  "actualChromium": true,
+  "windowsBridge": true,
+  "pairing": true,
+  "modelCalled": false
+}

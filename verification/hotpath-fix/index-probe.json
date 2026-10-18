@@ -1,0 +1,2130 @@
+{
+  "checkedAt": "2026-10-18T04:55:21.056Z",
+  "node": "v22.22.0",
+  "sqlite": "3.50.4",
+  "indexSql": "CREATE INDEX runs_session ON entities(id,json_extract(body,'$.sessionId')) WHERE kind='runs'",
+  "query": "SELECT json_extract(body,'$.sessionId') AS sessionId FROM entities WHERE kind='runs' AND id=?",
+  "forced": "SELECT json_extract(body,'$.sessionId') AS sessionId FROM entities INDEXED BY runs_session WHERE kind='runs' AND id=?",
+  "runCount": 64,
+  "readIterations": 10000,
+  "writeIterations": 400,
+  "rounds": 6,
+  "method": "Local actual Store databases, 64 runs per size; each read uses Store.prepare(sql).get(id). Separate identical databases with/without one candidate index. Warmup, GC before timed loops, rotating query order, alternating write order, median of 6 rounds. Store.write updates status/timestamp and preserves sessionId. Setup/index build/verification excluded from loops. No production or formal benchmark scripts modified.",
+  "sizes": [
+    {
+      "size": "small",
+      "payloadBytes": 512,
+      "bodyBytes": 661,
+      "indexBuildMs": 0.6640999999999906,
+      "addedDatabaseBytes": 4096,
+      "indexPages": 1,
+      "indexRootPages": [
+        {
+          "name": "sqlite_autoindex_entities_1",
+          "rootpage": 3,
+          "sql": null
+        },
+        {
+          "name": "memories_project_namespace",
+          "rootpage": 24,
+          "sql": "CREATE INDEX memories_project_namespace ON entities(json_extract(body,'$.projectId'),json_extract(body,'$.namespace')) WHERE kind='memories'"
+        },
+        {
+          "name": "memory_revisions_latest",
+          "rootpage": 25,
+          "sql": "CREATE INDEX memory_revisions_latest ON entities(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC) WHERE kind='memory-revisions'"
+        },
+        {
+          "name": "memory_proposals_project",
+          "rootpage": 26,
+          "sql": "CREATE INDEX memory_proposals_project ON entities(json_extract(body,'$.projectId')) WHERE kind='memory-proposals'"
+        },
+        {
+          "name": "cost_ledger_day",
+          "rootpage": 27,
+          "sql": "CREATE INDEX cost_ledger_day ON entities(substr(json_extract(body,'$.createdAt'),1,10)) WHERE kind='cost-ledger'"
+        },
+        {
+          "name": "entities_projectId",
+          "rootpage": 28,
+          "sql": "CREATE INDEX entities_projectId ON entities(kind,json_extract(body,'$.projectId')) WHERE json_extract(body,'$.projectId') IS NOT NULL"
+        },
+        {
+          "name": "entities_sessionId",
+          "rootpage": 29,
+          "sql": "CREATE INDEX entities_sessionId ON entities(kind,json_extract(body,'$.sessionId')) WHERE json_extract(body,'$.sessionId') IS NOT NULL"
+        },
+        {
+          "name": "entities_runId",
+          "rootpage": 30,
+          "sql": "CREATE INDEX entities_runId ON entities(kind,json_extract(body,'$.runId')) WHERE json_extract(body,'$.runId') IS NOT NULL"
+        },
+        {
+          "name": "entities_rootSessionId",
+          "rootpage": 31,
+          "sql": "CREATE INDEX entities_rootSessionId ON entities(kind,json_extract(body,'$.rootSessionId')) WHERE json_extract(body,'$.rootSessionId') IS NOT NULL"
+        },
+        {
+          "name": "entities_rootRunId",
+          "rootpage": 33,
+          "sql": "CREATE INDEX entities_rootRunId ON entities(kind,json_extract(body,'$.rootRunId')) WHERE json_extract(body,'$.rootRunId') IS NOT NULL"
+        },
+        {
+          "name": "entities_serverId",
+          "rootpage": 35,
+          "sql": "CREATE INDEX entities_serverId ON entities(kind,json_extract(body,'$.serverId')) WHERE json_extract(body,'$.serverId') IS NOT NULL"
+        },
+        {
+          "name": "entities_parentSessionId",
+          "rootpage": 36,
+          "sql": "CREATE INDEX entities_parentSessionId ON entities(kind,json_extract(body,'$.parentSessionId')) WHERE json_extract(body,'$.parentSessionId') IS NOT NULL"
+        },
+        {
+          "name": "entities_workspaceRoot",
+          "rootpage": 37,
+          "sql": "CREATE INDEX entities_workspaceRoot ON entities(kind,json_extract(body,'$.workspaceRoot')) WHERE json_extract(body,'$.workspaceRoot') IS NOT NULL"
+        },
+        {
+          "name": "entities_status",
+          "rootpage": 38,
+          "sql": "CREATE INDEX entities_status ON entities(kind,json_extract(body,'$.status')) WHERE json_extract(body,'$.status') IS NOT NULL"
+        },
+        {
+          "name": "runs_session",
+          "rootpage": 52,
+          "sql": "CREATE INDEX runs_session ON entities(id,json_extract(body,'$.sessionId')) WHERE kind='runs'"
+        }
+      ],
+      "plans": {
+        "noIndex": {
+          "queryPlan": [
+            {
+              "id": 3,
+              "parent": 0,
+              "notused": 39,
+              "detail": "SEARCH entities USING INDEX sqlite_autoindex_entities_1 (kind=? AND id=?)"
+            }
+          ],
+          "vm": [
+            {
+              "addr": 0,
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            },
+            {
+              "addr": 3,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": "runs",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 4,
+              "opcode": "Variable",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 5,
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 6,
+              "opcode": "Affinity",
+              "p1": 2,
+              "p2": 1,
+              "p3": 0,
+              "p4": "B",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 7,
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 8,
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 9,
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 12,
+              "opcode": "ResultRow",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 13,
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 14,
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 30,
+              "p4": "0",
+              "p5": 1,
+              "comment": null
+            },
+            {
+              "addr": 15,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 5,
+              "p3": 0,
+              "p4": "$.sessionId",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 16,
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "functions": [
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "columns": [
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "opens": [
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            }
+          ]
+        },
+        "auto": {
+          "queryPlan": [
+            {
+              "id": 3,
+              "parent": 0,
+              "notused": 39,
+              "detail": "SEARCH entities USING INDEX sqlite_autoindex_entities_1 (kind=? AND id=?)"
+            }
+          ],
+          "vm": [
+            {
+              "addr": 0,
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            },
+            {
+              "addr": 3,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": "runs",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 4,
+              "opcode": "Variable",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 5,
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 6,
+              "opcode": "Affinity",
+              "p1": 2,
+              "p2": 1,
+              "p3": 0,
+              "p4": "B",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 7,
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 8,
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 9,
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 12,
+              "opcode": "ResultRow",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 13,
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 14,
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 31,
+              "p4": "0",
+              "p5": 1,
+              "comment": null
+            },
+            {
+              "addr": 15,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 5,
+              "p3": 0,
+              "p4": "$.sessionId",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 16,
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "functions": [
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "columns": [
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "opens": [
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            }
+          ]
+        },
+        "forced": {
+          "queryPlan": [
+            {
+              "id": 3,
+              "parent": 0,
+              "notused": 62,
+              "detail": "SEARCH entities USING INDEX runs_session (id=?)"
+            }
+          ],
+          "vm": [
+            {
+              "addr": 0,
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 13,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 52,
+              "p3": 0,
+              "p4": "k(3,,,)",
+              "p5": 2,
+              "comment": null
+            },
+            {
+              "addr": 3,
+              "opcode": "Variable",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 4,
+              "opcode": "IsNull",
+              "p1": 1,
+              "p2": 12,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 5,
+              "opcode": "Affinity",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0,
+              "p4": "B",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 6,
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 12,
+              "p3": 1,
+              "p4": "1",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 7,
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 12,
+              "p3": 1,
+              "p4": "1",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 8,
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 9,
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 10,
+              "opcode": "ResultRow",
+              "p1": 2,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 11,
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 12,
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 13,
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 31,
+              "p4": "0",
+              "p5": 1,
+              "comment": null
+            },
+            {
+              "addr": 14,
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "functions": [],
+          "columns": [
+            {
+              "addr": 9,
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "opens": [
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 52,
+              "p3": 0,
+              "p4": "k(3,,,)",
+              "p5": 2,
+              "comment": null
+            }
+          ]
+        }
+      },
+      "readSamples": {
+        "no-index": [
+          58.86269999999996,
+          60.63300000000004,
+          79.24810000000002,
+          62.47550000000001,
+          74.6096,
+          66.18470000000002
+        ],
+        "index-auto": [
+          56.399500000000046,
+          56.324499999999944,
+          64.4882,
+          63.03380000000004,
+          88.08919999999989,
+          74.93579999999997
+        ],
+        "index-forced": [
+          47.9178,
+          53.12119999999993,
+          47.531799999999976,
+          50.82269999999994,
+          59.61579999999981,
+          55.7659000000001
+        ]
+      },
+      "readMedianMs": {
+        "no-index": 64.33010000000002,
+        "index-auto": 63.761000000000024,
+        "index-forced": 51.971949999999936
+      },
+      "writeSamples": {
+        "no-index": [
+          290.2265,
+          288.5686999999998,
+          254.4743000000003,
+          279.7527,
+          253.10980000000018,
+          263.4529000000002
+        ],
+        "indexed": [
+          269.8014999999998,
+          284.91110000000026,
+          289.9533999999999,
+          292.59339999999975,
+          256.2489000000005,
+          245.84940000000006
+        ]
+      },
+      "writeMedianMs": {
+        "no-index": 271.6028000000001,
+        "indexed": 277.35630000000003
+      },
+      "autoAfterAnalyze": {
+        "queryPlan": [
+          {
+            "id": 3,
+            "parent": 0,
+            "notused": 39,
+            "detail": "SEARCH entities USING INDEX sqlite_autoindex_entities_1 (kind=? AND id=?)"
+          }
+        ],
+        "vm": [
+          {
+            "addr": 0,
+            "opcode": "Init",
+            "p1": 0,
+            "p2": 14,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 1,
+            "opcode": "OpenRead",
+            "p1": 0,
+            "p2": 2,
+            "p3": 0,
+            "p4": "3",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 2,
+            "opcode": "OpenRead",
+            "p1": 1,
+            "p2": 3,
+            "p3": 0,
+            "p4": "k(2,,)",
+            "p5": 2,
+            "comment": null
+          },
+          {
+            "addr": 3,
+            "opcode": "String8",
+            "p1": 0,
+            "p2": 1,
+            "p3": 0,
+            "p4": "runs",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 4,
+            "opcode": "Variable",
+            "p1": 1,
+            "p2": 2,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 5,
+            "opcode": "IsNull",
+            "p1": 2,
+            "p2": 13,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 6,
+            "opcode": "Affinity",
+            "p1": 2,
+            "p2": 1,
+            "p3": 0,
+            "p4": "B",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 7,
+            "opcode": "SeekGE",
+            "p1": 1,
+            "p2": 13,
+            "p3": 1,
+            "p4": "2",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 8,
+            "opcode": "IdxGT",
+            "p1": 1,
+            "p2": 13,
+            "p3": 1,
+            "p4": "2",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 9,
+            "opcode": "DeferredSeek",
+            "p1": 1,
+            "p2": 0,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 10,
+            "opcode": "Column",
+            "p1": 0,
+            "p2": 2,
+            "p3": 4,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 11,
+            "opcode": "Function",
+            "p1": 2,
+            "p2": 4,
+            "p3": 3,
+            "p4": "json_extract(-1)",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 12,
+            "opcode": "ResultRow",
+            "p1": 3,
+            "p2": 1,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 13,
+            "opcode": "Halt",
+            "p1": 0,
+            "p2": 0,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 14,
+            "opcode": "Transaction",
+            "p1": 0,
+            "p2": 0,
+            "p3": 32,
+            "p4": "0",
+            "p5": 1,
+            "comment": null
+          },
+          {
+            "addr": 15,
+            "opcode": "String8",
+            "p1": 0,
+            "p2": 5,
+            "p3": 0,
+            "p4": "$.sessionId",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 16,
+            "opcode": "Goto",
+            "p1": 0,
+            "p2": 1,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          }
+        ],
+        "functions": [
+          {
+            "addr": 11,
+            "opcode": "Function",
+            "p1": 2,
+            "p2": 4,
+            "p3": 3,
+            "p4": "json_extract(-1)",
+            "p5": 0,
+            "comment": null
+          }
+        ],
+        "columns": [
+          {
+            "addr": 10,
+            "opcode": "Column",
+            "p1": 0,
+            "p2": 2,
+            "p3": 4,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          }
+        ],
+        "opens": [
+          {
+            "addr": 1,
+            "opcode": "OpenRead",
+            "p1": 0,
+            "p2": 2,
+            "p3": 0,
+            "p4": "3",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 2,
+            "opcode": "OpenRead",
+            "p1": 1,
+            "p2": 3,
+            "p3": 0,
+            "p4": "k(2,,)",
+            "p5": 2,
+            "comment": null
+          }
+        ]
+      },
+      "analyzedSamples": [
+        53.52189999999973,
+        49.233799999999974,
+        57.031200000000354,
+        51.16190000000006,
+        68.8704000000007,
+        60.942699999999604
+      ],
+      "analyzedMedianMs": 55.27655000000004,
+      "consistency": {
+        "crossConnectionUpdate": true,
+        "outerRollback": true,
+        "nestedRollback": true,
+        "uncommittedIsolation": true,
+        "crossConnectionDelete": true,
+        "recreate": true
+      }
+    },
+    {
+      "size": "large",
+      "payloadBytes": 65536,
+      "bodyBytes": 65685,
+      "indexBuildMs": 6.2411999999994805,
+      "addedDatabaseBytes": 4096,
+      "indexPages": 1,
+      "indexRootPages": [
+        {
+          "name": "sqlite_autoindex_entities_1",
+          "rootpage": 3,
+          "sql": null
+        },
+        {
+          "name": "memories_project_namespace",
+          "rootpage": 24,
+          "sql": "CREATE INDEX memories_project_namespace ON entities(json_extract(body,'$.projectId'),json_extract(body,'$.namespace')) WHERE kind='memories'"
+        },
+        {
+          "name": "memory_revisions_latest",
+          "rootpage": 25,
+          "sql": "CREATE INDEX memory_revisions_latest ON entities(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC) WHERE kind='memory-revisions'"
+        },
+        {
+          "name": "memory_proposals_project",
+          "rootpage": 26,
+          "sql": "CREATE INDEX memory_proposals_project ON entities(json_extract(body,'$.projectId')) WHERE kind='memory-proposals'"
+        },
+        {
+          "name": "cost_ledger_day",
+          "rootpage": 27,
+          "sql": "CREATE INDEX cost_ledger_day ON entities(substr(json_extract(body,'$.createdAt'),1,10)) WHERE kind='cost-ledger'"
+        },
+        {
+          "name": "entities_projectId",
+          "rootpage": 28,
+          "sql": "CREATE INDEX entities_projectId ON entities(kind,json_extract(body,'$.projectId')) WHERE json_extract(body,'$.projectId') IS NOT NULL"
+        },
+        {
+          "name": "entities_sessionId",
+          "rootpage": 29,
+          "sql": "CREATE INDEX entities_sessionId ON entities(kind,json_extract(body,'$.sessionId')) WHERE json_extract(body,'$.sessionId') IS NOT NULL"
+        },
+        {
+          "name": "entities_runId",
+          "rootpage": 30,
+          "sql": "CREATE INDEX entities_runId ON entities(kind,json_extract(body,'$.runId')) WHERE json_extract(body,'$.runId') IS NOT NULL"
+        },
+        {
+          "name": "entities_rootSessionId",
+          "rootpage": 31,
+          "sql": "CREATE INDEX entities_rootSessionId ON entities(kind,json_extract(body,'$.rootSessionId')) WHERE json_extract(body,'$.rootSessionId') IS NOT NULL"
+        },
+        {
+          "name": "entities_rootRunId",
+          "rootpage": 33,
+          "sql": "CREATE INDEX entities_rootRunId ON entities(kind,json_extract(body,'$.rootRunId')) WHERE json_extract(body,'$.rootRunId') IS NOT NULL"
+        },
+        {
+          "name": "entities_serverId",
+          "rootpage": 35,
+          "sql": "CREATE INDEX entities_serverId ON entities(kind,json_extract(body,'$.serverId')) WHERE json_extract(body,'$.serverId') IS NOT NULL"
+        },
+        {
+          "name": "entities_parentSessionId",
+          "rootpage": 36,
+          "sql": "CREATE INDEX entities_parentSessionId ON entities(kind,json_extract(body,'$.parentSessionId')) WHERE json_extract(body,'$.parentSessionId') IS NOT NULL"
+        },
+        {
+          "name": "entities_workspaceRoot",
+          "rootpage": 37,
+          "sql": "CREATE INDEX entities_workspaceRoot ON entities(kind,json_extract(body,'$.workspaceRoot')) WHERE json_extract(body,'$.workspaceRoot') IS NOT NULL"
+        },
+        {
+          "name": "entities_status",
+          "rootpage": 38,
+          "sql": "CREATE INDEX entities_status ON entities(kind,json_extract(body,'$.status')) WHERE json_extract(body,'$.status') IS NOT NULL"
+        },
+        {
+          "name": "runs_session",
+          "rootpage": 1071,
+          "sql": "CREATE INDEX runs_session ON entities(id,json_extract(body,'$.sessionId')) WHERE kind='runs'"
+        }
+      ],
+      "plans": {
+        "noIndex": {
+          "queryPlan": [
+            {
+              "id": 3,
+              "parent": 0,
+              "notused": 39,
+              "detail": "SEARCH entities USING INDEX sqlite_autoindex_entities_1 (kind=? AND id=?)"
+            }
+          ],
+          "vm": [
+            {
+              "addr": 0,
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            },
+            {
+              "addr": 3,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": "runs",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 4,
+              "opcode": "Variable",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 5,
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 6,
+              "opcode": "Affinity",
+              "p1": 2,
+              "p2": 1,
+              "p3": 0,
+              "p4": "B",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 7,
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 8,
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 9,
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 12,
+              "opcode": "ResultRow",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 13,
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 14,
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 30,
+              "p4": "0",
+              "p5": 1,
+              "comment": null
+            },
+            {
+              "addr": 15,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 5,
+              "p3": 0,
+              "p4": "$.sessionId",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 16,
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "functions": [
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "columns": [
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "opens": [
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            }
+          ]
+        },
+        "auto": {
+          "queryPlan": [
+            {
+              "id": 3,
+              "parent": 0,
+              "notused": 39,
+              "detail": "SEARCH entities USING INDEX sqlite_autoindex_entities_1 (kind=? AND id=?)"
+            }
+          ],
+          "vm": [
+            {
+              "addr": 0,
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            },
+            {
+              "addr": 3,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": "runs",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 4,
+              "opcode": "Variable",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 5,
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 6,
+              "opcode": "Affinity",
+              "p1": 2,
+              "p2": 1,
+              "p3": 0,
+              "p4": "B",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 7,
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 8,
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1,
+              "p4": "2",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 9,
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 12,
+              "opcode": "ResultRow",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 13,
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 14,
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 31,
+              "p4": "0",
+              "p5": 1,
+              "comment": null
+            },
+            {
+              "addr": 15,
+              "opcode": "String8",
+              "p1": 0,
+              "p2": 5,
+              "p3": 0,
+              "p4": "$.sessionId",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 16,
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "functions": [
+            {
+              "addr": 11,
+              "opcode": "Function",
+              "p1": 2,
+              "p2": 4,
+              "p3": 3,
+              "p4": "json_extract(-1)",
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "columns": [
+            {
+              "addr": 10,
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 4,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "opens": [
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0,
+              "p4": "k(2,,)",
+              "p5": 2,
+              "comment": null
+            }
+          ]
+        },
+        "forced": {
+          "queryPlan": [
+            {
+              "id": 3,
+              "parent": 0,
+              "notused": 62,
+              "detail": "SEARCH entities USING INDEX runs_session (id=?)"
+            }
+          ],
+          "vm": [
+            {
+              "addr": 0,
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 13,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 1071,
+              "p3": 0,
+              "p4": "k(3,,,)",
+              "p5": 2,
+              "comment": null
+            },
+            {
+              "addr": 3,
+              "opcode": "Variable",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 4,
+              "opcode": "IsNull",
+              "p1": 1,
+              "p2": 12,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 5,
+              "opcode": "Affinity",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0,
+              "p4": "B",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 6,
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 12,
+              "p3": 1,
+              "p4": "1",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 7,
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 12,
+              "p3": 1,
+              "p4": "1",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 8,
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 9,
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 10,
+              "opcode": "ResultRow",
+              "p1": 2,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 11,
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 12,
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 13,
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 31,
+              "p4": "0",
+              "p5": 1,
+              "comment": null
+            },
+            {
+              "addr": 14,
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "functions": [],
+          "columns": [
+            {
+              "addr": 9,
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2,
+              "p4": null,
+              "p5": 0,
+              "comment": null
+            }
+          ],
+          "opens": [
+            {
+              "addr": 1,
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0,
+              "p4": "3",
+              "p5": 0,
+              "comment": null
+            },
+            {
+              "addr": 2,
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 1071,
+              "p3": 0,
+              "p4": "k(3,,,)",
+              "p5": 2,
+              "comment": null
+            }
+          ]
+        }
+      },
+      "readSamples": {
+        "no-index": [
+          636.3836000000001,
+          634.5992999999999,
+          622.7363999999998,
+          667.5784000000003,
+          607.9840000000004,
+          573.3155999999999
+        ],
+        "index-auto": [
+          619.7965000000004,
+          619.9229999999998,
+          585.6044000000002,
+          617.9553999999989,
+          628.3554000000004,
+          558.5270999999993
+        ],
+        "index-forced": [
+          48.5643,
+          37.01020000000062,
+          45.108399999999165,
+          49.109300000000076,
+          43.713700000000244,
+          40.6224000000002
+        ]
+      },
+      "readMedianMs": {
+        "no-index": 628.6678499999998,
+        "index-auto": 618.8759499999996,
+        "index-forced": 44.411049999999705
+      },
+      "writeSamples": {
+        "no-index": [
+          439.9421999999995,
+          476.3776999999991,
+          445.8037999999997,
+          481.21500000000015,
+          444.9028999999973,
+          440.2088999999978
+        ],
+        "indexed": [
+          449.6753000000008,
+          461.59140000000116,
+          471.3855999999996,
+          520.2014999999992,
+          510.24019999999655,
+          503.17359999999826
+        ]
+      },
+      "writeMedianMs": {
+        "no-index": 445.3533499999985,
+        "indexed": 487.27959999999894
+      },
+      "autoAfterAnalyze": {
+        "queryPlan": [
+          {
+            "id": 3,
+            "parent": 0,
+            "notused": 39,
+            "detail": "SEARCH entities USING INDEX sqlite_autoindex_entities_1 (kind=? AND id=?)"
+          }
+        ],
+        "vm": [
+          {
+            "addr": 0,
+            "opcode": "Init",
+            "p1": 0,
+            "p2": 14,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 1,
+            "opcode": "OpenRead",
+            "p1": 0,
+            "p2": 2,
+            "p3": 0,
+            "p4": "3",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 2,
+            "opcode": "OpenRead",
+            "p1": 1,
+            "p2": 3,
+            "p3": 0,
+            "p4": "k(2,,)",
+            "p5": 2,
+            "comment": null
+          },
+          {
+            "addr": 3,
+            "opcode": "String8",
+            "p1": 0,
+            "p2": 1,
+            "p3": 0,
+            "p4": "runs",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 4,
+            "opcode": "Variable",
+            "p1": 1,
+            "p2": 2,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 5,
+            "opcode": "IsNull",
+            "p1": 2,
+            "p2": 13,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 6,
+            "opcode": "Affinity",
+            "p1": 2,
+            "p2": 1,
+            "p3": 0,
+            "p4": "B",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 7,
+            "opcode": "SeekGE",
+            "p1": 1,
+            "p2": 13,
+            "p3": 1,
+            "p4": "2",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 8,
+            "opcode": "IdxGT",
+            "p1": 1,
+            "p2": 13,
+            "p3": 1,
+            "p4": "2",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 9,
+            "opcode": "DeferredSeek",
+            "p1": 1,
+            "p2": 0,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 10,
+            "opcode": "Column",
+            "p1": 0,
+            "p2": 2,
+            "p3": 4,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 11,
+            "opcode": "Function",
+            "p1": 2,
+            "p2": 4,
+            "p3": 3,
+            "p4": "json_extract(-1)",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 12,
+            "opcode": "ResultRow",
+            "p1": 3,
+            "p2": 1,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 13,
+            "opcode": "Halt",
+            "p1": 0,
+            "p2": 0,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 14,
+            "opcode": "Transaction",
+            "p1": 0,
+            "p2": 0,
+            "p3": 32,
+            "p4": "0",
+            "p5": 1,
+            "comment": null
+          },
+          {
+            "addr": 15,
+            "opcode": "String8",
+            "p1": 0,
+            "p2": 5,
+            "p3": 0,
+            "p4": "$.sessionId",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 16,
+            "opcode": "Goto",
+            "p1": 0,
+            "p2": 1,
+            "p3": 0,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          }
+        ],
+        "functions": [
+          {
+            "addr": 11,
+            "opcode": "Function",
+            "p1": 2,
+            "p2": 4,
+            "p3": 3,
+            "p4": "json_extract(-1)",
+            "p5": 0,
+            "comment": null
+          }
+        ],
+        "columns": [
+          {
+            "addr": 10,
+            "opcode": "Column",
+            "p1": 0,
+            "p2": 2,
+            "p3": 4,
+            "p4": null,
+            "p5": 0,
+            "comment": null
+          }
+        ],
+        "opens": [
+          {
+            "addr": 1,
+            "opcode": "OpenRead",
+            "p1": 0,
+            "p2": 2,
+            "p3": 0,
+            "p4": "3",
+            "p5": 0,
+            "comment": null
+          },
+          {
+            "addr": 2,
+            "opcode": "OpenRead",
+            "p1": 1,
+            "p2": 3,
+            "p3": 0,
+            "p4": "k(2,,)",
+            "p5": 2,
+            "comment": null
+          }
+        ]
+      },
+      "analyzedSamples": [
+        789.158199999998,
+        717.0478000000003,
+        721.1657999999989,
+        750.3916000000027,
+        728.9665999999997,
+        768.4686000000002
+      ],
+      "analyzedMedianMs": 739.6791000000012,
+      "consistency": {
+        "crossConnectionUpdate": true,
+        "outerRollback": true,
+        "nestedRollback": true,
+        "uncommittedIsolation": true,
+        "crossConnectionDelete": true,
+        "recreate": true
+      }
+    }
+  ],
+  "completedAt": "2026-10-18T04:55:44.764Z",
+  "limitations": "Getter/Store.write microbenchmarks only; local caches and tiny 64-run databases. Read-after-ANALYZE sampled later, not interleaved with baseline. No overall event throughput claim; index build/write/storage overhead and behavior with a large historic DB require production-level follow-up. Query plans and full VM bytecode included.",
+  "adoptionEvidence": {
+    "probeCommand": "node --expose-gc .agent-data-hotpath-fix/index-probe/probe.mjs",
+    "probeScript": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-hotpath-fix\\index-probe\\probe.mjs",
+    "originalReport": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-hotpath-fix\\index-probe\\results-1792299344764.json",
+    "purpose": "一次性候选索引实验：执行时dist来自已修复的SQL投影版本，尚未增加runs_session DDL；在此基础上分别建立无候选索引和有候选索引数据库。",
+    "repeatabilityNote": "probe依赖当时的pre-index dist，并非新的正式性能入口。当前源码已加入该索引，直接针对新dist重跑会使无索引对照不成立且CREATE INDEX重复。复核应准备同样的pre-index编译版本，或使用现有benchmark-hotpaths正式入口评估最终版本。没有新增参数框架。",
+    "decision": "采用独立部分表达式索引及INDEXED BY。默认planner包括ANALYZE后均选择实体主键索引并执行json_extract；强制候选索引VM的唯一Column使用index cursor1/column1，未执行Function且不读取table body。收益来自SQLite维护的持久索引，非进程内记录缓存。",
+    "writeTradeoff": "64个run的本地微基准中，400次Store.write小记录约+2.1%，64KB记录约+9.4%。大型历史库首次建索引需要扫描既有runs，本实验仅记录64条数据的建索引耗时，不能外推整体启动延迟。",
+    "productionChange": "src/storage/store.ts只增加CREATE INDEX IF NOT EXISTS runs_session ON entities(id,json_extract(body,'$.sessionId')) WHERE kind='runs'，单字段查询显式INDEXED BY runs_session，并调整注释。通用实体索引未修改。",
+    "targetedValidation": {
+      "command": "node scripts/run-core-tests.mjs --filter=storage-event-consistency --filter=storage-refactor",
+      "evidenceKind": "以下commandResult为实际工具返回，output保存完整stdout/stderr合并输出，不是手写摘要",
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "commandResult": {
+        "chunk_id": "3fd40b",
+        "wall_time_seconds": 4.0421694,
+        "exit_code": 0,
+        "original_token_count": 567,
+        "output": "TAP version 13\n# (node:6800) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: events observe run updates and deletion committed through another connection\nok 1 - events observe run updates and deletion committed through another connection\n  ---\n  duration_ms: 59.062\n  type: 'test'\n  ...\n# Subtest: event session identifiers use persisted redaction for put and write\nok 2 - event session identifiers use persisted redaction for put and write\n  ---\n  duration_ms: 38.2866\n  type: 'test'\n  ...\n# Subtest: event session projections respect savepoints and transaction rollback\nok 3 - event session projections respect savepoints and transaction rollback\n  ---\n  duration_ms: 41.9153\n  type: 'test'\n  ...\n# Subtest: events observe a run update committed by a separate Store process\nok 4 - events observe a run update committed by a separate Store process\n  ---\n  duration_ms: 131.217\n  type: 'test'\n  ...\n# (node:25248) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: repeated storage operations preserve nested rollback, message identity and cross-connection visibility\nok 5 - repeated storage operations preserve nested rollback, message identity and cross-connection visibility\n  ---\n  duration_ms: 53.0546\n  type: 'test'\n  ...\n# Subtest: memory lookups preserve insertion order, expiry, revisions and project ownership after reopen\nok 6 - memory lookups preserve insertion order, expiry, revisions and project ownership after reopen\n  ---\n  duration_ms: 43.4519\n  type: 'test'\n  ...\n# Subtest: memory import and proposals retain atomicity and project scope\nok 7 - memory import and proposals retain atomicity and project scope\n  ---\n  duration_ms: 29.7271\n  type: 'test'\n  ...\n# Subtest: opening an existing database adds selective memory indexes without changing stored bodies\nok 8 - opening an existing database adds selective memory indexes without changing stored bodies\n  ---\n  duration_ms: 30.7974\n  type: 'test'\n  ...\n1..8\n# tests 8\n# suites 0\n# pass 8\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1013.7086\n"
+      }
+    },
+    "formattingValidation": {
+      "command": "node node_modules/prettier/bin/prettier.cjs --check src/storage/store.ts",
+      "commandResult": {
+        "chunk_id": "8c7e6b",
+        "wall_time_seconds": 0.7057885,
+        "exit_code": 0,
+        "original_token_count": 17,
+        "output": "Checking formatting...\nAll matched files use Prettier code style!\n"
+      }
+    },
+    "probeSha256": "963379b9d1de2bb806888a3e3162a414c1813e76246c97d1edc47c7e4332b1c7",
+    "recordedAt": "2026-10-18T04:57:29.2475237Z"
+  }
+}

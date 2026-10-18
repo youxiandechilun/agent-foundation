@@ -1,0 +1,58 @@
+{
+  "completedAt": "2026-10-18T05:08:10.171Z",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "benchmark-types",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2067,
+      "stdoutLog": "benchmark-types.log",
+      "stderrLog": "benchmark-types.stderr.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--allowJs",
+        "--checkJs",
+        "--target",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--strict",
+        "scripts/benchmark-hotpaths.mjs",
+        "scripts/benchmark-hotpaths-worker.mjs",
+        "scripts/benchmark-hotpaths-engine.mjs",
+        "scripts/benchmark-hotpaths-fixtures.mjs",
+        "scripts/benchmark-hotpaths-report.mjs"
+      ]
+    },
+    {
+      "name": "format",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 837,
+      "stdoutLog": "format.log",
+      "stderrLog": "format.stderr.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/storage/store.ts",
+        "src/runtime/engine.ts",
+        "src/core/kernel.ts",
+        "test/storage-event-consistency.test.ts",
+        "test/runtime-tool-isolation.test.ts",
+        "scripts/benchmark-hotpaths.mjs",
+        "scripts/benchmark-hotpaths-worker.mjs",
+        "scripts/benchmark-hotpaths-engine.mjs",
+        "scripts/benchmark-hotpaths-fixtures.mjs",
+        "scripts/benchmark-hotpaths-report.mjs",
+        "docs/REFACTOR-HOTPATH-FIX.md"
+      ]
+    }
+  ]
+}

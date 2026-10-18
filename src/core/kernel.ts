@@ -114,7 +114,8 @@ export class Kernel {
     this.runHooks.add(entry);
     return () => this.runHooks.delete(entry);
   }
-  private hooksFor(runId: string, session: Session, root: string) {    const configured = commandHooks(this.config.hooks);
+  private hooksFor(runId: string, session: Session, root: string) {
+    const configured = commandHooks(this.config.hooks);
     return bindHooks(
       {
         runId,

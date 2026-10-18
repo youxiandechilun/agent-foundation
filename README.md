@@ -6,6 +6,8 @@
 
 当前工作区进一步优化工具调度、Schema 编译、上下文准备、流式读取与 SQLite 查询，并收敛运行生命周期和工具效果记录。实现边界、行为修正及可复跑基准见 [OPTIMIZATION.md](docs/OPTIMIZATION.md)；本机实际结果保存在 `verification/optimization-report.json`。
 
+2026-10-18 的热点修正补齐事件会话归属、脱敏和工具数组隔离，并使用 SQLite 索引避免重复解析 Run 记录。三版本性能实测、回归结果及成本说明见 [REFACTOR-HOTPATH-FIX.md](docs/REFACTOR-HOTPATH-FIX.md)，原始样本在 `verification/hotpath-fix/`。
+
 0.12.0 收尾已实现的执行循环增强、多 Agent 协作、跨会话引用和服务器插件，统一版本、验收登记与 SDK 交付。当前范围与证据规则见 [RELEASE.md](docs/RELEASE.md)；实际通过数量由相同版本的验证报告生成。配置界面、完整办公编辑器和公式引擎、OCR、专门的 LSP 代码智能与更多平台的桌面控制本次不开发；真实外部环境验证按用户要求暂缓。
 
 0.11.0 收紧为单用户可信宿主，不开发多租户、业务账户登录、企业身份管理或分布式集群。OAuth 只保留为显式启用的外部 MCP 授权，默认不构造授权服务。新增可选 Windows AppContainer 命令、持久管道、源码 Plugin 和 MCP stdio 隔离，以及命令/插件关闭排空、宿主崩溃清理、残留恢复和真实拒绝测试。Docker 继续非必装。配置、工作原理、平台和运行时限制见 [单用户内核与系统隔离](docs/CORE-FOUNDATION.md)。

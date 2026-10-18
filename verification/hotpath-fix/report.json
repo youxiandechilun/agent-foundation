@@ -1,0 +1,315 @@
+{
+  "completedAt": "2026-10-18T05:08:10.259Z",
+  "baseRevision": "a5316616db53c9cf80e1c32b06bb09ee6a855722",
+  "historicalReference": "eb88ae5f101489a9abca4a2eb00f8bc272cced32",
+  "status": "passed",
+  "implementation": "No run-value cache; SQLite indexed session projection plus per-request tool array copy.",
+  "validation": {
+    "baseRevision": "a5316616db53c9cf80e1c32b06bb09ee6a855722",
+    "startedAt": "2026-10-18T04:57:09.964Z",
+    "node": "v22.22.0",
+    "platform": "win32",
+    "status": "passed",
+    "checks": [
+      {
+        "name": "build-core",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 6367,
+        "stdoutLog": "build-core.log",
+        "stderrLog": "build-core.stderr.log"
+      },
+      {
+        "name": "copy-core",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 67,
+        "stdoutLog": "copy-core.log",
+        "stderrLog": "copy-core.stderr.log"
+      },
+      {
+        "name": "build-host",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 6823,
+        "stdoutLog": "build-host.log",
+        "stderrLog": "build-host.stderr.log"
+      },
+      {
+        "name": "copy-host",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 70,
+        "stdoutLog": "copy-host.log",
+        "stderrLog": "copy-host.stderr.log"
+      },
+      {
+        "name": "regression-types",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 1735,
+        "stdoutLog": "regression-types.log",
+        "stderrLog": "regression-types.stderr.log"
+      },
+      {
+        "name": "core-tests",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 301121,
+        "stdoutLog": "core-tests.log",
+        "stderrLog": "core-tests.stderr.log",
+        "tests": {
+          "passed": 461,
+          "failed": 0,
+          "skipped": 0,
+          "cancelled": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "compiled-core-smoke",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 1320,
+        "stdoutLog": "compiled-core-smoke.log",
+        "stderrLog": "compiled-core-smoke.stderr.log"
+      },
+      {
+        "name": "host-selected",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 9754,
+        "stdoutLog": "host-selected.log",
+        "stderrLog": "host-selected.stderr.log",
+        "tests": {
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0,
+          "cancelled": 0,
+          "todo": 0
+        }
+      },
+      {
+        "name": "compiled-host-smoke",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 4107,
+        "stdoutLog": "compiled-host-smoke.log",
+        "stderrLog": "compiled-host-smoke.stderr.log"
+      }
+    ],
+    "completedAt": "2026-10-18T05:02:41.339Z"
+  },
+  "closeout": {
+    "completedAt": "2026-10-18T05:08:10.171Z",
+    "status": "passed",
+    "checks": [
+      {
+        "name": "benchmark-types",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 2067,
+        "stdoutLog": "benchmark-types.log",
+        "stderrLog": "benchmark-types.stderr.log",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "--allowJs",
+          "--checkJs",
+          "--target",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--skipLibCheck",
+          "--strict",
+          "scripts/benchmark-hotpaths.mjs",
+          "scripts/benchmark-hotpaths-worker.mjs",
+          "scripts/benchmark-hotpaths-engine.mjs",
+          "scripts/benchmark-hotpaths-fixtures.mjs",
+          "scripts/benchmark-hotpaths-report.mjs"
+        ]
+      },
+      {
+        "name": "format",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 837,
+        "stdoutLog": "format.log",
+        "stderrLog": "format.stderr.log",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/storage/store.ts",
+          "src/runtime/engine.ts",
+          "src/core/kernel.ts",
+          "test/storage-event-consistency.test.ts",
+          "test/runtime-tool-isolation.test.ts",
+          "scripts/benchmark-hotpaths.mjs",
+          "scripts/benchmark-hotpaths-worker.mjs",
+          "scripts/benchmark-hotpaths-engine.mjs",
+          "scripts/benchmark-hotpaths-fixtures.mjs",
+          "scripts/benchmark-hotpaths-report.mjs",
+          "docs/REFACTOR-HOTPATH-FIX.md"
+        ]
+      }
+    ]
+  },
+  "benchmark": {
+    "report": "benchmark.json",
+    "independentSamples": 162,
+    "rounds": 6,
+    "warmupsPerSample": 1,
+    "summaries": {
+      "request-json": {
+        "operations": 200,
+        "medianMs": {
+          "eb88ae5": 136.85645000000002,
+          "a531661": 94.33364999999998,
+          "fixed": 98.24985
+        },
+        "elapsedReductionPercentVsEb88ae5": 28.209558263421286,
+        "elapsedReductionPercentVsA531661": -4.151434827338929
+      },
+      "durable-events-small": {
+        "operations": 2000,
+        "medianMs": {
+          "eb88ae5": 1028.57315,
+          "a531661": 975.9427499999999,
+          "fixed": 1000.0324500000002
+        },
+        "elapsedReductionPercentVsEb88ae5": 2.774785633865684,
+        "elapsedReductionPercentVsA531661": -2.468351755264364
+      },
+      "durable-events-large": {
+        "operations": 2000,
+        "medianMs": {
+          "eb88ae5": 1243.24225,
+          "a531661": 979.7074999999998,
+          "fixed": 1006.5076500000001
+        },
+        "elapsedReductionPercentVsEb88ae5": 19.04171129962804,
+        "elapsedReductionPercentVsA531661": -2.7355256543407425
+      },
+      "ephemeral-observed-small": {
+        "operations": 5000,
+        "medianMs": {
+          "eb88ae5": 361.41325,
+          "a531661": 323.5214,
+          "fixed": 353.8056
+        },
+        "elapsedReductionPercentVsEb88ae5": 2.1049726317449613,
+        "elapsedReductionPercentVsA531661": -9.360802716605443
+      },
+      "ephemeral-observed-large": {
+        "operations": 5000,
+        "medianMs": {
+          "eb88ae5": 716.22645,
+          "a531661": 314.9866,
+          "fixed": 348.17199999999997
+        },
+        "elapsedReductionPercentVsEb88ae5": 51.38800026164909,
+        "elapsedReductionPercentVsA531661": -10.53549579569415
+      },
+      "ephemeral-unobserved-small": {
+        "operations": 5000,
+        "medianMs": {
+          "eb88ae5": 376.725,
+          "a531661": 0.6641499999999922,
+          "fixed": 0.7167999999999921
+        },
+        "elapsedReductionPercentVsEb88ae5": 99.80972858185679,
+        "elapsedReductionPercentVsA531661": -7.927426033275697
+      },
+      "ephemeral-unobserved-large": {
+        "operations": 5000,
+        "medianMs": {
+          "eb88ae5": 712.50645,
+          "a531661": 0.6216500000000167,
+          "fixed": 0.6718999999999937
+        },
+        "elapsedReductionPercentVsEb88ae5": 99.90569909928536,
+        "elapsedReductionPercentVsA531661": -8.083326630736853
+      },
+      "transcript-append": {
+        "operations": 1250,
+        "medianMs": {
+          "eb88ae5": 554.93605,
+          "a531661": 551.6281499999999,
+          "fixed": 549.8783
+        },
+        "elapsedReductionPercentVsEb88ae5": 0.9114113238813837,
+        "elapsedReductionPercentVsA531661": 0.31721550105807683
+      },
+      "engine-local": {
+        "operations": 10,
+        "medianMs": {
+          "eb88ae5": 274.0186,
+          "a531661": 251.42865000000006,
+          "fixed": 250.73279999999994
+        },
+        "elapsedReductionPercentVsEb88ae5": 8.497890289199361,
+        "elapsedReductionPercentVsA531661": 0.2767584362403097
+      }
+    }
+  },
+  "dependencies": {
+    "locks": [
+      {
+        "label": "eb88ae5",
+        "lockfileSha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+      },
+      {
+        "label": "a531661",
+        "lockfileSha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+      },
+      {
+        "label": "fixed",
+        "lockfileSha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+      }
+    ],
+    "sharedNodeModules": true,
+    "node": "v22.22.0"
+  },
+  "sourceMetrics": {
+    "report": "source-metrics.json",
+    "groups": {
+      "src": {
+        "files": 139,
+        "lines": 33553,
+        "bytes": 1133001
+      },
+      "extensions": {
+        "files": 3,
+        "lines": 429,
+        "bytes": 16353
+      },
+      "test": {
+        "files": 97,
+        "lines": 26629,
+        "bytes": 879653
+      },
+      "scripts": {
+        "files": 35,
+        "lines": 4554,
+        "bytes": 157099
+      },
+      "examples": {
+        "files": 9,
+        "lines": 545,
+        "bytes": 19159
+      }
+    },
+    "productionLines": 33982,
+    "totalLines": 65710
+  },
+  "limitations": [
+    "Local performance samples include no external model inference or public network latency; Engine has no event listener and bypasses full Kernel authorization.",
+    "Repeated core tests and selected host tests passed; full native desktop input suite, external paid models, and SDK packaging were not rerun in this correction.",
+    "Index construction on a large historic database was not measured; write/index costs are separately sampled in index-probe.json.",
+    "20,000 source-line target remains unmet; benchmark and regression source additions are counted."
+  ]
+}

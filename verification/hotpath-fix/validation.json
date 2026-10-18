@@ -1,0 +1,90 @@
+{
+  "baseRevision": "a5316616db53c9cf80e1c32b06bb09ee6a855722",
+  "startedAt": "2026-10-18T04:57:09.964Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "build-core",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 6367,
+      "stdoutLog": "build-core.log",
+      "stderrLog": "build-core.stderr.log"
+    },
+    {
+      "name": "copy-core",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 67,
+      "stdoutLog": "copy-core.log",
+      "stderrLog": "copy-core.stderr.log"
+    },
+    {
+      "name": "build-host",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 6823,
+      "stdoutLog": "build-host.log",
+      "stderrLog": "build-host.stderr.log"
+    },
+    {
+      "name": "copy-host",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 70,
+      "stdoutLog": "copy-host.log",
+      "stderrLog": "copy-host.stderr.log"
+    },
+    {
+      "name": "regression-types",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1735,
+      "stdoutLog": "regression-types.log",
+      "stderrLog": "regression-types.stderr.log"
+    },
+    {
+      "name": "core-tests",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 301121,
+      "stdoutLog": "core-tests.log",
+      "stderrLog": "core-tests.stderr.log",
+      "tests": {
+        "passed": 461,
+        "failed": 0
+      }
+    },
+    {
+      "name": "compiled-core-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1320,
+      "stdoutLog": "compiled-core-smoke.log",
+      "stderrLog": "compiled-core-smoke.stderr.log"
+    },
+    {
+      "name": "host-selected",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 9754,
+      "stdoutLog": "host-selected.log",
+      "stderrLog": "host-selected.stderr.log",
+      "tests": {
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    {
+      "name": "compiled-host-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 4107,
+      "stdoutLog": "compiled-host-smoke.log",
+      "stderrLog": "compiled-host-smoke.stderr.log"
+    }
+  ],
+  "completedAt": "2026-10-18T05:02:41.339Z"
+}

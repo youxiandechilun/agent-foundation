@@ -1,0 +1,73 @@
+{
+  "baseRevision": "a5316616db53c9cf80e1c32b06bb09ee6a855722",
+  "startedAt": "2026-10-18T04:42:11.751Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "build-core",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 7932
+    },
+    {
+      "name": "copy-core",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 76
+    },
+    {
+      "name": "build-host",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 7701
+    },
+    {
+      "name": "copy-host",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 104
+    },
+    {
+      "name": "regression-types",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2126
+    },
+    {
+      "name": "core-tests",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 298033,
+      "tests": {
+        "passed": 461,
+        "failed": 0
+      }
+    },
+    {
+      "name": "compiled-core-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1322
+    },
+    {
+      "name": "host-selected",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 10114,
+      "tests": {
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    {
+      "name": "compiled-host-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 4560
+    }
+  ],
+  "completedAt": "2026-10-18T04:47:43.732Z",
+  "evidenceKind": "Initial SQL-projection validation summary; original per-check logs were replaced by the final indexed validation run."
+}
