@@ -1,11 +1,21 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 
+const terminations = new WeakMap<ChildProcess, Promise<void>>();
+
 /** Terminate a process tree created by this host. Callers must use detached groups on POSIX. */
-export async function terminateProcessTree(child: ChildProcess): Promise<void> {
-  if (!child.pid || child.exitCode !== null || child.signalCode !== null)
-    return;
+export function terminateProcessTree(child: ChildProcess): Promise<void> {
+  const existing = terminations.get(child);
+  if (existing) return existing;
+  const operation = terminate(child);
+  terminations.set(child, operation);
+  return operation;
+}
+
+async function terminate(child: ChildProcess): Promise<void> {
+  if (!child.pid) return;
   if (process.platform === "win32") {
+    if (child.exitCode !== null || child.signalCode !== null) return;
     await new Promise<void>((resolve) => {
       const killer = spawn(
         path.join(
@@ -26,8 +36,9 @@ export async function terminateProcessTree(child: ChildProcess): Promise<void> {
         child.kill();
         resolve();
       });
-      killer.once("close", () => {
+      killer.once("close", (code) => {
         clearTimeout(timer);
+        if (code !== 0) child.kill();
         resolve();
       });
     });

@@ -1,6 +1,10 @@
 # Agent Foundation 0.12.1
 
+Responses 文本路由新增默认关闭的 `nativeWebSearch` 模型能力参数，接入上游原生联网搜索、逐次网络授权、来源引用与会话迁移。配置及费用预留说明见 [NATIVE-WEB-SEARCH.md](docs/NATIVE-WEB-SEARCH.md)。
+
 当前源码新增默认关闭的内容安全审计：支持 off/audit/enforce、输入和工具参数检查、结构化记录及宿主规则扩展。现有系统提示词、权限和审批保持各自职责，配置与扩展位置见 [SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)。
+
+基于 e096487 的执行效率重构合并重复宿主组装与资源队列，改进定向查询、团队状态分页、模型协议终态合并和 MCP 目录一致性。20,000 行目标尚未达到；源码净变化、真实测试与查询基准分别记录，说明见 [OPTIMIZATION.md](docs/OPTIMIZATION.md)。
 
 可嵌入、可独立部署的通用 Agent 内核，使用本工程维护的 TypeScript 源码。通过职责提示词、模型路由、权限、Skill、Plugin/MCP 与固定团队配置组合不同 Agent。默认运行包含 Agent 调度、模型协议、工具注册与权限、上下文、附件资产、记忆、会话与扩展管理；服务器和应用宿主显式启用。
 

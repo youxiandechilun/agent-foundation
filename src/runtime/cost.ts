@@ -3,6 +3,7 @@ import type { AssistantMessage, ModelRequest, Usage } from "./types.js";
 import { Store } from "../storage/store.js";
 import { id, invariant, now } from "../core/util.js";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { nativeWebSearchEnabled } from "../providers/responses-search.js";
 
 export interface CostScope {
   projectId?: string;
@@ -193,6 +194,7 @@ export class CostLedger {
     operation: () => Promise<AssistantMessage>,
   ) {
     const p = route.pricing,
+      nativeSearch = nativeWebSearchEnabled(route, request),
       output = Math.min(
         request.maxOutputTokens || route.maxOutputTokens,
         route.maxOutputTokens,
@@ -203,16 +205,33 @@ export class CostLedger {
       p?.cacheReadPerMillion ?? p?.inputPerMillion ?? 0,
       p?.cacheWritePerMillion ?? p?.inputPerMillion ?? 0,
     );
-    const bound =
+    const tokenBound =
       Math.ceil(
         route.contextWindow * inputRate + output * (p?.outputPerMillion || 0),
       ) + micros(p?.requestUsd || 0);
+    invariant(
+      !nativeSearch ||
+        !this.config.budgets.enabled ||
+        p?.maxRequestUsd !== undefined,
+      "Native web search maxRequestUsd is required with cost budgets",
+      402,
+      "pricing_required",
+    );
+    const bound = nativeSearch
+      ? Math.max(tokenBound, micros(p?.maxRequestUsd || 0))
+      : tokenBound;
     const entry = this.reserve(routeId, route, scope, bound);
     try {
       const result = await operation();
       if (result.responseId)
         this.update(entry.id, { responseId: result.responseId });
-      this.settleUsage(entry.id, route, result.usage);
+      if (nativeSearch)
+        this.update(entry.id, {
+          status: "unknown",
+          usage: result.usage,
+          error: "Provider-hosted web search charges require reconciliation",
+        });
+      else this.settleUsage(entry.id, route, result.usage);
       return result;
     } catch (error) {
       const current = this.store.get<CostEntry>("cost-ledger", entry.id);

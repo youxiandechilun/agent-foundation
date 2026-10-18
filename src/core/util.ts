@@ -173,6 +173,21 @@ export function redactJson<T>(value: T): T {
   // One snapshot per operation, never across calls: env rotation and expiry stay visible.
   return JSON.parse(redactJsonText(value));
 }
+/** Close in dependency order, attempting every resource even when an earlier one fails. */
+export async function closeResources(
+  resources: Iterable<{ close(): void | Promise<void> } | undefined>,
+  message: string,
+): Promise<void> {
+  const errors: unknown[] = [];
+  for (const resource of resources) {
+    try {
+      await resource?.close();
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (errors.length) throw new AggregateError(errors, message);
+}
 export function delay(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(new Error("Cancelled"));

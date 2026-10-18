@@ -63,6 +63,9 @@ HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优
 
 - SDK 调用方使用公开 npm 入口；内部文件路径随维护调整。HTTP 路径、工具名称与参数、权限、事件和持久格式由既有契约约束。
 - 可选浏览器和办公实现保留在 `host/`，默认内核不静态加载这些引擎；独立客户端也不导入 Node 内核。
+- `host/applications.ts` 和 `host/desktop.ts` 保留各自公开入口，共用 `host/integration.ts` 的安装、授权和资源关闭流程；reference profile 仍提供原有节点工具和节点回调，applications profile 仍按选项启用浏览器桥接、电脑或办公能力。
+- `runtime/keyed-queue.ts` 提供按资源串行的队列，供会话输入、OAuth 密钥及服务器配置复用；共享凭据文件按规范化路径串行读写。`core/util.ts` 的资源关闭器按依赖顺序尝试所有关闭操作，并汇总错误。
+- MCP 完整工具目录先收集分页，再一次性提交输入/输出校验器及参数 headers；连接、目录版本或取消信号变化时不提交。目录分页限额集中在 `extensions/mcp/catalog.ts`，在途调用使用自己的 metadata 快照。
 - 工具结果、图片回传和产物事件共用内置工具包装；运行资源路径由 `scripts/runtime-files.mjs` 统一提供给复制脚本和包检查。
 - 模块内部不为单个函数增加无用途的入口、基类或转发服务；明确的私有实现放在所属模块下。
 - 历史 CommonJS Worker 在本轮只调整所在目录，保持实现内容；新增和重构的模块使用 ESM。

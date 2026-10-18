@@ -12,6 +12,7 @@ import {
 } from "./interactions.js";
 import { MCPOAuth, oauthSchema } from "./auth/oauth.js";
 import { decodeSamplingRequest } from "./sampling.js";
+import { collectCatalog } from "./catalog.js";
 import {
   clientMetadataDocument,
   clientMetadataURL,
@@ -163,7 +164,7 @@ export class MCPManager {
       version: number | undefined;
       controller: AbortController;
       callers: number;
-      promise: ReturnType<MCPManager["pages"]>;
+      promise: ReturnType<MCPClient["toolCatalog"]>;
     }
   >();
   constructor(
@@ -947,7 +948,16 @@ export class MCPManager {
         version,
         controller,
         callers: 0,
-        promise: this.pages(serverId, "listTools", "tools", controller.signal),
+        promise: connection.toolCatalog({
+          signal: controller.signal,
+          validate: () =>
+            invariant(
+              this.client(serverId) === connection &&
+                this.catalogVersions.get(serverId) === version,
+              "MCP catalog changed during listing; resolve again",
+              409,
+            ),
+        }),
       };
       this.catalogs.set(serverId, pending);
       const current = pending;
@@ -1084,38 +1094,24 @@ export class MCPManager {
   }
   private async pages(
     serverId: string,
-    method:
-      "listTools" | "listResources" | "listPrompts" | "listResourceTemplates",
-    field: "tools" | "resources" | "prompts" | "resourceTemplates",
+    method: "listResources" | "listPrompts" | "listResourceTemplates",
+    field: "resources" | "prompts" | "resourceTemplates",
     signal?: AbortSignal,
   ) {
-    const connection = this.client(serverId),
-      version = this.catalogVersions.get(serverId);
-    const output: any[] = [],
-      seen = new Set<string>();
-    let cursor: string | undefined;
-    for (let page = 0; page < 100; page++) {
-      const result = await connection[method]({ cursor }, { signal });
-      invariant(
-        this.client(serverId) === connection &&
-          (method !== "listTools" ||
-            this.catalogVersions.get(serverId) === version),
-        "MCP catalog changed during listing; resolve again",
-        409,
-      );
-      invariant(Array.isArray(result?.[field]), "Invalid MCP catalog", 502);
-      output.push(...result[field]);
-      invariant(output.length <= 2000, "MCP catalog exceeds limit");
-      cursor = result.nextCursor;
-      if (!cursor) return { [field]: output };
-      invariant(
-        typeof cursor === "string" && !seen.has(cursor),
-        "MCP repeated or invalid pagination cursor",
-        502,
-      );
-      seen.add(cursor);
-    }
-    throw new Error("MCP catalog pagination exceeds limit");
+    const connection = this.client(serverId);
+    const output = await collectCatalog(
+      async (cursor) => {
+        const result = await connection[method]({ cursor }, { signal });
+        return { items: result?.[field], nextCursor: result?.nextCursor };
+      },
+      () =>
+        invariant(
+          this.client(serverId) === connection,
+          "MCP catalog changed during listing; resolve again",
+          409,
+        ),
+    );
+    return { [field]: output };
   }
   async resources(serverId: string) {
     return this.pages(serverId, "listResources", "resources");
@@ -1211,6 +1207,7 @@ export class MCPManager {
     params: { name: string; arguments: any },
     options: MCPRequestOptions,
   ) {
+    const output = connection.toolOutputValidator(params.name);
     const deadline = Date.now() + (options.timeout || 30000);
     const remaining = () => {
       invariant(Date.now() < deadline, "MCP task polling timed out", 504);
@@ -1271,6 +1268,7 @@ export class MCPManager {
               options.signal,
               remaining(),
             ),
+            output,
           );
           if (task.status === "input_required") {
             const final = await connection.taskGet(

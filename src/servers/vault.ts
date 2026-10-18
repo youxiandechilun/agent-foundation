@@ -4,6 +4,7 @@ import path from "node:path";
 import { z } from "zod";
 import { atomicWrite, invariant, registerSecret, redactSecrets } from "../core/util.js";
 import { credentialsSchema, type ServerCredentials } from "./types.js";
+import { KeyedQueue } from "../runtime/keyed-queue.js";
 
 const envelopeSchema = z.object({
   serverId: z.string(), iv: z.string(), tag: z.string(), ciphertext: z.string(),
@@ -12,8 +13,12 @@ const vaultSchema = z.object({
   version: z.literal(1), entries: z.record(z.string().uuid(), envelopeSchema),
 }).strict();
 type VaultFile = z.infer<typeof vaultSchema>;
+const vaultOperations = new KeyedQueue<string>();
+function vaultQueueKey(file: string) {
+  const resolved = path.resolve(file);
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+}
 export class ServerVault {
-  private queue: Promise<void> = Promise.resolve();
   private secrets = new Set<string>();
   constructor(readonly file: string, private keyEnv = "AGENT_SERVER_VAULT_KEY") {}
   private key(): Buffer {
@@ -48,7 +53,7 @@ export class ServerVault {
   async put(serverId: string, input: unknown, reference: string = randomUUID()): Promise<string> {
     const credentials = credentialsSchema.parse(input);
     this.register(credentials);
-    const operation = this.queue.then(async () => {
+    await vaultOperations.run(vaultQueueKey(this.file), async () => {
       const key = this.key();
       try {
         const iv = randomBytes(12), cipher = createCipheriv("aes-256-gcm", key, iv);
@@ -64,35 +69,32 @@ export class ServerVault {
         await chmod(this.file, 0o600);
       } finally { key.fill(0); }
     });
-    this.queue = operation.catch(() => undefined);
-    await operation;
     return reference;
   }
   async get(serverId: string, reference: string): Promise<ServerCredentials> {
-    await this.queue;
-    const entry = (await this.load()).entries[reference];
-    invariant(entry?.serverId === serverId, "Server credentials not available", 409, "server_credentials_missing");
-    const key = this.key();
-    try {
-      const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(entry.iv, "base64"));
-      decipher.setAAD(Buffer.from(`${reference}:${serverId}`));
-      decipher.setAuthTag(Buffer.from(entry.tag, "base64"));
-      const plaintext = Buffer.concat([decipher.update(Buffer.from(entry.ciphertext, "base64")), decipher.final()]);
+    return vaultOperations.run(vaultQueueKey(this.file), async () => {
+      const entry = (await this.load()).entries[reference];
+      invariant(entry?.serverId === serverId, "Server credentials not available", 409, "server_credentials_missing");
+      const key = this.key();
       try {
-        const credentials = credentialsSchema.parse(JSON.parse(plaintext.toString("utf8")));
-        this.register(credentials);
-        return credentials;
-      } finally { plaintext.fill(0); }
-    } finally { key.fill(0); }
+        const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(entry.iv, "base64"));
+        decipher.setAAD(Buffer.from(`${reference}:${serverId}`));
+        decipher.setAuthTag(Buffer.from(entry.tag, "base64"));
+        const plaintext = Buffer.concat([decipher.update(Buffer.from(entry.ciphertext, "base64")), decipher.final()]);
+        try {
+          const credentials = credentialsSchema.parse(JSON.parse(plaintext.toString("utf8")));
+          this.register(credentials);
+          return credentials;
+        } finally { plaintext.fill(0); }
+      } finally { key.fill(0); }
+    });
   }
   async remove(reference: string): Promise<void> {
-    const operation = this.queue.then(async () => {
+    return vaultOperations.run(vaultQueueKey(this.file), async () => {
       const file = await this.load();
       delete file.entries[reference];
       await atomicWrite(this.file, JSON.stringify(file));
       await chmod(this.file, 0o600);
     });
-    this.queue = operation.catch(() => undefined);
-    await operation;
   }
 }

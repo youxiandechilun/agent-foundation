@@ -7,6 +7,7 @@ const fields = [
   "runId",
   "rootSessionId",
   "rootRunId",
+  "teamId",
   "serverId",
   "parentSessionId",
   "workspaceRoot",

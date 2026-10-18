@@ -93,6 +93,9 @@ export type {
   TextProvider,
   ModelRequest,
   ModelDelta,
+  WebCitation,
+  NativeWebSearchCall,
+  NativeWebSearchResult,
   Capability,
 } from "./runtime/types.js";
 export { SkillManager } from "./extensions/skills.js";

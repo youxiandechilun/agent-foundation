@@ -70,3 +70,5 @@ demo-output/
 !/verification/refactor-optimization-20261018.json
 !/verification/hotpath-fix/
 !/verification/security-audit/
+!/verification/refactor-20261018/
+!/verification/native-web-search-20261018/

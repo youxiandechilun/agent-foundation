@@ -1,0 +1,186 @@
+{
+  "checkedAt": "2026-10-18T08:52:45.670995+00:00",
+  "baselineCommit": "e096487441c93ca5b9d1bc69aafee01fe825ecf9",
+  "version": "0.12.1",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "status": "code-checks-passed_dependency-audit-unavailable_size-target-unmet",
+  "objective": {
+    "productionCodeUnder20000Lines": false,
+    "productionBeforeLines": 34148,
+    "productionAfterLines": 34270,
+    "productionDeltaLines": 122,
+    "allCodeAfterLines": 69288
+  },
+  "baseline": {
+    "build": "passed",
+    "coreTests": 484
+  },
+  "finalCore": {
+    "releaseVerifierStatus": "failed",
+    "tests": {
+      "passed": 524,
+      "failed": 0
+    },
+    "checks": [
+      {
+        "name": "build",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 6505,
+        "stdoutLog": "build.log",
+        "stderrLog": "build.stderr.log"
+      },
+      {
+        "name": "source-independence",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 177,
+        "stdoutLog": "source-independence.log",
+        "stderrLog": "source-independence.stderr.log"
+      },
+      {
+        "name": "core-integration",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 300513,
+        "stdoutLog": "core-integration.log",
+        "stderrLog": "core-integration.stderr.log",
+        "tests": {
+          "passed": 524,
+          "failed": 0
+        }
+      },
+      {
+        "name": "production-dependency-audit",
+        "status": "unavailable",
+        "exitCode": 1,
+        "durationMs": 42815,
+        "stdoutLog": "production-dependency-audit.log",
+        "stderrLog": "production-dependency-audit.stderr.log",
+        "audit": {
+          "status": "unavailable",
+          "vulnerabilities": null,
+          "error": "request to https://registry.npmjs.org/-/npm/v1/security/audits/quick failed, reason: connect ETIMEDOUT 198.18.0.62:443"
+        }
+      },
+      {
+        "name": "compiled-smoke",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 1412,
+        "stdoutLog": "compiled-smoke.log",
+        "stderrLog": "compiled-smoke.stderr.log"
+      },
+      {
+        "name": "acceptance-evidence",
+        "status": "passed",
+        "exitCode": 0,
+        "durationMs": 237,
+        "stdoutLog": "acceptance-evidence.log",
+        "stderrLog": "acceptance-evidence.stderr.log"
+      }
+    ]
+  },
+  "finalHost": {
+    "method": "Two disjoint test runner invocations against the final source: 31 non-computer host tests, then 4 computer tests on an idle desktop after user confirmation. Names cover all 35 tests from the full host run, with no overlap.",
+    "passed": 35,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "allFullSuiteTestNamesCovered": true,
+    "groups": [
+      {
+        "log": "host-final.log",
+        "tests": 31,
+        "passed": 31
+      },
+      {
+        "log": "computer-quiet-retest.log",
+        "tests": 4,
+        "passed": 4
+      }
+    ],
+    "build": "passed",
+    "strictProductionTypes": "passed",
+    "compiledSmoke": {
+      "version": "0.12.1",
+      "compiledHost": true,
+      "optionalFormatWorker": true,
+      "actualChromium": true,
+      "windowsBridge": true,
+      "pairing": true,
+      "modelCalled": false
+    },
+    "earlierAttempts": "Full host run: 34/35 passed, foreground-window check rejected SendInput. First isolated retest: 2/4 passed, foreground loss and extra z in fixture input observed. Final idle-desktop run: 4/4 passed; earlier logs retained."
+  },
+  "strictNewTestTypes": {
+    "status": "passed",
+    "files": 8,
+    "log": "new-test-types.log"
+  },
+  "benchmarkScriptTypes": {
+    "status": "passed",
+    "log": "benchmark-types.log"
+  },
+  "diffCheck": {
+    "status": "passed",
+    "log": "diff-check.log"
+  },
+  "sourceIdentity": {
+    "checkedFiles": 343,
+    "changedSinceFinalSourceCheck": []
+  },
+  "unchangedPublicEntryAndDependencyFiles": [
+    "src/index.ts",
+    "src/client.ts",
+    "src/contracts.ts",
+    "src/host/index.ts",
+    "package.json",
+    "package-lock.json"
+  ],
+  "benchmarks": [
+    {
+      "scenario": "authorized-sessions",
+      "perOperationMs": {
+        "baseline": 27.076620000000002,
+        "current": 0.0337650000000167
+      },
+      "speedup": 801.913816081345
+    },
+    {
+      "scenario": "latest-server-facts",
+      "perOperationMs": {
+        "baseline": 62.57400000000007,
+        "current": 0.3936200000000099
+      },
+      "speedup": 158.97058076316878
+    }
+  ],
+  "limitations": [
+    "20,000-line target has not been achieved; production code increased by 122 lines while duplicated mechanisms were consolidated and correctness guards were added.",
+    "npm audit endpoint timed out; vulnerability counts remain unavailable, not zero. Release verifier remains failed because audit is unavailable.",
+    "Query microbenchmarks exclude model inference, full Kernel authorization, network latency and cold startup.",
+    "No paid external providers, third-party OAuth deployment, Docker runtime or POSIX process group testing was performed in this change.",
+    "Shared credential-file queue coordinates one process and normalized path identity; symbolic-link aliases and cross-process file locking are not provided."
+  ],
+  "evidenceFiles": [
+    "source-metrics.json",
+    "queries.json",
+    "verify-final.log",
+    "host-final.log",
+    "computer-quiet-retest.log",
+    "host-build-final.log",
+    "host-types-final.log",
+    "host-smoke-final.log",
+    "new-test-types.log",
+    "benchmark-types.log",
+    "manifest-consistency.json",
+    "baseline-build.log",
+    "baseline-tests.log",
+    "core-final-tests.log",
+    "core-release-report.json",
+    "host-initial-tests.log",
+    "host-initial-report.json"
+  ]
+}

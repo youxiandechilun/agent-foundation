@@ -22,6 +22,11 @@ import type { CostLedger, CostScope } from "../runtime/cost.js";
 import { isOutputTool } from "../runtime/structured-output.js";
 import { applyReasoning, wantsReasoning } from "./reasoning.js";
 import {
+  ResponsesWebSearch,
+  nativeWebSearchEnabled,
+  responsesOutputText,
+} from "./responses-search.js";
+import {
   completionsMessages,
   responsesInput,
   anthropicMessages,
@@ -34,6 +39,8 @@ import {
   type ModelRequest,
   type ModelDelta,
   type TextProvider,
+  type JsonObject,
+  type ThinkingPart,
 } from "../runtime/types.js";
 
 export function routeHeaders(route: Route): Record<string, string> {
@@ -63,14 +70,14 @@ export function routeHeaders(route: Route): Record<string, string> {
     headers["anthropic-version"] = "2023-06-01";
   return headers;
 }
-const parseArgs = (raw: string): Record<string, any> => {
-  const args = JSON.parse(raw || "{}");
+const parseArgs = (raw: string): JsonObject => {
+  const args: unknown = JSON.parse(raw || "{}");
   invariant(
     args && typeof args === "object" && !Array.isArray(args),
     "Tool arguments must be a JSON object",
     502,
   );
-  return args;
+  return args as JsonObject;
 };
 export class HttpTextProvider implements TextProvider {
   constructor(
@@ -99,6 +106,7 @@ export class HttpTextProvider implements TextProvider {
       usage: emptyUsage(),
     };
     const calls = new Map<number, { id: string; name: string; json: string }>();
+    const thoughts = new Map<number, ThinkingPart>();
     let finished = false,
       started = false;
     let inputUsageSeen = false,
@@ -115,16 +123,18 @@ export class HttpTextProvider implements TextProvider {
       part.text += value;
       await delta?.({ type: "text", text: value });
     };
-    const thought = async (value: string) => {
-      if (!value) return;
-      started = true;
-      let part = output.content.find((p) => p.type === "thinking");
-      if (part?.type !== "thinking") {
+    const thought = async (value: string, index = -1, signature?: string) => {
+      if (!value && index < 0) return;
+      started ||= Boolean(value);
+      let part = thoughts.get(index);
+      if (!part) {
         part = { type: "thinking", thinking: "" };
+        thoughts.set(index, part);
         output.content.push(part);
       }
       part.thinking += value;
-      await delta?.({ type: "thinking", text: value });
+      if (signature) part.signature = signature;
+      if (value) await delta?.({ type: "thinking", text: value });
     };
     const usage = (u: any, anthropic = false, terminalUsage = true) => {
       if (!u) return;
@@ -150,6 +160,52 @@ export class HttpTextProvider implements TextProvider {
           (anthropic ? output.usage.cacheRead + output.usage.cacheWrite : 0);
     };
     const nativeBlocks = new Map<number, any>();
+    const webSearch = new ResponsesWebSearch();
+    const nativeWebSearch = nativeWebSearchEnabled(r, request);
+    const retainProviderState = () => {
+      const search = webSearch.result();
+      if (search) {
+        const breaks: number[] = [];
+        let length = 0;
+        for (const part of output.content) {
+          if (part.type !== "text") continue;
+          if (length) breaks.push(length);
+          length += part.text.length;
+        }
+        output.webSearch = {
+          ...search,
+          citations: search.citations
+            .filter((c) => c.endIndex <= length)
+            .map((c) => ({
+              ...c,
+              startIndex:
+                c.startIndex + breaks.filter((b) => b <= c.startIndex).length,
+              endIndex:
+                c.endIndex +
+                breaks.filter(
+                  (b) =>
+                    b < c.endIndex ||
+                    (c.startIndex === c.endIndex && b === c.endIndex),
+                ).length,
+            })),
+        };
+      }
+      const callIds = new Set(
+        output.content.filter((p) => p.type === "toolCall").map((p) => p.id),
+      );
+      if (r.adapter === "anthropic-messages" || nativeBlocks.size)
+        output.providerState = {
+          protocol: r.adapter,
+          routeId: this.routeId,
+          items: [...nativeBlocks]
+            .sort(([a], [b]) => a - b)
+            .map(([, value]) => value)
+            .filter(
+              (value) =>
+                value.type !== "function_call" || callIds.has(value.call_id),
+            ),
+        };
+    };
     const finalizeCalls = () => {
       const seen = new Set<string>();
       for (const [index, c] of calls) {
@@ -159,25 +215,19 @@ export class HttpTextProvider implements TextProvider {
           502,
         );
         seen.add(c.id);
+        const args = parseArgs(c.json);
         output.content.push({
           type: "toolCall",
           id: c.id,
           name: c.name,
-          arguments: parseArgs(c.json),
+          arguments: args,
         });
         if (nativeBlocks.get(index)?.type === "tool_use")
-          nativeBlocks.get(index).input = parseArgs(c.json);
+          nativeBlocks.get(index).input = args;
       }
       if (calls.size && output.stopReason === "stop")
         output.stopReason = "toolUse";
-      if (r.adapter === "anthropic-messages")
-        output.providerState = {
-          protocol: r.adapter,
-          routeId: this.routeId,
-          items: [...nativeBlocks]
-            .sort(([a], [b]) => a - b)
-            .map(([, value]) => value),
-        };
+      retainProviderState();
     };
     let body: any, suffix: string;
     if (r.adapter === "openai-completions") {
@@ -201,13 +251,21 @@ export class HttpTextProvider implements TextProvider {
         stream: true,
         store: false,
         max_output_tokens: budget,
-        include: ["reasoning.encrypted_content"],
+        include: [
+          "reasoning.encrypted_content",
+          ...(nativeWebSearch ? ["web_search_call.action.sources"] : []),
+        ],
       };
-      if (request.tools.length)
-        body.tools = functionTools(request.tools).map((t) => ({
-          type: t.type,
-          ...t.function,
-        }));
+      const tools = functionTools(request.tools).map((t) => ({
+        type: t.type,
+        ...t.function,
+      }));
+      body.tools = [
+        ...tools,
+        ...(nativeWebSearch ? [{ type: "web_search" }] : []),
+      ];
+      if (!body.tools.length) delete body.tools;
+      if (nativeWebSearch) body.tool_choice ??= "auto";
     } else {
       suffix = "/v1/messages";
       body = {
@@ -231,7 +289,9 @@ export class HttpTextProvider implements TextProvider {
     }
     if (request.toolChoice) {
       invariant(
-        request.toolChoice !== "required" || request.tools.length > 0,
+        request.toolChoice !== "required" ||
+          request.tools.length > 0 ||
+          nativeWebSearch,
         "Required tool choice needs an available tool",
         403,
       );
@@ -337,6 +397,14 @@ export class HttpTextProvider implements TextProvider {
                   : "stop";
           }
         } else if (r.adapter === "openai-responses") {
+          if (webSearch.observe(event)) {
+            started = true;
+            invariant(
+              nativeWebSearch,
+              "Provider returned native web search without request authorization",
+              502,
+            );
+          }
           if (event.type === "response.created")
             output.responseId = event.response?.id;
           if (event.type === "response.output_text.delta")
@@ -379,14 +447,11 @@ export class HttpTextProvider implements TextProvider {
                 json: item.arguments,
               });
             }
-            if (["reasoning", "compaction"].includes(item.type)) {
-              output.providerState ||= {
-                protocol: r.adapter,
-                routeId: this.routeId,
-                items: [],
-              };
-              output.providerState.items.push(item);
-            }
+            if (
+              nativeWebSearch ||
+              ["reasoning", "compaction", "web_search_call"].includes(item.type)
+            )
+              nativeBlocks.set(event.output_index ?? nativeBlocks.size, item);
           }
           if (
             [
@@ -409,22 +474,48 @@ export class HttpTextProvider implements TextProvider {
               output.errorMessage = errorText(
                 result.error.message || result.error,
               );
-            // Some compatible endpoints send only the terminal response object.
-            if (!output.content.some((p) => p.type === "text"))
-              for (const item of result?.output || [])
-                if (item.type === "message")
-                  for (const p of item.content || [])
-                    if (p.type === "output_text") await text(p.text);
-            for (const item of result?.output || [])
+            // Compatible endpoints can mix streamed text with terminal-only output parts.
+            const terminalText = responsesOutputText(result?.output);
+            if (terminalText !== undefined) {
+              const received = output.content
+                .filter((p) => p.type === "text")
+                .map((p) => p.text)
+                .join("");
+              invariant(
+                terminalText.startsWith(received),
+                "Responses terminal text differs from streamed text",
+                502,
+              );
+              await text(terminalText.slice(received.length));
+            }
+            const callIndices = new Map(
+              Array.from(calls, ([index, call]) => [call.id, index]),
+            );
+            for (const [index, item] of (result?.output || []).entries()) {
               if (
-                item.type === "function_call" &&
-                ![...calls.values()].some((c) => c.id === item.call_id)
+                nativeWebSearch ||
+                ["reasoning", "compaction", "web_search_call"].includes(
+                  item.type,
+                )
               )
-                calls.set(calls.size, {
+                nativeBlocks.set(index, item);
+              if (item.type === "function_call") {
+                const callIndex = callIndices.get(item.call_id) ?? index;
+                invariant(
+                  !calls.has(callIndex) ||
+                    calls.get(callIndex)?.id === item.call_id,
+                  "Conflicting Responses tool call index",
+                  502,
+                );
+                const previous = calls.get(callIndex);
+                calls.set(callIndex, {
                   id: item.call_id,
-                  name: item.name,
-                  json: item.arguments,
+                  name: item.name ?? previous?.name ?? "",
+                  json: item.arguments ?? previous?.json ?? "",
                 });
+                callIndices.set(item.call_id, callIndex);
+              }
+            }
           }
         } else {
           if (event.type === "message_start") {
@@ -445,14 +536,8 @@ export class HttpTextProvider implements TextProvider {
               });
             }
             if (b.type === "text" && b.text) await text(b.text);
-            if (b.type === "thinking") {
-              output.providerState ||= {
-                protocol: r.adapter,
-                routeId: this.routeId,
-                items: [],
-              };
-              await thought(b.thinking || "");
-            }
+            if (b.type === "thinking")
+              await thought(b.thinking || "", event.index, b.signature);
           }
           if (event.type === "content_block_delta") {
             const d = event.delta;
@@ -466,11 +551,11 @@ export class HttpTextProvider implements TextProvider {
                 block.signature = (block.signature || "") + d.signature;
             }
             if (d.type === "text_delta") await text(d.text);
-            if (d.type === "thinking_delta") await thought(d.thinking);
+            if (d.type === "thinking_delta")
+              await thought(d.thinking, event.index);
             if (d.type === "signature_delta") {
-              const p = output.content.find((p) => p.type === "thinking");
-              if (p?.type === "thinking")
-                p.signature = (p.signature || "") + d.signature;
+              const p = thoughts.get(event.index);
+              if (p) p.signature = (p.signature || "") + d.signature;
             }
             if (d.type === "input_json_delta") {
               const c = calls.get(event.index);
@@ -507,10 +592,7 @@ export class HttpTextProvider implements TextProvider {
         const value = await readJson(response);
         if (r.adapter === "openai-responses")
           await processEvent({
-            type:
-              value.status === "incomplete"
-                ? "response.incomplete"
-                : "response.completed",
+            type: `response.${value.status || "completed"}`,
             response: value,
           });
         else if (r.adapter === "anthropic-messages") {
@@ -540,6 +622,7 @@ export class HttpTextProvider implements TextProvider {
       finalizeCalls();
       return output;
     } catch (error) {
+      if (r.adapter === "openai-responses") retainProviderState();
       const failure =
         error instanceof ProviderError
           ? error
@@ -571,6 +654,10 @@ export class RouteRouter implements TextProvider {
     ) => Promise<ModelRequest>,
     readonly billing?: { ledger: CostLedger; scope: CostScope },
     readonly onRetry?: (notice: RetryNotice) => void,
+    readonly beforeRequest?: (
+      request: ModelRequest,
+      signal?: AbortSignal,
+    ) => Promise<ModelRequest>,
   ) {}
   async complete(
     request: ModelRequest,
@@ -627,8 +714,12 @@ export class RouteRouter implements TextProvider {
           );
         }
         const provider = new HttpTextProvider(routeId, route);
-        const complete = (req: ModelRequest) =>
-          this.billing
+        const complete = async (request: ModelRequest) => {
+          const req = this.beforeRequest
+            ? await this.beforeRequest(request, signal)
+            : request;
+          signal?.throwIfAborted();
+          return this.billing
             ? this.billing.ledger.text(
                 routeId,
                 route,
@@ -637,6 +728,7 @@ export class RouteRouter implements TextProvider {
                 () => provider.complete(req, delta, signal),
               )
             : provider.complete(req, delta, signal);
+        };
         const attempt = async () => {
           try {
             return await complete(effective);

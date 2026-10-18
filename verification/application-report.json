@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-17T17:47:00.942Z",
+  "checkedAt": "2026-10-18T08:37:35.360Z",
   "node": "v22.22.0",
   "platform": "win32",
   "status": "failed",
@@ -9,7 +9,7 @@
       "name": "application-build",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 7401,
+      "durationMs": 7380,
       "stdoutLog": "application-build.log",
       "stderrLog": "application-build.stderr.log"
     },
@@ -17,52 +17,39 @@
       "name": "application-integration",
       "status": "failed",
       "exitCode": 1,
-      "durationMs": 72314,
+      "durationMs": 69097,
       "stdoutLog": "application-integration.log",
       "stderrLog": "application-integration.stderr.log",
       "tests": {
-        "passed": 31,
+        "passed": 34,
         "failed": 1
       }
     },
     {
       "name": "application-dependency-audit",
-      "status": "passed",
-      "exitCode": 0,
-      "durationMs": 1933,
+      "status": "unavailable",
+      "exitCode": 1,
+      "durationMs": 43055,
       "stdoutLog": "application-dependency-audit.log",
       "stderrLog": "application-dependency-audit.stderr.log",
       "audit": {
-        "status": "passed",
-        "vulnerabilities": {
-          "info": 0,
-          "low": 0,
-          "moderate": 0,
-          "high": 0,
-          "critical": 0,
-          "total": 0
-        }
+        "status": "unavailable",
+        "vulnerabilities": null,
+        "error": "request to https://registry.npmjs.org/-/npm/v1/security/audits/quick failed, reason: connect ETIMEDOUT 198.18.0.62:443"
       }
     },
     {
       "name": "application-compiled-smoke",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 3714,
+      "durationMs": 4181,
       "stdoutLog": "application-compiled-smoke.log",
       "stderrLog": "application-compiled-smoke.stderr.log"
     }
   ],
   "tests": null,
   "criteria": [],
-  "dependencyAudit": {
-    "info": 0,
-    "low": 0,
-    "moderate": 0,
-    "high": 0,
-    "critical": 0,
-    "total": 0
-  },
-  "dependencyAuditStatus": "passed",
+  "dependencyAudit": null,
+  "dependencyAuditStatus": "unavailable",
   "error": "Application log incomplete"
 }

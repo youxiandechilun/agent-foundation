@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { StoredMessage } from "../contracts.js";
+import type { NativeWebSearchResult } from "../runtime/types.js";
 import { invariant, redactSecrets } from "../core/util.js";
 import { modeIdSchema } from "../modes/registry.js";
 
@@ -46,6 +47,51 @@ const usage = z
     totalTokens: count,
   })
   .strict();
+// The snapshot byte limit applies first; these bounds also constrain individual metadata fields.
+const webUrl = z
+  .string()
+  .max(8000)
+  .url()
+  .refine((value) => ["http:", "https:"].includes(new URL(value).protocol));
+const searchText = z.string().max(40000);
+const searchItems = <T extends z.ZodType>(item: T) => z.array(item).max(10000);
+const webSearch: z.ZodType<NativeWebSearchResult> = z
+  .object({
+    calls: searchItems(
+      z
+        .object({
+          id: identity,
+          status: identity.optional(),
+          action: z
+            .object({
+              type: identity,
+              query: searchText.optional(),
+              queries: searchItems(searchText).optional(),
+              url: webUrl.optional(),
+              sources: searchItems(
+                z
+                  .object({ url: webUrl, title: searchText.optional() })
+                  .strict(),
+              ).optional(),
+            })
+            .strict()
+            .optional(),
+        })
+        .strict(),
+    ),
+    citations: searchItems(
+      z
+        .object({
+          url: webUrl,
+          title: searchText,
+          startIndex: z.number().int().nonnegative(),
+          endIndex: z.number().int().nonnegative(),
+        })
+        .strict()
+        .refine((value) => value.endIndex >= value.startIndex),
+    ),
+  })
+  .strict();
 const message = z.discriminatedUnion("role", [
   z
     .object({
@@ -66,6 +112,7 @@ const message = z.discriminatedUnion("role", [
       stopReason: z.enum(["stop", "toolUse", "length", "error", "aborted"]),
       responseId: z.string().optional(),
       errorMessage: z.string().optional(),
+      webSearch: webSearch.optional(),
       providerState: z
         .object({
           protocol: z.string(),

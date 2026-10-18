@@ -269,6 +269,7 @@ export class MemoryStore {
   }
   propose(input: MemoryInput): MemoryProposal {
     const parsed = inputSchema.parse(input);
+    parsed.content = redactSecrets(parsed.content);
     this.store.project(parsed.projectId);
     const existing = this.store.selectJsonOne<MemoryProposal>(
       "SELECT body FROM entities WHERE kind='memory-proposals' AND json_extract(body,'$.projectId')=? AND json_extract(body,'$.namespace')=? AND json_extract(body,'$.content')=? AND json_extract(body,'$.status')='pending' ORDER BY rowid LIMIT 1",
@@ -279,7 +280,7 @@ export class MemoryStore {
       id: id("proposal"),
       projectId: parsed.projectId,
       namespace: parsed.namespace,
-      content: redactSecrets(parsed.content),
+      content: parsed.content,
       tags: parsed.tags,
       source: parsed.source,
       status: "pending",

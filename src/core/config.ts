@@ -50,6 +50,8 @@ export const routeSchema = z
       .optional(),
     enabled: z.boolean().default(true),
     acceptsImages: z.boolean().default(false),
+    /** Provider-hosted Responses web search; each request still needs network authorization. */
+    nativeWebSearch: z.boolean().default(false),
     reasoning: z.boolean().default(false),
     reasoningEffort: reasoningEffortSchema.optional(),
     reasoningBudgetTokens: z.number().int().min(1024).max(1_000_000).optional(),
@@ -82,7 +84,7 @@ export const routeSchema = z
         cacheReadPerMillion: z.number().nonnegative().max(100000).optional(),
         cacheWritePerMillion: z.number().nonnegative().max(100000).optional(),
         requestUsd: z.number().nonnegative().max(100000).default(0),
-        /** Required upper bound for media requests when budgets are enabled. */
+        /** Required total reservation for media or hosted-search requests with budgets enabled. */
         maxRequestUsd: z.number().nonnegative().max(100000).optional(),
       })
       .strict()
@@ -114,6 +116,12 @@ export const routeSchema = z
       .optional(),
   })
   .strict()
+  .refine(
+    (r) =>
+      !r.nativeWebSearch ||
+      (r.kind === "text" && r.adapter === "openai-responses"),
+    "Native web search requires a text openai-responses route",
+  )
   .refine(
     (r) =>
       r.pricing?.maxRequestUsd === undefined ||
@@ -495,6 +503,10 @@ export function publicConfig(config: Config) {
       baseUrl: r.baseUrl,
       enabled: r.enabled,
       acceptsImages: r.acceptsImages,
+      nativeWebSearch: r.nativeWebSearch,
+      reasoning: r.reasoning,
+      reasoningEffort: r.reasoningEffort,
+      supportedReasoningEfforts: r.supportedReasoningEfforts,
       contextWindow: r.contextWindow,
       maxOutputTokens: r.maxOutputTokens,
       pricing: r.pricing,

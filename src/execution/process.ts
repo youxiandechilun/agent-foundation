@@ -5,6 +5,7 @@ import type { Config } from "../core/config.js";
 import { invariant } from "../core/util.js";
 import { realpath } from "node:fs/promises";
 import { safePath } from "../core/util.js";
+import { terminateProcessTree } from "./lifecycle.js";
 
 /** All command entry points share the same network permission declaration. */
 export function executionCapabilities(config: Config): ("exec" | "network")[] {
@@ -205,52 +206,38 @@ export function nativeProcess(
     let stdout = "",
       stderr = "",
       bytes = 0,
-      failure: string | undefined,
+      failure: Error | undefined,
+      termination: Promise<void> | undefined,
       settled = false;
     const decoders = {
       stdout: new StringDecoder("utf8"),
       stderr: new StringDecoder("utf8"),
     };
-    const kill = () => {
-      if (!child.pid) return;
-      if (process.platform === "win32") {
-        const executable = path.join(
-          process.env.SystemRoot || "C:\\Windows",
-          "System32",
-          "taskkill.exe",
-        );
-        spawn(executable, ["/pid", String(child.pid), "/T", "/F"], {
-          windowsHide: true,
-          stdio: "ignore",
-        }).on("error", () => child.kill());
-      } else {
-        try {
-          process.kill(-child.pid, "SIGKILL");
-        } catch {
-          child.kill("SIGKILL");
-        }
-      }
+    const stop = (error: Error) => {
+      if (settled || failure) return;
+      failure = error;
+      cleanup();
+      termination = terminateProcessTree(child);
     };
-    const abort = () => {
-      failure = "Command cancelled";
-      kill();
-    };
+    const abort = () => stop(new Error("Command cancelled"));
     const timer = setTimeout(() => {
-      failure = "Command timed out";
-      kill();
+      stop(new Error("Command timed out"));
     }, request.timeoutMs);
-    signal?.addEventListener("abort", abort, { once: true });
     const onData = (chunk: Buffer, stream: "stdout" | "stderr") => {
+      if (settled || failure) return;
       bytes += chunk.length;
       if (bytes > (request.maxOutputBytes || 128000)) {
-        failure = "Command output limit exceeded";
-        kill();
+        stop(new Error("Command output limit exceeded"));
         return;
       }
       const value = decoders[stream].write(chunk);
       if (stream === "stdout") stdout += value;
       else stderr += value;
-      output?.(value, stream);
+      try {
+        output?.(value, stream);
+      } catch (error) {
+        stop(error instanceof Error ? error : new Error(String(error)));
+      }
     };
     child.stdout.on("data", (data) => onData(data, "stdout"));
     child.stderr.on("data", (data) => onData(data, "stderr"));
@@ -272,12 +259,28 @@ export function nativeProcess(
         finalErr = decoders.stderr.end();
       stdout += finalOut;
       stderr += finalErr;
-      if (finalOut) output?.(finalOut, "stdout");
-      if (finalErr) output?.(finalErr, "stderr");
-      if (failure)
-        reject(Object.assign(new Error(failure), { stdout, stderr, exitCode }));
-      else resolve({ exitCode, stdout, stderr, boundary: "native" });
+      try {
+        if (!failure && finalOut) output?.(finalOut, "stdout");
+        if (!failure && finalErr) output?.(finalErr, "stderr");
+      } catch (error) {
+        failure = error instanceof Error ? error : new Error(String(error));
+      }
+      void Promise.resolve(termination).then(
+        () =>
+          failure
+            ? reject(
+                Object.assign(new Error(failure.message, { cause: failure }), {
+                  stdout,
+                  stderr,
+                  exitCode,
+                }),
+              )
+            : resolve({ exitCode, stdout, stderr, boundary: "native" }),
+        reject,
+      );
     });
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
   });
 }
 export class CommandRunner {
@@ -325,14 +328,15 @@ export class CommandRunner {
     output?: (text: string, stream: "stdout" | "stderr") => void,
   ): Promise<CommandResult> {
     const prepared = await prepareCommand(this.config, request, root);
-    const stop = async () => {
-      if (prepared.cleanup) {
-        const result = await nativeProcess({
-          ...prepared.cleanup,
-          cwd: prepared.cwd,
-          timeoutMs: prepared.cleanup.mode === "appcontainer" ? 30000 : 5000,
-        });
-        if (prepared.cleanup.mode === "appcontainer")
+    let cleanup: Promise<CommandResult> | undefined;
+    const stop = () => {
+      if (!prepared.cleanup) return Promise.resolve();
+      return (cleanup ||= nativeProcess({
+        ...prepared.cleanup,
+        cwd: prepared.cwd,
+        timeoutMs: prepared.cleanup.mode === "appcontainer" ? 30000 : 5000,
+      }).then((result) => {
+        if (prepared.cleanup?.mode === "appcontainer")
           invariant(
             result.exitCode === 0,
             "Windows sandbox cleanup unconfirmed: " + result.stderr,
@@ -340,7 +344,7 @@ export class CommandRunner {
             "isolation_cleanup_failed",
           );
         return result;
-      }
+      }));
     };
     const onAbort = () => {
       void stop().catch(() => undefined);

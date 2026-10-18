@@ -1,5 +1,32 @@
 # 执行效率与内部结构优化
 
+## 2026-10-18 后续重构，基线 e096487
+
+本次保留现有 TypeScript 单包、三个 SDK 入口、全部工具与协议能力，未升级依赖。源码计量包含所有生产 TS、JS、MJS、CJS、Python、C#、PowerShell 和 Shell 文件；测试、脚本、扩展资源和示例分别报告，不计入生产源码 20,000 行目标。完整计量见 `C:\Users\32761\Desktop\agent\agent-foundation\verification\refactor-20261018\source-metrics.json`。当前没有达到 20,000 行，局部重复机制的合并不能代表全仓净缩减。
+
+本次变化包括：
+
+- 授权会话列表按 SQLite 复合主键读取，保留原插入顺序、祖先授权和实时撤销；服务器事实查询先筛选服务器/项目，再读取最新 100 条。团队状态只刷新当前可见 40 项，任务详情、调度、编辑和取消仍各自刷新必要状态。
+- 会话输入、OAuth 密钥和服务器配置共用按 key 串行的队列。不同服务器配置可以并行；同一个凭据文件的读写由跨 manager 的共享队列串行处理，Windows 文件路径按大小写不敏感规范化。该队列只协调同一进程，符号链接别名和跨进程文件锁不在此次验证范围内。
+- 合并可选应用与 reference desktop 的服务组装、权限计算和资源关闭流程。关闭失败时继续释放后续资源，最终汇总错误；HTTP 断开时清理请求信号监听器。
+- Responses 终态工具去重改为 Set 查询，保留稀疏输出索引；修复失败状态误报成功。Anthropic 按块维护 thinking 和签名，工具参数只解析一次；Responses reasoning/compaction 在 JSON、SSE 终态和异常部分结果中保留有序回放状态。
+- 进程取消、超时和输出超限共用单次进程树终止操作；输出回调异常转换为命令失败；沙箱清理不因取消和异常路径交错而重复执行。Windows 子进程已实际测试，POSIX 路径仍需在对应系统验证。
+- MCP 工具目录原子更新整份 metadata，取消、目录通知或连接变更不提交半份目录；移除工具时同步清理旧 schema 与 headers。在途调用保留自己的目录快照。工具、资源、提示词共用分页限额与游标校验，目录返回后仍不缓存结果。
+- 记忆提案以最终持久化的脱敏内容查重，避免相同秘密输入产生重复提案。
+
+实际全量测试、构建、严格类型检查和未验证范围见 `C:\Users\32761\Desktop\agent\agent-foundation\verification\refactor-20261018\report.json`。局部性能对照使用两个真实编译目录、独立 SQLite 库、相同合成数据、一次预热和五轮交替采样；计时前后校验结果，原始样本保存到 `C:\Users\32761\Desktop\agent\agent-foundation\verification\refactor-20261018\queries.json`。这些查询倍率不代表完整 Agent 或外部模型推理倍率。
+
+```powershell
+Set-Location 'C:\Users\32761\Desktop\agent\agent-foundation'
+npm run verify
+npm run verify:host
+node scripts/benchmark-refactor-queries.mjs --baseline=.agent-data-refactor/streamline-before-dist --current=dist
+```
+
+比较基线是开始修改前从 e096487 构建并保留的编译目录；该本机目录不进入 SDK 包。重建基线时必须使用对应提交的源码和锁文件。后续修改后的数据以本次独立报告为准，不沿用下方前期验证的统计。
+
+## 前期优化记录
+
 本轮以开始工作时的 0.12.1 工作区为比较基线，保留此前尚未提交的重构。继续使用现有 TypeScript 单包、三个 SDK 公开入口、工具及 HTTP 协议和 JSON 持久记录；没有升级依赖、迁移技术栈或发布远端版本。
 
 ## 执行路径

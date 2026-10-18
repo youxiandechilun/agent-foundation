@@ -1,0 +1,77 @@
+
+> @local/agent-foundation@0.12.1 test:host
+> node scripts/run-core-tests.mjs --host --filter=computer-app
+
+TAP version 13
+# (node:10340) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture
+not ok 1 - native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture
+  ---
+  duration_ms: 5431.634
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-DiPmnr\\test\\computer-app.integration.js:56:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'zActual native 中文 value'
+    - 'Actual native 中文 value'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'Actual native 中文 value'
+  actual: 'zActual native 中文 value'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-DiPmnr/test/computer-app.integration.js:89:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates
+not ok 2 - native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates
+  ---
+  duration_ms: 3539.1064
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-DiPmnr\\test\\computer-app.integration.js:123:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    使用“8”个参数调用“Pointer”时发生异常:“Target window is not foreground; focus it explicitly before pointer or keyboard input”
+    所在位置 C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-DiPmnr\src\host\computer\native\win
+    dows-computer.ps1:22 字符: 49
+    + ... croll') } { [FoundationDesktop]::Pointer($window,[string]$request.act ...
+    +                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+        + FullyQualifiedErrorId : Exception
+
+
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    ChildProcess.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-DiPmnr/src/host/computer/manager.js:297:35)
+    Object.onceWrapper (node:events:634:26)
+    ChildProcess.emit (node:events:519:28)
+    maybeClose (node:internal/child_process:1101:16)
+    ChildProcess._handle.onexit (node:internal/child_process:304:5)
+  ...
+# Subtest: computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues
+ok 3 - computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues
+  ---
+  duration_ms: 1142.3133
+  type: 'test'
+  ...
+# Subtest: active native processes recheck revoked permissions and timeouts without retaining their lease queue
+ok 4 - active native processes recheck revoked permissions and timeouts without retaining their lease queue
+  ---
+  duration_ms: 318.4734
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11262.7005

@@ -117,7 +117,7 @@ export class TeamDispatcher {
         409,
       );
       const previous = this.kernel.store
-        .list<Session>("sessions")
+        .list<Session>("sessions", { parentSessionId: root.id })
         .find(
           (session) =>
             session.teamRootSessionId === root.id &&

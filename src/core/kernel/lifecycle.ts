@@ -1,4 +1,5 @@
 import type { ExecutionEngine } from "../../runtime/engine.js";
+import { KeyedQueue } from "../../runtime/keyed-queue.js";
 
 export interface LiveRun {
   controller: AbortController;
@@ -20,7 +21,7 @@ interface ProcessControl {
 /** Owns admission, per-session input ordering and cancellation of in-flight work. */
 export class RunLifecycle {
   private readonly slots = new Map<string, LiveRun | InputPreparation>();
-  private readonly lanes = new Map<string, Promise<unknown>>();
+  private readonly lanes = new KeyedQueue<string>();
   private readonly preparations = new Map<string, InputPreparation>();
   private readonly controls = new Map<string, ProcessControl>();
   closing = false;
@@ -43,15 +44,7 @@ export class RunLifecycle {
   }
 
   enqueue<T>(sessionId: string, submit: () => Promise<T>): Promise<T> {
-    const next = (this.lanes.get(sessionId) || Promise.resolve())
-      .catch(() => undefined)
-      .then(submit);
-    this.lanes.set(sessionId, next);
-    const release = () => {
-      if (this.lanes.get(sessionId) === next) this.lanes.delete(sessionId);
-    };
-    void next.then(release, release);
-    return next;
+    return this.lanes.run(sessionId, submit);
   }
 
   prepare(sessionId: string): {

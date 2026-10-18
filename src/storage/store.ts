@@ -235,6 +235,18 @@ export class Store {
       [kind, ...where.values, ...order.values],
     );
   }
+  /** Select requested primary keys while retaining the table's insertion order. */
+  listByIds<T>(kind: Table, entityIds: readonly string[]): T[] {
+    invariant(
+      Array.isArray(entityIds) && entityIds.every((value) => typeof value === "string"),
+      "Invalid entity IDs",
+    );
+    if (!entityIds.length) return [];
+    return this.selectJson<T>(
+      "SELECT body FROM entities WHERE kind=? AND id IN (SELECT value FROM json_each(?)) ORDER BY rowid",
+      [kind, JSON.stringify(entityIds)],
+    );
+  }
   count(kind: Table, filter: EntityFilter = {}): number {
     const where = entityWhere(filter);
     const row = this.prepare(

@@ -53,8 +53,8 @@ export function sessionTools(context: ToolContext): ToolDefinition<unknown>[] {
         const grant = readingGrant();
         return wrap({
           sessions: kernel.store
-            .list<Session>("sessions", { projectId: grant.projectId })
-            .filter((item) => grant.ids.has(item.id))
+            .listByIds<Session>("sessions", [...grant.ids])
+            .filter((item) => item.projectId === grant.projectId)
             .map((item) => ({
               id: item.id,
               name: item.name,

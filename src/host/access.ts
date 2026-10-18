@@ -1,7 +1,41 @@
 import type { Kernel } from "../core/kernel.js";
-import type { Capability } from "../runtime/types.js";
+import type { Capability, ToolDefinition } from "../runtime/types.js";
 import type { PolicyRule } from "../contracts.js";
 import { invariant } from "../core/util.js";
+
+type ApplicationTool = Pick<ToolDefinition, "name" | "capabilities">;
+
+export function browserCapabilities(
+  tool: ApplicationTool,
+  args: Record<string, unknown>,
+): Capability[] {
+  const capabilities = new Set(tool.capabilities);
+  if (tool.name === "browser_open" || tool.name === "browser_action")
+    capabilities.add("network");
+  if (tool.name === "browser_action") {
+    if (args.action === "upload") capabilities.add("files.read");
+    if (args.action === "screenshot" || args.action === "download")
+      capabilities.add("files.write");
+  }
+  return [...capabilities];
+}
+
+/** Both optional application integrations use the same action-dependent policy. */
+export function applicationCapabilities(
+  tool: ApplicationTool,
+  args: Record<string, unknown>,
+): Capability[] {
+  const capabilities = new Set(browserCapabilities(tool, args));
+  if (tool.name === "browser_action" && args.nodeId) capabilities.add("node");
+  if (tool.name === "computer_action" && args.action === "screenshot")
+    capabilities.add("files.write");
+  if (tool.name === "node_call" && typeof args.capability === "string") {
+    if (args.capability.startsWith("browser.")) capabilities.add("browser");
+    if (args.capability.startsWith("computer.")) capabilities.add("computer");
+    if (args.capability.startsWith("exec.")) capabilities.add("exec");
+  }
+  return [...capabilities];
+}
 
 /** The authenticated operator API still obeys host and project deny policies. */
 export function hostApplicationAccess(

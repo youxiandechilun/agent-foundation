@@ -54,6 +54,29 @@ export interface AssistantMessage {
   responseId?: string;
   errorMessage?: string;
   providerState?: { protocol: string; routeId: string; items: unknown[] };
+  webSearch?: NativeWebSearchResult;
+}
+/** Citation offsets refer to textOf(assistant), using JS string indices. */
+export interface WebCitation {
+  url: string;
+  title: string;
+  startIndex: number;
+  endIndex: number;
+}
+export interface NativeWebSearchCall {
+  id: string;
+  status?: string;
+  action?: {
+    type: string;
+    query?: string;
+    queries?: string[];
+    url?: string;
+    sources?: { url: string; title?: string }[];
+  };
+}
+export interface NativeWebSearchResult {
+  calls: NativeWebSearchCall[];
+  citations: WebCitation[];
 }
 export interface ToolResultMessage {
   role: "toolResult";
@@ -117,6 +140,8 @@ export interface ModelRequest {
   routeId: string;
   messages: Message[];
   tools: ToolDefinition[];
+  /** Explicit per-request permission, independent of the route's advertised support. */
+  nativeWebSearch?: boolean;
   maxOutputTokens?: number;
   toolChoice?: "auto" | "required" | "none";
   reasoningEffort?: import("../contracts.js").ReasoningEffort;

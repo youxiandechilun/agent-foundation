@@ -1,0 +1,23 @@
+(node:29012) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "output": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-20261018\\queries.json",
+  "results": [
+    {
+      "scenario": "authorized-sessions",
+      "perOperationMs": {
+        "baseline": 27.076620000000002,
+        "current": 0.0337650000000167
+      },
+      "speedup": 801.913816081345
+    },
+    {
+      "scenario": "latest-server-facts",
+      "perOperationMs": {
+        "baseline": 62.57400000000007,
+        "current": 0.3936200000000099
+      },
+      "speedup": 158.97058076316878
+    }
+  ]
+}

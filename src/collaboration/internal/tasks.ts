@@ -56,8 +56,12 @@ export class TeamTasks {
       return { task: this.report(this.refresh(task), root.id) };
     }
     invariant(!args.waitMs, "taskId is required when waiting for team status");
-    const all = this.forRoot(root.id).filter((task) => task.teamId === team.id);
-    const visible = all.slice(-40);
+    const filter = { rootSessionId: root.id, teamId: team.id },
+      total = this.kernel.store.count("team-tasks", filter),
+      visible = this.kernel.store
+        .list<TeamTask>("team-tasks", filter, { descending: true, limit: 40 })
+        .reverse()
+        .map((task) => this.refresh(task));
     const resultBudget = Math.max(
       120,
       Math.min(
@@ -72,8 +76,8 @@ export class TeamTasks {
       teamId: team.id,
       rootSessionId: root.id,
       goalRevision: root.collaboration?.revision,
-      total: all.length,
-      hasMore: visible.length < all.length,
+      total,
+      hasMore: visible.length < total,
       tasks: visible.map((task) => this.summary(task, root.id, resultBudget)),
     };
   }

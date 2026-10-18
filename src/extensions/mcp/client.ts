@@ -12,6 +12,7 @@ import {
 import { decodeEventStream } from "../../transport/sse.js";
 import { readJson } from "../../providers/sse.js";
 import { terminateProcessTree } from "../../execution/lifecycle.js";
+import { collectCatalog } from "./catalog.js";
 import {
   headerBindings,
   parameterHeaders,
@@ -66,6 +67,44 @@ export interface MCPNotificationFilter {
   resourcesListChanged?: boolean;
   resourceSubscriptions?: string[];
   taskIds?: string[];
+}
+
+export interface MCPTool extends Record<string, unknown> {
+  name: string;
+  description?: string;
+  inputSchema: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+  execution?: { taskSupport?: string };
+}
+interface MCPToolMetadata {
+  input: ReturnType<typeof compileSchema>;
+  output?: ReturnType<typeof compileSchema>;
+  headers: HeaderBinding[];
+}
+interface MCPToolPage extends Record<string, unknown> {
+  tools: MCPTool[];
+  nextCursor?: string;
+}
+interface MCPCatalogOptions {
+  signal?: AbortSignal;
+  validate?: () => void;
+}
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isTool(value: unknown): value is MCPTool {
+  return (
+    isRecord(value) &&
+    typeof value.name === "string" &&
+    isRecord(value.inputSchema) &&
+    (value.description === undefined ||
+      typeof value.description === "string") &&
+    (value.outputSchema === undefined || isRecord(value.outputSchema)) &&
+    (value.execution === undefined ||
+      (isRecord(value.execution) &&
+        (value.execution.taskSupport === undefined ||
+          typeof value.execution.taskSupport === "string")))
+  );
 }
 
 export const MCP_PROTOCOL_VERSIONS = [
@@ -215,14 +254,8 @@ export class MCPClient {
   private seen = new Set<string>();
   private modern = false;
   private incoming = new Map<RpcId, AbortController>();
-  private toolHeaders = new Map<string, HeaderBinding[]>();
-  private toolSchemas = new Map<
-    string,
-    {
-      input: ReturnType<typeof compileSchema>;
-      output?: ReturnType<typeof compileSchema>;
-    }
-  >();
+  private toolMetadata = new Map<string, MCPToolMetadata>();
+  private catalogRevision = 0;
   private messages: { method: string; params: unknown; timestamp: string }[] =
     [];
   readonly limits: { message: number; stderr: number; timeout: number };
@@ -429,6 +462,7 @@ export class MCPClient {
     });
   }
   private record(method: string, params: unknown) {
+    if (method === "notifications/tools/list_changed") this.catalogRevision++;
     this.messages.push({ method, params, timestamp: new Date().toISOString() });
     if (this.messages.length > 100) this.messages.shift();
     this.onnotification?.(method, params);
@@ -856,6 +890,10 @@ export class MCPClient {
   ): Promise<any> {
     const deadline = Date.now() + (options?.timeout || this.limits.timeout),
       seen = new Set<string>();
+    const toolHeaders =
+      method === "tools/call"
+        ? this.toolMetadata.get(params.name)?.headers
+        : undefined;
     let current = params;
     for (let round = 0; round <= (this.options.maxInputRounds || 8); round++) {
       options?.signal?.throwIfAborted();
@@ -866,6 +904,7 @@ export class MCPClient {
         current,
         { ...options, timeout: remaining },
         initializing,
+        toolHeaders,
       );
       if (!this.modern) return result;
       invariant(
@@ -945,6 +984,7 @@ export class MCPClient {
     params: unknown = {},
     options?: MCPRequestOptions,
     initializing = false,
+    toolHeaders?: HeaderBinding[],
   ): Promise<any> {
     invariant(
       !this.closed && (this.initialized || initializing),
@@ -1055,6 +1095,7 @@ export class MCPClient {
       void this.send(
         { jsonrpc: "2.0", id: requestId, method, params: enriched },
         controller.signal,
+        toolHeaders,
       ).catch((e) => {
         const error = e instanceof Error ? e : new Error(String(e));
         this.takePending(requestId, error)?.reject(error);
@@ -1087,7 +1128,11 @@ export class MCPClient {
         : {}),
     };
   }
-  private async send(message: RpcMessage, signal: AbortSignal) {
+  private async send(
+    message: RpcMessage,
+    signal: AbortSignal,
+    toolHeaders?: HeaderBinding[],
+  ) {
     signal.throwIfAborted();
     const data = JSON.stringify(message);
     invariant(
@@ -1129,10 +1174,7 @@ export class MCPClient {
             }
           : {}),
         ...(this.modern && message.method === "tools/call"
-          ? parameterHeaders(
-              this.toolHeaders.get(message.params?.name) || [],
-              message.params?.arguments,
-            )
+          ? parameterHeaders(toolHeaders || [], message.params?.arguments)
           : {}),
       },
       body: data,
@@ -1350,6 +1392,7 @@ export class MCPClient {
     this.receiver?.close();
     this.modernTasks.close();
     this.taskContexts.close();
+    this.toolMetadata.clear();
     this.rejectPending(
       new MCPProtocolError(
         "MCP connection closed; pending effects may be unknown",
@@ -1384,72 +1427,138 @@ export class MCPClient {
     })();
     return this.closeCompletion;
   }
-  listTools(params?: { cursor?: string }, options?: { signal?: AbortSignal }) {
-    return this.request("tools/list", params || {}, options).then((r) => {
-      invariant(
-        Array.isArray(r?.tools) &&
-          r.tools.every(
-            (t: any) =>
-              typeof t.name === "string" &&
-              t.inputSchema &&
-              typeof t.inputSchema === "object",
-          ),
-        "Invalid MCP tool list",
-        502,
-      );
-      r.tools = r.tools.filter((tool: any) => {
-        try {
-          if (!tool.inputSchema.$schema)
-            tool.inputSchema = {
-              ...tool.inputSchema,
-              $schema: "https://json-schema.org/draft/2020-12/schema",
-            };
-          const input = compileSchema(tool.inputSchema),
-            output = tool.outputSchema
-              ? compileSchema({
-                  ...tool.outputSchema,
-                  $schema:
-                    tool.outputSchema.$schema ||
-                    "https://json-schema.org/draft/2020-12/schema",
-                })
-              : undefined;
-          this.toolSchemas.set(tool.name, { input, output });
-          if (this.options.transport === "http" && this.modern)
-            this.toolHeaders.set(tool.name, headerBindings(tool.inputSchema));
-          return true;
-        } catch (error) {
-          this.record("tools/rejected", {
-            name: tool.name,
-            reason: errorText(error),
-          });
-          return false;
-        }
-      });
-      return r;
+  private async toolPage(
+    params?: { cursor?: string },
+    options?: { signal?: AbortSignal },
+  ) {
+    const result: unknown = await this.request(
+      "tools/list",
+      params || {},
+      options,
+    );
+    invariant(
+      isRecord(result) &&
+        Array.isArray(result.tools) &&
+        result.tools.every(isTool),
+      "Invalid MCP tool list",
+      502,
+    );
+    invariant(
+      result.nextCursor === undefined || typeof result.nextCursor === "string",
+      "Invalid MCP tool pagination cursor",
+      502,
+    );
+    const metadata = new Map<string, MCPToolMetadata>();
+    const tools = result.tools.flatMap((tool) => {
+      try {
+        if (!tool.inputSchema.$schema)
+          tool.inputSchema = {
+            ...tool.inputSchema,
+            $schema: "https://json-schema.org/draft/2020-12/schema",
+          };
+        const input = compileSchema(tool.inputSchema),
+          output = tool.outputSchema
+            ? compileSchema({
+                ...tool.outputSchema,
+                $schema:
+                  tool.outputSchema.$schema ||
+                  "https://json-schema.org/draft/2020-12/schema",
+              })
+            : undefined;
+        const headers =
+          this.options.transport === "http" && this.modern
+            ? headerBindings(tool.inputSchema)
+            : [];
+        metadata.set(tool.name, { input, output, headers });
+        return [tool];
+      } catch (error) {
+        this.record("tools/rejected", {
+          name: tool.name,
+          reason: errorText(error),
+        });
+        return [];
+      }
     });
+    const page: MCPToolPage = {
+      ...result,
+      tools,
+      nextCursor: result.nextCursor,
+    };
+    return { page, metadata };
+  }
+  async listTools(
+    params?: { cursor?: string },
+    options?: { signal?: AbortSignal },
+  ) {
+    const revision = this.catalogRevision;
+    const { page, metadata } = await this.toolPage(params, options);
+    this.validateCatalog(revision, options);
+    // A complete one-page list replaces old metadata; paged callers retain page-wise registration.
+    if (!params?.cursor && !page.nextCursor) this.toolMetadata = metadata;
+    else
+      for (const [name, entry] of metadata) this.toolMetadata.set(name, entry);
+    return page;
+  }
+  private validateCatalog(revision: number, options?: MCPCatalogOptions) {
+    options?.signal?.throwIfAborted();
+    invariant(
+      this.connected && revision === this.catalogRevision,
+      "MCP catalog changed during listing; resolve again",
+      409,
+    );
+    options?.validate?.();
+  }
+  /** Complete catalogs commit all validators and parameter headers together, without caching pages. */
+  async toolCatalog(options?: MCPCatalogOptions) {
+    const revision = this.catalogRevision,
+      metadata = new Map<string, MCPToolMetadata>();
+    const tools = await collectCatalog(
+      async (cursor) => {
+        const current = await this.toolPage({ cursor }, options);
+        for (const [name, entry] of current.metadata) metadata.set(name, entry);
+        return {
+          items: current.page.tools,
+          nextCursor: current.page.nextCursor,
+        };
+      },
+      () => this.validateCatalog(revision, options),
+    );
+    this.validateCatalog(revision, options);
+    this.toolMetadata = metadata;
+    return { tools };
   }
   callTool(
     params: { name: string; arguments: any },
     options?: MCPRequestOptions,
   ) {
-    const schema = this.toolSchemas.get(params.name);
+    const schema = this.toolMetadata.get(params.name);
     if (schema)
       invariant(
         schema.input(params.arguments),
         "MCP tool input violates its catalog schema",
       );
+    const output = this.toolOutputValidator(params.name);
     const deadline = Date.now() + (options?.timeout || this.limits.timeout);
     return this.request("tools/call", params, {
       ...options,
       taskDeadline: deadline,
     }).then(async (r) => {
       if (this.modern && r.resultType === "task")
-        r = await this.waitModernTask(r.taskId, options);
-      return this.validateToolResult(params.name, r);
+        r = await this.waitModernTask(r.taskId, options, output);
+      return this.validateToolResult(params.name, r, output);
     });
   }
-  validateToolResult(name: string, r: any) {
-    const schema = this.toolSchemas.get(name);
+  /** Capture the output contract before starting immediate or deferred remote work. */
+  toolOutputValidator(name: string): ReturnType<typeof compileSchema> | null {
+    return this.toolMetadata.get(name)?.output ?? null;
+  }
+  validateToolResult(
+    name: string,
+    r: any,
+    output: ReturnType<typeof compileSchema> | null = this.toolOutputValidator(
+      name,
+    ),
+  ) {
     invariant(
       r &&
         typeof r === "object" &&
@@ -1457,9 +1566,9 @@ export class MCPClient {
       "Invalid MCP tool result",
       502,
     );
-    if (!r.isError && schema?.output)
+    if (!r.isError && output)
       invariant(
-        r.structuredContent !== undefined && schema.output(r.structuredContent),
+        r.structuredContent !== undefined && output(r.structuredContent),
         "MCP tool structured output violates its catalog schema",
         502,
       );
@@ -1691,7 +1800,11 @@ export class MCPClient {
     );
     return task.result;
   }
-  private async waitModernTask(taskId: string, options?: MCPRequestOptions) {
+  private async waitModernTask(
+    taskId: string,
+    options?: MCPRequestOptions,
+    output: ReturnType<typeof compileSchema> | null = null,
+  ) {
     const entry = this.modernTasks.get(taskId);
     invariant(entry, "Modern task origin is missing", 403);
     const deadline = () =>
@@ -1719,7 +1832,11 @@ export class MCPClient {
         if (taskTerminal(task.status)) {
           const result = this.modernTaskResult(task);
           try {
-            return this.validateToolResult(entry.context.params.name, result);
+            return this.validateToolResult(
+              entry.context.params.name,
+              result,
+              output,
+            );
           } catch (error) {
             this.modernTasks.unknown(taskId, errorText(error));
             throw error;

@@ -1,16 +1,16 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-17T17:42:37.082Z",
+  "checkedAt": "2026-10-18T08:48:48.728Z",
   "node": "v22.22.0",
   "platform": "win32",
   "runtime": "foundation-owned",
-  "status": "passed",
+  "status": "failed",
   "checks": [
     {
       "name": "build",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 6891,
+      "durationMs": 6505,
       "stdoutLog": "build.log",
       "stderrLog": "build.stderr.log"
     },
@@ -18,7 +18,7 @@
       "name": "source-independence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 163,
+      "durationMs": 177,
       "stdoutLog": "source-independence.log",
       "stderrLog": "source-independence.stderr.log"
     },
@@ -26,38 +26,32 @@
       "name": "core-integration",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 295676,
+      "durationMs": 300513,
       "stdoutLog": "core-integration.log",
       "stderrLog": "core-integration.stderr.log",
       "tests": {
-        "passed": 411,
+        "passed": 524,
         "failed": 0
       }
     },
     {
       "name": "production-dependency-audit",
-      "status": "passed",
-      "exitCode": 0,
-      "durationMs": 1308,
+      "status": "unavailable",
+      "exitCode": 1,
+      "durationMs": 42815,
       "stdoutLog": "production-dependency-audit.log",
       "stderrLog": "production-dependency-audit.stderr.log",
       "audit": {
-        "status": "passed",
-        "vulnerabilities": {
-          "info": 0,
-          "low": 0,
-          "moderate": 0,
-          "high": 0,
-          "critical": 0,
-          "total": 0
-        }
+        "status": "unavailable",
+        "vulnerabilities": null,
+        "error": "request to https://registry.npmjs.org/-/npm/v1/security/audits/quick failed, reason: connect ETIMEDOUT 198.18.0.62:443"
       }
     },
     {
       "name": "compiled-smoke",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 1658,
+      "durationMs": 1412,
       "stdoutLog": "compiled-smoke.log",
       "stderrLog": "compiled-smoke.stderr.log"
     },
@@ -65,24 +59,17 @@
       "name": "acceptance-evidence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 250,
+      "durationMs": 237,
       "stdoutLog": "acceptance-evidence.log",
       "stderrLog": "acceptance-evidence.stderr.log"
     }
   ],
   "tests": {
-    "passed": 411,
+    "passed": 524,
     "failed": 0
   },
-  "dependencyAudit": {
-    "info": 0,
-    "low": 0,
-    "moderate": 0,
-    "high": 0,
-    "critical": 0,
-    "total": 0
-  },
-  "dependencyAuditStatus": "passed",
+  "dependencyAudit": null,
+  "dependencyAuditStatus": "unavailable",
   "sourceManifest": "source-manifest.json",
   "validationBoundary": {
     "paidModelQualityTest": false,

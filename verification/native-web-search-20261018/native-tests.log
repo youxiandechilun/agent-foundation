@@ -1,0 +1,270 @@
+TAP version 13
+# (node:38248) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native search capability round-trips through route APIs and persists atomically
+ok 1 - native search capability round-trips through route APIs and persists atomically
+  ---
+  duration_ms: 118.5777
+  type: 'test'
+  ...
+# (node:47296) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native search honors host, route, project, mode, agent, ancestor and planning restrictions
+ok 2 - native search honors host, route, project, mode, agent, ancestor and planning restrictions
+  ---
+  duration_ms: 701.2859
+  type: 'test'
+  ...
+# Subtest: native search waits for approval before HTTP and handles approval, refusal and cancellation
+ok 3 - native search waits for approval before HTTP and handles approval, refusal and cancellation
+  ---
+  duration_ms: 188.125
+  type: 'test'
+  ...
+# Subtest: approval cannot restore native search after permission is revoked while waiting
+ok 4 - approval cannot restore native search after permission is revoked while waiting
+  ---
+  duration_ms: 67.5276
+  type: 'test'
+  ...
+# Subtest: native search combines primary and fallback policies using the actual route capability
+ok 5 - native search combines primary and fallback policies using the actual route capability
+  ---
+  duration_ms: 272.5129
+  type: 'test'
+  ...
+# Subtest: a retry rechecks native search policies before the next HTTP attempt
+ok 6 - a retry rechecks native search policies before the next HTTP attempt
+  ---
+  duration_ms: 75.9904
+  type: 'test'
+  ...
+# Subtest: native search obeys integration authorization and does not swallow unrelated failures
+ok 7 - native search obeys integration authorization and does not swallow unrelated failures
+  ---
+  duration_ms: 125.0491
+  type: 'test'
+  ...
+# Subtest: native search is security audited before the HTTP request
+ok 8 - native search is security audited before the HTTP request
+  ---
+  duration_ms: 61.3632
+  type: 'test'
+  ...
+# Subtest: internal compaction and memory extraction do not inherit native search capability
+ok 9 - internal compaction and memory extraction do not inherit native search capability
+  ---
+  duration_ms: 152.6933
+  type: 'test'
+  ...
+# (node:48560) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: session codec preserves native search evidence and rejects malformed, unsafe or oversized metadata
+ok 10 - session codec preserves native search evidence and rejects malformed, unsafe or oversized metadata
+  ---
+  duration_ms: 67.352
+  type: 'test'
+  ...
+# Subtest: native search sessions round-trip through HTTP export and import without losing citations or replaying searches
+ok 11 - native search sessions round-trip through HTTP export and import without losing citations or replaying searches
+  ---
+  duration_ms: 249.4241
+  type: 'test'
+  ...
+# Subtest: portable migration preserves native search evidence across independent hosts and permits continuation
+ok 12 - portable migration preserves native search evidence across independent hosts and permits continuation
+  ---
+  duration_ms: 172.6794
+  type: 'test'
+  ...
+# (node:40576) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native search is an explicit Responses capability and is exposed in public configuration
+ok 13 - native search is an explicit Responses capability and is exposed in public configuration
+  ---
+  duration_ms: 13.1842
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when not authorized
+ok 14 - Responses omits hosted search when not authorized
+  ---
+  duration_ms: 41.6999
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when capability off
+ok 15 - Responses omits hosted search when capability off
+  ---
+  duration_ms: 8.073
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when tool choice none
+ok 16 - Responses omits hosted search when tool choice none
+  ---
+  duration_ms: 5.506
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when route allowlist
+ok 17 - Responses omits hosted search when route allowlist
+  ---
+  duration_ms: 5.928
+  type: 'test'
+  ...
+# Subtest: Responses coexists with function tools and sends stable hosted web_search with auto choice
+ok 18 - Responses coexists with function tools and sends stable hosted web_search with auto choice
+  ---
+  duration_ms: 5.9405
+  type: 'test'
+  ...
+# Subtest: required choice accepts an authorized hosted tool without function tools
+ok 19 - required choice accepts an authorized hosted tool without function tools
+  ---
+  duration_ms: 6.72
+  type: 'test'
+  ...
+# Subtest: provider does not forward raw hosted tools injected after config validation
+ok 20 - provider does not forward raw hosted tools injected after config validation
+  ---
+  duration_ms: 5.8175
+  type: 'test'
+  ...
+# Subtest: Responses json retains search calls, citations and ordered replay without duplicates
+ok 21 - Responses json retains search calls, citations and ordered replay without duplicates
+  ---
+  duration_ms: 6.9389
+  type: 'test'
+  ...
+# Subtest: Responses terminal retains search calls, citations and ordered replay without duplicates
+ok 22 - Responses terminal retains search calls, citations and ordered replay without duplicates
+  ---
+  duration_ms: 10.4317
+  type: 'test'
+  ...
+# Subtest: Responses incremental retains search calls, citations and ordered replay without duplicates
+ok 23 - Responses incremental retains search calls, citations and ordered replay without duplicates
+  ---
+  duration_ms: 6.2945
+  type: 'test'
+  ...
+# Subtest: citation offsets cover multiple output parts and malformed or unsafe references are excluded
+ok 24 - citation offsets cover multiple output parts and malformed or unsafe references are excluded
+  ---
+  duration_ms: 5.9981
+  type: 'test'
+  ...
+# Subtest: mixed hosted search and function calls replay every provider item exactly once
+ok 25 - mixed hosted search and function calls replay every provider item exactly once
+  ---
+  duration_ms: 5.4796
+  type: 'test'
+  ...
+# Subtest: search activity prevents retry and fallback after an interrupted stream
+ok 26 - search activity prevents retry and fallback after an interrupted stream
+  ---
+  duration_ms: 5.8233
+  type: 'test'
+  ...
+# Subtest: an upstream cannot silently return an unauthorized hosted search
+ok 27 - an upstream cannot silently return an unauthorized hosted search
+  ---
+  duration_ms: 5.1924
+  type: 'test'
+  ...
+# Subtest: mixed streamed and terminal text is completed before citation offsets are exposed
+ok 28 - mixed streamed and terminal text is completed before citation offsets are exposed
+  ---
+  duration_ms: 20.2878
+  type: 'test'
+  ...
+# Subtest: citation offsets align with textOf when reasoning splits assistant text parts
+ok 29 - citation offsets align with textOf when reasoning splits assistant text parts
+  ---
+  duration_ms: 3.9198
+  type: 'test'
+  ...
+# Subtest: interrupted search responses never replay function calls missing semantic tool results
+ok 30 - interrupted search responses never replay function calls missing semantic tool results
+  ---
+  duration_ms: 3.961
+  type: 'test'
+  ...
+# Subtest: terminal function arguments update a declared call before execution and replay
+ok 31 - terminal function arguments update a declared call before execution and replay
+  ---
+  duration_ms: 3.4844
+  type: 'test'
+  ...
+# Subtest: native search cost holds the configured total bound for reconciliation and enforces budgets before HTTP
+ok 32 - native search cost holds the configured total bound for reconciliation and enforces budgets before HTTP
+  ---
+  duration_ms: 233.5646
+  type: 'test'
+  ...
+# Subtest: Responses json retains ordered reasoning and compaction once for its route
+ok 33 - Responses json retains ordered reasoning and compaction once for its route
+  ---
+  duration_ms: 64.9774
+  type: 'test'
+  ...
+# Subtest: Responses terminal-stream retains ordered reasoning and compaction once for its route
+ok 34 - Responses terminal-stream retains ordered reasoning and compaction once for its route
+  ---
+  duration_ms: 9.8845
+  type: 'test'
+  ...
+# Subtest: Responses repeated-stream retains ordered reasoning and compaction once for its route
+ok 35 - Responses repeated-stream retains ordered reasoning and compaction once for its route
+  ---
+  duration_ms: 6.4025
+  type: 'test'
+  ...
+# Subtest: Responses interrupted streams retain completed reasoning in the failure's partial message
+ok 36 - Responses interrupted streams retain completed reasoning in the failure's partial message
+  ---
+  duration_ms: 9.065
+  type: 'test'
+  ...
+# Subtest: Responses JSON completed retains its terminal status
+ok 37 - Responses JSON completed retains its terminal status
+  ---
+  duration_ms: 7.4227
+  type: 'test'
+  ...
+# Subtest: Responses JSON incomplete retains its terminal status
+ok 38 - Responses JSON incomplete retains its terminal status
+  ---
+  duration_ms: 5.491
+  type: 'test'
+  ...
+# Subtest: Responses JSON failed retains its terminal status
+ok 39 - Responses JSON failed retains its terminal status
+  ---
+  duration_ms: 5.6282
+  type: 'test'
+  ...
+# Subtest: Responses merges sparse streamed calls with terminal-only calls without losing IDs
+ok 40 - Responses merges sparse streamed calls with terminal-only calls without losing IDs
+  ---
+  duration_ms: 6.3222
+  type: 'test'
+  ...
+# Subtest: Anthropic thinking blocks retain separate text and signatures in content and replay
+ok 41 - Anthropic thinking blocks retain separate text and signatures in content and replay
+  ---
+  duration_ms: 11.1923
+  type: 'test'
+  ...
+# Subtest: Anthropic JSON retains the signature supplied with an initial thinking block
+ok 42 - Anthropic JSON retains the signature supplied with an initial thinking block
+  ---
+  duration_ms: 6.7635
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6513.743

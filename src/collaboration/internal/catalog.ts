@@ -139,9 +139,9 @@ export class TeamCatalog {
     );
     invariant(
       !this.kernel.store
-        .list<TeamTask>("team-tasks")
+        .list<TeamTask>("team-tasks", { teamId })
         .map((task) => this.tasks.refresh(task))
-        .some((task) => task.teamId === teamId && activeTask(task)),
+        .some(activeTask),
       "Wait for active team tasks before editing the team",
       409,
     );

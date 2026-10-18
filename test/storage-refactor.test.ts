@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -6,6 +7,7 @@ import { test, type TestContext } from "node:test";
 import { performance } from "node:perf_hooks";
 import type { MemoryEntry, Project, StoredMessage } from "../src/contracts.js";
 import { parseConfig } from "../src/core/config.js";
+import { registerSecret } from "../src/core/util.js";
 import { Store } from "../src/storage/store.js";
 import { MemoryStore } from "../src/storage/memory.js";
 
@@ -206,6 +208,25 @@ test("memory import and proposals retain atomicity and project scope", (t) => {
   memory.resolve(proposal.id, true);
   assert.throws(() => memory.resolve(proposal.id, true), /already resolved/);
   assert.equal(memory.list("project-a").length, 2);
+});
+
+test("memory proposals deduplicate the persisted redacted content", (t) => {
+  const { memory } = fixture(t),
+    secret = `proposal-secret-${randomUUID()}`;
+  registerSecret(secret);
+  const input = { projectId: "project-a", content: `Proposed fact ${secret}` };
+  const proposal = memory.propose(input);
+  assert.equal(proposal.content, "Proposed fact [REDACTED]");
+  assert.equal(memory.propose(input).id, proposal.id);
+  assert.equal(
+    memory.propose({ ...input, content: proposal.content }).id,
+    proposal.id,
+  );
+  assert.equal(memory.proposals("project-a").length, 1);
+  assert.notEqual(
+    memory.propose({ ...input, projectId: "project-b" }).id,
+    proposal.id,
+  );
 });
 
 test("opening an existing database adds selective memory indexes without changing stored bodies", (t) => {
