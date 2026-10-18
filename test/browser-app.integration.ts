@@ -8,7 +8,7 @@ import {
   BrowserNetwork,
   restrictedBrowserAddress,
   validateBrowserUrl,
-} from "../src/host/browser-network.js";
+} from "../src/host/browser/network.js";
 async function site() {
   const requests: any[] = [];
   const server = http.createServer((req, res) => {

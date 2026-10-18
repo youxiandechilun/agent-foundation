@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: core verifier separates audit JSON from stderr and replaces stale success after registry failure
+ok 1 - core verifier separates audit JSON from stderr and replaces stale success after registry failure
+  ---
+  duration_ms: 717.7334
+  type: 'test'
+  ...
+# Subtest: a zero-exit subprocess with invalid audit JSON still fails and writes unavailable
+ok 2 - a zero-exit subprocess with invalid audit JSON still fails and writes unavailable
+  ---
+  duration_ms: 593.8047
+  type: 'test'
+  ...
+# Subtest: audit findings remain failed with the actual vulnerability count
+ok 3 - audit findings remain failed with the actual vulnerability count
+  ---
+  duration_ms: 517.0582
+  type: 'test'
+  ...
+# Subtest: valid audit JSON with stderr diagnostics can pass without contaminating the report
+ok 4 - valid audit JSON with stderr diagnostics can pass without contaminating the report
+  ---
+  duration_ms: 504.3588
+  type: 'test'
+  ...
+# Subtest: host build failure writes the current failed report and still records remaining checks
+ok 5 - host build failure writes the current failed report and still records remaining checks
+  ---
+  duration_ms: 376.0014
+  type: 'test'
+  ...
+# Subtest: host registry failure remains unavailable with no invented zero vulnerabilities
+ok 6 - host registry failure remains unavailable with no invented zero vulnerabilities
+  ---
+  duration_ms: 385.4632
+  type: 'test'
+  ...
+# Subtest: evidence-only without an existing host report writes a failed current report
+ok 7 - evidence-only without an existing host report writes a failed current report
+  ---
+  duration_ms: 107.0186
+  type: 'test'
+  ...
+# Subtest: missing host acceptance inputs cannot leave the previous successful report intact
+ok 8 - missing host acceptance inputs cannot leave the previous successful report intact
+  ---
+  duration_ms: 388.1602
+  type: 'test'
+  ...
+# Subtest: evidence-only accepts same-version legacy reports with no report or check status
+ok 9 - evidence-only accepts same-version legacy reports with no report or check status
+  ---
+  duration_ms: 429.0752
+  type: 'test'
+  ...
+# Subtest: evidence-only preserves audit process errors and unavailable states despite complete stdout
+ok 10 - evidence-only preserves audit process errors and unavailable states despite complete stdout
+  ---
+  duration_ms: 560.7398
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4767.0233

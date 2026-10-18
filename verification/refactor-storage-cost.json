@@ -1,0 +1,73 @@
+{
+  "measuredAt": "2026-10-17T18:11:21.943Z",
+  "node": "v22.22.0",
+  "method": "Five fresh SQLite files per version, alternating order. Insert 10000 1KB effects and 10000 1KB assistant messages in one transaction; use prepared SQL to isolate index overhead from redaction. Timings include commit but exclude close. Reopen after clean close; upgrade a copy of each populated baseline file. OS filesystem cache is not cleared.",
+  "samples": {
+    "before": {
+      "insertMs": [
+        292.5728,
+        250.02769999999987,
+        263.45759999999973,
+        246.48419999999987,
+        255.61269999999968
+      ],
+      "reopenMs": [
+        2.991999999999962,
+        2.0979999999999563,
+        2.4074999999998,
+        1.8076000000000931,
+        1.8740999999999985
+      ],
+      "databaseBytes": [
+        28008448,
+        28008448,
+        28008448,
+        28008448,
+        28008448
+      ]
+    },
+    "after": {
+      "insertMs": [
+        432.1247000000001,
+        387.5321999999999,
+        374.42830000000004,
+        359.51189999999997,
+        369.89270000000033
+      ],
+      "reopenMs": [
+        1.9196999999999207,
+        2.0143000000000484,
+        2.934400000000096,
+        2.0546999999996842,
+        1.7672999999995227
+      ],
+      "databaseBytes": [
+        29102080,
+        29102080,
+        29102080,
+        29102080,
+        29102080
+      ]
+    }
+  },
+  "upgradeMs": [
+    221.3433,
+    213.05510000000004,
+    207.93059999999969,
+    204.96650000000045,
+    199.70280000000002
+  ],
+  "medians": {
+    "before": {
+      "insertMs": 255.61269999999968,
+      "reopenMs": 2.0979999999999563,
+      "databaseBytes": 28008448
+    },
+    "after": {
+      "insertMs": 374.42830000000004,
+      "reopenMs": 2.0143000000000484,
+      "databaseBytes": 29102080
+    },
+    "upgradeMs": 207.93059999999969
+  }
+}

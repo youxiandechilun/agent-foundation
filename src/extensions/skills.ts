@@ -1,14 +1,13 @@
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
-import { Store } from "../store.js";
+import { Store } from "../storage/store.js";
 import type { Skill } from "../contracts.js";
-import type { Capability } from "../runtime/types.js";
-import { hash, now, invariant } from "../util.js";
-import { within } from "../util.js";
-import { validateSourceFiles } from "./source-bundle.js";
+import { hash, now, invariant } from "../core/util.js";
+import { within } from "../core/util.js";
+import { validateSourceFiles } from "./plugins/source-bundle.js";
 import { realpath, readdir, lstat, readFile } from "node:fs/promises";
 import path from "node:path";
-import type { Config } from "../config.js";
+import type { Config } from "../core/config.js";
 
 export class SkillManager {
   constructor(

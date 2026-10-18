@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { Kernel } from "../src/kernel.js";
+import { Kernel } from "../src/core/kernel.js";
 import { setup } from "./support/wire-server.js";
 import { collect } from "./support/wire-server.js";
 import { nativeProcess } from "../src/execution/process.js";

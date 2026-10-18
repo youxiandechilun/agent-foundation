@@ -1,6 +1,6 @@
 # 通用底座执行与预算 · 0.5.0
 
-当前版本 0.11.0 增加可选 Windows AppContainer 后端与命令/插件生命周期排空；原生 ConPTY 仍可用，隔离 PTY 明确拒绝。本文保留 0.5.0 的执行/预算说明；新增配置、实测和 Node 子管道限制以 [CORE-FOUNDATION.md](CORE-FOUNDATION.md) 为准。当前目标是单用户可嵌入内核，多租户和业务登录不属于待办。
+0.11.0 增加可选 Windows AppContainer 后端与命令/插件生命周期排空；原生 ConPTY 仍可用，隔离 PTY 明确拒绝。本文保留 0.5.0 的执行/预算说明；新增配置、实测和 Node 子管道限制以 [CORE-FOUNDATION.md](CORE-FOUNDATION.md) 为准。当前版本范围见 [RELEASE.md](RELEASE.md)；目标是单用户可嵌入内核，多租户和业务登录不属于待办。
 
 本轮范围是持久进程与 PTY、并行工具调度、成本预算、可选的执行隔离。UI、办公与电脑控制产品插件、ESP32 均暂缓。实现、测试通过和外部联调是三个不同状态，最终结果见 verification/report.json 与 CORE-ACCEPTANCE.json。
 

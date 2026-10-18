@@ -1,8 +1,10 @@
-# Agent Foundation API v1 · runtime 0.11.0
+# Agent Foundation API v1 · runtime 0.12.0
 
 统一供网页、Electron、CLI 和其他可信接入端使用。默认内核只有 HTTP JSON / SSE；办公、浏览器、桌面和设备端点属于显式加载的可选宿主集成。本轮不做 UI 或 ESP32。
 
-类型以 src/contracts.ts、src/runtime/types.ts、src/config.ts 为准；浏览器可直接使用独立 src/client.ts。
+类型以 src/contracts.ts、src/runtime/types.ts、src/core/config.ts 为准；浏览器可直接使用独立 src/client.ts。
+
+当前版本、实现范围和验证证据规则见 [RELEASE.md](RELEASE.md)。团队协作与服务器的完整契约分别见 [COLLABORATION.md](COLLABORATION.md)、[SERVERS.md](SERVERS.md)。
 
 ## 连接与权限边界
 
@@ -16,22 +18,26 @@
 
 错误为 {error:{code,message}}。常见状态：400 参数、401 鉴权、403 策略/归属、404 不存在、409 状态/幂等冲突、413 体积、429 并发预算、502/503 外部服务或配置问题。FoundationHttpError 保留 status/code/retryable，写请求不自动重试。
 
+管理路由按文档中的方法和路径匹配；资源 ID 后多出的未知操作段不会作为实体修改请求处理。例如 `DELETE /v1/modes/{id}/unknown` 返回 404，且不删除该模式。静态操作路径（如会话导出）优先于实体 ID 匹配。
+
 ## 项目、模式和会话
 
-| 方法       | 路径                                | 请求或结果                                                            |
-| ---------- | ----------------------------------- | --------------------------------------------------------------------- |
-| GET        | /health                             | {ok,version,protocol}                                                 |
-| GET        | /v1/config                          | 脱敏配置、默认路由、权限、限制                                        |
-| GET        | /v1/capabilities                    | 实际协议、模式、工具包、已加载集成、媒体适配器、扩展能力              |
-| GET / POST | /v1/projects                        | 列表 / {name,directory?}                                              |
-| GET / POST | /v1/modes                           | 列表 / 自定义模式定义                                                 |
-| DELETE     | /v1/modes/{id}                      | 删除未被活跃会话引用的自定义模式；内置模式不可替换                    |
-| GET / POST | /v1/sessions                        | 列表，可按 projectId 过滤 / {projectId,mode?,name?,routeId?,agentId?} |
-| GET        | /v1/sessions/{id}?after=0&limit=100 | {session,messages,cursor,hasMore,runs}；limit 最大 1000               |
-| PATCH      | /v1/sessions/{id}                   | 空闲时 {mode?,routeId?,name?,autonomy?,archived?,agentId?}            |
-| POST       | /v1/sessions/{id}/fork              | {throughMessageId?}；复制独立会话，不重新执行历史工具                 |
-| GET        | /v1/sessions/{id}/export            | {format:"foundation-session-v1",session,messages}                     |
-| POST       | /v1/sessions/import                 | {projectId,snapshot,routeId?}；导入为新 assist 会话                   |
+| 方法       | 路径                                | 请求或结果                                                                               |
+| ---------- | ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| GET        | /health                             | {ok,version,protocol}                                                                    |
+| GET        | /v1/config                          | 脱敏配置、默认路由、权限、限制                                                           |
+| GET        | /v1/capabilities                    | 实际协议、模式、工具包、已加载集成、媒体适配器、扩展能力                                 |
+| GET / POST | /v1/projects                        | 列表 / {name,directory?}                                                                 |
+| GET / POST | /v1/modes                           | 列表 / 自定义模式定义                                                                    |
+| DELETE     | /v1/modes/{id}                      | 删除未被活跃会话引用的自定义模式；内置模式不可替换                                       |
+| GET / POST | /v1/sessions                        | 列表，可按 projectId 过滤 / {projectId,mode?,name?,routeId?,agentId?}                    |
+| GET        | /v1/sessions/{id}?after=0&limit=100 | {session,messages,cursor,hasMore,runs}；limit 最大 1000                                  |
+| PATCH      | /v1/sessions/{id}                   | 空闲时 {mode?,routeId?,name?,autonomy?,archived?,agentId?}                               |
+| POST       | /v1/sessions/{id}/fork              | {throughMessageId?}；复制独立会话，不重新执行历史工具                                    |
+| POST       | /v1/sessions/{id}/rewind            | {beforeMessageId 或 throughMessageId, files?, conversation?, force?}；恢复文件、分叉对话 |
+| GET        | /v1/sessions/{id}/checkpoints       | 文件检查点列表                                                                           |
+| GET        | /v1/sessions/{id}/export            | {format:"foundation-session-v1",session,messages}                                        |
+| POST       | /v1/sessions/import                 | {projectId,snapshot,routeId?}；导入为新 assist 会话                                      |
 
 directory 必须存在并在 workspaceRoots 内。默认模式 chat/code/office；也接受已注册自定义 ID。office 是附件/文件工作策略，专用办公能力由插件提供。
 
@@ -54,18 +60,18 @@ directory 必须存在并在 workspaceRoots 内。默认模式 chat/code/office�
 
 ## 输入、运行与持续工作
 
-| 方法 | 路径                                     | 请求或结果                                                                         |
-| ---- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
-| POST | /v1/sessions/{id}/inputs                 | {text?,assetIds?,skillIds?,delivery?,clientMessageId?}；202 {runId,inputId,events} |
-| GET  | /v1/runs/{id}                            | 状态、错误、时间                                                                   |
-| POST | /v1/runs/{id}/cancel                     | 请求取消；最终状态以结算为准                                                       |
-| POST | /v1/runs/{id}/resume                     | 显式继续 failed/cancelled/interrupted 运行；创建新 run                             |
-| GET  | /v1/runs/{id}/effects                    | {effects}：工具意图/参数哈希/结果/unknown                                          |
-| GET  | /v1/runs/{id}/inbox                      | {inputs}：pending/applied                                                          |
-| GET  | /v1/runs/{id}/plan                       | 持久计划                                                                           |
-| GET  | /v1/runs/{id}/context                    | 输入预算、输出保留、计数器/精度、压缩状态；未准备则 not-prepared                   |
-| GET  | /v1/runs/{id}/events?after=0             | SSE；也接受 Last-Event-ID                                                          |
-| GET  | /v1/runs/{id}/events?format=json&after=0 | {events,cursor,status} 轮询                                                        |
+| 方法 | 路径                                     | 请求或结果                                                                                                                                 |
+| ---- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| POST | /v1/sessions/{id}/inputs                 | {text?,assetIds?,skillIds?,delivery?,clientMessageId?,outputSchema?}；202 {runId,inputId,events}；结构化结果见 GET /v1/runs/{id} 的 output |
+| GET  | /v1/runs/{id}                            | 状态、错误、时间                                                                                                                           |
+| POST | /v1/runs/{id}/cancel                     | 请求取消；最终状态以结算为准                                                                                                               |
+| POST | /v1/runs/{id}/resume                     | 显式继续 failed/cancelled/interrupted 运行；创建新 run                                                                                     |
+| GET  | /v1/runs/{id}/effects                    | {effects}：工具意图/参数哈希/结果/unknown                                                                                                  |
+| GET  | /v1/runs/{id}/inbox                      | {inputs}：pending/applied                                                                                                                  |
+| GET  | /v1/runs/{id}/plan                       | 持久计划                                                                                                                                   |
+| GET  | /v1/runs/{id}/context                    | 输入预算、输出保留、计数器/精度、压缩状态；未准备则 not-prepared                                                                           |
+| GET  | /v1/runs/{id}/events?after=0             | SSE；也接受 Last-Event-ID                                                                                                                  |
+| GET  | /v1/runs/{id}/events?format=json&after=0 | {events,cursor,status} 轮询                                                                                                                |
 
 delivery=start 要求空闲；steer 在工具之间的安全点插入，跳过尚未开始的旧批次工具并记录对应结果，enqueue 在模型不再调用工具时追加，两者沿用当前 run。一个会话同时只有一个活跃运行。clientMessageId 在会话内幂等，同键不同内容返回 409。
 
@@ -289,3 +295,6 @@ OAuth 声明增加 clientMetadata，包含 clientId（HTTPS URL）、clientName�
 ## 0.10.0 可选应用接口
 
 独立 browser/computer/office 应用包、HTTP/fetch 方法、模型工具、项目与会话归属、取消和紧急停止接口见 [APPLICATIONS.md](APPLICATIONS.md)。默认最小内核不安装这些路由。
+# 多 Agent 与服务器扩展
+
+团队、会话开关、职责检查和用户决定接口见 [COLLABORATION.md](COLLABORATION.md)。服务器档案、凭据和 SSH/SFTP 工具见 [SERVERS.md](SERVERS.md)。这些扩展继续使用现有 Bearer 鉴权和事件协议；服务器插件仅在宿主显式启用后提供接口。

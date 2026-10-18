@@ -1,11 +1,11 @@
 import type { KernelIntegration, ToolContext } from "../runtime/registry.js";
 import type { Capability, ToolDefinition } from "../runtime/types.js";
-import type { Kernel } from "../kernel.js";
+import type { Kernel } from "../core/kernel.js";
 import type { DesktopKernel } from "./desktop.js";
 import { desktopTools } from "./desktop-tools.js";
 import { desktopManagement } from "./desktop-api.js";
-import { invariant } from "../util.js";
-import { officeManagement } from "./office-api.js";
+import { invariant } from "../core/util.js";
+import { officeManagement } from "./office/api.js";
 import { hostApplicationAccess } from "./access.js";
 import { requestSignal } from "./request-signal.js";
 export { hostApplicationAccess } from "./access.js";
@@ -50,82 +50,69 @@ export function applicationIntegration(
     async install(kernel) {
       invariant(features.length > 0, "No application plugins selected");
       const [browser, computer, office, bridge] = await Promise.all([
-        enabled.browser ? import("../browser.js") : undefined,
-        enabled.computer ? import("../computer.js") : undefined,
-        enabled.office ? import("../office.js") : undefined,
-        enabled.browser ? import("./browser-bridge.js") : undefined,
+        enabled.browser ? import("./browser/manager.js") : undefined,
+        enabled.computer ? import("./computer/manager.js") : undefined,
+        enabled.office ? import("./office/manager.js") : undefined,
+        enabled.browser ? import("./browser/bridge.js") : undefined,
       ]);
-      services = {
-        ...(browser
-          ? {
-              browser: new browser.BrowserManager(
-                kernel.config,
-                kernel.store,
-                kernel.assets,
-                (projectId, action) =>
-                  hostApplicationAccess(
-                    kernel,
-                    projectId,
-                    [
-                      "browser",
-                      "network",
-                      ...(action?.action === "upload"
-                        ? ["files.read" as const]
-                        : []),
-                      ...(["screenshot", "download"].includes(
-                        action?.action || "",
-                      )
-                        ? ["files.write" as const]
-                        : []),
-                    ],
-                    action ? "browser_action" : "browser_open",
-                  ),
-              ),
-            }
-          : {}),
-        ...(computer
-          ? {
-              computer: new computer.ComputerController(
-                kernel.config,
-                kernel.assets,
-                (projectId, action) =>
-                  hostApplicationAccess(
-                    kernel,
-                    projectId,
-                    [
-                      "computer",
-                      ...(action.action === "screenshot"
-                        ? ["files.write" as const]
-                        : []),
-                    ],
-                    "computer_action",
-                  ),
-              ),
-            }
-          : {}),
-        ...(office
-          ? {
-              office: new office.Office(
-                kernel.assets,
-                kernel.config,
-                (projectId, write, toolName) =>
-                  hostApplicationAccess(
-                    kernel,
-                    projectId,
-                    [write ? "files.write" : "files.read"],
-                    toolName || "office_action",
-                  ),
-              ),
-            }
-          : {}),
-      };
+      const created: Partial<DesktopKernel> = {};
+      if (browser)
+        created.browser = new browser.BrowserManager(
+          kernel.config,
+          kernel.store,
+          kernel.assets,
+          (projectId, action) =>
+            hostApplicationAccess(
+              kernel,
+              projectId,
+              [
+                "browser",
+                "network",
+                ...(action?.action === "upload" ? ["files.read" as const] : []),
+                ...(["screenshot", "download"].includes(action?.action || "")
+                  ? ["files.write" as const]
+                  : []),
+              ],
+              action ? "browser_action" : "browser_open",
+            ),
+        );
+      if (computer)
+        created.computer = new computer.ComputerController(
+          kernel.config,
+          kernel.assets,
+          (projectId, action) =>
+            hostApplicationAccess(
+              kernel,
+              projectId,
+              [
+                "computer",
+                ...(action.action === "screenshot"
+                  ? ["files.write" as const]
+                  : []),
+              ],
+              "computer_action",
+            ),
+        );
+      if (office)
+        created.office = new office.Office(
+          kernel.assets,
+          kernel.config,
+          (projectId, write, toolName) =>
+            hostApplicationAccess(
+              kernel,
+              projectId,
+              [write ? "files.write" : "files.read"],
+              toolName || "office_action",
+            ),
+        );
+      services = created;
       if (bridge) {
         const browserBridge = new bridge.BrowserBridge(kernel);
         Object.assign(services, { browserBridge, nodes: browserBridge.nodes });
       }
       Object.assign(kernel, services);
       if (office) {
-        const { officeExtractor } = await import("./office-extractor.js");
+        const { officeExtractor } = await import("./office/extractor.js");
         kernel.assets.extractors.register(
           officeExtractor(kernel.assets, services.office),
         );
@@ -158,7 +145,7 @@ export function applicationIntegration(
       const request = requestSignal(req);
       try {
         const key = url.pathname.split("/")[2];
-        if (key === "applications" && req.method === "GET")
+        if (url.pathname === "/v1/applications" && req.method === "GET")
           return { data: { enabled: features, sourceOwned: true, ui: false } };
         if (!features.includes(key)) return;
         const p = url.pathname.split("/").filter(Boolean);
@@ -173,8 +160,14 @@ export function applicationIntegration(
                 networkEnforcement: "reviewed-actions-only",
               },
             };
+          const isPair =
+            req.method === "POST" && p.length === 4 && p[3] === "pair";
+          const isRevoke = req.method === "DELETE" && p.length === 4;
+          const isAction =
+            req.method === "POST" && p.length === 5 && p[4] === "action";
+          if (!isPair && !isRevoke && !isAction) return;
           const input = zBridgeEnvelope(await json());
-          if (req.method === "DELETE" && p[3]) {
+          if (isRevoke) {
             invariant(
               bridge.nodes.list(input.projectId).some((n) => n.id === p[3]),
               "Browser bridge belongs to another project",
@@ -189,7 +182,7 @@ export function applicationIntegration(
             ["node", "browser", "network"],
             "browser_action",
           );
-          if (req.method === "POST" && p[3] === "pair")
+          if (isPair)
             return {
               data: bridge.pair(
                 input.projectId,
@@ -197,7 +190,7 @@ export function applicationIntegration(
               ),
               status: 201,
             };
-          if (req.method === "POST" && p[3] && p[4] === "action") {
+          if (isAction) {
             const { projectId, ...args } = input;
             const result: any = await bridge.action(
               projectId,
@@ -222,7 +215,7 @@ export function applicationIntegration(
         }
         if (key === "office")
           return await officeManagement(
-            kernel as Kernel & { office: import("../office.js").Office },
+            kernel as Kernel & { office: import("./office/manager.js").Office },
             req,
             url,
             json,

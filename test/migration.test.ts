@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { setup, collect } from "./support/wire-server.js";
-import { migrationDigest } from "../src/migration.js";
-import { id } from "../src/util.js";
-import { Kernel } from "../src/kernel.js";
+import { migrationDigest } from "../src/sessions/migration.js";
+import { id } from "../src/core/util.js";
+import { Kernel } from "../src/core/kernel.js";
 
 test("portable migration moves actual binary assets and balanced tool evidence between independent hosts without replay", async () => {
   const source = await setup(),
@@ -137,6 +137,34 @@ test("portable migration moves actual binary assets and balanced tool evidence b
   } finally {
     await source.close();
     await target.close();
+  }
+});
+
+test("migration idempotency binds the full key and project without confusing other receipts", async () => {
+  const x = await setup();
+  try {
+    const source = await x.session();
+    const bundle = await x.kernel.exportMigration(source.id);
+    const keys = ["ordinary", "' OR 1=1 --"];
+    const receipts = keys.map((key) =>
+      x.kernel.importMigration(x.project.id, bundle, key),
+    );
+    assert.notEqual(receipts[0].sessionId, receipts[1].sessionId);
+    x.kernel.store.put("projects", { ...x.project, id: "foreign-project" });
+    const foreign = x.kernel.importMigration(
+      "foreign-project",
+      bundle,
+      keys[0],
+    );
+    assert.notEqual(foreign.sessionId, receipts[0].sessionId);
+    for (const [index, key] of keys.entries()) {
+      const repeated = x.kernel.importMigration(x.project.id, bundle, key);
+      assert.equal(repeated.reused, true);
+      assert.equal(repeated.sessionId, receipts[index].sessionId);
+    }
+    assert.equal(x.kernel.store.count("session-migrations"), 3);
+  } finally {
+    await x.close();
   }
 });
 

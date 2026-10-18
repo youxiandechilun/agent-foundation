@@ -1,0 +1,15 @@
+(node:692) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "before": {
+    "insertMs": 255.61269999999968,
+    "reopenMs": 2.0979999999999563,
+    "databaseBytes": 28008448
+  },
+  "after": {
+    "insertMs": 374.42830000000004,
+    "reopenMs": 2.0143000000000484,
+    "databaseBytes": 29102080
+  },
+  "upgradeMs": 207.93059999999969
+}

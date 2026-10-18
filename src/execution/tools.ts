@@ -1,4 +1,4 @@
-import { Type } from "typebox";
+import { Type, type Static, type TSchema } from "typebox";
 import type { ToolContext } from "../runtime/registry.js";
 import type { ToolDefinition } from "../runtime/types.js";
 import { executionCapabilities } from "./process.js";
@@ -9,13 +9,16 @@ export function processTools({
   runId,
 }: ToolContext): ToolDefinition[] {
   const execCaps = executionCapabilities(k.config);
-  const make = (
+  const make = <S extends TSchema>(
     name: string,
     description: string,
-    parameters: Record<string, any>,
+    parameters: S,
     read: boolean,
-    execute: (args: any, signal?: AbortSignal) => Promise<any>,
-  ): ToolDefinition => ({
+    execute: (
+      args: Static<S>,
+      signal?: AbortSignal,
+    ) => unknown | Promise<unknown>,
+  ): ToolDefinition<Static<S>> => ({
     name: `exec_${name}`,
     description,
     parameters,
@@ -25,8 +28,11 @@ export function processTools({
     scheduling: read
       ? {
           parallelSafe: true,
-          resources: (p) => [
-            { key: `process:${p.processId || session.id}`, access: "read" },
+          resources: (p: unknown) => [
+            {
+              key: `process:${p && typeof p === "object" && "processId" in p ? p.processId || session.id : session.id}`,
+              access: "read",
+            },
           ],
         }
       : undefined,

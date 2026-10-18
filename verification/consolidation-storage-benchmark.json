@@ -1,0 +1,28 @@
+{
+  "node": "v22.22.0",
+  "sqlite": "3.50.4",
+  "rounds": 5,
+  "statistic": "median milliseconds; alternating baseline/current order",
+  "results": {
+    "unchangedMemoryPuts3000": {
+      "beforeMs": 521.88,
+      "afterMs": 409.47,
+      "speedup": 1.27
+    },
+    "memoryHistoryReads3000": {
+      "beforeMs": 91.32,
+      "afterMs": 47.33,
+      "speedup": 1.93
+    },
+    "lexicalSearches1500": {
+      "beforeMs": 103.95,
+      "afterMs": 71.74,
+      "speedup": 1.45
+    },
+    "migrationRetries90With3000Receipts": {
+      "beforeMs": 1309.32,
+      "afterMs": 306.05,
+      "speedup": 4.28
+    }
+  }
+}

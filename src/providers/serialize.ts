@@ -1,14 +1,93 @@
-import type { Route } from "../config.js";
-import { textOf, type Message, type ToolDefinition } from "../runtime/types.js";
+import type { Route } from "../core/config.js";
+import {
+  textOf,
+  type ContentPart,
+  type ImagePart,
+  type Message,
+  type TextPart,
+  type ToolDefinition,
+} from "../runtime/types.js";
 
-const parts = (message: Message): any[] =>
-  typeof message.content === "string"
-    ? [{ type: "text", text: message.content }]
-    : message.content;
-const imageUrl = (p: any) => `data:${p.mimeType};base64,${p.data}`;
+const parts = <T extends ContentPart>(
+  content: string | T[],
+): (TextPart | T)[] =>
+  typeof content === "string" ? [{ type: "text", text: content }] : content;
+const imageUrl = (p: ImagePart) => `data:${p.mimeType};base64,${p.data}`;
+function openaiPart(
+  p: TextPart | ImagePart,
+  protocol: "completions" | "responses",
+) {
+  const responses = protocol === "responses";
+  if (p.type === "image")
+    return responses
+      ? { type: "input_image", image_url: imageUrl(p) }
+      : { type: "image_url", image_url: { url: imageUrl(p) } };
+  return { type: responses ? "input_text" : "text", text: p.text };
+}
+function anthropicPart(p: ContentPart) {
+  switch (p.type) {
+    case "image":
+      return {
+        type: "image",
+        source: { type: "base64", media_type: p.mimeType, data: p.data },
+      };
+    case "toolCall":
+      return {
+        type: "tool_use",
+        id: p.id,
+        name: p.name,
+        input: p.arguments,
+      };
+    case "thinking":
+      return {
+        type: "thinking",
+        thinking: p.thinking,
+        signature: p.signature,
+      };
+    case "text":
+      return { type: "text", text: p.text };
+  }
+}
+function completionMessage(message: Message, route: Route) {
+  if (message.role === "system")
+    return { role: "system", content: message.content };
+  if (message.role === "user")
+    return {
+      role: "user",
+      content: parts(message.content).map((p) => openaiPart(p, "completions")),
+    };
+  if (message.role === "toolResult")
+    return {
+      role: "tool",
+      tool_call_id: message.toolCallId,
+      content: textOf(message),
+    };
+  const calls = message.content.filter((p) => p.type === "toolCall");
+  return {
+    role: "assistant",
+    content: textOf(message) || null,
+    ...(calls.length
+      ? {
+          tool_calls: calls.map((c) => ({
+            id: c.id,
+            type: "function",
+            function: { name: c.name, arguments: JSON.stringify(c.arguments) },
+          })),
+        }
+      : {}),
+    ...(route.compat.requiresReasoningContentOnAssistantMessages
+      ? {
+          reasoning_content: message.content
+            .filter((p) => p.type === "thinking")
+            .map((p) => p.thinking)
+            .join(""),
+        }
+      : {}),
+  };
+}
 export function completionsMessages(messages: Message[], route: Route) {
-  const result: any[] = [];
-  let visual: any[] = [];
+  const result: ReturnType<typeof completionMessage>[] = [];
+  let visual: ReturnType<typeof openaiPart>[] = [];
   const flush = () => {
     if (visual.length) {
       result.push({
@@ -26,72 +105,33 @@ export function completionsMessages(messages: Message[], route: Route) {
   };
   for (const m of messages) {
     if (m.role !== "toolResult") flush();
-    if (m.role === "system")
-      result.push({ role: "system", content: m.content });
-    else if (m.role === "user")
-      result.push({
-        role: "user",
-        content: parts(m).map((p) =>
-          p.type === "image"
-            ? { type: "image_url", image_url: { url: imageUrl(p) } }
-            : { type: "text", text: p.text },
-        ),
-      });
-    else if (m.role === "toolResult") {
-      result.push({
-        role: "tool",
-        tool_call_id: m.toolCallId,
-        content: textOf(m),
-      });
+    result.push(completionMessage(m, route));
+    if (m.role === "toolResult")
       visual.push(
         ...m.content
           .filter((p) => p.type === "image")
-          .map((p) => ({ type: "image_url", image_url: { url: imageUrl(p) } })),
+          .map((p) => openaiPart(p, "completions")),
       );
-    } else {
-      const calls = m.content.filter((p) => p.type === "toolCall");
-      const value: any = { role: "assistant", content: textOf(m) || null };
-      if (calls.length)
-        value.tool_calls = calls.map((c) => ({
-          id: c.id,
-          type: "function",
-          function: { name: c.name, arguments: JSON.stringify(c.arguments) },
-        }));
-      if (route.compat.requiresReasoningContentOnAssistantMessages)
-        value.reasoning_content = m.content
-          .filter((p) => p.type === "thinking")
-          .map((p) => p.thinking)
-          .join("");
-      result.push(value);
-    }
   }
   flush();
   return result;
 }
 export function responsesInput(messages: Message[], routeId: string) {
-  const result: any[] = [];
+  const result: unknown[] = [];
   for (const m of messages) {
     if (m.role === "system")
       result.push({ role: "system", content: m.content });
     else if (m.role === "user")
       result.push({
         role: "user",
-        content: parts(m).map((p) =>
-          p.type === "image"
-            ? { type: "input_image", image_url: imageUrl(p) }
-            : { type: "input_text", text: p.text },
-        ),
+        content: parts(m.content).map((p) => openaiPart(p, "responses")),
       });
     else if (m.role === "toolResult")
       result.push({
         type: "function_call_output",
         call_id: m.toolCallId,
         output: m.content.some((p) => p.type === "image")
-          ? m.content.map((p) =>
-              p.type === "image"
-                ? { type: "input_image", image_url: imageUrl(p) }
-                : { type: "input_text", text: p.text },
-            )
+          ? m.content.map((p) => openaiPart(p, "responses"))
           : textOf(m),
       });
     else {
@@ -115,29 +155,18 @@ export function responsesInput(messages: Message[], routeId: string) {
   return result;
 }
 export function anthropicMessages(messages: Message[], routeId: string) {
-  const output: any[] = [];
+  const output: { role: "assistant" | "user"; content: unknown[] }[] = [];
   for (const m of messages) {
     if (m.role === "system") continue;
     const role = m.role === "assistant" ? "assistant" : "user";
-    let content: any[];
+    let content: unknown[];
     if (m.role === "toolResult")
       content = [
         {
           type: "tool_result",
           tool_use_id: m.toolCallId,
           is_error: m.isError,
-          content: parts(m).map((p) =>
-            p.type === "image"
-              ? {
-                  type: "image",
-                  source: {
-                    type: "base64",
-                    media_type: p.mimeType,
-                    data: p.data,
-                  },
-                }
-              : { type: "text", text: p.text },
-          ),
+          content: m.content.map(anthropicPart),
         },
       ];
     else
@@ -146,44 +175,19 @@ export function anthropicMessages(messages: Message[], routeId: string) {
         m.providerState?.protocol === "anthropic-messages" &&
         m.providerState.routeId === routeId &&
         m.providerState.items.length
-          ? m.providerState.items
-          : parts(m).flatMap<any>((p) => {
-              if (p.type === "toolCall")
-                return [
-                  {
-                    type: "tool_use",
-                    id: p.id,
-                    name: p.name,
-                    input: p.arguments,
-                  },
-                ];
-              if (p.type === "image")
-                return [
-                  {
-                    type: "image",
-                    source: {
-                      type: "base64",
-                      media_type: p.mimeType,
-                      data: p.data,
-                    },
-                  },
-                ];
-              if (p.type === "thinking")
-                return m.role === "assistant" &&
-                  m.providerState?.routeId === routeId &&
-                  p.signature
-                  ? [
-                      {
-                        type: "thinking",
-                        thinking: p.thinking,
-                        signature: p.signature,
-                      },
-                    ]
-                  : [];
-              return [{ type: "text", text: p.text }];
-            });
+          ? m.providerState.items.slice()
+          : parts(m.content)
+              .filter(
+                (p) =>
+                  p.type !== "thinking" ||
+                  (m.role === "assistant" &&
+                    m.providerState?.routeId === routeId &&
+                    p.signature),
+              )
+              .map(anthropicPart);
     if (!content.length) continue;
-    if (output.at(-1)?.role === role) output.at(-1).content.push(...content);
+    const previous = output.at(-1);
+    if (previous?.role === role) previous.content.push(...content);
     else output.push({ role, content });
   }
   return output;

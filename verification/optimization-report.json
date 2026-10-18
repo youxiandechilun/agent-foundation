@@ -1,0 +1,448 @@
+{
+  "version": "0.12.1",
+  "checkedAt": "2026-10-17T17:49:10.668Z",
+  "status": "core-and-sdk-passed-host-validation-incomplete",
+  "environment": {
+    "node": "v22.22.0",
+    "platform": "win32",
+    "workspace": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation"
+  },
+  "comparison": {
+    "basis": "本次开始工作时已有修改的工作区快照，不使用 Git HEAD 作为本轮比较基线。",
+    "baseline": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\optimization-before-20261018",
+    "baselineCoreTests": {
+      "tests": 357,
+      "pass": 356,
+      "fail": 1,
+      "skipped": 0
+    },
+    "baselineLimitation": "一次 mcp-protocol setup 首次 HTTP 请求 fetch failed，并因辅助服务清理缺口挂起；仅终止该子进程后测试继续。底层网络失败未复现，不用包含等待的基线总耗时计算提速。",
+    "existingChangesPreserved": true,
+    "committed": false,
+    "published": false,
+    "dependencyManifestUnchanged": true,
+    "dependencyLockfileSha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f",
+    "lockfileComparisonLimit": "本轮未执行依赖升级或编辑锁文件；开始快照未复制 package-lock.json，因此未进行锁文件与开始快照的字节对比。"
+  },
+  "changes": [
+    "工具 Schema 按内容缓存编译结果；限制 64 条和 4 MiB 输入键内容，各调用方错误状态隔离。",
+    "资源读写计数和队列前驱冲突累计替代重复扫描；保留公平性、并发上限和全局锁，复制资源声明。",
+    "Kernel 集中运行生命周期和授权合并；Engine 分离工具执行、提交后更新历史并回收取消监听。",
+    "默认上下文估计器累计未取整权重，避免反复序列化后缀；自定义计数器保留整包计算。",
+    "统一客户端和供应商 SSE 增量解码；修复跨块边界、单帧限制和取消清理。",
+    "HTTP 自动分配端口规避 Fetch 禁用端口；显式端口保持原样，不重试请求。",
+    "SQLite 复用固定 SQL 语句，记忆查询使用定向 SQL 和部分表达式索引，保留原 JSON 数据格式。",
+    "启用 noUnusedLocals/noUnusedParameters；测试服务失败清理；验收脚本分别记录 stdout/stderr，错误时也更新本次报告。"
+  ],
+  "validation": {
+    "core": {
+      "status": "passed",
+      "tests": {
+        "tests": 411,
+        "pass": 411,
+        "fail": 0,
+        "skipped": 0
+      },
+      "checks": [
+        {
+          "name": "build",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 6891,
+          "stdoutLog": "build.log",
+          "stderrLog": "build.stderr.log"
+        },
+        {
+          "name": "source-independence",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 163,
+          "stdoutLog": "source-independence.log",
+          "stderrLog": "source-independence.stderr.log"
+        },
+        {
+          "name": "core-integration",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 295676,
+          "stdoutLog": "core-integration.log",
+          "stderrLog": "core-integration.stderr.log",
+          "tests": {
+            "passed": 411,
+            "failed": 0
+          }
+        },
+        {
+          "name": "production-dependency-audit",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 1308,
+          "stdoutLog": "production-dependency-audit.log",
+          "stderrLog": "production-dependency-audit.stderr.log",
+          "audit": {
+            "status": "passed",
+            "vulnerabilities": {
+              "info": 0,
+              "low": 0,
+              "moderate": 0,
+              "high": 0,
+              "critical": 0,
+              "total": 0
+            }
+          }
+        },
+        {
+          "name": "compiled-smoke",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 1658,
+          "stdoutLog": "compiled-smoke.log",
+          "stderrLog": "compiled-smoke.stderr.log"
+        },
+        {
+          "name": "acceptance-evidence",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 250,
+          "stdoutLog": "acceptance-evidence.log",
+          "stderrLog": "acceptance-evidence.stderr.log"
+        }
+      ],
+      "report": "verification/report.json"
+    },
+    "host": {
+      "status": "failed",
+      "tests": {
+        "tests": 32,
+        "pass": 31,
+        "fail": 1,
+        "skipped": 0
+      },
+      "checks": [
+        {
+          "name": "application-build",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 7401,
+          "stdoutLog": "application-build.log",
+          "stderrLog": "application-build.stderr.log"
+        },
+        {
+          "name": "application-integration",
+          "status": "failed",
+          "exitCode": 1,
+          "durationMs": 72314,
+          "stdoutLog": "application-integration.log",
+          "stderrLog": "application-integration.stderr.log",
+          "tests": {
+            "passed": 31,
+            "failed": 1
+          }
+        },
+        {
+          "name": "application-dependency-audit",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 1933,
+          "stdoutLog": "application-dependency-audit.log",
+          "stderrLog": "application-dependency-audit.stderr.log",
+          "audit": {
+            "status": "passed",
+            "vulnerabilities": {
+              "info": 0,
+              "low": 0,
+              "moderate": 0,
+              "high": 0,
+              "critical": 0,
+              "total": 0
+            }
+          }
+        },
+        {
+          "name": "application-compiled-smoke",
+          "status": "passed",
+          "exitCode": 0,
+          "durationMs": 3714,
+          "stdoutLog": "application-compiled-smoke.log",
+          "stderrLog": "application-compiled-smoke.stderr.log"
+        }
+      ],
+      "criteria": [],
+      "report": "verification/application-report.json"
+    },
+    "acceptance": {
+      "report": "verification/core-acceptance.json",
+      "coreCriteriaPassed": 323,
+      "optionalCriteriaPassed": 9,
+      "criteriaPassed": 332,
+      "criteriaNotTested": 0
+    },
+    "sdk": {
+      "status": "passed",
+      "consumerStatus": "passed",
+      "tarball": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+      "sha256": "85bf9332ddda2f35ea79d7e3407a64584aeff97cefcb55c40b4169fda3fdde21",
+      "packagedFilesCompared": 294,
+      "packagedFileDifferences": [],
+      "report": "verification/sdk-consumer.json"
+    },
+    "additionalVerificationRegression": {
+      "file": "verification/optimization-verification-runner.log",
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "regressionCounting": "独立验收工具回归包含在最终完整核心测试中，数量不重复累加。生产源码与最终全量测试快照一致。",
+    "interruptedRun": {
+      "status": "failed",
+      "tests": {
+        "passed": 400,
+        "failed": 2
+      },
+      "evidence": "verification/optimization-interrupted-core-tests.log",
+      "explanation": "本轮中间一次运行出现两项 setup fetch failed，SSH 测试的外层 fixture 泄漏使进程不能退出；只终止已核对身份的 servers 测试子进程以收集完整失败报告，之后修复清理并重新验收。"
+    },
+    "httpPortDiagnosis": "本机 Windows 动态 TCP 范围为 1025 起、64510 个端口。强制实际监听 6697 已复现原生 Fetch 的 bad port；自动端口路径规避禁用端口，显式端口语义不变。历史失败日志缺少 cause，因此不宣称每次旧失败都是该原因；未修改操作系统端口范围或全局 Fetch。",
+    "hostPrerequisite": "首次宿主验收有 15 项因缺少项目当前 Playwright 所需的 Chromium 运行时而失败。执行项目 browser:install 安装既定版本的 Chromium/Headless Shell 1248 及辅助运行时后重跑；保留旧浏览器缓存，没有更改依赖版本。",
+    "hostFocusLimitation": {
+      "active": true,
+      "targetedRetest": {
+        "tests": 4,
+        "pass": 3,
+        "fail": 1,
+        "skipped": 0
+      },
+      "nativeImplementationUnchanged": true,
+      "explanation": "宿主全量及定向复测都在显式 focus 阶段报 Windows denied foreground focus。目标窗口在 750ms 检查结束时仍不是前台，后续 SendInput 未执行；现有日志不能区分系统拒绝、激活延迟或焦点被其他窗口取得。保持原断言和保护，不将该项算作通过。"
+    },
+    "types": "生产 core/host strict 构建通过，新增测试文件 strict 与 noUnused 检查通过；共享验收 JS strict checkJs 通过。",
+    "formatting": "本轮生产、测试和脚本的 Prettier 检查通过；源码 git diff --check（排除 verification 原始证据日志）通过。原样保存的 PowerShell 失败输出包含空白行尾，未为格式检查修改原始日志。",
+    "independentReview": "并行模块实现后进行交叉审查，生产范围独立只读审查未发现阻断项；SSE 额外随机分块 500 组 / 4000 事件通过；验收工具独立复核后修复报告兼容边界。",
+    "fixtureStress": "真实 setup/close 300 次及同端口重开 50 次通过；HTTP 故障注入确认创建 POST 只发送一次并释放资源。",
+    "dependencyAudit": {
+      "core": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "host": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "connection": "审计使用本机已有代理，仅对验证进程设置环境变量，未修改全局 npm 配置或写入脚本。"
+    }
+  },
+  "benchmarks": {
+    "method": "同机器、相同输入，一次预热后五次测量取中位数；两脚本顺序执行，SQLite 使用真实文件。",
+    "workloads": [
+      {
+        "name": "schemas",
+        "workload": "200 identical tool schemas and two validations each",
+        "beforeMedianMs": 647.3456000000001,
+        "afterMedianMs": 1.1537000000025728,
+        "ratio": 561.1039264961051
+      },
+      {
+        "name": "streams",
+        "workload": "256 KiB SSE frame in 64-byte chunks",
+        "beforeMedianMs": 233.61969999999928,
+        "afterMedianMs": 5.0297000000027765,
+        "ratio": 46.44803865039074
+      },
+      {
+        "name": "reads",
+        "workload": "30000 project reads",
+        "beforeMedianMs": 331.5151999999998,
+        "afterMedianMs": 147.97309999999925,
+        "ratio": 2.240374770819842
+      },
+      {
+        "name": "memoryWrites",
+        "workload": "30 new memory IDs with 12000 historical revisions",
+        "beforeMedianMs": 1509.5738000000001,
+        "afterMedianMs": 89.20579999999973,
+        "ratio": 16.922372760515625
+      },
+      {
+        "name": "context",
+        "workload": "3000 messages with 1000 ASCII characters each; cached summary, 1M token window",
+        "beforeMedianMs": 421.51840000000084,
+        "afterMedianMs": 17.928899999998976,
+        "ratio": 23.51055558344488
+      },
+      {
+        "name": "scheduler",
+        "workload": {
+          "tools": 500,
+          "resourcesPerTool": 100,
+          "concurrency": 32,
+          "measuredRounds": 5
+        },
+        "beforeMedianMs": 819.1525000000001,
+        "afterMedianMs": 12.321599999999762,
+        "ratio": 66.48101707570575
+      }
+    ],
+    "limitation": "特定微基准不代表完整 Agent、远程模型或真实业务的提速比例；Schema 结果针对重复内容的热缓存。"
+  },
+  "source": {
+    "before": {
+      "files": 131,
+      "bytes": 1123762,
+      "lines": 33342
+    },
+    "after": {
+      "files": 135,
+      "bytes": 1139680,
+      "lines": 33828
+    },
+    "delta": {
+      "files": 4,
+      "bytes": 15918,
+      "lines": 486
+    },
+    "linesIncreasePercent": 1.4576210185351808,
+    "entryLines": {
+      "kernel": {
+        "before": 1491,
+        "after": 1341
+      },
+      "engine": {
+        "before": 767,
+        "after": 607
+      }
+    },
+    "interpretation": "集中职责和消除重复计算已实现；新增缓存边界、输入校验与生命周期代码使总源码增加 486 行，未宣称全项目行数下降。",
+    "publicExports": {
+      "src/index.ts": {
+        "equal": true,
+        "before": 136,
+        "after": 136
+      },
+      "src/client.ts": {
+        "equal": true,
+        "before": 3,
+        "after": 3
+      },
+      "src/host/index.ts": {
+        "equal": true,
+        "before": 5,
+        "after": 5
+      }
+    },
+    "exportCheckLimit": "比较 TypeChecker 导出名称（包含类型），不能单独证明所有泛型签名等价；SDK 消费者检查另外记录。",
+    "compiledTestSnapshot": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Y8EYUv",
+    "transpiledDifferences": []
+  },
+  "limitations": [
+    "真实付费模型质量、外部厂商的全部 MCP/OAuth 互操作和账单核对未验证。",
+    "本轮未运行真实 Docker、Linux/macOS 原生宿主或跨操作系统机器迁移。",
+    "本轮未重建完整源码 ZIP。SDK 已单独打包并在隔离消费者中安装验证。",
+    "宿主原生输入测试受前台激活未成功影响，最终全量为 31/32，定向为 3/4；原生输入的这条行为尚未验证通过。",
+    "旧数据库第一次打开需构建新增索引；未测全部真实业务数据规模下的首次建索引时间。",
+    "取消不会撤销已发生的外部副作用，未知效果仍需显式核对，不能自动重放。",
+    "HTTP 监听回归中的禁用端口场景需要本机 127.0.0.1:6697 空闲，外部占用会使该测试按实际绑定错误失败。"
+  ],
+  "evidence": [
+    {
+      "file": "verification/report.json",
+      "sha256": "eb1a44f62d01abe28800381cddb6ad785ab0ceccaba650a2a28a948921fe18b5"
+    },
+    {
+      "file": "verification/application-report.json",
+      "sha256": "0f9e66b0c1f7cc9baa47ca795ac794603b2b7eda173eb4de9bb24c227ab3ef9d"
+    },
+    {
+      "file": "verification/core-acceptance.json",
+      "sha256": "a03cb72e8241d56652c97982a49d30409d3c1f61f0028c76a467575fe3269dbc"
+    },
+    {
+      "file": "verification/sdk-package.json",
+      "sha256": "49038568abb2946e75332ada3e25bd2ba00113707f3a354aa005a88a6381bd99"
+    },
+    {
+      "file": "verification/sdk-consumer.json",
+      "sha256": "f2efab5cd0b9e2d9bdf255d10119acc92faf6407b83c64eb01cb3752bc884814"
+    },
+    {
+      "file": "verification/source-manifest.json",
+      "sha256": "f3054683d375dfd5e171213062de88537fecf180209f242a5e9c8e72a3e81e5f"
+    },
+    {
+      "file": "verification/optimization-baseline-tests.log",
+      "sha256": "bf3ea2f8301085027e176e6bafd19f169ed85b94fecd1532972c23938cfdd3e3"
+    },
+    {
+      "file": "verification/optimization-source-metrics.json",
+      "sha256": "28bfb6a83b2f6bc9a086515262c78f64f2eb081426ac0b4df240b37feaced062"
+    },
+    {
+      "file": "verification/optimization-runtime-benchmark.json",
+      "sha256": "d191e6ad84067e0b596fb841caf04b31b6c4e90dd755a72137d5dce89d700a1f"
+    },
+    {
+      "file": "verification/optimization-scheduler-benchmark.json",
+      "sha256": "f125e036b5eaa048f047dce4433d5e844fa7724c9249f4d2333c2c6039989797"
+    },
+    {
+      "file": "verification/core-integration.log",
+      "sha256": "948477a6adca4239855433d08eb46383ef1b2906cdd0579b3ff85336756354bf"
+    },
+    {
+      "file": "verification/application-integration.log",
+      "sha256": "32f5b36ce84703d24b4a53556ad4f385226d3b0b25435d8071b57b9269d6df9e"
+    },
+    {
+      "file": "verification/production-dependency-audit.log",
+      "sha256": "d1072e18b034c330a8041c15dde7620e904b9f197c2ac5635d1b45c6890bd311"
+    },
+    {
+      "file": "verification/application-dependency-audit.log",
+      "sha256": "d1072e18b034c330a8041c15dde7620e904b9f197c2ac5635d1b45c6890bd311"
+    },
+    {
+      "file": "verification/optimization-verification-runner.log",
+      "sha256": "871f3ebc19896deebd54381998db5ac06ff52c5135d88fb6afd8320efa39a804"
+    },
+    {
+      "file": "verification/optimization-interrupted-core-tests.log",
+      "sha256": "5ad6fde1fc7595762e7e690bcc42d5334576206ece610641637d4709ce8686d1"
+    },
+    {
+      "file": "verification/optimization-interrupted-report.json",
+      "sha256": "3555d6f92927f73db4b7eb91a3dba469cfa6fa34baffb3b17dadc518cd0270e0"
+    },
+    {
+      "file": "verification/optimization-host-missing-browser.log",
+      "sha256": "a4c0aad82a8380407b0fccd351feed56e3559cc241fb63190f43d3c91e0bad97"
+    },
+    {
+      "file": "verification/optimization-host-missing-browser.json",
+      "sha256": "bfe609ecb4e52fda9a8dfef39ed46d5b41eefeee2f329af8dd3689f86815ef8b"
+    },
+    {
+      "file": "verification/optimization-browser-install.log",
+      "sha256": "a983361ce3cfcdb9541bb3800767815f60202ada126e86acb3bb3081dc353053"
+    },
+    {
+      "file": "verification/optimization-host-focus-rejected.log",
+      "sha256": "32f5b36ce84703d24b4a53556ad4f385226d3b0b25435d8071b57b9269d6df9e"
+    },
+    {
+      "file": "verification/optimization-host-focus-rejected.json",
+      "sha256": "0f9e66b0c1f7cc9baa47ca795ac794603b2b7eda173eb4de9bb24c227ab3ef9d"
+    },
+    {
+      "file": "verification/optimization-computer-retest.log",
+      "sha256": "08169975a234e37f8509915ded8d2d3b74335792b524811106a9be99f20a2a0d"
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import { writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import { setup, collect } from "./support/wire-server.js";
 import { startFilesystemMCP } from "../examples/mcp-http-filesystem.mjs";
-import { Kernel } from "../src/kernel.js";
+import { Kernel } from "../src/core/kernel.js";
 
 test("actual Streamable HTTP MCP reads files with header env references", async () => {
   const x = await setup();

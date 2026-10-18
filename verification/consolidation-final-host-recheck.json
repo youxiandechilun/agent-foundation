@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-18T02:42:52.042Z",
+  "reason": "Previous complete host run failed because Windows denied foreground focus; no production source changes",
+  "check": {
+    "name": "consolidation-final-host-recheck",
+    "status": "failed",
+    "exitCode": 1,
+    "durationMs": 55064,
+    "stdoutLog": "consolidation-final-host-recheck.log",
+    "stderrLog": "consolidation-final-host-recheck.stderr.log",
+    "tests": {
+      "passed": 31,
+      "failed": 2
+    }
+  }
+}

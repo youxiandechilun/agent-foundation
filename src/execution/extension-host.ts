@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import { realpath, mkdir, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
-import type { Config } from "../config.js";
-import { invariant, within } from "../util.js";
+import type { Config } from "../core/config.js";
+import { invariant, within } from "../core/util.js";
 import { processEnvironment } from "./process.js";
 import { terminateProcessTree } from "./lifecycle.js";
 

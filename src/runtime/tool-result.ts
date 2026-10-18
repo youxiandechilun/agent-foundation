@@ -1,6 +1,6 @@
 import type { ToolResult } from "./types.js";
-import type { Assets } from "../assets.js";
-import { invariant, redactJson, hash } from "../util.js";
+import type { Assets } from "../storage/assets.js";
+import { invariant, redactJson, hash } from "../core/util.js";
 export const normalizedResultDigest = Symbol("normalizedResultDigest");
 
 /** Validate and bound data from every tool source before it enters context or durable effects. */

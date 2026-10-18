@@ -1,6 +1,9 @@
 {
-  "coreCriteriaPassed": 275,
-  "testsPassed": 300,
+  "coreCriteriaPassed": 323,
+  "optionalCriteriaPassed": 9,
+  "criteriaNotTested": 0,
+  "testsPassed": 411,
+  "testsSkipped": 0,
   "externalValidation": [
     {
       "id": "live-vendors",
@@ -36,10 +39,20 @@
       "id": "windows-public-network",
       "status": "separate-explicit-probe",
       "reason": "可选脚本对同一公网 TCP 端点验证宿主可达、AppContainer none 拒绝和 internet 允许，并确认清理；实际状态见 verification/windows-sandbox-network.json。普通核心测试不依赖公网连通性。"
+    },
+    {
+      "id": "live-agent-collaboration-and-user-servers",
+      "status": "not-run",
+      "reason": "多 Agent 分工和服务器 SSH/SFTP 使用本机协议服务验证；未验证真实付费模型的协作质量或用户业务服务器的部署配置。用户本轮明确暂不开展这些外部环境验证。"
     }
   ],
   "deferredByUser": [
-    "UI",
-    "ESP32 和其他实物硬件"
+    "配置界面与客户端 UI",
+    "完整办公编辑器和公式引擎",
+    "OCR",
+    "专门的 LSP 代码智能",
+    "Linux/macOS 等更多平台的桌面控制",
+    "ESP32 和其他实物硬件",
+    "真实供应商、第三方平台、Docker、POSIX PTY 与真实业务服务器等额外外部环境验证"
   ]
 }

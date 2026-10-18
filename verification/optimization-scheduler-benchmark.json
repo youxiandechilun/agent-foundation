@@ -1,0 +1,29 @@
+{
+  "node": "v22.22.0",
+  "baselineDirectory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\optimization-before-20261018\\dist",
+  "currentDirectory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\dist",
+  "workload": {
+    "tools": 500,
+    "resourcesPerTool": 100,
+    "concurrency": 32,
+    "measuredRounds": 5
+  },
+  "beforeMs": [
+    886.7471999999999,
+    914.9496000000001,
+    819.1525000000001,
+    737.2722999999996,
+    743.1965
+  ],
+  "afterMs": [
+    15.61200000000008,
+    10.684600000000046,
+    12.321599999999762,
+    12.566100000000006,
+    12.214799999999741
+  ],
+  "beforeMedianMs": 819.1525000000001,
+  "afterMedianMs": 12.321599999999762,
+  "ratio": 66.48101707570575,
+  "scope": "仅比较独立资源声明下的调度仲裁开销，不代表模型、网络或工具执行速度。"
+}

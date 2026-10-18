@@ -1,6 +1,8 @@
-# 源码与依赖边界 · 0.11.0
+# 源码与依赖边界 · 0.12.1
 
-执行内核、模型协议、MCP 客户端、权限、上下文、路由、会话、记忆、Skill/Plugin 管理由本工程维护的源代码实现。既不固定使用 pi-agent-core，也不运行其他产品的 CLI、编译内核或代理 SDK。MCP SDK 已从依赖和锁文件移除，协议传输实现见 src/extensions/mcp-client.ts。
+本文说明维护源码和第三方依赖的边界；当前版本范围及证据规则以 [RELEASE.md](RELEASE.md) 为准。下方带版本号的小节保留对应版本的实施背景，不作为当前功能总表。
+
+执行内核、模型协议、MCP 客户端、权限、上下文、路由、会话、记忆、Skill/Plugin 管理由本工程维护的源代码实现。既不固定使用 pi-agent-core，也不运行其他产品的 CLI、编译内核或代理 SDK。MCP SDK 已从依赖和锁文件移除，协议传输实现见 src/extensions/mcp/client.ts。
 
 “自己的源码”指这些模块可以在本工程直接阅读、修改、构建和测试；不表示 TypeScript、Node、通用开源依赖或参考项目的版权转归本工程。也不以批量改名作为实现完成的依据。
 
@@ -24,7 +26,7 @@
 
 默认核心运行依赖：Ajv（JSON Schema 验证）、TypeBox（schema 构建）、Zod（管理接口与配置验证）、YAML（Skill 元数据）。Node 内置模块提供 HTTP、fetch、进程和 SQLite。开发依赖是 TypeScript、Prettier 和类型声明。
 
-可选应用集成依赖：Playwright、ws、docx、ExcelJS、pdfjs-dist、PptxGenJS、pdf-lib、JSZip、xmldom、canvas。它们只在显式启用对应应用包时使用。旧的 mammoth 依赖与简单 office-worker 已删除。当前并未把这些通用库改写成项目私有实现。
+可选应用集成依赖：Playwright、ws、docx、ExcelJS、pdfjs-dist、PptxGenJS、pdf-lib、JSZip、xmldom、canvas。服务器集成另使用可选 `ssh2` transport。它们只在显式启用对应集成时使用。旧的 mammoth 依赖与简单 office-worker 已删除。当前并未把这些通用库改写成项目私有实现。
 
 npm run verify:source 检查生产源码中的禁止框架引用、锁文件内 Agent/模型/MCP SDK、生产 fixture 分支，并为源码、配置、文档、脚本与示例生成 SHA-256 清单。它是可复查的构建检查，不是代码原创性或法律权属证明。
 

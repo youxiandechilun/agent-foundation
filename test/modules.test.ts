@@ -4,8 +4,8 @@ import { writeFile, readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { setup, collect, until, wireServer } from "./support/wire-server.js";
-import { makeTools } from "../src/tools.js";
-import { safePath } from "../src/util.js";
+import { makeTools } from "../src/tools/index.js";
+import { safePath } from "../src/core/util.js";
 
 test("persistent CJK/English memory search, updates, namespaces, deletion and project isolation", async () => {
   const x = await setup();

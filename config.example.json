@@ -174,5 +174,16 @@
     "PostToolUse": [],
     "UserPromptSubmit": [],
     "Stop": []
+  },
+  "web": {
+    "enabled": true,
+    "proxy": "env",
+    "allowedHosts": ["*"],
+    "blockedHosts": [],
+    "allowPrivateNetwork": false,
+    "search": {
+      "provider": "none",
+      "maxResults": 8
+    }
   }
 }

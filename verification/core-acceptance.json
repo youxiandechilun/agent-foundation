@@ -1,9 +1,13 @@
 {
-  "schemaVersion": 1,
-  "version": "0.11.0",
-  "checkedAt": "2026-10-16T20:27:29.978Z",
-  "coreCriteriaPassed": 275,
-  "testsPassed": 300,
+  "schemaVersion": 2,
+  "version": "0.12.1",
+  "checkedAt": "2026-10-17T17:42:37.066Z",
+  "coreCriteriaPassed": 323,
+  "optionalCriteriaPassed": 9,
+  "criteriaPassed": 332,
+  "criteriaNotTested": 0,
+  "testsPassed": 411,
+  "testsSkipped": 0,
   "criteria": [
     {
       "id": "loop",
@@ -51,7 +55,7 @@
       "requirement": "权限交集和审批",
       "scope": "core",
       "source": [
-        "src/permissions.ts"
+        "src/core/permissions.ts"
       ],
       "evidence": {
         "file": "test/runtime.test.ts",
@@ -64,8 +68,8 @@
       "requirement": "实际安装树验证与信任撤销",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
-        "src/extensions/source-bundle.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/plugins/source-bundle.ts"
       ],
       "evidence": {
         "file": "test/security-core.test.ts",
@@ -78,7 +82,7 @@
       "requirement": "已验证快照执行",
       "scope": "core",
       "source": [
-        "src/extensions/plugin-worker.mjs"
+        "src/extensions/plugins/worker.mjs"
       ],
       "evidence": {
         "file": "test/security-core.test.ts",
@@ -91,8 +95,8 @@
       "requirement": "外部只读标记不能绕过 plan",
       "scope": "core",
       "source": [
-        "src/extensions/mcp.ts",
-        "src/permissions.ts"
+        "src/extensions/mcp/manager.ts",
+        "src/core/permissions.ts"
       ],
       "evidence": {
         "file": "test/mcp-client.test.ts",
@@ -105,7 +109,7 @@
       "requirement": "自有 MCP stdio、请求关联、取消、进度",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts"
+        "src/extensions/mcp/client.ts"
       ],
       "evidence": {
         "file": "test/mcp-client.test.ts",
@@ -118,7 +122,7 @@
       "requirement": "自有 MCP HTTP/SSE、会话与恢复",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts"
+        "src/extensions/mcp/client.ts"
       ],
       "evidence": {
         "file": "test/mcp-client.test.ts",
@@ -131,7 +135,7 @@
       "requirement": "MCP 初始化与关闭竞争",
       "scope": "core",
       "source": [
-        "src/extensions/mcp.ts"
+        "src/extensions/mcp/manager.ts"
       ],
       "evidence": {
         "file": "test/core-boundaries.test.ts",
@@ -144,7 +148,7 @@
       "requirement": "分层压缩处理全部分段",
       "scope": "core",
       "source": [
-        "src/context.ts"
+        "src/core/context.ts"
       ],
       "evidence": {
         "file": "test/context.test.ts",
@@ -170,7 +174,7 @@
       "requirement": "记忆版本、过滤与事务",
       "scope": "core",
       "source": [
-        "src/memory.ts"
+        "src/storage/memory.ts"
       ],
       "evidence": {
         "file": "test/core-data.test.ts",
@@ -183,8 +187,8 @@
       "requirement": "自动提取先审核",
       "scope": "core",
       "source": [
-        "src/memory.ts",
-        "src/kernel.ts"
+        "src/storage/memory.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/core-data.test.ts",
@@ -197,7 +201,7 @@
       "requirement": "实际 embedding 线协议与持久向量",
       "scope": "core",
       "source": [
-        "src/memory.ts"
+        "src/storage/memory.ts"
       ],
       "evidence": {
         "file": "test/resilience.test.ts",
@@ -223,8 +227,8 @@
       "requirement": "路由与默认值原子持久化",
       "scope": "core",
       "source": [
-        "src/config.ts",
-        "src/kernel.ts"
+        "src/core/config.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/core-data.test.ts",
@@ -290,8 +294,8 @@
       "requirement": "显式恢复 pending 输入一次",
       "scope": "core",
       "source": [
-        "src/kernel.ts",
-        "src/store.ts"
+        "src/core/kernel.ts",
+        "src/storage/store.ts"
       ],
       "evidence": {
         "file": "test/core-lifecycle.test.ts",
@@ -304,7 +308,7 @@
       "requirement": "历史迁移、追加与分页事务",
       "scope": "core",
       "source": [
-        "src/store.ts"
+        "src/storage/store.ts"
       ],
       "evidence": {
         "file": "test/core-data.test.ts",
@@ -317,7 +321,7 @@
       "requirement": "会话导入不重放工具",
       "scope": "core",
       "source": [
-        "src/session-codec.ts"
+        "src/sessions/codec.ts"
       ],
       "evidence": {
         "file": "test/session-import.test.ts",
@@ -330,7 +334,7 @@
       "requirement": "会话角色、工具组与归属校验",
       "scope": "core",
       "source": [
-        "src/session-codec.ts"
+        "src/sessions/codec.ts"
       ],
       "evidence": {
         "file": "test/session-import.test.ts",
@@ -343,8 +347,8 @@
       "requirement": "任意命名凭据引用脱敏",
       "scope": "core",
       "source": [
-        "src/util.ts",
-        "src/kernel.ts"
+        "src/core/util.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/core-boundaries.test.ts",
@@ -357,8 +361,8 @@
       "requirement": "附件合计与摘录预算",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/kernel.ts"
+        "src/storage/assets.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/core-boundaries.test.ts",
@@ -371,7 +375,7 @@
       "requirement": "统一媒体、幂等、原路由恢复、不重新提交",
       "scope": "core",
       "source": [
-        "src/media.ts",
+        "src/media/manager.ts",
         "src/media/adapters.ts"
       ],
       "evidence": {
@@ -385,7 +389,7 @@
       "requirement": "自定义媒体适配器超时",
       "scope": "core",
       "source": [
-        "src/media.ts"
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/media-adapters.test.ts",
@@ -399,7 +403,7 @@
       "scope": "core",
       "source": [
         "src/client.ts",
-        "src/event-stream.ts"
+        "src/api/events.ts"
       ],
       "evidence": {
         "file": "test/client-stream.test.ts",
@@ -412,7 +416,7 @@
       "requirement": "大事件重放与实时结算",
       "scope": "core",
       "source": [
-        "src/event-stream.ts"
+        "src/api/events.ts"
       ],
       "evidence": {
         "file": "test/client-stream.test.ts",
@@ -425,11 +429,11 @@
       "requirement": "automatic memory excerpts are bounded and failed semantic retrieval falls back with an explicit event",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/media.ts",
-        "src/memory.ts",
+        "src/storage/assets.ts",
+        "src/media/manager.ts",
+        "src/storage/memory.ts",
         "src/runtime/tool-result.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-data.test.ts",
@@ -442,11 +446,11 @@
       "requirement": "recreating a deleted memory preserves prior revisions and cannot reassign another project's ID",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/media.ts",
-        "src/memory.ts",
+        "src/storage/assets.ts",
+        "src/media/manager.ts",
+        "src/storage/memory.ts",
         "src/runtime/tool-result.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-data.test.ts",
@@ -459,11 +463,11 @@
       "requirement": "media cannot claim completion with an empty payload, text-only image, or another project's asset",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/media.ts",
-        "src/memory.ts",
+        "src/storage/assets.ts",
+        "src/media/manager.ts",
+        "src/storage/memory.ts",
         "src/runtime/tool-result.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-data.test.ts",
@@ -476,11 +480,11 @@
       "requirement": "asset reads and HTTP downloads reject changed bytes instead of returning a mismatched digest",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/media.ts",
-        "src/memory.ts",
+        "src/storage/assets.ts",
+        "src/media/manager.ts",
+        "src/storage/memory.ts",
         "src/runtime/tool-result.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-data.test.ts",
@@ -493,11 +497,11 @@
       "requirement": "oversized tool output is archived and replaced by an explicit bounded reference, including details",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/media.ts",
-        "src/memory.ts",
+        "src/storage/assets.ts",
+        "src/media/manager.ts",
+        "src/storage/memory.ts",
         "src/runtime/tool-result.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-data.test.ts",
@@ -510,11 +514,11 @@
       "requirement": "attachment preparation is cancelable during shutdown and keeps the session configuration stable",
       "scope": "core",
       "source": [
-        "src/assets.ts",
-        "src/media.ts",
-        "src/memory.ts",
+        "src/storage/assets.ts",
+        "src/media/manager.ts",
+        "src/storage/memory.ts",
         "src/runtime/tool-result.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-data.test.ts",
@@ -527,9 +531,9 @@
       "requirement": "settlement hooks cannot keep a completed run or its session alive forever",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -543,9 +547,9 @@
       "requirement": "failed kernel initialization releases the single-writer lease",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -559,9 +563,9 @@
       "requirement": "actual command stdout preserves UTF-8 characters split between process writes",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -575,9 +579,9 @@
       "requirement": "reinstalling reviewed plugin source repairs added files without retaining old trust",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -591,9 +595,9 @@
       "requirement": "media plugins declare actual capabilities and adapter IDs cannot silently bind another plugin",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -607,9 +611,9 @@
       "requirement": "route deletion respects reusable mode and agent references",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -623,9 +627,9 @@
       "requirement": "a failing integration cleanup cannot leave the store lease or other resources open",
       "scope": "core",
       "source": [
-        "src/extensions/plugins.ts",
+        "src/extensions/plugins/manager.ts",
         "src/media/adapters.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/execution/process.ts"
       ],
       "evidence": {
@@ -640,12 +644,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -659,12 +663,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -678,12 +682,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -697,12 +701,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -716,12 +720,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -735,12 +739,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -754,12 +758,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -773,12 +777,12 @@
       "scope": "core",
       "source": [
         "src/runtime/engine.ts",
-        "src/context.ts",
+        "src/core/context.ts",
         "src/providers/text.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/manager.ts",
         "src/runtime/registry.ts",
-        "src/permissions.ts",
-        "src/kernel.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-features.test.ts",
@@ -791,10 +795,10 @@
       "requirement": "automatic memory retrieval respects host, route and project denial and never bypasses ask",
       "scope": "core",
       "source": [
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/extensions/mcp.ts",
-        "src/tools.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/tools/index.ts"
       ],
       "evidence": {
         "file": "test/audit-permissions.test.ts",
@@ -807,10 +811,10 @@
       "requirement": "a policy revoked while approval is pending is enforced before the file effect begins",
       "scope": "core",
       "source": [
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/extensions/mcp.ts",
-        "src/tools.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/tools/index.ts"
       ],
       "evidence": {
         "file": "test/audit-permissions.test.ts",
@@ -823,10 +827,10 @@
       "requirement": "git inspection cannot execute repository helpers under read-only permissions",
       "scope": "core",
       "source": [
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/extensions/mcp.ts",
-        "src/tools.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/tools/index.ts"
       ],
       "evidence": {
         "file": "test/audit-permissions.test.ts",
@@ -839,10 +843,10 @@
       "requirement": "an MCP tool closure is revoked after disconnect and cannot call a replacement server",
       "scope": "core",
       "source": [
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/extensions/mcp.ts",
-        "src/tools.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/tools/index.ts"
       ],
       "evidence": {
         "file": "test/audit-permissions.test.ts",
@@ -857,8 +861,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -874,8 +878,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -891,8 +895,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -908,8 +912,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -925,8 +929,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -942,8 +946,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -959,8 +963,8 @@
       "source": [
         "src/runtime/engine.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/util.ts",
+        "src/core/context.ts",
+        "src/core/util.ts",
         "src/runtime/registry.ts"
       ],
       "evidence": {
@@ -974,8 +978,8 @@
       "requirement": "another live kernel cannot recover active runs; a dead owner's lease is recovered atomically",
       "scope": "core",
       "source": [
-        "src/store.ts",
-        "src/kernel.ts"
+        "src/storage/store.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/audit-storage.test.ts",
@@ -1167,9 +1171,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1184,9 +1188,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1201,9 +1205,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1218,9 +1222,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1235,9 +1239,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1252,9 +1256,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1269,9 +1273,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1286,9 +1290,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1303,9 +1307,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1320,9 +1324,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1337,9 +1341,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1354,9 +1358,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1371,9 +1375,9 @@
       "source": [
         "src/runtime/cost.ts",
         "src/providers/text.ts",
-        "src/context.ts",
-        "src/memory.ts",
-        "src/media.ts"
+        "src/core/context.ts",
+        "src/storage/memory.ts",
+        "src/media/manager.ts"
       ],
       "evidence": {
         "file": "test/foundation-cost.test.ts",
@@ -1388,9 +1392,9 @@
       "source": [
         "src/execution/process.ts",
         "src/execution/sessions.ts",
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/management-api.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/foundation-isolation.test.ts",
@@ -1405,9 +1409,9 @@
       "source": [
         "src/execution/process.ts",
         "src/execution/sessions.ts",
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/management-api.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/foundation-isolation.test.ts",
@@ -1422,9 +1426,9 @@
       "source": [
         "src/execution/process.ts",
         "src/execution/sessions.ts",
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/management-api.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/foundation-isolation.test.ts",
@@ -1439,9 +1443,9 @@
       "source": [
         "src/execution/process.ts",
         "src/execution/sessions.ts",
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/management-api.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/foundation-isolation.test.ts",
@@ -1456,9 +1460,9 @@
       "source": [
         "src/execution/process.ts",
         "src/execution/sessions.ts",
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/management-api.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/foundation-isolation.test.ts",
@@ -1473,9 +1477,9 @@
       "source": [
         "src/execution/process.ts",
         "src/execution/sessions.ts",
-        "src/permissions.ts",
-        "src/kernel.ts",
-        "src/management-api.ts"
+        "src/core/permissions.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/foundation-isolation.test.ts",
@@ -1488,11 +1492,11 @@
       "requirement": "portable migration moves actual binary assets and balanced tool evidence between independent hosts without replay",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1506,11 +1510,11 @@
       "requirement": "migration rejects corruption, missing dependencies, extra assets and traversal before writing any destination state",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1524,11 +1528,11 @@
       "requirement": "migration rolls back promoted files and metadata if destination route validation fails",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1542,11 +1546,11 @@
       "requirement": "migration recovery deletes only orphan promotions and preserves committed assets",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1560,11 +1564,11 @@
       "requirement": "migration enforces total bytes and refuses foreign-project asset references",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1578,11 +1582,11 @@
       "requirement": "migration startup recovery works after reopening the actual database and preserves committed data",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1596,11 +1600,11 @@
       "requirement": "portable migration supports histories larger than the legacy 8 MiB snapshot while respecting the configured total budget",
       "scope": "core",
       "source": [
-        "src/migration.ts",
-        "src/session-codec.ts",
-        "src/assets.ts",
-        "src/kernel.ts",
-        "src/management-api.ts",
+        "src/sessions/migration.ts",
+        "src/sessions/codec.ts",
+        "src/storage/assets.ts",
+        "src/core/kernel.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -1614,12 +1618,12 @@
       "requirement": "modern stdio MCP discovers without initialization and completes MRTR with exact state and distinct IDs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1633,12 +1637,12 @@
       "requirement": "MCP auto negotiation falls back only for a legacy discovery error and handles bidirectional requests",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1652,12 +1656,12 @@
       "requirement": "modern MCP rejects undeclared inputs and bounds server-driven continuation loops",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1671,12 +1675,12 @@
       "requirement": "modern subscriptions require acknowledgement, filter unrelated events and cancel the real stdio request",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1690,12 +1694,12 @@
       "requirement": "headless MCP elicitation validates responses, scopes roots and never accepts an expired answer",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1709,12 +1713,12 @@
       "requirement": "MCP sampling requires explicit consent, uses the configured route and bills the originating run",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1728,12 +1732,12 @@
       "requirement": "MCP required legacy tasks persist remote identity, poll completion and return actual peer output",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1747,12 +1751,12 @@
       "requirement": "modern HTTP MCP mirrors encoded routing headers and never opens a legacy GET or DELETE channel",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1766,12 +1770,12 @@
       "requirement": "modern HTTP SSE carries MRTR and cancellation without Last-Event-ID resumption or effect replay",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1785,12 +1789,12 @@
       "requirement": "MCP sampling consent cannot override a newly denied capability or a cancelled originating run",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1804,12 +1808,12 @@
       "requirement": "MCP denies ambiguous legacy callbacks instead of attaching them to an arbitrary concurrent caller",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1823,12 +1827,12 @@
       "requirement": "MCP task cancellation preserves its remote identity for explicit inspection",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1842,12 +1846,12 @@
       "requirement": "MCP client inputs retain the effective fallback route's capability restrictions",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1861,12 +1865,12 @@
       "requirement": "MCP JSON Schema 2020-12 validates tuple inputs and rejects invalid structured output",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1880,12 +1884,12 @@
       "requirement": "MCP root changes notify the peer and reject paths outside configured host roots",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1899,12 +1903,12 @@
       "requirement": "MCP completion and logging use declared server capabilities and real peer notifications",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-interactions.ts",
-        "src/extensions/mcp-headers.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/interactions.ts",
+        "src/extensions/mcp/headers.ts",
         "src/runtime/json-schema.ts",
-        "src/kernel.ts",
+        "src/core/kernel.ts",
         "src/runtime/engine.ts"
       ],
       "evidence": {
@@ -1918,10 +1922,10 @@
       "requirement": "source OAuth performs real PKCE exchange, encrypts tokens and refreshes once across concurrent MCP requests",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -1934,10 +1938,10 @@
       "requirement": "OAuth rejects state substitution, issuer mix-up and redirect mismatch before sending a token exchange",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -1950,10 +1954,10 @@
       "requirement": "OAuth invalid_grant clears local authorization and never retries the uncertain tool effect",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -1966,10 +1970,10 @@
       "requirement": "OAuth scope challenges require explicit reauthorization and do not replay a tool call",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -1982,10 +1986,10 @@
       "requirement": "OAuth tokens are bound to the reviewed resource and HTTP or unapproved issuers are rejected",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -1998,10 +2002,10 @@
       "requirement": "revoking OAuth while a refresh is in flight cannot restore the token vault",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -2014,10 +2018,10 @@
       "requirement": "closing the MCP host aborts pending OAuth refresh instead of leaving background authorization work",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-oauth.test.ts",
@@ -2031,10 +2035,10 @@
       "scope": "core",
       "source": [
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/plugin-container-worker.mjs",
-        "src/extensions/mcp.ts",
-        "src/permissions.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/mcp/manager.ts",
+        "src/core/permissions.ts"
       ],
       "evidence": {
         "file": "test/extension-isolation.test.ts",
@@ -2048,10 +2052,10 @@
       "scope": "core",
       "source": [
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/plugin-container-worker.mjs",
-        "src/extensions/mcp.ts",
-        "src/permissions.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/mcp/manager.ts",
+        "src/core/permissions.ts"
       ],
       "evidence": {
         "file": "test/extension-isolation.test.ts",
@@ -2065,10 +2069,10 @@
       "scope": "core",
       "source": [
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/plugin-container-worker.mjs",
-        "src/extensions/mcp.ts",
-        "src/permissions.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/mcp/manager.ts",
+        "src/core/permissions.ts"
       ],
       "evidence": {
         "file": "test/extension-isolation.test.ts",
@@ -2082,10 +2086,10 @@
       "scope": "core",
       "source": [
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/plugin-container-worker.mjs",
-        "src/extensions/mcp.ts",
-        "src/permissions.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/mcp/manager.ts",
+        "src/core/permissions.ts"
       ],
       "evidence": {
         "file": "test/extension-isolation.test.ts",
@@ -2098,12 +2102,12 @@
       "requirement": "MCP tool sampling performs a real server file effect and result continuation over openai-completions",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2116,12 +2120,12 @@
       "requirement": "MCP tool sampling performs a real server file effect and result continuation over openai-responses",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2134,12 +2138,12 @@
       "requirement": "MCP tool sampling performs a real server file effect and result continuation over anthropic-messages",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2152,12 +2156,12 @@
       "requirement": "MCP sampling validates opt-in, schemas, grouped tool history and bounded tool declarations",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2170,12 +2174,12 @@
       "requirement": "MCP sampling rejects forged provider tool names, invalid arguments and violated tool choices",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2188,12 +2192,12 @@
       "requirement": "legacy MCP sampling runs the complete tool and tool-result cycle through real stdio",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2206,12 +2210,12 @@
       "requirement": "MCP tool sampling remains disabled unless explicitly declared and never prompts or spends without opt-in",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2224,12 +2228,12 @@
       "requirement": "MCP sampling fallback cannot select tools excluded by its effective route",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2242,12 +2246,12 @@
       "requirement": "MCP sampling rechecks permissions after model completion before returning a server tool call",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2260,12 +2264,12 @@
       "requirement": "MCP sampling obeys the originating run cost ceiling before sending model HTTP",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2278,12 +2282,12 @@
       "requirement": "MCP sampling tool continuations share one per-origin request quota",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2296,12 +2300,12 @@
       "requirement": "MCP task reverse input retains its origin after creation for immediate callbacks",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2314,12 +2318,12 @@
       "requirement": "MCP task reverse input retains its origin after creation for wait callbacks",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2332,12 +2336,12 @@
       "requirement": "MCP concurrent tasks route reverse callbacks by exact task ID and shared origin only",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2350,12 +2354,12 @@
       "requirement": "MCP asynchronous task sampling executes server tools and keeps both model charges on the originating run",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2368,12 +2372,12 @@
       "requirement": "MCP task rejects foreign reverse callbacks without granting another origin",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2386,12 +2390,12 @@
       "requirement": "MCP task rejects no-meta reverse callbacks without granting another origin",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2404,12 +2408,12 @@
       "requirement": "MCP task cancellation aborts an active reverse callback and rejects late callbacks",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2422,12 +2426,12 @@
       "requirement": "MCP task TTL aborts stalled callback consent and prevents file effects",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2440,12 +2444,12 @@
       "requirement": "MCP rejects result-no-meta task results instead of accepting an unbound result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2458,12 +2462,12 @@
       "requirement": "MCP rejects result-foreign task results instead of accepting an unbound result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2476,12 +2480,12 @@
       "requirement": "MCP task progress survives initial RPC completion with the original progress token",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2494,12 +2498,12 @@
       "requirement": "MCP HTTP task callbacks on GET streams keep their related-task origin",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2512,12 +2516,12 @@
       "requirement": "MCP HTTP task callbacks on unrelated POST streams keep their related-task origin",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-sampling.ts",
-        "src/extensions/mcp-task-context.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
+        "src/extensions/mcp/sampling.ts",
+        "src/extensions/mcp/tasks/context.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
         "src/providers/text.ts",
-        "src/kernel.ts"
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/mcp-advanced.test.ts",
@@ -2530,10 +2534,10 @@
       "requirement": "OAuth dynamic none client completes actual registration, PKCE and refresh without SDKs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2547,10 +2551,10 @@
       "requirement": "OAuth dynamic client_secret_basic client completes actual registration, PKCE and refresh without SDKs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2564,10 +2568,10 @@
       "requirement": "OAuth dynamic client_secret_post client completes actual registration, PKCE and refresh without SDKs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2581,10 +2585,10 @@
       "requirement": "OAuth DCR deduplicates concurrent registration and reuses encrypted credentials after host restart",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2598,10 +2602,10 @@
       "requirement": "OAuth DCR scopes initial access tokens and software statements to the reviewed registration POST",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2615,10 +2619,10 @@
       "requirement": "OAuth DCR uncertain network outcome survives restart and requires explicit acknowledgement before retry",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2632,10 +2636,10 @@
       "requirement": "OAuth DCR rejects redirect response changes and prevents automatic re-registration",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2649,10 +2653,10 @@
       "requirement": "OAuth DCR rejects auth response changes and prevents automatic re-registration",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2666,10 +2670,10 @@
       "requirement": "OAuth DCR rejects grant response changes and prevents automatic re-registration",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2683,10 +2687,10 @@
       "requirement": "OAuth DCR rejects missing-secret response changes and prevents automatic re-registration",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2700,10 +2704,10 @@
       "requirement": "OAuth DCR denies unreviewed endpoint origins and rejects contradictory registration configuration",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2717,10 +2721,10 @@
       "requirement": "OAuth DCR known rejection permits an explicit retry and local reset preserves truthful remote status",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2734,10 +2738,10 @@
       "requirement": "OAuth DCR configuration replacement and reset cannot race an in-flight registration",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2751,10 +2755,10 @@
       "requirement": "OAuth DCR host shutdown leaves an uncertain attempt instead of committing late credentials",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2768,10 +2772,10 @@
       "requirement": "OAuth DCR server failure is not replayed and expired client secrets require an explicit reset",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -2785,12 +2789,12 @@
       "requirement": "MCP client receives a real asynchronous elicitation task with durable state and deferred result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2803,12 +2807,12 @@
       "requirement": "MCP client receives a real asynchronous sampling task with durable state and deferred result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2821,12 +2825,12 @@
       "requirement": "MCP client tasks require explicit capabilities and matching enabled input handlers",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2839,12 +2843,12 @@
       "requirement": "MCP received task cancellation aborts consent, stays terminal and creates no file effect",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2857,12 +2861,12 @@
       "requirement": "MCP received task TTL cancels pending input and expired handles cannot retrieve a result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2875,12 +2879,12 @@
       "requirement": "MCP client tasks cannot outlive an originating tool call or charge after its run has ended",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2893,12 +2897,12 @@
       "requirement": "MCP received task pagination uses scoped opaque cursors and preserves every actual result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2911,12 +2915,12 @@
       "requirement": "MCP received task handles from another connection never expose private state",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2929,12 +2933,12 @@
       "requirement": "MCP receiver persists interrupted tasks on shutdown and startup never resumes model work",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2947,12 +2951,12 @@
       "requirement": "modern MCP task extension polls and submits actual user input before returning real server output",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2965,12 +2969,12 @@
       "requirement": "modern MCP task sampling preserves tool results, real file bytes and the originating cost scope",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -2983,12 +2987,12 @@
       "requirement": "modern MCP tasks require negotiated extension support and may still return an immediate result",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3001,12 +3005,12 @@
       "requirement": "modern task input deduplication tolerates eventually consistent acknowledgement without repeating a prompt",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3019,12 +3023,12 @@
       "requirement": "modern task input keys cannot be reused for different payloads before showing another prompt",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3037,12 +3041,12 @@
       "requirement": "modern task cancellation acknowledges intent while keeping uncertain remote effects distinct from cancellation",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3055,12 +3059,12 @@
       "requirement": "modern task TTL bounds polling and records an uncertain outcome without replaying tools",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3073,12 +3077,12 @@
       "requirement": "modern task protocol errors, tool errors and terminal seed states keep their distinct semantics",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3091,12 +3095,12 @@
       "requirement": "modern task rejects wrong-id polling results before accepting success",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3109,12 +3113,12 @@
       "requirement": "modern task rejects bad-shape polling results before accepting success",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3127,12 +3131,12 @@
       "requirement": "modern terminal task snapshots cannot be changed back to a working task",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3145,12 +3149,12 @@
       "requirement": "modern task subscriptions require acknowledgement and reject notifications for unrequested tasks",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3163,12 +3167,12 @@
       "requirement": "modern task records preserve remote IDs across disconnect and reject a changed server binding",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3181,12 +3185,12 @@
       "requirement": "modern HTTP task requests mirror the task ID in routing headers without legacy task methods",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3199,12 +3203,12 @@
       "requirement": "modern task input round limits stop before another model or user handler runs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3217,12 +3221,12 @@
       "requirement": "modern task sampling consent cannot override a newly denied capability",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3235,12 +3239,12 @@
       "requirement": "received sampling tasks share one originating quota across concurrent client task handles",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3253,12 +3257,12 @@
       "requirement": "MCP task receiver fails closed when durable task creation cannot be persisted",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3271,12 +3275,12 @@
       "requirement": "modern task update connection loss retains unknown state without repeating input or tool effects",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3289,12 +3293,12 @@
       "requirement": "legacy HTTP peer can create a client task and fetch its deferred result over the notification stream",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3307,12 +3311,12 @@
       "requirement": "modern seed-invalid cannot be counted as a completed validated task",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3325,12 +3329,12 @@
       "requirement": "modern invalid-tool cannot be counted as a completed validated task",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-task-receiver.ts",
-        "src/extensions/mcp-modern-tasks.ts",
-        "src/extensions/mcp-client.ts",
-        "src/extensions/mcp.ts",
-        "src/store.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/tasks/receiver.ts",
+        "src/extensions/mcp/tasks/modern.ts",
+        "src/extensions/mcp/client.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/storage/store.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-task-interop.test.ts",
@@ -3343,11 +3347,11 @@
       "requirement": "CIMD none completes PKCE and refresh over trusted HTTPS using published client metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3360,11 +3364,11 @@
       "requirement": "CIMD RS256 completes PKCE and refresh over trusted HTTPS using published client metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3377,11 +3381,11 @@
       "requirement": "CIMD ES256 completes PKCE and refresh over trusted HTTPS using published client metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3394,11 +3398,11 @@
       "requirement": "CIMD EdDSA completes PKCE and refresh over trusted HTTPS using published client metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3411,11 +3415,11 @@
       "requirement": "CIMD refuses an unsupported authorization server without silently registering another client",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3428,11 +3432,11 @@
       "requirement": "CIMD uses explicit DCR fallback only when metadata support is absent",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3445,11 +3449,11 @@
       "requirement": "CIMD configuration rejects insecure or ambiguous client identifiers before publication",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3462,11 +3466,11 @@
       "requirement": "CIMD documents include the exact callback and prohibit shared-secret authentication",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3479,11 +3483,11 @@
       "requirement": "CIMD private key JWT uses public JWKS and a short audience-bound assertion with unique IDs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3496,11 +3500,11 @@
       "requirement": "CIMD public endpoint exposes only the configured document and rejects conflicting paths",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3513,11 +3517,11 @@
       "requirement": "CIMD can export a document for external HTTPS hosting without exposing a local public endpoint",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3530,11 +3534,11 @@
       "requirement": "CIMD rejects a client assertion algorithm excluded by authorization server metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts"
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts"
       ],
       "evidence": {
         "file": "test/mcp-cimd.test.ts",
@@ -3547,11 +3551,11 @@
       "requirement": "OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3565,11 +3569,11 @@
       "requirement": "OAuth device polling persists authorization_pending and slow_down with the required five-second increase",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3583,11 +3587,11 @@
       "requirement": "OAuth device flow uses the five-second default and never polls early after restart",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3601,11 +3605,11 @@
       "requirement": "OAuth device access_denied is terminal and cannot trigger automatic authorization or polling",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3619,11 +3623,11 @@
       "requirement": "OAuth device expired_token is terminal and cannot trigger automatic authorization or polling",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3637,11 +3641,11 @@
       "requirement": "OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3655,11 +3659,11 @@
       "requirement": "OAuth device flow expires locally without contacting the token endpoint",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3673,11 +3677,11 @@
       "requirement": "OAuth device connection failure doubles the persisted polling interval",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3691,11 +3695,11 @@
       "requirement": "OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3709,11 +3713,11 @@
       "requirement": "OAuth device start cancellation and logout during discovery leave no resumable grant",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3727,11 +3731,11 @@
       "requirement": "OAuth device dynamic none registration uses the issued credentials and device grant metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3745,11 +3749,11 @@
       "requirement": "OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3763,11 +3767,11 @@
       "requirement": "OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3781,11 +3785,11 @@
       "requirement": "OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3799,11 +3803,11 @@
       "requirement": "OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3817,11 +3821,11 @@
       "requirement": "OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3835,11 +3839,11 @@
       "requirement": "OAuth device continuous waiting honors cancellation and can resume the same pending grant",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3853,11 +3857,11 @@
       "requirement": "OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3871,11 +3875,11 @@
       "requirement": "OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-device.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts",
+        "src/extensions/mcp/auth/device.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts",
         "src/client.ts"
       ],
       "evidence": {
@@ -3889,10 +3893,10 @@
       "requirement": "OAuth registration refuses an issued client secret without an explicit expiration and retains unknown outcome",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -3905,10 +3909,10 @@
       "requirement": "OAuth management refuses an issued client secret without an explicit expiration and retains unknown outcome",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -3921,10 +3925,10 @@
       "requirement": "OAuth RFC 7592 reads remote registration and atomically adopts rotated management and client credentials",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -3937,10 +3941,10 @@
       "requirement": "OAuth RFC 7592 updates send complete metadata, preserve unknown extensions and omit registration-only fields",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -3953,10 +3957,10 @@
       "requirement": "OAuth RFC 7592 rejects credential injection and incompatible grants without sending a remote mutation",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -3969,10 +3973,10 @@
       "requirement": "OAuth RFC 7592 successful remote deletion removes registration and authorization while local reset reports no remote deletion",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -3985,10 +3989,10 @@
       "requirement": "OAuth RFC 7592 uncertain management outcome persists across restart and blocks replay until an acknowledged reconciliation read",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4001,10 +4005,10 @@
       "requirement": "OAuth RFC 7592 known unsupported method preserves credentials and permits an explicit retry",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4017,10 +4021,10 @@
       "requirement": "OAuth RFC 7592 rejects a changed registration_client_uri response and keeps the operation outcome unknown",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4033,10 +4037,10 @@
       "requirement": "OAuth RFC 7592 rejects a changed client_id response and keeps the operation outcome unknown",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4049,10 +4053,10 @@
       "requirement": "OAuth RFC 7592 cannot race configuration replacement, local reset or another remote mutation",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4065,10 +4069,10 @@
       "requirement": "OAuth RFC 7592 is unavailable when registration returns no management credentials and rejects incomplete management pairs",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4081,10 +4085,10 @@
       "requirement": "OAuth RFC 7592 shutdown cannot commit a late credential rotation and vault files contain no plaintext credentials",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-registration.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/management-api.ts"
+        "src/extensions/mcp/auth/registration.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/management.ts"
       ],
       "evidence": {
         "file": "test/mcp-registration-management.test.ts",
@@ -4097,13 +4101,13 @@
       "requirement": "OAuth short-lived assertion redaction expires without removing persistent credential redaction",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4116,13 +4120,13 @@
       "requirement": "OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4135,13 +4139,13 @@
       "requirement": "OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4154,13 +4158,13 @@
       "requirement": "OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4173,13 +4177,13 @@
       "requirement": "OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4192,13 +4196,13 @@
       "requirement": "OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4211,13 +4215,13 @@
       "requirement": "OAuth managed concurrent publication, signing and rotation share one active key and one successor",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4230,13 +4234,13 @@
       "requirement": "OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4249,13 +4253,13 @@
       "requirement": "OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4268,13 +4272,13 @@
       "requirement": "OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4287,13 +4291,13 @@
       "requirement": "OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4306,13 +4310,13 @@
       "requirement": "OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window",
       "scope": "core",
       "source": [
-        "src/extensions/mcp-keyring.ts",
-        "src/extensions/mcp-client-metadata.ts",
-        "src/extensions/oauth-vault.ts",
-        "src/extensions/mcp-oauth.ts",
-        "src/extensions/mcp.ts",
-        "src/server.ts",
-        "src/util.ts"
+        "src/extensions/mcp/auth/keyring.ts",
+        "src/extensions/mcp/auth/client-metadata.ts",
+        "src/extensions/mcp/auth/vault.ts",
+        "src/extensions/mcp/auth/oauth.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/api/server.ts",
+        "src/core/util.ts"
       ],
       "evidence": {
         "file": "test/mcp-keyring.test.ts",
@@ -4325,7 +4329,7 @@
       "requirement": "取消资产写入不发布元数据或遗留部分产物",
       "scope": "core",
       "source": [
-        "src/assets.ts"
+        "src/storage/assets.ts"
       ],
       "evidence": {
         "file": "test/asset-cancellation.test.ts",
@@ -4345,9 +4349,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4367,9 +4371,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4389,9 +4393,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4411,9 +4415,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4433,9 +4437,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4455,9 +4459,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4477,9 +4481,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4499,9 +4503,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4521,9 +4525,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4543,9 +4547,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4565,9 +4569,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4587,9 +4591,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4609,9 +4613,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4631,9 +4635,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4653,9 +4657,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4675,9 +4679,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4697,9 +4701,9 @@
         "src/execution/sessions.ts",
         "src/execution/process-broker.mjs",
         "src/execution/extension-host.ts",
-        "src/extensions/plugins.ts",
-        "src/extensions/mcp.ts",
-        "src/kernel.ts"
+        "src/extensions/plugins/manager.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/core/kernel.ts"
       ],
       "evidence": {
         "file": "test/foundation-windows-sandbox.test.ts",
@@ -4712,10 +4716,10 @@
       "requirement": "single-user kernel serves authenticated clients without account login or constructing an MCP OAuth service",
       "scope": "core",
       "source": [
-        "src/kernel.ts",
-        "src/management-api.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-client.ts"
+        "src/core/kernel.ts",
+        "src/api/management.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/client.ts"
       ],
       "evidence": {
         "file": "test/kernel-scope.test.ts",
@@ -4728,10 +4732,10 @@
       "requirement": "MCP close exposes an unconfirmed execution cleanup instead of silently reporting success",
       "scope": "core",
       "source": [
-        "src/kernel.ts",
-        "src/management-api.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-client.ts"
+        "src/core/kernel.ts",
+        "src/api/management.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/client.ts"
       ],
       "evidence": {
         "file": "test/kernel-scope.test.ts",
@@ -4744,15 +4748,895 @@
       "requirement": "route network denial blocks one-shot, persistent and Git commands before an internet-enabled execution backend starts",
       "scope": "core",
       "source": [
-        "src/kernel.ts",
-        "src/management-api.ts",
-        "src/extensions/mcp.ts",
-        "src/extensions/mcp-client.ts"
+        "src/core/kernel.ts",
+        "src/api/management.ts",
+        "src/extensions/mcp/manager.ts",
+        "src/extensions/mcp/client.ts"
       ],
       "evidence": {
         "file": "test/kernel-scope.test.ts",
         "title": "route network denial blocks one-shot, persistent and Git commands before an internet-enabled execution backend starts"
       },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-1",
+      "requirement": "执行循环增强：retry policy: transient-only, bounded, honours Retry-After",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "retry policy: transient-only, bounded, honours Retry-After"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-2",
+      "requirement": "执行循环增强：the last route in the chain retries transient failures in place",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "the last route in the chain retries transient failures in place"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-3",
+      "requirement": "执行循环增强：retries stop at maxRetries and the run fails with the provider error",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "retries stop at maxRetries and the run fails with the provider error"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-4",
+      "requirement": "执行循环增强：Anthropic cache breakpoints copy blocks and stay within four markers",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "Anthropic cache breakpoints copy blocks and stay within four markers"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-5",
+      "requirement": "执行循环增强：Anthropic requests carry cache_control unless the route disables it",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "Anthropic requests carry cache_control unless the route disables it"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-6",
+      "requirement": "执行循环增强：programmatic hooks deny, rewrite, annotate and continue without granting access",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "programmatic hooks deny, rewrite, annotate and continue without granting access"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-7",
+      "requirement": "执行循环增强：hook-rewritten arguments are re-validated and still pass permission policy",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "hook-rewritten arguments are re-validated and still pass permission policy"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-8",
+      "requirement": "执行循环增强：config command hooks follow the exit-code/JSON protocol",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "config command hooks follow the exit-code/JSON protocol"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-agent-loop-9",
+      "requirement": "执行循环增强：a crashing observer hook is reported but a crashing PreToolUse hook fails closed",
+      "scope": "core",
+      "source": [
+        "src/providers/text.ts",
+        "src/providers/serialize.ts",
+        "src/runtime/hooks.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/agent-loop.test.ts",
+        "title": "a crashing observer hook is reported but a crashing PreToolUse hook fails closed"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-subagents-1",
+      "requirement": "同配置子 Agent 委派：parallel sub-agents get fresh context, use tools without deadlock and report back",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/tools/index.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/subagents.test.ts",
+        "title": "parallel sub-agents get fresh context, use tools without deadlock and report back"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-subagents-2",
+      "requirement": "同配置子 Agent 委派：sub-agents cannot switch to a more permissive mode",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/tools/index.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/subagents.test.ts",
+        "title": "sub-agents cannot switch to a more permissive mode"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-subagents-3",
+      "requirement": "同配置子 Agent 委派：cancelling the parent cancels the running sub-agent",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/tools/index.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/subagents.test.ts",
+        "title": "cancelling the parent cancels the running sub-agent"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-subagents-4",
+      "requirement": "同配置子 Agent 委派：background sub-agents return immediately and are collected with agent_result",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/tools/index.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/subagents.test.ts",
+        "title": "background sub-agents return immediately and are collected with agent_result"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-subagents-5",
+      "requirement": "同配置子 Agent 委派：cancelling the parent run also cancels its background sub-agents",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/tools/index.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/subagents.test.ts",
+        "title": "cancelling the parent run also cancels its background sub-agents"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-subagents-6",
+      "requirement": "同配置子 Agent 委派：maxAgentDepth allows nested delegation up to the limit",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/tools/index.ts",
+        "src/runtime/engine.ts"
+      ],
+      "evidence": {
+        "file": "test/subagents.test.ts",
+        "title": "maxAgentDepth allows nested delegation up to the limit"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-run-control-1",
+      "requirement": "输出续写和结构化结果：a reply cut off by the output limit continues instead of failing",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/runtime/structured-output.ts"
+      ],
+      "evidence": {
+        "file": "test/run-control.test.ts",
+        "title": "a reply cut off by the output limit continues instead of failing"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-run-control-2",
+      "requirement": "输出续写和结构化结果：continuation is bounded, disabled by 0, and never applies to truncated tool calls",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/runtime/structured-output.ts"
+      ],
+      "evidence": {
+        "file": "test/run-control.test.ts",
+        "title": "continuation is bounded, disabled by 0, and never applies to truncated tool calls"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-run-control-3",
+      "requirement": "输出续写和结构化结果：structured output: schema-validated result ends the run and is stored on it",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/runtime/structured-output.ts"
+      ],
+      "evidence": {
+        "file": "test/run-control.test.ts",
+        "title": "structured output: schema-validated result ends the run and is stored on it"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-run-control-4",
+      "requirement": "输出续写和结构化结果：non-object schemas are wrapped; missing results are reminded, then fail",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/runtime/structured-output.ts"
+      ],
+      "evidence": {
+        "file": "test/run-control.test.ts",
+        "title": "non-object schemas are wrapped; missing results are reminded, then fail"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-run-control-5",
+      "requirement": "输出续写和结构化结果：restrictive allowlists still offer submit_result; bad schemas and steering use are rejected",
+      "scope": "core",
+      "source": [
+        "src/runtime/engine.ts",
+        "src/runtime/structured-output.ts"
+      ],
+      "evidence": {
+        "file": "test/run-control.test.ts",
+        "title": "restrictive allowlists still offer submit_result; bad schemas and steering use are rejected"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-checkpoints-1",
+      "requirement": "文件检查点与对话回退：rewind restores files and forks the conversation at a past input",
+      "scope": "core",
+      "source": [
+        "src/sessions/checkpoints.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/checkpoints.test.ts",
+        "title": "rewind restores files and forks the conversation at a past input"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-checkpoints-2",
+      "requirement": "文件检查点与对话回退：external changes are reported as conflicts and only overwritten with force",
+      "scope": "core",
+      "source": [
+        "src/sessions/checkpoints.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/checkpoints.test.ts",
+        "title": "external changes are reported as conflicts and only overwritten with force"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-project-search-1",
+      "requirement": "项目检索：glob matching: segments, globstar, braces, classes and basename patterns",
+      "scope": "core",
+      "source": [
+        "src/tools/index.ts",
+        "src/runtime/project-walk.ts"
+      ],
+      "evidence": {
+        "file": "test/project-search.test.ts",
+        "title": "glob matching: segments, globstar, braces, classes and basename patterns"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-project-search-2",
+      "requirement": "项目检索：.gitignore rules: last match wins, anchoring, directory-only and nested bases",
+      "scope": "core",
+      "source": [
+        "src/tools/index.ts",
+        "src/runtime/project-walk.ts"
+      ],
+      "evidence": {
+        "file": "test/project-search.test.ts",
+        "title": ".gitignore rules: last match wins, anchoring, directory-only and nested bases"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-project-search-3",
+      "requirement": "项目检索：file_search and file_glob respect .gitignore, filters and regex",
+      "scope": "core",
+      "source": [
+        "src/tools/index.ts",
+        "src/runtime/project-walk.ts"
+      ],
+      "evidence": {
+        "file": "test/project-search.test.ts",
+        "title": "file_search and file_glob respect .gitignore, filters and regex"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-1",
+      "requirement": "网页获取与搜索：HTML becomes readable text with headings, lists, links and entities",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "HTML becomes readable text with headings, lists, links and entities"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-2",
+      "requirement": "网页获取与搜索：proxy selection honours NO_PROXY and refuses unsupported schemes",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "proxy selection honours NO_PROXY and refuses unsupported schemes"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-3",
+      "requirement": "网页获取与搜索：fetch converts HTML, decodes gzip and GBK, follows bounded redirects and caches",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "fetch converts HTML, decodes gzip and GBK, follows bounded redirects and caches"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-4",
+      "requirement": "网页获取与搜索：private networks, blocked hosts, redirects, size and time are enforced",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "private networks, blocked hosts, redirects, size and time are enforced"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-5",
+      "requirement": "网页获取与搜索：HTTP proxy: absolute-form requests, CONNECT tunnels with extra CA, proxy auth",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "HTTP proxy: absolute-form requests, CONNECT tunnels with extra CA, proxy auth"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-6",
+      "requirement": "网页获取与搜索：search providers: SearXNG, Tavily and registered providers with filtering",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "search providers: SearXNG, Tavily and registered providers with filtering"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-web-7",
+      "requirement": "网页获取与搜索：web_fetch and web_search tools run through policy, paging and asset storage",
+      "scope": "core",
+      "source": [
+        "src/web/client.ts",
+        "src/tools/index.ts"
+      ],
+      "evidence": {
+        "file": "test/web.test.ts",
+        "title": "web_fetch and web_search tools run through policy, paging and asset storage"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-1",
+      "requirement": "固定团队多 Agent 协作：collaboration coordinates distinct models in one workspace without occupying the only tool slot",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration coordinates distinct models in one workspace without occupying the only tool slot"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-2",
+      "requirement": "固定团队多 Agent 协作：collaboration can re-review after the latest user explicitly removes blocked work, with exact evidence",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration can re-review after the latest user explicitly removes blocked work, with exact evidence"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-3",
+      "requirement": "固定团队多 Agent 协作：collaboration rejects overlapping active write scopes and a second active assignment for one member",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration rejects overlapping active write scopes and a second active assignment for one member"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-4",
+      "requirement": "固定团队多 Agent 协作：collaboration bounds dispatches per run and lets later user rounds reuse member sessions",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration bounds dispatches per run and lets later user rounds reuse member sessions"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-5",
+      "requirement": "固定团队多 Agent 协作：collaboration keeps brainstorming read-only and continues from one user-facing conversation",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration keeps brainstorming read-only and continues from one user-facing conversation"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-6",
+      "requirement": "固定团队多 Agent 协作：collaboration denies unrelated conversation reads and member redispatch",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration denies unrelated conversation reads and member redispatch"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-7",
+      "requirement": "固定团队多 Agent 协作：collaboration marks earlier member work stale after accepted steering and preserves the initial goal",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration marks earlier member work stale after accepted steering and preserves the initial goal"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-8",
+      "requirement": "固定团队多 Agent 协作：collaboration cancels background member runs with the coordinator",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration cancels background member runs with the coordinator"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-9",
+      "requirement": "固定团队多 Agent 协作：collaboration requires whole-roster review and a host decision before missing responsibilities can be reassigned",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration requires whole-roster review and a host decision before missing responsibilities can be reassigned"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-collaboration-10",
+      "requirement": "固定团队多 Agent 协作：collaboration reuses broad planning and execution roles for testing without inventing agents or repeating review",
+      "scope": "core",
+      "source": [
+        "src/collaboration/manager.ts",
+        "src/collaboration/internal/role-review.ts",
+        "src/core/kernel.ts"
+      ],
+      "evidence": {
+        "file": "test/collaboration.test.ts",
+        "title": "collaboration reuses broad planning and execution roles for testing without inventing agents or repeating review"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-session-collaboration-controls-1",
+      "requirement": "会话协作设置与授权：session subagent toggle and inherited agent settings reach actual model requests",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/sessions/tools.ts",
+        "src/providers/reasoning.ts",
+        "src/api/collaboration.ts"
+      ],
+      "evidence": {
+        "file": "test/session-collaboration-controls.test.ts",
+        "title": "session subagent toggle and inherited agent settings reach actual model requests"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-session-collaboration-controls-2",
+      "requirement": "会话协作设置与授权：delegated sessions cannot exceed their parent's tool or model policies",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/sessions/tools.ts",
+        "src/providers/reasoning.ts",
+        "src/api/collaboration.ts"
+      ],
+      "evidence": {
+        "file": "test/session-collaboration-controls.test.ts",
+        "title": "delegated sessions cannot exceed their parent's tool or model policies"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-session-collaboration-controls-3",
+      "requirement": "会话协作设置与授权：fork records source and settings, and explicit conversation grants stay within a project",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/sessions/tools.ts",
+        "src/providers/reasoning.ts",
+        "src/api/collaboration.ts"
+      ],
+      "evidence": {
+        "file": "test/session-collaboration-controls.test.ts",
+        "title": "fork records source and settings, and explicit conversation grants stay within a project"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-session-collaboration-controls-4",
+      "requirement": "会话协作设置与授权：reasoning adapter uses explicit levels and refuses incompatible settings",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/sessions/tools.ts",
+        "src/providers/reasoning.ts",
+        "src/api/collaboration.ts"
+      ],
+      "evidence": {
+        "file": "test/session-collaboration-controls.test.ts",
+        "title": "reasoning adapter uses explicit levels and refuses incompatible settings"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-session-collaboration-controls-5",
+      "requirement": "会话协作设置与授权：references attached by steering are readable in the same live run",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/sessions/tools.ts",
+        "src/providers/reasoning.ts",
+        "src/api/collaboration.ts"
+      ],
+      "evidence": {
+        "file": "test/session-collaboration-controls.test.ts",
+        "title": "references attached by steering are readable in the same live run"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-session-collaboration-controls-6",
+      "requirement": "会话协作设置与授权：team settings and explicit user role decisions use the authenticated HTTP API",
+      "scope": "core",
+      "source": [
+        "src/core/kernel.ts",
+        "src/sessions/tools.ts",
+        "src/providers/reasoning.ts",
+        "src/api/collaboration.ts"
+      ],
+      "evidence": {
+        "file": "test/session-collaboration-controls.test.ts",
+        "title": "team settings and explicit user role decisions use the authenticated HTTP API"
+      },
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-1",
+      "requirement": "可选服务器插件：servers: authenticated HTTP profiles, probe without authentication, encrypted credentials, bounded verified command evidence",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: authenticated HTTP profiles, probe without authentication, encrypted credentials, bounded verified command evidence"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-2",
+      "requirement": "可选服务器插件：servers: encrypted private key authentication is supported without exposing credentials",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: encrypted private key authentication is supported without exposing credentials"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-3",
+      "requirement": "可选服务器插件：servers: wrong host fingerprint and wrong password are rejected, foreign project cannot connect",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: wrong host fingerprint and wrong password are rejected, foreign project cannot connect"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-4",
+      "requirement": "可选服务器插件：servers: cancellation, disconnect and output limit preserve unknown state without retry",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: cancellation, disconnect and output limit preserve unknown state without retry"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-5",
+      "requirement": "可选服务器插件：servers: profile changes and credential deletion cancel active operations across managers before committing",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: profile changes and credential deletion cancel active operations across managers before committing"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-6",
+      "requirement": "可选服务器插件：servers: trust update while credentials load cannot dispatch using an old profile",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: trust update while credentials load cannot dispatch using an old profile"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-7",
+      "requirement": "可选服务器插件：servers: SFTP cancellation, path validation and download byte limit preserve project boundaries",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: SFTP cancellation, path validation and download byte limit preserve project boundaries"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-8",
+      "requirement": "可选服务器插件：servers: SFTP round trip uses owned assets, upload declares remote execution and refuses foreign assets",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: SFTP round trip uses owned assets, upload declares remote execution and refuses foreign assets"
+      },
+      "optionalDependency": "ssh2",
+      "status": "passed-local-acceptance"
+    },
+    {
+      "id": "release12-servers-9",
+      "requirement": "可选服务器插件：servers: credentials deletion removes reference and external master key is required",
+      "scope": "optional-servers",
+      "source": [
+        "src/servers/index.ts",
+        "src/servers/manager.ts",
+        "src/servers/ssh.ts",
+        "src/servers/transfers.ts",
+        "src/servers/vault.ts"
+      ],
+      "evidence": {
+        "file": "test/servers.test.ts",
+        "title": "servers: credentials deletion removes reference and external master key is required"
+      },
+      "optionalDependency": "ssh2",
       "status": "passed-local-acceptance"
     }
   ],
@@ -4791,11 +5675,21 @@
       "id": "windows-public-network",
       "status": "separate-explicit-probe",
       "reason": "可选脚本对同一公网 TCP 端点验证宿主可达、AppContainer none 拒绝和 internet 允许，并确认清理；实际状态见 verification/windows-sandbox-network.json。普通核心测试不依赖公网连通性。"
+    },
+    {
+      "id": "live-agent-collaboration-and-user-servers",
+      "status": "not-run",
+      "reason": "多 Agent 分工和服务器 SSH/SFTP 使用本机协议服务验证；未验证真实付费模型的协作质量或用户业务服务器的部署配置。用户本轮明确暂不开展这些外部环境验证。"
     }
   ],
   "deferredByUser": [
-    "UI",
-    "ESP32 和其他实物硬件"
+    "配置界面与客户端 UI",
+    "完整办公编辑器和公式引擎",
+    "OCR",
+    "专门的 LSP 代码智能",
+    "Linux/macOS 等更多平台的桌面控制",
+    "ESP32 和其他实物硬件",
+    "真实供应商、第三方平台、Docker、POSIX PTY 与真实业务服务器等额外外部环境验证"
   ],
   "supportedBoundary": [
     "默认依赖仅 Ajv/TypeBox/Zod/YAML；无 Agent、模型、MCP 或 PTY SDK 运行依赖；Node/通用库仍受原许可约束。",
@@ -4815,7 +5709,11 @@
     "RFC 7592 远端 GET/PUT/DELETE 使用独立加密管理凭据；不确定结果不重试，需显式恢复读取。PUT 保留完整扩展元数据并固定已审核认证/回调/grant；远端收到 204 才报告删除，本地 reset 始终不代表远端注销。",
     "托管 OAuth 签名钥支持 RS256/ES256/EdDSA，先公开 JWKS 再按缓存窗口启用，旧公钥保留且旧私钥从当前状态移除；实际等待 60 秒的受信 HTTPS 切换验签已覆盖。主 vault 加密密钥不自动轮换；生产公网元数据/第三方身份平台未验收。",
     "0.10.0 可选应用包独立实现并验收管理浏览器、配对扩展、Windows 原生控制和声明的办公格式操作；默认核心不加载可选引擎，具体支持与未实现项见 APPLICATIONS.md。",
-    "0.11.0 Windows AppContainer 支持当前实测 Node 工作负载和持久管道；隔离 PTY 明确拒绝。Node/libuv 旧版子管道拒绝并报兼容错误，继承/文件 stdio 实测有效；DLL 和复杂语言运行时需额外配置与验收。详见 CORE-FOUNDATION.md。"
+    "0.11.0 Windows AppContainer 支持当前实测 Node 工作负载和持久管道；隔离 PTY 明确拒绝。Node/libuv 旧版子管道拒绝并报兼容错误，继承/文件 stdio 实测有效；DLL 和复杂语言运行时需额外配置与验收。详见 CORE-FOUNDATION.md。",
+    "0.12.0 子 Agent 可按会话开关；团队成员由用户固定配置独立模型、职责和思考参数，协调者复用并优化职责，不能自行增员。共享工作区派工受写范围、次数、权限和费用限制；语义分工质量仍依赖模型。",
+    "任务与讨论模式共用用户协调会话；讨论禁止修改和命令执行。分叉记录来源，跨会话读取需显式授予同项目访问。",
+    "服务器集成显式启用；ssh2 为可选 transport，密文和外部主密钥分开。严格主机指纹、项目范围与命令/SFTP 状态已接入；本机协议通过不代表真实服务器部署已验证。",
+    "0.12.0 增强网页抓取/可插拔搜索、模型瞬时错误重试、提示缓存、钩子、结构化结果、截断续写、文件回滚与遵守 .gitignore 的检索；具体上限与配置见 CORE-AGENT-LOOP.md、CORE-WEB.md。"
   ],
   "notImplemented": [
     {

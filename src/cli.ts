@@ -3,11 +3,12 @@ import { parseArgs } from "node:util";
 import { VERSION } from "./version.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { loadConfig } from "./config.js";
-import { Kernel } from "./kernel.js";
-import { serve } from "./server.js";
+import { loadConfig } from "./core/config.js";
+import { Kernel } from "./core/kernel.js";
+import { serve } from "./api/server.js";
 import { FoundationClient } from "./client.js";
 import type { Mode } from "./contracts.js";
+import { serverIntegration } from "./servers/index.js";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -25,6 +26,7 @@ const { values, positionals } = parseArgs({
     approval: { type: "string" },
     allow: { type: "boolean", default: false },
     host: { type: "string", default: "core" },
+    servers: { type: "boolean", default: false },
   },
 });
 const command = positionals[0] || "serve";
@@ -48,6 +50,7 @@ try {
             ](),
           ]
         : [];
+    if (values.servers) integrations.push(serverIntegration());
     const api = await serve(new Kernel(config, { integrations }));
     console.log(
       `Agent Foundation ${VERSION} ${api.url}\nConfig: ${path.resolve(values.config)}\nAPI token: ${process.env[config.server.tokenEnv] ? `environment ${config.server.tokenEnv}` : path.join(config.dataDir, "api-token")}\nRoutes: ${Object.entries(

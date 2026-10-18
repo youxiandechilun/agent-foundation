@@ -1,8 +1,29 @@
 {
   "name": "@local/agent-foundation",
-  "version": "0.11.0",
+  "version": "0.12.1",
   "private": true,
+  "license": "UNLICENSED",
+  "description": "可嵌入的 Agent 内核、独立 HTTP 客户端及可选宿主集成",
   "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "bin": {
+    "agent-foundation": "./dist/cli.js"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.mjs",
+    "dist/**/*.cjs",
+    "dist/**/*.cs",
+    "dist/**/*.ps1",
+    "dist/**/*.py",
+    "extensions/browser-bridge/**",
+    "config.example.json",
+    "docs/**",
+    "examples/sdk/**",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,7 +39,7 @@
     }
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": "^22.19.0 || >=24.0.0"
   },
   "scripts": {
     "dev": "npm run build && node dist/cli.js serve",
@@ -36,7 +57,9 @@
     "test:host": "node scripts/run-core-tests.mjs --host",
     "test:docker": "npm run build && node scripts/test-docker.mjs",
     "test:windows-network": "npm run build && node scripts/test-windows-sandbox-network.mjs",
-    "verify:host": "node scripts/verify-applications.mjs"
+    "verify:host": "node scripts/verify-applications.mjs",
+    "pack:sdk": "node scripts/release/package-sdk.mjs",
+    "verify:sdk": "node scripts/release/verify-sdk.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",
@@ -54,6 +77,7 @@
   },
   "devDependencies": {
     "@types/node": "22.18.10",
+    "@types/ssh2": "1.15.6",
     "@types/ws": "8.18.2",
     "prettier": "3.9.10",
     "typescript": "5.9.3"
@@ -68,6 +92,7 @@
     "pdfjs-dist": "6.4.299",
     "playwright": "1.64.1",
     "pptxgenjs": "4.0.1",
+    "ssh2": "1.17.0",
     "ws": "8.22.0"
   }
 }

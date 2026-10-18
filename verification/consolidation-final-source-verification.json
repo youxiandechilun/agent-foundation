@@ -1,0 +1,11 @@
+{
+  "check": {
+    "name": "consolidation-final-source-check",
+    "status": "passed",
+    "exitCode": 0,
+    "durationMs": 151,
+    "stdoutLog": "consolidation-final-source-check.log",
+    "stderrLog": "consolidation-final-source-check.stderr.log"
+  },
+  "previousSourceManifestRestored": true
+}

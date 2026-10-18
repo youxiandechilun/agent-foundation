@@ -1,0 +1,509 @@
+{
+  "assessedAt": "2026-10-18T02:46:01.803Z",
+  "mode": "只读：未启动原生 UI 输入，未修改生产或测试源码",
+  "baseline": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\consolidation-20261018-before",
+  "conclusion": "未找到本轮重构直接修改原生文本设置、前台切换或输入路径的证据。日志明确显示两次前台保护相关失败及一次真实文本断言失败；不能据此宣布宿主全通过，也不能仅凭这些日志认定额外字符必定来自环境或排除所有时间相关影响。",
+  "logs": [
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\consolidation-host-tests.log",
+      "sha256": "b0874df5279d1fcc7e250eeb9afb695797ebe024bf73b2aba9ce3322a1ddb0bf",
+      "summary": [
+        "# tests 33",
+        "# pass 33",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "nativeResults": [
+        "ok 16 - Windows native controller compiles its input helpers and reads actual desktop state without sending input",
+        "ok 18 - native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture",
+        "ok 19 - native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates"
+      ]
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\consolidation-final-host-tests.log",
+      "sha256": "4904a86fb608fcd2679a60114eea71abe122834dca4516a5e086cfe51b652eb2",
+      "summary": [
+        "# tests 33",
+        "# pass 32",
+        "# fail 1",
+        "# skipped 0"
+      ],
+      "nativeResults": [
+        "ok 16 - Windows native controller compiles its input helpers and reads actual desktop state without sending input",
+        "ok 18 - native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture",
+        "not ok 19 - native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates"
+      ]
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\consolidation-final-host-recheck.log",
+      "sha256": "4dd1166d7ff0eda87c884394a67d89e3cb4c7faea5316d5b7035490f98ada4eb",
+      "summary": [
+        "# tests 33",
+        "# pass 31",
+        "# fail 2",
+        "# skipped 0"
+      ],
+      "nativeResults": [
+        "ok 16 - Windows native controller compiles its input helpers and reads actual desktop state without sending input",
+        "not ok 18 - native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture",
+        "not ok 19 - native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates"
+      ]
+    }
+  ],
+  "sourceComparisons": [
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\computer\\native\\windows-computer.cs",
+      "beforeSha256": "d482782e5d44e842501c83e4c8d3b4eac30640e5303ec5f74b0457e553c1a642",
+      "afterSha256": "d482782e5d44e842501c83e4c8d3b4eac30640e5303ec5f74b0457e553c1a642",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\computer\\native\\windows-computer.ps1",
+      "beforeSha256": "6096f685ce0d3412c3dcb0a1f43e45bf6a03e030a07c484cbad518c1e285c3c2",
+      "afterSha256": "6096f685ce0d3412c3dcb0a1f43e45bf6a03e030a07c484cbad518c1e285c3c2",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\computer\\manager.ts",
+      "beforeSha256": "ed9d6915487c20d18308b171bc29f597f1472235b4cd2a6e8b7b44c34172de7f",
+      "afterSha256": "ed9d6915487c20d18308b171bc29f597f1472235b4cd2a6e8b7b44c34172de7f",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\access.ts",
+      "beforeSha256": "27e47ba732389f68bad36f5257363134faaa962a1ee6ce9786b1da7455d613fc",
+      "afterSha256": "27e47ba732389f68bad36f5257363134faaa962a1ee6ce9786b1da7455d613fc",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\desktop-tools.ts",
+      "beforeSha256": "bdf99ea8dba7a11f59d5d47a533f8f6250b5c077212f02c24ac5421111534eeb",
+      "afterSha256": "bdf99ea8dba7a11f59d5d47a533f8f6250b5c077212f02c24ac5421111534eeb",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\applications.ts",
+      "beforeSha256": "5c901734e8d29517a9588375513e43635226e378e30b2dd248a1ad129824f5db",
+      "afterSha256": "2f8f7fab9f0714f9355c9bcc3f99cf97af584d135aa613aa03240e36436cbc81",
+      "identical": false
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\host\\request-signal.ts",
+      "beforeSha256": "324192c3b7efdeefae6a963b73a51f93efe8901cb5a26b521d637e9acc5d9e74",
+      "afterSha256": "324192c3b7efdeefae6a963b73a51f93efe8901cb5a26b521d637e9acc5d9e74",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\runtime\\registry.ts",
+      "beforeSha256": "d36c5959a892c96a795d9781c0e778137112b0a6b0b95d12bf340df3cd4dc3c0",
+      "afterSha256": "d36c5959a892c96a795d9781c0e778137112b0a6b0b95d12bf340df3cd4dc3c0",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\runtime\\json-schema.ts",
+      "beforeSha256": "35824b480c4d11c4fbe18da617322cda69f37217d7d975f59d4a072139cc5fd8",
+      "afterSha256": "b73e6609e3f5025e54b4eefbba1e495dd9cb72868753187c62614a4f17ed8bc5",
+      "identical": false
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\core\\kernel.ts",
+      "beforeSha256": "2bc91f9075e221fa705481a6c4ef024cb829ded2c62ff765a720bbccf74db4e7",
+      "afterSha256": "2bc91f9075e221fa705481a6c4ef024cb829ded2c62ff765a720bbccf74db4e7",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\core\\config.ts",
+      "beforeSha256": "32d1b3c72fbbc3f4733f9bf0fe03b5e74de28cc53312085f3daba416e7fcc27f",
+      "afterSha256": "32d1b3c72fbbc3f4733f9bf0fe03b5e74de28cc53312085f3daba416e7fcc27f",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\core\\util.ts",
+      "beforeSha256": "dad3f938db8e7c916f185e20b2806a07455a9ba9a18ae84d8e0f48ec2cce4e09",
+      "afterSha256": "dad3f938db8e7c916f185e20b2806a07455a9ba9a18ae84d8e0f48ec2cce4e09",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\storage\\assets.ts",
+      "beforeSha256": "f875bd9fb4ba7dafd72df7baba695d657a725aae7345567ef63c96f4bd5eba1a",
+      "afterSha256": "f875bd9fb4ba7dafd72df7baba695d657a725aae7345567ef63c96f4bd5eba1a",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\storage\\store.ts",
+      "beforeSha256": "6af351813638f78544ede0ef56c80f5a8470638ad70bc02794219be2a6d12fbf",
+      "afterSha256": "5841cf9dbef03cb3a0e6fad7cbc45bdae618da179c44c20cdfe0f6afcc2f47b8",
+      "identical": false
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\storage\\entity-query.ts",
+      "beforeSha256": "01f37d878fe3db62c5e83f944a07a6c89140948edeb8313d0f53275156dfad19",
+      "afterSha256": "5bfc0044284b6ecff4559d26502bf2331810dc6d3a0d624bc7b90903b99cee90",
+      "identical": false
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\test\\computer-app.integration.ts",
+      "beforeSha256": "1935fb135c9ce60c10ba995afb306d8598ed6e29a3219742470d5f4258aeb0e6",
+      "afterSha256": "1935fb135c9ce60c10ba995afb306d8598ed6e29a3219742470d5f4258aeb0e6",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\test\\support\\computer-fixture.ps1",
+      "beforeSha256": "95e5581e9939555cd4cb4057fa15a4c21a3c39235e2a58a297d33d08d41756d4",
+      "afterSha256": "95e5581e9939555cd4cb4057fa15a4c21a3c39235e2a58a297d33d08d41756d4",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\test\\support\\wire-server.ts",
+      "beforeSha256": "f7c178f59c66a3fb9dede543eb5f479f46d598edd1824fe05334b87b0e837c8e",
+      "afterSha256": "f7c178f59c66a3fb9dede543eb5f479f46d598edd1824fe05334b87b0e837c8e",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\scripts\\run-core-tests.mjs",
+      "beforeSha256": "e2dc07a8ae9c4ddaafecc8d130358f291d1e00f8f281b79118828a5609c28bcc",
+      "afterSha256": "e2dc07a8ae9c4ddaafecc8d130358f291d1e00f8f281b79118828a5609c28bcc",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\scripts\\copy-runtime.mjs",
+      "beforeSha256": "7185e0f41d398628f05ac29dc074ac1756d33726c2a26c22ff425b94458a0200",
+      "afterSha256": "7185e0f41d398628f05ac29dc074ac1756d33726c2a26c22ff425b94458a0200",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\scripts\\runtime-files.mjs",
+      "beforeSha256": "eca0574f1ebbc6a227789e71f2b2b28777fcb34f449150923afe51e39f7768db",
+      "afterSha256": "eca0574f1ebbc6a227789e71f2b2b28777fcb34f449150923afe51e39f7768db",
+      "identical": true
+    }
+  ],
+  "compiledComparisons": [
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\computer\\native\\windows-computer.cs",
+      "expectedSha256": "d482782e5d44e842501c83e4c8d3b4eac30640e5303ec5f74b0457e553c1a642",
+      "actualSha256": "d482782e5d44e842501c83e4c8d3b4eac30640e5303ec5f74b0457e553c1a642",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\computer\\native\\windows-computer.ps1",
+      "expectedSha256": "6096f685ce0d3412c3dcb0a1f43e45bf6a03e030a07c484cbad518c1e285c3c2",
+      "actualSha256": "6096f685ce0d3412c3dcb0a1f43e45bf6a03e030a07c484cbad518c1e285c3c2",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\computer\\manager.js",
+      "expectedSha256": "05796ccf1e922118e84c06f812afc5f46714f39ced01080aaef54349dbb867db",
+      "actualSha256": "05796ccf1e922118e84c06f812afc5f46714f39ced01080aaef54349dbb867db",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\access.js",
+      "expectedSha256": "299d683756e1e6de0d48a44718b9bed7aa9cb4acd835b1e96e6847b1c107ec7e",
+      "actualSha256": "299d683756e1e6de0d48a44718b9bed7aa9cb4acd835b1e96e6847b1c107ec7e",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\desktop-tools.js",
+      "expectedSha256": "03c8f3ee8c16aa43cdf2313e90eda9ce0a7c19b5effd6d24eeed19a685bc366d",
+      "actualSha256": "03c8f3ee8c16aa43cdf2313e90eda9ce0a7c19b5effd6d24eeed19a685bc366d",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\applications.js",
+      "expectedSha256": "a5b97dcc316f7412d8a138f8c96138b7daecb9ac337413d6f9a41d8317302d33",
+      "actualSha256": "a5b97dcc316f7412d8a138f8c96138b7daecb9ac337413d6f9a41d8317302d33",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\host\\request-signal.js",
+      "expectedSha256": "0b2ee718c080fcede5005eeb801ac559b5506b59b6cbe79d31e0636da3920fa2",
+      "actualSha256": "0b2ee718c080fcede5005eeb801ac559b5506b59b6cbe79d31e0636da3920fa2",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\runtime\\registry.js",
+      "expectedSha256": "325a5fb908977e518cd0f3049c4c73b75cc87a5b0c9be9032858533284470f22",
+      "actualSha256": "325a5fb908977e518cd0f3049c4c73b75cc87a5b0c9be9032858533284470f22",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\runtime\\json-schema.js",
+      "expectedSha256": "e1a17258fcba6435309a2332f295588c282521c18253480e87496c37957bc06d",
+      "actualSha256": "e1a17258fcba6435309a2332f295588c282521c18253480e87496c37957bc06d",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\core\\kernel.js",
+      "expectedSha256": "fd4b3dcd8e7c8ddba189523b1e6bd80c4018e1b679b4d00e14e64be984857929",
+      "actualSha256": "fd4b3dcd8e7c8ddba189523b1e6bd80c4018e1b679b4d00e14e64be984857929",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\core\\config.js",
+      "expectedSha256": "0b49a3085dd8eca8dd1e97cddf2bedbf136c9285a36287084f01e3ba46e4aaa0",
+      "actualSha256": "0b49a3085dd8eca8dd1e97cddf2bedbf136c9285a36287084f01e3ba46e4aaa0",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\core\\util.js",
+      "expectedSha256": "c06387646bc6c23b1e2843d371bf2bfa7bbaaab5ac5b793be041fc9f1ca54dc7",
+      "actualSha256": "c06387646bc6c23b1e2843d371bf2bfa7bbaaab5ac5b793be041fc9f1ca54dc7",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\storage\\assets.js",
+      "expectedSha256": "137eaf58cfeb8d3cefc4f0470aa1d220f653e99bfbbbcea5c834839a1f95e794",
+      "actualSha256": "137eaf58cfeb8d3cefc4f0470aa1d220f653e99bfbbbcea5c834839a1f95e794",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\storage\\store.js",
+      "expectedSha256": "628619c7f7f3c84697054fd4a31b3adc0fd6ffb17476acb9bffc8070b2f06f56",
+      "actualSha256": "628619c7f7f3c84697054fd4a31b3adc0fd6ffb17476acb9bffc8070b2f06f56",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\src\\storage\\entity-query.js",
+      "expectedSha256": "6be8c57a74e83eb6ecbc9793bd1c243e3a1334b2ce88826050132e3ddfa7c677",
+      "actualSha256": "6be8c57a74e83eb6ecbc9793bd1c243e3a1334b2ce88826050132e3ddfa7c677",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\test\\computer-app.integration.js",
+      "expectedSha256": "06c927aee1c13ad9f180d67421b0cba1c5a271660da9137961e801b7e59639c7",
+      "actualSha256": "06c927aee1c13ad9f180d67421b0cba1c5a271660da9137961e801b7e59639c7",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\test\\support\\computer-fixture.ps1",
+      "expectedSha256": "95e5581e9939555cd4cb4057fa15a4c21a3c39235e2a58a297d33d08d41756d4",
+      "actualSha256": "95e5581e9939555cd4cb4057fa15a4c21a3c39235e2a58a297d33d08d41756d4",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-Km8BX2\\test\\support\\wire-server.js",
+      "expectedSha256": "208ae8d623dce9ddd5eba2514f261efff821e9911bedc25d43467bd2485af226",
+      "actualSha256": "208ae8d623dce9ddd5eba2514f261efff821e9911bedc25d43467bd2485af226",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\computer\\native\\windows-computer.cs",
+      "expectedSha256": "d482782e5d44e842501c83e4c8d3b4eac30640e5303ec5f74b0457e553c1a642",
+      "actualSha256": "d482782e5d44e842501c83e4c8d3b4eac30640e5303ec5f74b0457e553c1a642",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\computer\\native\\windows-computer.ps1",
+      "expectedSha256": "6096f685ce0d3412c3dcb0a1f43e45bf6a03e030a07c484cbad518c1e285c3c2",
+      "actualSha256": "6096f685ce0d3412c3dcb0a1f43e45bf6a03e030a07c484cbad518c1e285c3c2",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\computer\\manager.js",
+      "expectedSha256": "05796ccf1e922118e84c06f812afc5f46714f39ced01080aaef54349dbb867db",
+      "actualSha256": "05796ccf1e922118e84c06f812afc5f46714f39ced01080aaef54349dbb867db",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\access.js",
+      "expectedSha256": "299d683756e1e6de0d48a44718b9bed7aa9cb4acd835b1e96e6847b1c107ec7e",
+      "actualSha256": "299d683756e1e6de0d48a44718b9bed7aa9cb4acd835b1e96e6847b1c107ec7e",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\desktop-tools.js",
+      "expectedSha256": "03c8f3ee8c16aa43cdf2313e90eda9ce0a7c19b5effd6d24eeed19a685bc366d",
+      "actualSha256": "03c8f3ee8c16aa43cdf2313e90eda9ce0a7c19b5effd6d24eeed19a685bc366d",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\applications.js",
+      "expectedSha256": "a5b97dcc316f7412d8a138f8c96138b7daecb9ac337413d6f9a41d8317302d33",
+      "actualSha256": "a5b97dcc316f7412d8a138f8c96138b7daecb9ac337413d6f9a41d8317302d33",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\host\\request-signal.js",
+      "expectedSha256": "0b2ee718c080fcede5005eeb801ac559b5506b59b6cbe79d31e0636da3920fa2",
+      "actualSha256": "0b2ee718c080fcede5005eeb801ac559b5506b59b6cbe79d31e0636da3920fa2",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\runtime\\registry.js",
+      "expectedSha256": "325a5fb908977e518cd0f3049c4c73b75cc87a5b0c9be9032858533284470f22",
+      "actualSha256": "325a5fb908977e518cd0f3049c4c73b75cc87a5b0c9be9032858533284470f22",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\runtime\\json-schema.js",
+      "expectedSha256": "e1a17258fcba6435309a2332f295588c282521c18253480e87496c37957bc06d",
+      "actualSha256": "e1a17258fcba6435309a2332f295588c282521c18253480e87496c37957bc06d",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\core\\kernel.js",
+      "expectedSha256": "fd4b3dcd8e7c8ddba189523b1e6bd80c4018e1b679b4d00e14e64be984857929",
+      "actualSha256": "fd4b3dcd8e7c8ddba189523b1e6bd80c4018e1b679b4d00e14e64be984857929",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\core\\config.js",
+      "expectedSha256": "0b49a3085dd8eca8dd1e97cddf2bedbf136c9285a36287084f01e3ba46e4aaa0",
+      "actualSha256": "0b49a3085dd8eca8dd1e97cddf2bedbf136c9285a36287084f01e3ba46e4aaa0",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\core\\util.js",
+      "expectedSha256": "c06387646bc6c23b1e2843d371bf2bfa7bbaaab5ac5b793be041fc9f1ca54dc7",
+      "actualSha256": "c06387646bc6c23b1e2843d371bf2bfa7bbaaab5ac5b793be041fc9f1ca54dc7",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\storage\\assets.js",
+      "expectedSha256": "137eaf58cfeb8d3cefc4f0470aa1d220f653e99bfbbbcea5c834839a1f95e794",
+      "actualSha256": "137eaf58cfeb8d3cefc4f0470aa1d220f653e99bfbbbcea5c834839a1f95e794",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\storage\\store.js",
+      "expectedSha256": "628619c7f7f3c84697054fd4a31b3adc0fd6ffb17476acb9bffc8070b2f06f56",
+      "actualSha256": "628619c7f7f3c84697054fd4a31b3adc0fd6ffb17476acb9bffc8070b2f06f56",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\src\\storage\\entity-query.js",
+      "expectedSha256": "6be8c57a74e83eb6ecbc9793bd1c243e3a1334b2ce88826050132e3ddfa7c677",
+      "actualSha256": "6be8c57a74e83eb6ecbc9793bd1c243e3a1334b2ce88826050132e3ddfa7c677",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\test\\computer-app.integration.js",
+      "expectedSha256": "06c927aee1c13ad9f180d67421b0cba1c5a271660da9137961e801b7e59639c7",
+      "actualSha256": "06c927aee1c13ad9f180d67421b0cba1c5a271660da9137961e801b7e59639c7",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\test\\support\\computer-fixture.ps1",
+      "expectedSha256": "95e5581e9939555cd4cb4057fa15a4c21a3c39235e2a58a297d33d08d41756d4",
+      "actualSha256": "95e5581e9939555cd4cb4057fa15a4c21a3c39235e2a58a297d33d08d41756d4",
+      "identical": true
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-GqysSb\\test\\support\\wire-server.js",
+      "expectedSha256": "208ae8d623dce9ddd5eba2514f261efff821e9911bedc25d43467bd2485af226",
+      "actualSha256": "208ae8d623dce9ddd5eba2514f261efff821e9911bedc25d43467bd2485af226",
+      "identical": true
+    }
+  ],
+  "sourceFacts": [
+    {
+      "path": "src/host/computer/native/windows-computer.cs",
+      "lines": [
+        83,
+        86,
+        88
+      ],
+      "fact": "UIA set_value 直接调用 ValuePattern.SetValue(text)，未调用 SendInput；辅助 C# 文件与快照完全相同。"
+    },
+    {
+      "path": "src/host/computer/native/windows-computer.cs",
+      "lines": [
+        110,
+        111,
+        115,
+        117,
+        133,
+        134
+      ],
+      "fact": "Focus 调用 SetForegroundWindow，最多等待 750ms 后校验；Pointer 在发送输入前校验当前前台窗口。两处错误文本与日志完全对应，保护行为来自未改动代码。"
+    },
+    {
+      "path": "test/computer-app.integration.ts",
+      "lines": [
+        92,
+        121,
+        125,
+        126,
+        128,
+        198,
+        203,
+        210
+      ],
+      "fact": "失败用例直接调用 kernel.computer.action。首个用例在 set_value、invoke、toggle 后读取 state.text；第二个用例只在开始显式 focus，此后多次 native 调用之间可能发生前台状态变化。日志没有每次 native action 的成功时间线。"
+    },
+    {
+      "path": "test/support/computer-fixture.ps1",
+      "lines": [
+        43,
+        47,
+        60
+      ],
+      "fact": "fixture 直接持久化 editor.Text；TextChanged 和 100ms timer 写 state.json。此脚本与快照完全相同；没有可据以识别额外字符来源的逐键或焦点事件轨迹。"
+    },
+    {
+      "path": "src/host/applications.ts",
+      "lines": [
+        145,
+        163
+      ],
+      "fact": "本轮修改限于 HTTP applications 与 browser bridge 路由边界。computerIntegration 的 install、ComputerController 构建及 authorize 回调没有改变；失败动作直接调用服务，绕过这些 HTTP 处理分支。"
+    },
+    {
+      "path": "src/storage/store.ts",
+      "lines": [
+        130,
+        141,
+        146,
+        205,
+        242,
+        271
+      ],
+      "fact": "授权路径读取 project/policies 会触及重构后的 selectJson/selectJsonOne；原 SQL、绑定值、同步缓存方式及 JSON.parse 结果保留。这些读取不生成或修改 native text、windowId、processId，不负责焦点或按键。不能由静态分析排除全局运行时间的间接变化。"
+    },
+    {
+      "path": "src/runtime/json-schema.ts",
+      "fact": "toolRegistry.resolve 使用 toolParameters 描述 schema，实际 computer.action 仍直接使用 Zod parse；本轮修改的是 compileSchema/Ajv 缓存部分。",
+      "toolParametersIdentical": true
+    },
+    {
+      "path": "scripts/run-core-tests.mjs",
+      "fact": "runner 原样使用 --test-concurrency=1；从两份失败日志引用的编译目录逐项比较源文件预期转译/复制结果，见 compiledComparisons。没有执行新的原生回归。"
+    }
+  ],
+  "failures": [
+    {
+      "log": "verification/consolidation-final-host-tests.log",
+      "lines": [
+        121,
+        128
+      ],
+      "failure": "第 19 项在 Focus 内抛出 Windows denied foreground focus",
+      "supportedInterpretation": "该次显式 focus 请求后，目标在等待窗口内未成为前台；无法由日志确定 Windows 拒绝原因。"
+    },
+    {
+      "log": "verification/consolidation-final-host-recheck.log",
+      "lines": [
+        115,
+        125,
+        131
+      ],
+      "failure": "第 18 项在 UIA 操作之后读得 lActual native 中文 value，预期为 Actual native 中文 value",
+      "supportedInterpretation": "断言确实失败；日志没有 set_value 即刻回读、逐键事件或外部窗口记录，无法把 l 归因给 UIA、用户输入、输入法或其他进程。"
+    },
+    {
+      "log": "verification/consolidation-final-host-recheck.log",
+      "lines": [
+        139,
+        146
+      ],
+      "failure": "第 19 项某次 Pointer 抛出 Target window is not foreground",
+      "supportedInterpretation": "Pointer 调用时目标已非前台；focus 步骤未抛错，不能据此保证后续一直保持前台，也无法从日志识别是哪一次 pointer 操作。"
+    }
+  ],
+  "limitations": [
+    "源码哈希一致排除了这些直接实现的本轮修改，但不能证明任何运行环境或所有共享路径的行为完全等价。",
+    "前次 33/33 通过是已有历史证据，不能覆盖最终 32/33 与复查 31/33 的实际失败。",
+    "未对真实桌面做新的输入、重试或修改保护策略；当前诊断不提供这些 native 交互已修复或当前可稳定通过的结论。"
+  ]
+}

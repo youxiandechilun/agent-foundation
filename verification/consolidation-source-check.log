@@ -1,0 +1,7 @@
+{
+  "version": "0.12.1",
+  "runtime": "foundation-owned",
+  "sourceFiles": 313,
+  "agentFrameworkDependencies": [],
+  "productionFixtureAdapters": []
+}

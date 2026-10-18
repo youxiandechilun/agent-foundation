@@ -1,0 +1,381 @@
+{
+  "checkedAt": "2026-10-18T02:42:17.333Z",
+  "baselinePath": ".agent-data-refactor/consolidation-20261018-before/source-metrics.json",
+  "baselineBasis": "SHA-256 source snapshot, not Git HEAD",
+  "scope": "All added/modified TypeScript files under src/extensions/test/scripts/examples compared with the pre-consolidation snapshot. Strict type checking directly includes changed test TypeScript files and their imported dependencies. Deleted files are listed but not checked.",
+  "node": "v22.22.0",
+  "typescript": "5.9.3",
+  "prettier": "3.9.10",
+  "compilerOptions": {
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+      "rootDir": "..",
+      "noEmit": true,
+      "declaration": false,
+      "sourceMap": false,
+      "strict": true
+    },
+    "files": [
+      "../test/api-routing.test.ts",
+      "../test/event-stream-backpressure.test.ts",
+      "../test/extension-isolation.test.ts",
+      "../test/hook-cancellation.test.ts",
+      "../test/host-route-boundaries.integration.ts",
+      "../test/http-route-contracts.test.ts",
+      "../test/mcp-client.test.ts",
+      "../test/memory-ranking.test.ts",
+      "../test/migration.test.ts",
+      "../test/project-search.test.ts",
+      "../test/schema-cache.test.ts"
+    ],
+    "include": [],
+    "exclude": []
+  },
+  "tsconfigPath": ".agent-data-refactor/consolidation-static-tests-20261018T024207761Z.json",
+  "changes": [
+    {
+      "path": "src/api/collaboration.ts",
+      "change": "modified",
+      "beforeSha256": "15bc7d524d81672b8571488392d1c83ff2375436d82c852ccd9ec6178d9c3521",
+      "afterSha256": "9adb087fb8974a006a53778ffa8daa1b3c070dc4b519f6fbf8bbb4dbfcb0f27d"
+    },
+    {
+      "path": "src/api/events.ts",
+      "change": "modified",
+      "beforeSha256": "fe29e9fdcd4b2c035d5544b23bf0f743c4b61e1cc2e6464d9815bc8bcae8f0a3",
+      "afterSha256": "4bbd0dfe566a995e2ddc8f0e6a3e02b9159a98b5ff7105e6953723ed748843a9"
+    },
+    {
+      "path": "src/api/management.ts",
+      "change": "modified",
+      "beforeSha256": "5b10c34a1ed959951bffd40a4d3f2bc29d34a95a3ba2dcb9bae02d717b9f4c69",
+      "afterSha256": "6f0d5c6e6c7015b3528bff9263efb1505deef79601fa0a757f05c60b892f632c"
+    },
+    {
+      "path": "src/api/route-table.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "df979679d3da5deb538f276c233999c151365610636b9dcbd88e81a98dc7a3bf"
+    },
+    {
+      "path": "src/api/routes/configuration.ts",
+      "change": "modified",
+      "beforeSha256": "5de10275c312352039616a384c64a86d4cf0380d2c4f7df6379f21e134bf55db",
+      "afterSha256": "68546f59a40573e0ef055e069a33b23c61d6c3b8d9c5f2126f281336dea8a4e7"
+    },
+    {
+      "path": "src/api/routes/extensions.ts",
+      "change": "modified",
+      "beforeSha256": "c3ee0c0e313f57258ceb50d2b2ea18b331476347d9e596652015778558caaf43",
+      "afterSha256": "086e6a3dd0ed68f8423ae20fc8d2d4b724c408e366d2c105a79d1b0d32516586"
+    },
+    {
+      "path": "src/api/routes/mcp.ts",
+      "change": "modified",
+      "beforeSha256": "fe1220839395f970c8d11eaf6a736acacdceb3838a6a6e0cad7f01c972b1ac86",
+      "afterSha256": "cf8943e78ce4e736edee2952b338c918b76d3f8d6a247659c7968ec75090cdde"
+    },
+    {
+      "path": "src/api/routes/memory.ts",
+      "change": "modified",
+      "beforeSha256": "23f3a9513bc2d4d1253f66abfd8fb98497ae56983897d759b1a44ba60d09157b",
+      "afterSha256": "aa7fd909109bc306495d463842cc5b4a879a51f23e21ff9de2f45d1829e57b65"
+    },
+    {
+      "path": "src/api/routes/resources.ts",
+      "change": "modified",
+      "beforeSha256": "0f0adad5c56b241a1097c463f22838e815fe45d67e0b2d3e78dbcfa899303273",
+      "afterSha256": "2b3f7ac99737902844b58f351797386b2aabf51138f6987755157149f1823cb1"
+    },
+    {
+      "path": "src/api/routes/session-management.ts",
+      "change": "modified",
+      "beforeSha256": "a6b13c599e95ae175569c43e62b0e279dc7886ba692a3cacf25dd0a0d336c5e3",
+      "afterSha256": "7d9b65e7b88d8435bd2f380d19762008b8e2eebff680f2010a3c81508f935191"
+    },
+    {
+      "path": "src/api/routes/sessions.ts",
+      "change": "modified",
+      "beforeSha256": "3d8cd8413be837c3625458411b11805f0e74a450fc2bab38c502b3461e9e1d63",
+      "afterSha256": "afca81258165222f76ae7d29fd10ff7751814a1c7a99a616a3c445264d020335"
+    },
+    {
+      "path": "src/api/server.ts",
+      "change": "modified",
+      "beforeSha256": "e84d78187e0f387f77c27ecc768ba29a1e4d4baae29a8798e761737ef6a01df1",
+      "afterSha256": "6a26cc5e1d77a8bf9c93856090b612dea37f2f851de730dd521fb6b5e8b55f45"
+    },
+    {
+      "path": "src/extensions/mcp/manager.ts",
+      "change": "modified",
+      "beforeSha256": "08a4baa71b3c36746e3b8155bdf402079cc06a2b97baa4e358eac93764805a0a",
+      "afterSha256": "ab3dc86602fac75a6aa1215940b2f8025b9cd53d9a2554b75aaf557e62eb14be"
+    },
+    {
+      "path": "src/extensions/plugins/invocation.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "a6925e30d45fc37f0978d7bda67b0324b463b06720a42282838bd46062de467b"
+    },
+    {
+      "path": "src/extensions/plugins/manager.ts",
+      "change": "modified",
+      "beforeSha256": "3d9762c7109141c5ea6fb7de08e6c63804d43f1f6d76018c2142633f95136e63",
+      "afterSha256": "68c17066be22d3d7794be1176b1fec121405a521bbb661573e3d0c0891972a4e"
+    },
+    {
+      "path": "src/host/applications.ts",
+      "change": "modified",
+      "beforeSha256": "5c901734e8d29517a9588375513e43635226e378e30b2dd248a1ad129824f5db",
+      "afterSha256": "2f8f7fab9f0714f9355c9bcc3f99cf97af584d135aa613aa03240e36436cbc81"
+    },
+    {
+      "path": "src/host/desktop-api.ts",
+      "change": "modified",
+      "beforeSha256": "ca45fb296c4e849a4e9efc49334796172a09d6257ec82c89b70b00ece8ee1205",
+      "afterSha256": "153198f73217b4dda58d4b3615319ace0ded942d5ce392f665c6421fb0993d30"
+    },
+    {
+      "path": "src/host/office/api.ts",
+      "change": "modified",
+      "beforeSha256": "5f67fc18595de721fa28692af2324ef1698a0f66d71d69a7b054b6b0f6f0ae15",
+      "afterSha256": "f03e900ee0d9e260ce47829d55fc615706c69acd09ab2019f6f6b978043051b5"
+    },
+    {
+      "path": "src/runtime/hooks.ts",
+      "change": "modified",
+      "beforeSha256": "2c7d0beadab30b267a5888c2ae6f93f0c9f15ae56be18cdc5b729928ab9e2dae",
+      "afterSha256": "d8ef7efed1824382c5512296cf9bc5114beb8dbd36404856659fb673510efb02"
+    },
+    {
+      "path": "src/runtime/json-schema.ts",
+      "change": "modified",
+      "beforeSha256": "35824b480c4d11c4fbe18da617322cda69f37217d7d975f59d4a072139cc5fd8",
+      "afterSha256": "b73e6609e3f5025e54b4eefbba1e495dd9cb72868753187c62614a4f17ed8bc5"
+    },
+    {
+      "path": "src/sessions/checkpoints.ts",
+      "change": "modified",
+      "beforeSha256": "04404dade747e6c3507587fb192e0e65a8f2c099076c7afccfd92ed1855f51ea",
+      "afterSha256": "e8ff9b88ab84e41cadfc4bf42156ddfcb7c726867d728107d89cd8818ebe1db5"
+    },
+    {
+      "path": "src/sessions/migration.ts",
+      "change": "modified",
+      "beforeSha256": "1da6637d32ec85abb570763fecb248b6fbf785f4f2da78bb2fc7389ed7e55d54",
+      "afterSha256": "34939d1b0270f03a2a93a6ca27fbfce26ec88286f387d25bc352e237da43ee41"
+    },
+    {
+      "path": "src/storage/entity-query.ts",
+      "change": "modified",
+      "beforeSha256": "01f37d878fe3db62c5e83f944a07a6c89140948edeb8313d0f53275156dfad19",
+      "afterSha256": "5bfc0044284b6ecff4559d26502bf2331810dc6d3a0d624bc7b90903b99cee90"
+    },
+    {
+      "path": "src/storage/memory.ts",
+      "change": "modified",
+      "beforeSha256": "3052dee7e74f916db190ed920afc53ca7205d3024c44de1130e9e44c379923a0",
+      "afterSha256": "84736db2b91f7595e704783a344c74b059764fe79d2b5829a3ea56c6a3f04d6e"
+    },
+    {
+      "path": "src/storage/store.ts",
+      "change": "modified",
+      "beforeSha256": "6af351813638f78544ede0ef56c80f5a8470638ad70bc02794219be2a6d12fbf",
+      "afterSha256": "5841cf9dbef03cb3a0e6fad7cbc45bdae618da179c44c20cdfe0f6afcc2f47b8"
+    },
+    {
+      "path": "src/tools/project.ts",
+      "change": "modified",
+      "beforeSha256": "8e5a61d0ed42552dd9865e68d8a060688c530ad706d0b0d53bc8a87978c9abaa",
+      "afterSha256": "04be63d6d478eea19f6df9d788e64751c82068e520e99aa91ab5093cb95c669b"
+    },
+    {
+      "path": "test/api-routing.test.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "d996ae07771905c54020af8abda7fda4bbe6eb8d47820438fb885a2148a7da44"
+    },
+    {
+      "path": "test/event-stream-backpressure.test.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "8e373c91445f1fe7062d5412dcd96e5c2072e644f36cff7e5831a2afcddf34a1"
+    },
+    {
+      "path": "test/extension-isolation.test.ts",
+      "change": "modified",
+      "beforeSha256": "974b792abfc0e9d032e7f8a6dc1c66d7166e59fbf20bf246927b39f7425bd083",
+      "afterSha256": "32eaa71e4f4b2d553977817543bd058f85486215a034fcc637768e98f782428e"
+    },
+    {
+      "path": "test/hook-cancellation.test.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "09d405fe12b99f99a2b85acd4e47e71670806e4a64e914cc426064ace22bf5eb"
+    },
+    {
+      "path": "test/host-route-boundaries.integration.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "8c3fdd97e731cac2e17abab437cb66efd04e7c4e59a593696548badd743d6df6"
+    },
+    {
+      "path": "test/http-route-contracts.test.ts",
+      "change": "added",
+      "beforeSha256": null,
+      "afterSha256": "581730fd578d2b3ed4c6ee8f4ac30c781fc210e3ed2e9a1a17f4244d08203c3f"
+    },
+    {
+      "path": "test/mcp-client.test.ts",
+      "change": "modified",
+      "beforeSha256": "31cfba92ee10e0bf3bbd9a5c51e13b31f6383e2272d6ae370cc11290041e521d",
+      "afterSha256": "daed963e4792cd5c1c558682408de4790cd1288d7d2317c4d7cb9f4aa5ea170f"
+    },
+    {
+      "path": "test/memory-ranking.test.ts",
+      "change": "modified",
+      "beforeSha256": "ec2a012bd048de035020ddeedc740d771f90bf45b976c11d38b17e023e4487a1",
+      "afterSha256": "f1c951978f488289aa593ece5c5df9c3b8dda9550bf3bffc54f72eedbe08c95c"
+    },
+    {
+      "path": "test/migration.test.ts",
+      "change": "modified",
+      "beforeSha256": "829bd750e930db15caad4e94a222f428b36adf7f0701b1a6c47d6cd021b00535",
+      "afterSha256": "6b3d989d9e866e1e04092f3c71c7ceeb131dd31f7a62936a3b71906e4f0403b6"
+    },
+    {
+      "path": "test/project-search.test.ts",
+      "change": "modified",
+      "beforeSha256": "39316134d9d5b17f6da2a8d09e6a8f0366a77b7cb802198c04416cbf28d42046",
+      "afterSha256": "76cc46694012cb7735ce4673d1e26d55444234a08db387277a13fa3bb0343169"
+    },
+    {
+      "path": "test/schema-cache.test.ts",
+      "change": "modified",
+      "beforeSha256": "ab7c524ee5702b5bc065732c30be553093ba3a42ba61e533687446e733fe91cd",
+      "afterSha256": "dcdcbced0d33d0632c981a290f7f433682a60309512b1c202f85b2d1d450606b"
+    }
+  ],
+  "checkedFiles": [
+    "src/api/collaboration.ts",
+    "src/api/events.ts",
+    "src/api/management.ts",
+    "src/api/route-table.ts",
+    "src/api/routes/configuration.ts",
+    "src/api/routes/extensions.ts",
+    "src/api/routes/mcp.ts",
+    "src/api/routes/memory.ts",
+    "src/api/routes/resources.ts",
+    "src/api/routes/session-management.ts",
+    "src/api/routes/sessions.ts",
+    "src/api/server.ts",
+    "src/extensions/mcp/manager.ts",
+    "src/extensions/plugins/invocation.ts",
+    "src/extensions/plugins/manager.ts",
+    "src/host/applications.ts",
+    "src/host/desktop-api.ts",
+    "src/host/office/api.ts",
+    "src/runtime/hooks.ts",
+    "src/runtime/json-schema.ts",
+    "src/sessions/checkpoints.ts",
+    "src/sessions/migration.ts",
+    "src/storage/entity-query.ts",
+    "src/storage/memory.ts",
+    "src/storage/store.ts",
+    "src/tools/project.ts",
+    "test/api-routing.test.ts",
+    "test/event-stream-backpressure.test.ts",
+    "test/extension-isolation.test.ts",
+    "test/hook-cancellation.test.ts",
+    "test/host-route-boundaries.integration.ts",
+    "test/http-route-contracts.test.ts",
+    "test/mcp-client.test.ts",
+    "test/memory-ranking.test.ts",
+    "test/migration.test.ts",
+    "test/project-search.test.ts",
+    "test/schema-cache.test.ts"
+  ],
+  "testFiles": [
+    "test/api-routing.test.ts",
+    "test/event-stream-backpressure.test.ts",
+    "test/extension-isolation.test.ts",
+    "test/hook-cancellation.test.ts",
+    "test/host-route-boundaries.integration.ts",
+    "test/http-route-contracts.test.ts",
+    "test/mcp-client.test.ts",
+    "test/memory-ranking.test.ts",
+    "test/migration.test.ts",
+    "test/project-search.test.ts",
+    "test/schema-cache.test.ts"
+  ],
+  "changedDuringCheck": [],
+  "results": [
+    {
+      "name": "types",
+      "command": {
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "node_modules/typescript/bin/tsc",
+          "-p",
+          ".agent-data-refactor/consolidation-static-tests-20261018T024207761Z.json",
+          "--noEmit"
+        ]
+      },
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 9490,
+      "log": "verification/consolidation-static-20261018T024207761Z-types.log"
+    },
+    {
+      "name": "format",
+      "command": {
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/api/collaboration.ts",
+          "src/api/events.ts",
+          "src/api/management.ts",
+          "src/api/route-table.ts",
+          "src/api/routes/configuration.ts",
+          "src/api/routes/extensions.ts",
+          "src/api/routes/mcp.ts",
+          "src/api/routes/memory.ts",
+          "src/api/routes/resources.ts",
+          "src/api/routes/session-management.ts",
+          "src/api/routes/sessions.ts",
+          "src/api/server.ts",
+          "src/extensions/mcp/manager.ts",
+          "src/extensions/plugins/invocation.ts",
+          "src/extensions/plugins/manager.ts",
+          "src/host/applications.ts",
+          "src/host/desktop-api.ts",
+          "src/host/office/api.ts",
+          "src/runtime/hooks.ts",
+          "src/runtime/json-schema.ts",
+          "src/sessions/checkpoints.ts",
+          "src/sessions/migration.ts",
+          "src/storage/entity-query.ts",
+          "src/storage/memory.ts",
+          "src/storage/store.ts",
+          "src/tools/project.ts",
+          "test/api-routing.test.ts",
+          "test/event-stream-backpressure.test.ts",
+          "test/extension-isolation.test.ts",
+          "test/hook-cancellation.test.ts",
+          "test/host-route-boundaries.integration.ts",
+          "test/http-route-contracts.test.ts",
+          "test/mcp-client.test.ts",
+          "test/memory-ranking.test.ts",
+          "test/migration.test.ts",
+          "test/project-search.test.ts",
+          "test/schema-cache.test.ts"
+        ]
+      },
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 2254,
+      "log": "verification/consolidation-static-20261018T024207761Z-format.log"
+    }
+  ]
+}

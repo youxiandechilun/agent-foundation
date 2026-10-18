@@ -7,9 +7,9 @@ import { Document, Paragraph, TextRun, Packer } from "docx";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { setup } from "./support/wire-server.js";
 import { officeIntegration } from "../src/host/applications.js";
-import { OfficeJobs } from "../src/host/office-jobs.js";
+import { OfficeJobs } from "../src/host/office/jobs.js";
 const load = createRequire(import.meta.url);
-const { readOfficeArchive } = load("../src/host/office-archive.cjs");
+const { readOfficeArchive } = load("../src/host/office/office-archive.cjs");
 const start = (config = {}) =>
   setup(undefined, config, { integrations: [officeIntegration()] });
 

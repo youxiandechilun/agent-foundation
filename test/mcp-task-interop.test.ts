@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import http from "node:http";
-import { MCPClient } from "../src/extensions/mcp-client.js";
-import { MCPTaskReceiver } from "../src/extensions/mcp-task-receiver.js";
-import { MCPManager } from "../src/extensions/mcp.js";
+import { MCPClient } from "../src/extensions/mcp/client.js";
+import { MCPTaskReceiver } from "../src/extensions/mcp/tasks/receiver.js";
+import { MCPManager } from "../src/extensions/mcp/manager.js";
 import { setup, until, collect } from "./support/wire-server.js";
 const modernFile = fileURLToPath(
     new URL("./support/modern-task-mcp.mjs", import.meta.url),

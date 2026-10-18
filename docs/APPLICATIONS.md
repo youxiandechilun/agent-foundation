@@ -1,6 +1,6 @@
-# 应用能力底层 · 0.10.0
+# 可选应用能力底层
 
-这版在独立 Agent 内核上增加三个可单独启用的源码应用包：浏览器、Windows 电脑控制、办公格式处理。它们使用同一工具注册、审批、模式和模型权限、项目/会话、资产与事件接口。UI 和 ESP32 继续暂缓。这里定义本版支持的具体行为；没有把未来完整办公软件、所有网站和所有操作系统的支持计为完成。
+本文记录 0.10.0 引入、当前继续维护的三个可单独启用的应用包：浏览器、Windows 电脑控制、办公格式处理。它们使用同一工具注册、审批、模式和模型权限、项目/会话、资产与事件接口。当前版本与暂缓范围以 [RELEASE.md](RELEASE.md) 为准。这里定义支持的具体行为；没有把未来完整办公软件、所有网站和所有操作系统的支持计为完成。
 
 ## 安装与启用
 
@@ -38,9 +38,9 @@ const api = await serve(kernel);
 
 ## 浏览器：管理会话与用户浏览器
 
-`src/browser.ts` 管理真实 Chromium、项目与会话归属、持久 profile、标签页、操作队列、快照和元素引用。profile 路径使用项目/拥有者摘要；重复打开不会错误释放已有锁。输入框、按钮、选择框、复选框、iframe、导航历史、等待、显式对话框响应、上传/下载、元素与页面截图均调用真实浏览器。元素引用绑定实际 ElementHandle，每次快照后旧引用失效。取消或超时会关闭管理上下文、使队列停止并释放 profile。
+`src/host/browser/manager.ts` 管理真实 Chromium、项目与会话归属、持久 profile、标签页、操作队列、快照和元素引用。profile 路径使用项目/拥有者摘要；重复打开不会错误释放已有锁。输入框、按钮、选择框、复选框、iframe、导航历史、等待、显式对话框响应、上传/下载、元素与页面截图均调用真实浏览器。元素引用绑定实际 ElementHandle，每次快照后旧引用失效。取消或超时会关闭管理上下文、使队列停止并释放 profile。
 
-管理浏览器通过 `src/host/browser-network.ts` 的本机鉴权代理连接 HTTP、HTTPS CONNECT 和 WebSocket。DNS 解析后检查所有候选地址，并把通过检查的 IP 直接交给 TCP 连接，避免校验后再次解析。拒绝 URL 凭据、未允许主机、私网/保留地址及其 IPv6 变体；HTTP 代理凭据不转发给目标。当前权限撤销会中断已有连接。QUIC 与非代理 WebRTC UDP 被禁用。这是浏览器网络约束，**不是整个宿主的 OS 沙箱**。
+管理浏览器通过 `src/host/browser/network.ts` 的本机鉴权代理连接 HTTP、HTTPS CONNECT 和 WebSocket。DNS 解析后检查所有候选地址，并把通过检查的 IP 直接交给 TCP 连接，避免校验后再次解析。拒绝 URL 凭据、未允许主机、私网/保留地址及其 IPv6 变体；HTTP 代理凭据不转发给目标。当前权限撤销会中断已有连接。QUIC 与非代理 WebRTC UDP 被禁用。这是浏览器网络约束，**不是整个宿主的 OS 沙箱**。
 
 CDP 只允许已配置的端点。默认只控制新建的专用标签页，`browser.cdpAllowExistingTabs:true` 才允许纳入已有标签页。断开连接保留用户浏览器与标签页。外部 CDP 的已有浏览器流量仍由用户浏览器配置控制，返回 `networkEnforcement:"reviewed-actions-only"`。
 
@@ -50,7 +50,7 @@ CDP 只允许已配置的端点。默认只控制新建的专用标签页，`bro
 
 ## Windows 原生控制
 
-`src/computer.ts` 是资源和权限管理器，`src/platform/windows-computer.cs` 与 `.ps1` 是自行维护的 Win32/UI Automation 桥接源码。没有调用其他 Agent、桌面控制 SDK 或远端桌面服务。支持窗口枚举、窗口/进程核对、受限控件树、Value/Invoke/Toggle/Selection/ExpandCollapse 模式、窗口截图、显式聚焦，以及真实 SendInput 键盘、鼠标和拖动。
+`src/host/computer/manager.ts` 是资源和权限管理器，`src/host/computer/native/windows-computer.cs` 与 `.ps1` 是自行维护的 Win32/UI Automation 桥接源码。没有调用其他 Agent、桌面控制 SDK 或远端桌面服务。支持窗口枚举、窗口/进程核对、受限控件树、Value/Invoke/Toggle/Selection/ExpandCollapse 模式、窗口截图、显式聚焦，以及真实 SendInput 键盘、鼠标和拖动。
 
 操作先获取项目 + run 独占租约，按全局队列串行执行；并发上限、租约到期、当前权限、允许进程、输出预算、超时和取消均有检查。工作进程使用受限环境，模型密钥不随环境继承。截图写入所属项目资产。紧急停止中断当前进程与队列并锁住控制入口，只有管理 API 显式 resume 后恢复。已经发送的原生输入不能通用撤销；Windows UIPI、锁屏、提升权限和不支持 UIA 的程序可以明确失败，不能伪造成功。
 
@@ -76,7 +76,7 @@ CDP 只允许已配置的端点。默认只控制新建的专用标签页，`bro
 
 ## 办公处理与不可变产物
 
-`src/office.ts` 管理源资产、SHA-256、操作与输出归属；`src/host/office-jobs.ts` 创建有并发、时间、堆和栈限制的实际工作线程，传入已校验的字节，不让工作线程重新打开源文件。`office-format-worker.cjs` 维护格式操作协议与编辑逻辑。原文件不覆盖，每次编辑产生新资产，并返回 sourceAssetId、编辑统计、所需重新计算状态；可用 expectedSha256 拒绝过期编辑。
+`src/host/office/manager.ts` 管理源资产、SHA-256、操作与输出归属；`src/host/office/jobs.ts` 创建有并发、时间、堆和栈限制的实际工作线程，传入已校验的字节，不让工作线程重新打开源文件。`office-format-worker.cjs` 维护格式操作协议与编辑逻辑。原文件不覆盖，每次编辑产生新资产，并返回 sourceAssetId、编辑统计、所需重新计算状态；可用 expectedSha256 拒绝过期编辑。
 
 | 格式 | 本版实际支持                                                                                                           |
 | ---- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -124,6 +124,6 @@ pwsh -NoProfile -File scripts/verify-source-package.ps1 -HostApplications
 
 打包与重建脚本要求 PowerShell 7（pwsh）；原生电脑桥接使用 Windows 自带 PowerShell。核心与宿主报告分别为 verification/report.json 和 application-report.json；逐项依据为 docs/CORE-ACCEPTANCE.json、APPLICATIONS-PLAN.json 以及各自验收报告。宿主实际执行本机 Chromium、已加载的 Chrome 扩展、WebSocket、Win32/UIA/SendInput、格式文件解析/修改、PDF 合成与渲染。模型在测试中使用本地 HTTP/SSE 协议服务，不能据此宣称真实模型策略、推理质量或账单已经验证。
 
-单独列出的限制：真实模型供应商、生产网站/登录/验证码/下载兼容性、实际安装用户浏览器的扩展安装分发、Microsoft Office/LibreOffice 公式重算与全格式视觉保真、Linux/macOS 原生适配器、Docker 引擎及跨 OS 实机迁移。未实现完整办公编辑器/公式引擎/OCR/任意文档转换；未实现原生 OS 沙箱、多租户或分布式控制租约。UI 与 ESP32 继续不开发。持续迭代以具体行为和实际验收作为完成依据。
+单独列出的限制：真实模型供应商、生产网站/登录/验证码/下载兼容性、实际安装用户浏览器的扩展安装分发、Microsoft Office/LibreOffice 公式重算与全格式视觉保真、Linux/macOS 原生适配器、Docker 引擎及跨 OS 实机迁移。未实现完整办公编辑器/公式引擎/OCR/任意文档转换；多租户或分布式控制租约不在当前范围。Windows AppContainer 命令、持久管道、Plugin 与 MCP 的文件/网络隔离已有有界实现，见 [CORE-FOUNDATION.md](CORE-FOUNDATION.md)；电脑控制仍在用户桌面会话运行，隔离 PTY 尚未实现。配置 UI、更多桌面平台、专门的 LSP、ESP32 等当前不开发。验收以具体行为和实际记录为依据。
 
 实现参考的底层接口：[Playwright BrowserContext](https://playwright.dev/docs/api/class-browsercontext)、[Chrome 扩展测试](https://playwright.dev/docs/chrome-extensions)、[Microsoft SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)、[UI Automation ValuePattern](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/add-content-to-a-text-box-using-ui-automation)、[pdf-lib PDFDocument](https://pdf-lib.js.org/docs/api/classes/pdfdocument)。

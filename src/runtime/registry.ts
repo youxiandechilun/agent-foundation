@@ -1,9 +1,9 @@
 import type { IncomingMessage } from "node:http";
-import type { Kernel } from "../kernel.js";
+import type { Kernel } from "../core/kernel.js";
 import type { Session } from "../contracts.js";
 import type { ToolDefinition } from "./types.js";
 import { CAPABILITIES } from "./types.js";
-import { invariant, abortable } from "../util.js";
+import { invariant, abortable } from "../core/util.js";
 import type { RunHooks } from "./hooks.js";
 
 export interface ToolContext {

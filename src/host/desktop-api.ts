@@ -1,8 +1,8 @@
 import type { IncomingMessage } from "node:http";
 import type { DesktopKernel } from "./desktop.js";
-import { invariant } from "../util.js";
+import { invariant } from "../core/util.js";
 import { z } from "zod";
-import { id } from "../util.js";
+import { id } from "../core/util.js";
 export async function desktopManagement(
   k: DesktopKernel,
   req: IncomingMessage,
@@ -15,6 +15,7 @@ export async function desktopManagement(
     key = p[1],
     entity = p[2],
     op = p[3];
+  if (p[0] !== "v1" || p.length > 4) return;
   if (key === "browser") {
     if (!entity && method === "GET")
       return {
@@ -65,13 +66,14 @@ export async function desktopManagement(
         data: await k.browser.action(entity, projectId, action, signal, owner),
       };
     }
-    if (entity && method === "DELETE") {
+    if (entity && !op && method === "DELETE") {
       const v = await json();
       return { data: await k.browser.closeSession(entity, v.projectId) };
     }
   }
   if (key === "computer") {
-    if (method === "GET") return { data: k.computer.status() };
+    if (op) return;
+    if (!entity && method === "GET") return { data: k.computer.status() };
     if (entity === "action" && method === "POST") {
       const {
         projectId,
@@ -127,7 +129,7 @@ export async function desktopManagement(
           nodes: k.nodes.list(url.searchParams.get("projectId") || undefined),
         },
       };
-    if (entity === "pair" && method === "POST")
+    if (entity === "pair" && !op && method === "POST")
       return { data: k.nodes.pair(await json()), status: 201 };
     if (entity && op === "call" && method === "POST") {
       const v = await json();
@@ -142,7 +144,7 @@ export async function desktopManagement(
         ),
       };
     }
-    if (entity && method === "DELETE") {
+    if (entity && !op && method === "DELETE") {
       k.nodes.revoke(entity);
       return { data: { revoked: true } };
     }

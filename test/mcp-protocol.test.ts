@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import http from "node:http";
-import { MCPClient } from "../src/extensions/mcp-client.js";
+import { MCPClient } from "../src/extensions/mcp/client.js";
 import { setup, until, collect } from "./support/wire-server.js";
 const file = fileURLToPath(
   new URL("./support/protocol-mcp.mjs", import.meta.url),

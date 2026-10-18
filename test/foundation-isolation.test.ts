@@ -10,8 +10,8 @@ import {
   processEnvironment,
   CommandRunner,
 } from "../src/execution/process.js";
-import { parseConfig } from "../src/config.js";
-import { registerSecret } from "../src/util.js";
+import { parseConfig } from "../src/core/config.js";
+import { registerSecret } from "../src/core/util.js";
 
 test("container commands use non-root bounded isolation and cannot inject Docker flags or escape the workspace", async () => {
   const x = await setup(undefined, {

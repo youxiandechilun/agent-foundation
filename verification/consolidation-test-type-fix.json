@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "file": "test/mcp-client.test.ts",
+  "reason": "Pre-existing test env helper now explicitly excludes undefined and narrows [string,string]",
+  "fullSuiteSha256": "cb33293f1d5884abba1f7d15858a8e731feb516d7287cfe6cf5543ff6006704c",
+  "finalSha256": "daed963e4792cd5c1c558682408de4790cd1288d7d2317c4d7cb9f4aa5ea170f",
+  "productionChanges": false,
+  "tests": {
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "evidence": "verification/consolidation-static-20261018T024207797Z-mcp-client.json"
+}

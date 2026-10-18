@@ -1,5 +1,5 @@
 import type { ToolDefinition } from "./types.js";
-import { invariant } from "../util.js";
+import { invariant } from "../core/util.js";
 
 type Lock = { key: string; access: "read" | "write" };
 type Waiter = {
@@ -9,23 +9,47 @@ type Waiter = {
   resolve: (release: () => void) => void;
   reject: (error: unknown) => void;
 };
+/** Count declarations, including duplicate keys, so each acquisition releases only its locks. */
+class LockIndex {
+  private readers = new Map<string, number>();
+  private writers = new Map<string, number>();
+  private readCount = 0;
+  private writeCount = 0;
+
+  conflicts(locks: readonly Lock[]): boolean {
+    return locks.some(({ key, access }) => {
+      if (key === "*")
+        return (
+          this.writeCount > 0 || (access === "write" && this.readCount > 0)
+        );
+      return (
+        this.writers.has("*") ||
+        this.writers.has(key) ||
+        (access === "write" && (this.readers.has("*") || this.readers.has(key)))
+      );
+    });
+  }
+
+  update(locks: readonly Lock[], change: 1 | -1): void {
+    for (const { key, access } of locks) {
+      const counts = access === "read" ? this.readers : this.writers;
+      const count = (counts.get(key) ?? 0) + change;
+      if (count) counts.set(key, count);
+      else counts.delete(key);
+      if (access === "read") this.readCount += change;
+      else this.writeCount += change;
+    }
+  }
+}
 /** One instance per kernel: bounds execution and arbitrates conflicts across runs. */
 export class ToolScheduler {
-  private active = new Set<Lock[]>();
-  private queue: Waiter[] = [];
+  private active = new LockIndex();
+  private activeCount = 0;
+  private queue = new Set<Waiter>();
   constructor(readonly limit = 4) {
     invariant(
       Number.isInteger(limit) && limit >= 1 && limit <= 64,
       "Invalid tool concurrency",
-    );
-  }
-  private conflicts(a: Lock[], b: Lock[]) {
-    return a.some((x) =>
-      b.some(
-        (y) =>
-          (x.key === "*" || y.key === "*" || x.key === y.key) &&
-          (x.access === "write" || y.access === "write"),
-      ),
     );
   }
   acquire(
@@ -34,12 +58,12 @@ export class ToolScheduler {
     signal?: AbortSignal,
   ): Promise<() => void> {
     signal?.throwIfAborted();
-    const locks: Lock[] = tool?.scheduling?.parallelSafe
+    const declarations: Lock[] = tool?.scheduling?.parallelSafe
       ? tool.scheduling.resources?.(args) || []
       : [{ key: "*", access: "write" }];
     invariant(
-      locks.length <= 100 &&
-        locks.every(
+      declarations.length <= 100 &&
+        declarations.every(
           (l) =>
             typeof l.key === "string" &&
             l.key.length > 0 &&
@@ -48,6 +72,8 @@ export class ToolScheduler {
         ),
       "Invalid tool locks",
     );
+    // A tool may reuse or mutate its declaration array after returning it.
+    const locks = declarations.map(({ key, access }) => ({ key, access }));
     return new Promise((resolve, reject) => {
       const waiter: Waiter = {
         locks,
@@ -55,43 +81,42 @@ export class ToolScheduler {
         resolve,
         reject,
         abort: () => {
-          const index = this.queue.indexOf(waiter);
-          if (index >= 0) this.queue.splice(index, 1);
+          this.queue.delete(waiter);
           reject(signal?.reason || new Error("Cancelled"));
           this.drain();
         },
       };
-      this.queue.push(waiter);
+      this.queue.add(waiter);
       signal?.addEventListener("abort", waiter.abort, { once: true });
       this.drain();
     });
   }
   private drain() {
-    for (let i = 0; i < this.queue.length && this.active.size < this.limit;) {
-      const w = this.queue[i];
-      if (
-        [...this.active].some((a) => this.conflicts(a, w.locks)) ||
-        this.queue.slice(0, i).some((a) => this.conflicts(a.locks, w.locks))
-      ) {
-        i++;
+    const blocked = new LockIndex();
+    for (const w of this.queue) {
+      if (this.activeCount >= this.limit) break;
+      if (this.active.conflicts(w.locks) || blocked.conflicts(w.locks)) {
+        blocked.update(w.locks, 1);
         continue;
       }
-      this.queue.splice(i, 1);
+      this.queue.delete(w);
       w.signal?.removeEventListener("abort", w.abort);
-      this.active.add(w.locks);
+      this.active.update(w.locks, 1);
+      this.activeCount++;
       let released = false;
       w.resolve(() => {
         if (released) return;
         released = true;
-        this.active.delete(w.locks);
+        this.active.update(w.locks, -1);
+        this.activeCount--;
         this.drain();
       });
     }
   }
   get state() {
     return {
-      active: this.active.size,
-      queued: this.queue.length,
+      active: this.activeCount,
+      queued: this.queue.size,
       limit: this.limit,
     };
   }

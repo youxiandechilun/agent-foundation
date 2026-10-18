@@ -1,0 +1,196 @@
+{
+  "checkedAt": "2026-10-18T02:47:30.179Z",
+  "implementationStatus": "partially_verified_native_host_unresolved",
+  "sizeTarget": {
+    "targetLines": 20000,
+    "achieved": false,
+    "scope": "Physical lines including comments and blank lines in src/extensions/test/scripts/examples; excludes dependencies, generated output, documentation, configuration, baseline snapshots and temporary verification programs.",
+    "before": {
+      "files": 269,
+      "lines": 63185,
+      "bytes": 2120619
+    },
+    "after": {
+      "files": 276,
+      "lines": 64344,
+      "bytes": 2158673
+    },
+    "productionBefore": {
+      "lines": 33945,
+      "bytes": 1148372
+    },
+    "productionAfter": {
+      "lines": 33940,
+      "bytes": 1148068
+    }
+  },
+  "baseline": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\consolidation-20261018-before",
+  "runtime": {
+    "node": "v22.22.0",
+    "platform": "win32"
+  },
+  "finalChecks": {
+    "core": {
+      "name": "consolidation-final-core-tests",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 290431,
+      "stdoutLog": "consolidation-final-core-tests.log",
+      "stderrLog": "consolidation-final-core-tests.stderr.log",
+      "tests": {
+        "passed": 455,
+        "failed": 0
+      }
+    },
+    "hostInitial": {
+      "name": "consolidation-final-host-tests",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 57634,
+      "stdoutLog": "consolidation-final-host-tests.log",
+      "stderrLog": "consolidation-final-host-tests.stderr.log",
+      "tests": {
+        "passed": 32,
+        "failed": 1
+      }
+    },
+    "hostRecheck": {
+      "name": "consolidation-final-host-recheck",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 55064,
+      "stdoutLog": "consolidation-final-host-recheck.log",
+      "stderrLog": "consolidation-final-host-recheck.stderr.log",
+      "tests": {
+        "passed": 31,
+        "failed": 2
+      }
+    },
+    "productionUnchangedSinceSuite": true,
+    "changedSinceSuite": [
+      "test/mcp-client.test.ts"
+    ],
+    "testTypeFix": {
+      "status": "passed",
+      "file": "test/mcp-client.test.ts",
+      "reason": "Pre-existing test env helper now explicitly excludes undefined and narrows [string,string]",
+      "fullSuiteSha256": "cb33293f1d5884abba1f7d15858a8e731feb516d7287cfe6cf5543ff6006704c",
+      "finalSha256": "daed963e4792cd5c1c558682408de4790cd1288d7d2317c4d7cb9f4aa5ea170f",
+      "productionChanges": false,
+      "tests": {
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      },
+      "evidence": "verification/consolidation-static-20261018T024207797Z-mcp-client.json"
+    },
+    "staticReport": "verification/consolidation-static-20261018T024207761Z-report.json",
+    "sdkReport": "verification/consolidation-sdk-20261018/run-9Aj6ze/isolation.json",
+    "sourceCheck": {
+      "name": "consolidation-final-source-check",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 151,
+      "stdoutLog": "consolidation-final-source-check.log",
+      "stderrLog": "consolidation-final-source-check.stderr.log"
+    },
+    "previousSourceManifestRestored": true,
+    "scopedDiffCheckExit": 0,
+    "nativeAssessment": "verification/consolidation-native-host-assessment.json"
+  },
+  "review": {
+    "independentReview": true,
+    "resolved": [
+      "Shared Ajv cleanup removed generic built-in meta-schema alias; independently reproduced, fixed and rechecked",
+      "Restored original native IPC exit versus isolated stdio close semantics; POSIX delay risk not reproduced on Windows"
+    ],
+    "knownOpenHighConfidenceFindingsInReviewedScope": 0
+  },
+  "evidence": [
+    {
+      "path": "verification/consolidation-source-metrics.json",
+      "sha256": "4d41f36896d91f25c1edee2b1ade9834e78a20c7cca018119b23f7dce1895ecb"
+    },
+    {
+      "path": "verification/consolidation-final-validation.json",
+      "sha256": "054bc1462bd4b7ccc250db615a1b6f95225012be2dccab2fa5ad4a2d6fd871ac"
+    },
+    {
+      "path": "verification/consolidation-final-host-recheck.json",
+      "sha256": "9edeb8f0bee161b9f5a9714d91e1f9284be6386f8e7621f6d21a4a2cf7b1af70"
+    },
+    {
+      "path": "verification/consolidation-final-source-verification.json",
+      "sha256": "394f4cd140127c2ba0055bb7f6dafb3dd103331ca91531f55f3e87db038f02bc"
+    },
+    {
+      "path": "verification/consolidation-final-source-manifest.json",
+      "sha256": "08fed255c48712cf64c49c863132ee309b2c162554a0bbdce6acfcee004eee25"
+    },
+    {
+      "path": "verification/consolidation-public-exports.json",
+      "sha256": "00ba08762bd62986eceba1ef6287b842d1555bddb4d90422a94b852ea0275b4e"
+    },
+    {
+      "path": "verification/consolidation-static-20261018T024207761Z-report.json",
+      "sha256": "9c37ed326920e55ae33e9718cbbce233ba84fbd9cbe53c4c094c0d2ade308122"
+    },
+    {
+      "path": "verification/consolidation-sdk-20261018/run-9Aj6ze/isolation.json",
+      "sha256": "727bf2692ab1724d166d5330d8225e05e95f39b6a2f24300b41dc7890df679cf"
+    },
+    {
+      "path": "verification/consolidation-test-type-fix.json",
+      "sha256": "fd5678bb5b9a8b9dd934c4259c5e9796db63415d66a9faa2cc6f3b02c2c74eb3"
+    },
+    {
+      "path": "verification/consolidation-schema-benchmark.json",
+      "sha256": "ee7c31c84f1ab0b1a92aaa8576035dc41ff1add5d0cdb63bdb70890d1a5a6479"
+    },
+    {
+      "path": "verification/consolidation-storage-benchmark.json",
+      "sha256": "0bdef7f67a885ef3af9c8da483b37e72c3a05e48caf217fd5b593f05ac0124cc"
+    },
+    {
+      "path": "verification/consolidation-event-queue-benchmark.json",
+      "sha256": "2491975978b0a16c3a9f6c27997ee31f2159a2ed60a7cf22ff5f8268e6f91e6d"
+    },
+    {
+      "path": "docs/REFACTOR-CONSOLIDATION.md",
+      "sha256": "485daa222540353027ef1645545fe772ba12212070740fa86c2db54b06dde8f5"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "318d54220bc28d51f3abc1519324388427557f70716e67cd3f6defdeeb6da3cb"
+    },
+    {
+      "path": "docs/API.md",
+      "sha256": "1a9f249b05853496ccfc8bc0c09d79c29046131d7dfbbe045968916e19582825"
+    },
+    {
+      "path": "verification/consolidation-native-host-assessment.json",
+      "sha256": "4bb22da329f154f9f1b6f9013a4c8ee9ce0f011a7451198cc102ab6ddc1abdfb"
+    },
+    {
+      "path": "verification/consolidation-native-snapshot-comparison.json",
+      "sha256": "4fb4b30b666ae98bca6af121fdd7e5711aa3192d6285e9d661c9460ec4a1fc92"
+    },
+    {
+      "path": "verification/consolidation-sdk-20261018/run-9Aj6ze/sdk-consumer.json",
+      "sha256": "02fe73b30639f79841a13fa35231a086a1b01732a7ced60d0167436f887e28b3"
+    },
+    {
+      "path": "verification/consolidation-sdk-20261018/run-9Aj6ze/sdk-package.json",
+      "sha256": "39c1e4e27d505a7442e85d1732f58457c9416e21288c9da303e714f1c52b9968"
+    }
+  ],
+  "qualifications": [
+    "20,000-line target was not reached; tests and correctness handling increased total maintained code.",
+    "Host final run passed 32/33, with Windows denied foreground focus; full recheck passed 31/33, with one extra character in the fixture text and target window no longer foreground. Previous 33/33 is retained but does not supersede these unresolved failures. Native focus implementation was unchanged; exact environmental cause is unconfirmed.",
+    "One pre-existing test helper type error was fixed after the full suite; its targeted tests and strict noEmit were run subsequently.",
+    "Global git diff --check reports pre-existing trailing whitespace in verification/application-integration.log lines 135-136; scoped source/doc diff check is recorded separately.",
+    "Benchmarks are local hot-path scenarios, not end-to-end Agent throughput or model capability measurements.",
+    "Not validated on Linux/macOS, other Node versions, paid models, live external providers or Docker in this round.",
+    "Existing uncommitted work and prior release artifacts were retained; no remote publication or Git commit was performed."
+  ]
+}

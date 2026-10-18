@@ -4,7 +4,7 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { setup, collect } from "./support/wire-server.js";
-import { MCPClient } from "../src/extensions/mcp-client.js";
+import { MCPClient } from "../src/extensions/mcp/client.js";
 
 test("single-user kernel serves authenticated clients without account login or constructing an MCP OAuth service", async () => {
   const x = await setup();

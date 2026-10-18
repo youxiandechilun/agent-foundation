@@ -9,9 +9,90 @@ import {
   reviewedWorkspace,
 } from "../src/execution/extension-host.js";
 import { CommandRunner } from "../src/execution/process.js";
+import { spawn } from "node:child_process";
+import { observePlugin } from "../src/extensions/plugins/invocation.js";
+import { until } from "./support/wire-server.js";
 const peer = fileURLToPath(
   new URL("./support/adversarial-mcp.mjs", import.meta.url),
 );
+test("plugin worker transports share bounded settlement and terminate after reply, error, timeout and cancellation", async () => {
+  const x = await setup();
+  const worker = fileURLToPath(
+    new URL("../src/extensions/plugins/worker.mjs", import.meta.url),
+  );
+  try {
+    for (const isolated of [false, true]) {
+      for (const scenario of [
+        "success",
+        "error",
+        "timeout",
+        "cancel",
+        "output",
+        "result",
+        "exit",
+      ] as const) {
+        const code = {
+          success: "return {text:'真实中文 🧠'}",
+          error: "throw Error('worker failure')",
+          timeout: "return new Promise(()=>setInterval(()=>{},1000))",
+          cancel: "return new Promise(()=>setInterval(()=>{},1000))",
+          output:
+            "process.stderr.write('x'.repeat(260000)); return new Promise(()=>setInterval(()=>{},1000))",
+          result: "return '🧠'.repeat(600)",
+          exit: "process.exit(7)",
+        }[scenario];
+        const source = `export async function execute(){${code}}`;
+        const entry = path.join(x.project.root, "observer-plugin.mjs");
+        await writeFile(entry, source);
+        const child = spawn(process.execPath, [worker, entry], {
+          cwd: x.project.root,
+          windowsHide: true,
+          detached: process.platform !== "win32",
+          stdio: isolated
+            ? ["pipe", "pipe", "pipe"]
+            : ["pipe", "pipe", "pipe", "ipc"],
+        });
+        const controller = new AbortController();
+        const invocation = observePlugin(
+          child,
+          {
+            operation: "tool",
+            payload: { name: "run", args: {}, context: {} },
+            ...(isolated
+              ? {
+                  nonce: "observer-test",
+                  entry: "observer-plugin.mjs",
+                  root: x.project.root,
+                }
+              : {}),
+          },
+          { "observer-plugin.mjs": source },
+          scenario === "timeout" ? 200 : 5000,
+          1024,
+          controller.signal,
+        );
+        if (scenario === "cancel") controller.abort();
+        if (scenario === "success")
+          assert.deepEqual(await invocation, { text: "真实中文 🧠" });
+        else
+          await assert.rejects(
+            invocation,
+            {
+              error: /worker failure/,
+              timeout: /timed out/,
+              cancel: /cancelled/,
+              output: /output limit/,
+              result: /result too large/,
+              exit: /exited before result \(7\)/,
+            }[scenario],
+          );
+        await until(() => child.exitCode !== null || child.signalCode !== null);
+      }
+    }
+  } finally {
+    await x.close();
+  }
+});
 test("Docker remains optional for actual native plugin and stdio MCP execution", async () => {
   const x = await setup();
   try {

@@ -15,7 +15,7 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { watch } from "node:fs";
-import { Kernel } from "../src/kernel.js";
+import { Kernel } from "../src/core/kernel.js";
 import { setup, until } from "./support/wire-server.js";
 import { CommandRunner, nativeProcess } from "../src/execution/process.js";
 import {

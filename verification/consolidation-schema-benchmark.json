@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 1,
+  "startedAtUtc": "2026-10-18T02:43:48.067Z",
+  "completedAtUtc": "2026-10-18T02:44:16.596Z",
+  "scenario": {
+    "independentRounds": 5,
+    "independentProcessesPerVariant": 5,
+    "catalogSchemas": 96,
+    "catalogRepeatsWithinEachSample": 5,
+    "churnSchemas": 512,
+    "validationChecksPerCatalogSchema": 2,
+    "forcedGc": "after module import, after catalog repeats, after churn; outside timers",
+    "timing": "cold: one catalog; repeat: five additional catalog traversals; churn: 512 unique schemas",
+    "includes": "schema cloning, compilation/cache lookup and validation; excludes imports, transpilation, process startup and explicit GC",
+    "order": "sequential independent child processes; odd rounds before/after, even rounds after/before",
+    "dependencies": "Both source variants use the same currently installed dependencies."
+  },
+  "environment": {
+    "node": "v22.22.0",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "platform": "win32",
+    "architecture": "x64",
+    "osRelease": "10.0.26200",
+    "cpuModel": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "logicalProcessors": 20,
+    "totalMemoryBytes": 25447112704
+  },
+  "inputs": {
+    "preparedAtUtc": "2026-10-18T02:33:54.026Z",
+    "node": "v22.22.0",
+    "dependencies": {
+      "ajv": "8.20.0",
+      "typescript": "5.9.3",
+      "zod": "4.1.12",
+      "typebox": "1.3.27"
+    },
+    "fingerprints": [
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\schema-benchmark.mjs",
+        "bytes": 9080,
+        "sha256": "68e892576d18f3d39791bd3fa72ae919876308d587a7b71e14d76b897f1ae75b"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\consolidation-20261018-before\\package-lock.json",
+        "bytes": 125234,
+        "sha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\consolidation-20261018-before\\src\\runtime\\json-schema.ts",
+        "bytes": 3623,
+        "sha256": "35824b480c4d11c4fbe18da617322cda69f37217d7d975f59d4a072139cc5fd8"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\schema-benchmark\\before\\src\\runtime\\json-schema.js",
+        "bytes": 3367,
+        "sha256": "a37a564ecb0133d88a90e2a000c599e954623e7934229d1c572b943117269d1c"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\consolidation-20261018-before\\src\\core\\util.ts",
+        "bytes": 6592,
+        "sha256": "dad3f938db8e7c916f185e20b2806a07455a9ba9a18ae84d8e0f48ec2cce4e09"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\schema-benchmark\\before\\src\\core\\util.js",
+        "bytes": 6377,
+        "sha256": "c06387646bc6c23b1e2843d371bf2bfa7bbaaab5ac5b793be041fc9f1ca54dc7"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\package-lock.json",
+        "bytes": 125234,
+        "sha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\runtime\\json-schema.ts",
+        "bytes": 4444,
+        "sha256": "b73e6609e3f5025e54b4eefbba1e495dd9cb72868753187c62614a4f17ed8bc5"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\schema-benchmark\\after\\src\\runtime\\json-schema.js",
+        "bytes": 4133,
+        "sha256": "e1a17258fcba6435309a2332f295588c282521c18253480e87496c37957bc06d"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\src\\core\\util.ts",
+        "bytes": 6592,
+        "sha256": "dad3f938db8e7c916f185e20b2806a07455a9ba9a18ae84d8e0f48ec2cce4e09"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\schema-benchmark\\after\\src\\core\\util.js",
+        "bytes": 6377,
+        "sha256": "c06387646bc6c23b1e2843d371bf2bfa7bbaaab5ac5b793be041fc9f1ca54dc7"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\node_modules\\ajv\\package.json",
+        "bytes": 4405,
+        "sha256": "1f9033ee5a6515e7d76938b7072941862d1ed228a6879cc7fe10cdeb75107989"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\node_modules\\typescript\\package.json",
+        "bytes": 3620,
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\node_modules\\zod\\package.json",
+        "bytes": 3797,
+        "sha256": "8fafce7fd929141a91d78d66fa4b275415ac68cd9c81f9e3160868a5fab4122f"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\node_modules\\typebox\\package.json",
+        "bytes": 2021,
+        "sha256": "c59ddfd977ce941f1e8ee8b0a0b14396c332fa27cc5fa6fa165227ffd5a3992f"
+      }
+    ]
+  },
+  "statistics": {
+    "before": {
+      "coldMs": {
+        "median": 477.8991,
+        "minimum": 466.3116,
+        "maximum": 498.3757
+      },
+      "repeatMs": {
+        "median": 1681.2423,
+        "minimum": 1629.7434,
+        "maximum": 1720.0073
+      },
+      "churnMs": {
+        "median": 1600.3163,
+        "minimum": 1565.5488,
+        "maximum": 1627.8113
+      },
+      "catalogHeapBytes": {
+        "median": 3412376,
+        "minimum": 3395736,
+        "maximum": 3415712
+      },
+      "churnHeapBytes": {
+        "median": 3888584,
+        "minimum": 3877784,
+        "maximum": 3905624
+      }
+    },
+    "after": {
+      "coldMs": {
+        "median": 113.4263,
+        "minimum": 108.8495,
+        "maximum": 154.6398
+      },
+      "repeatMs": {
+        "median": 7.4568,
+        "minimum": 7.1554,
+        "maximum": 15.2073
+      },
+      "churnMs": {
+        "median": 131.467,
+        "minimum": 124.2747,
+        "maximum": 225.2098
+      },
+      "catalogHeapBytes": {
+        "median": 2332416,
+        "minimum": 2329072,
+        "maximum": 2340768
+      },
+      "churnHeapBytes": {
+        "median": 2077184,
+        "minimum": 2068168,
+        "maximum": 2086424
+      }
+    }
+  },
+  "comparisons": {
+    "coldMs": {
+      "beforeMedian": 477.8991,
+      "afterMedian": 113.4263,
+      "beforeOverAfter": 4.213301,
+      "reductionPercent": 76.265638
+    },
+    "repeatMs": {
+      "beforeMedian": 1681.2423,
+      "afterMedian": 7.4568,
+      "beforeOverAfter": 225.464314,
+      "reductionPercent": 99.556471
+    },
+    "churnMs": {
+      "beforeMedian": 1600.3163,
+      "afterMedian": 131.467,
+      "beforeOverAfter": 12.17276,
+      "reductionPercent": 91.784937
+    },
+    "catalogHeapBytes": {
+      "beforeMedian": 3412376,
+      "afterMedian": 2332416,
+      "beforeOverAfter": 1.463022,
+      "reductionPercent": 31.648329
+    },
+    "churnHeapBytes": {
+      "beforeMedian": 3888584,
+      "afterMedian": 2077184,
+      "beforeOverAfter": 1.872046,
+      "reductionPercent": 46.582509
+    }
+  },
+  "samples": [
+    {
+      "sequence": 1,
+      "independentRound": 1,
+      "variant": "before",
+      "pid": 3440,
+      "coldMs": 466.3116000000001,
+      "repeatMs": 1646.0183,
+      "churnMs": 1565.5487999999996,
+      "catalogHeapBytes": 3395736,
+      "churnHeapBytes": 3888584,
+      "checked": 576
+    },
+    {
+      "sequence": 2,
+      "independentRound": 1,
+      "variant": "after",
+      "pid": 12740,
+      "coldMs": 130.47360000000003,
+      "repeatMs": 8.19250000000011,
+      "churnMs": 136.41499999999996,
+      "catalogHeapBytes": 2335768,
+      "churnHeapBytes": 2085632,
+      "checked": 576
+    },
+    {
+      "sequence": 3,
+      "independentRound": 2,
+      "variant": "after",
+      "pid": 45244,
+      "coldMs": 113.42629999999997,
+      "repeatMs": 7.244299999999953,
+      "churnMs": 128.47169999999994,
+      "catalogHeapBytes": 2329224,
+      "churnHeapBytes": 2076256,
+      "checked": 576
+    },
+    {
+      "sequence": 4,
+      "independentRound": 2,
+      "variant": "before",
+      "pid": 13576,
+      "coldMs": 477.8991,
+      "repeatMs": 1706.9114000000002,
+      "churnMs": 1627.8112999999998,
+      "catalogHeapBytes": 3415712,
+      "churnHeapBytes": 3880776,
+      "checked": 576
+    },
+    {
+      "sequence": 5,
+      "independentRound": 3,
+      "variant": "before",
+      "pid": 42904,
+      "coldMs": 498.37570000000005,
+      "repeatMs": 1681.2423,
+      "churnMs": 1600.3162999999995,
+      "catalogHeapBytes": 3405600,
+      "churnHeapBytes": 3877784,
+      "checked": 576
+    },
+    {
+      "sequence": 6,
+      "independentRound": 3,
+      "variant": "after",
+      "pid": 40320,
+      "coldMs": 154.63979999999992,
+      "repeatMs": 15.207300000000032,
+      "churnMs": 225.20979999999997,
+      "catalogHeapBytes": 2340768,
+      "churnHeapBytes": 2068168,
+      "checked": 576
+    },
+    {
+      "sequence": 7,
+      "independentRound": 4,
+      "variant": "after",
+      "pid": 46868,
+      "coldMs": 113.29039999999998,
+      "repeatMs": 7.155399999999986,
+      "churnMs": 131.46699999999998,
+      "catalogHeapBytes": 2332416,
+      "churnHeapBytes": 2086424,
+      "checked": 576
+    },
+    {
+      "sequence": 8,
+      "independentRound": 4,
+      "variant": "before",
+      "pid": 45596,
+      "coldMs": 471.1698,
+      "repeatMs": 1629.7434,
+      "churnMs": 1610.6287000000002,
+      "catalogHeapBytes": 3412376,
+      "churnHeapBytes": 3897256,
+      "checked": 576
+    },
+    {
+      "sequence": 9,
+      "independentRound": 5,
+      "variant": "before",
+      "pid": 46408,
+      "coldMs": 492.5699000000001,
+      "repeatMs": 1720.0072999999998,
+      "churnMs": 1583.6313,
+      "catalogHeapBytes": 3412576,
+      "churnHeapBytes": 3905624,
+      "checked": 576
+    },
+    {
+      "sequence": 10,
+      "independentRound": 5,
+      "variant": "after",
+      "pid": 41660,
+      "coldMs": 108.84949999999992,
+      "repeatMs": 7.456800000000044,
+      "churnMs": 124.27470000000005,
+      "catalogHeapBytes": 2329072,
+      "churnHeapBytes": 2077184,
+      "checked": 576
+    }
+  ],
+  "limitations": [
+    "Five independent process samples per variant; five catalog traversals are repetitions inside each sample.",
+    "Timings are local microbenchmarks, not end-to-end agent latency.",
+    "GC heap deltas reflect retained JavaScript heap, not process RSS or a hard memory bound.",
+    "Sampling is sequential without this runner launching tests; unrelated host activity is not controlled."
+  ]
+}

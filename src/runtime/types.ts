@@ -119,6 +119,8 @@ export interface ModelRequest {
   tools: ToolDefinition[];
   maxOutputTokens?: number;
   toolChoice?: "auto" | "required" | "none";
+  reasoningEffort?: import("../contracts.js").ReasoningEffort;
+  reasoningBudgetTokens?: number;
 }
 export type ModelDelta =
   | { type: "text"; text: string }

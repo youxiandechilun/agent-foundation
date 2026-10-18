@@ -165,3 +165,129 @@ test("cancelling the parent cancels the running sub-agent", async () => {
     await x.close();
   }
 });
+
+// Tool results are JSON text inside the message, so their quotes arrive escaped.
+const childRunIdFrom = (body: any) =>
+  /runId\\?":\\?"(run_[0-9a-f-]+)/.exec(JSON.stringify(body.messages))?.[1];
+
+test("background sub-agents return immediately and are collected with agent_result", async () => {
+  const x = await setup(async (body) => {
+    const all = JSON.stringify(body.messages);
+    if (!all.includes("PARENT"))
+      return { text: "background answer", delayMs: 300 };
+    if (all.includes("background answer")) return { text: "parent finished" };
+    const runId = childRunIdFrom(body);
+    return runId
+      ? { calls: [{ name: "agent_result", args: { runId, waitMs: 10000 } }] }
+      : {
+          calls: [
+            {
+              name: "agent_delegate",
+              args: { description: "bg", prompt: "CHILD bg", background: true },
+            },
+          ],
+        };
+  });
+  try {
+    const s = await x.session(),
+      r = await x.client.submit(s.id, { text: "PARENT" }),
+      events = await collect(x.client, r.runId);
+    const finished = await x.kernel.wait(r.runId);
+    assert.equal(finished.status, "completed", finished.error);
+    const settled = events
+      .filter((e) => e.type === "tool.settled")
+      .map((e) => (e.data.result as any).details);
+    assert.equal(settled[0].status, "running");
+    assert.equal(settled[0].background, true);
+    assert.equal(settled[1].status, "completed");
+    assert.equal(settled[1].result, "background answer");
+    const other = await x.session();
+    const foreign = await x.kernel.store
+      .list<any>("runs")
+      .find((run: any) => run.id === settled[0].runId);
+    assert.ok(foreign);
+    const tools = await import("../src/tools/index.js");
+    const otherTools = await tools.makeTools({
+      kernel: x.kernel,
+      runId: r.runId,
+      session: x.kernel.store.session(other.id),
+      routeId: x.kernel.store.session(other.id).routeId,
+    });
+    await assert.rejects(
+      otherTools
+        .find((t) => t.name === "agent_result")!
+        .execute("c", { runId: settled[0].runId }),
+      /not a sub-agent of this session/,
+    );
+  } finally {
+    await x.close();
+  }
+});
+
+test("cancelling the parent run also cancels its background sub-agents", async () => {
+  const x = await setup((body) => {
+    const all = JSON.stringify(body.messages);
+    if (!all.includes("PARENT")) return { text: "slow", delayMs: 10000 };
+    return childRunIdFrom(body)
+      ? { text: "waiting", delayMs: 10000 }
+      : {
+          calls: [
+            {
+              name: "agent_delegate",
+              args: { description: "bg", prompt: "CHILD", background: true },
+            },
+          ],
+        };
+  });
+  try {
+    const s = await x.session(),
+      r = await x.client.submit(s.id, { text: "PARENT" });
+    const started: any = await until(() =>
+      x.kernel.store.replay(r.runId).find((e) => e.type === "subagent.started"),
+    );
+    await until(() => x.wire.requests.length >= 3);
+    x.kernel.cancel(r.runId);
+    assert.equal((await x.kernel.wait(r.runId)).status, "cancelled");
+    assert.equal((await x.kernel.wait(started.data.runId)).status, "cancelled");
+  } finally {
+    await x.close();
+  }
+});
+
+test("maxAgentDepth allows nested delegation up to the limit", async () => {
+  const x = await setup(
+    (body) => {
+      const all = JSON.stringify(body.messages);
+      const level = all.includes("LEVEL2") ? 2 : all.includes("LEVEL1") ? 1 : 0;
+      if (all.includes('"role":"tool"')) return { text: `done at ${level}` };
+      return level < 2 && toolNames(body).includes("agent_delegate")
+        ? {
+            calls: [
+              {
+                name: "agent_delegate",
+                args: { description: "nest", prompt: `LEVEL${level + 1}` },
+              },
+            ],
+          }
+        : { text: `leaf at ${level}` };
+    },
+    { limits: { maxAgentDepth: 2 } },
+  );
+  try {
+    const s = await x.session(),
+      r = await x.client.submit(s.id, { text: "TOP" });
+    assert.equal((await x.kernel.wait(r.runId)).status, "completed");
+    const sessions = x.kernel.store.list<any>("sessions");
+    assert.deepEqual(
+      sessions.map((item) => item.delegationDepth || 0).sort(),
+      [0, 1, 2],
+    );
+    const leaf = x.wire.requests.find((q) =>
+      JSON.stringify(q.body.messages).includes("LEVEL2"),
+    )!;
+    assert.ok(!toolNames(leaf.body).includes("agent_delegate"));
+    assert.ok(!toolNames(leaf.body).includes("agent_result"));
+  } finally {
+    await x.close();
+  }
+});

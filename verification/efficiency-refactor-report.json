@@ -1,0 +1,1132 @@
+{
+  "version": "0.12.1",
+  "checkedAt": "2026-10-17T18:18:58.880Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "status": "passed-local-checks",
+  "scope": "本轮工作区快照到最终源码；不包含此前已有的目录重构和优化，未提交、部署或发布。",
+  "baseline": {
+    "directory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\baseline-20261018",
+    "core": {
+      "total": 411,
+      "passed": 411,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 291173.2147,
+      "evidence": {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-baseline-tests.log",
+        "sha256": "0b8ddbcbc679bd7d99954bfe7d0f1e47c1047e45563dac96a56bc8f0f466c6c8",
+        "bytes": 115023
+      }
+    }
+  },
+  "productionSourceDigest": "918945e0311872d74de2928538c3da246601021563ccb11e7d7446741e3fe74d",
+  "sourceManifest": "efficiency-source-manifest.json",
+  "lineCount": {
+    "policy": "Physical lines, final newline does not create an extra empty line; includes TS/MTS/CTS, JS/MJS/CJS, Python, PowerShell, C#, Arduino and HTML in src/extensions/scripts/test/examples. Excludes dependencies, compiled or archived copies, JSON/configuration and documentation.",
+    "sections": {
+      "src": {
+        "before": {
+          "files": 135,
+          "lines": 33693,
+          "bytes": 1139680
+        },
+        "after": {
+          "files": 137,
+          "lines": 33535,
+          "bytes": 1133806
+        }
+      },
+      "extensions": {
+        "before": {
+          "files": 3,
+          "lines": 429,
+          "bytes": 16353
+        },
+        "after": {
+          "files": 3,
+          "lines": 429,
+          "bytes": 16353
+        }
+      },
+      "scripts": {
+        "before": {
+          "files": 27,
+          "lines": 2671,
+          "bytes": 93415
+        },
+        "after": {
+          "files": 28,
+          "lines": 3150,
+          "bytes": 109000
+        }
+      },
+      "test": {
+        "before": {
+          "files": 84,
+          "lines": 23923,
+          "bytes": 790644
+        },
+        "after": {
+          "files": 86,
+          "lines": 24421,
+          "bytes": 806811
+        }
+      },
+      "examples": {
+        "before": {
+          "files": 9,
+          "lines": 545,
+          "bytes": 19159
+        },
+        "after": {
+          "files": 9,
+          "lines": 545,
+          "bytes": 19159
+        }
+      }
+    },
+    "productionWithBrowserExtension": {
+      "before": 34122,
+      "after": 33964
+    },
+    "allHandwrittenCode": {
+      "before": 61261,
+      "after": 62080
+    },
+    "target": 20000,
+    "targetMet": false,
+    "productionLinesRemoved": 158
+  },
+  "tests": {
+    "core": {
+      "total": 419,
+      "passed": 419,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 281386.8561,
+      "evidence": {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-core-tests.log",
+        "sha256": "f3a8b10fa1572aad8c76c2f02f688dbfaf4ec09e9a23eb6ff8dd34dede976696",
+        "bytes": 117362
+      }
+    },
+    "host": {
+      "total": 32,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 58551.0315,
+      "evidence": {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-host-tests.log",
+        "sha256": "c9bd3be72dfc6a9ef035092e7bdb4f8efe59db798512202350f5c58b20dc331c",
+        "bytes": 10877
+      }
+    }
+  },
+  "checks": [
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "exitCode": 0,
+      "evidence": "exec result b0219b; built after final production code edits"
+    },
+    {
+      "command": "npm run build:host",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-host-build.log"
+    },
+    {
+      "command": "node scripts/verify-source.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-source-check.log"
+    },
+    {
+      "command": "node test/smoke.compiled.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-core-smoke.log"
+    },
+    {
+      "command": "node test/smoke-host.compiled.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-host-smoke.log"
+    },
+    {
+      "command": "strict/noUnused TypeScript check for query-execution, refactor-contracts and stream-decoder tests",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-test-types.log"
+    },
+    {
+      "command": "strict checkJs for scripts/benchmark-refactor.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-benchmark-types.log"
+    },
+    {
+      "command": "Prettier --check for all changed TS/MJS production, test and script files",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-format.log"
+    },
+    {
+      "command": "git diff --no-index --check against workspace baseline",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "efficiency-diff-check.log"
+    },
+    {
+      "command": "npm pack --ignore-scripts to a separate local validation directory; validateManifest",
+      "status": "passed",
+      "evidence": "efficiency-sdk-contents.json"
+    },
+    {
+      "command": "scripts/release/verify-sdk.mjs --package <local validation tarball>",
+      "status": "passed",
+      "node": [
+        "v22.22.0"
+      ],
+      "evidence": "efficiency-sdk-consumer.json"
+    }
+  ],
+  "compatibility": {
+    "entryExports": [
+      {
+        "entry": "index.d.ts",
+        "before": 136,
+        "after": 136,
+        "removed": [],
+        "added": []
+      },
+      {
+        "entry": "client.d.ts",
+        "before": 3,
+        "after": 3,
+        "removed": [],
+        "added": []
+      },
+      {
+        "entry": "host/index.d.ts",
+        "before": 5,
+        "after": 5,
+        "removed": [],
+        "added": []
+      }
+    ],
+    "unchangedInputs": [
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\package.json",
+        "unchangedFromWorkspaceBaseline": true,
+        "sha256": "67adc6bd86791c0a939739097c11787dbd7ce9fddffb1e37294259d1fc53d9d3"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\package-lock.json",
+        "unchangedFromWorkspaceBaseline": true,
+        "sha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\tsconfig.json",
+        "unchangedFromWorkspaceBaseline": true,
+        "sha256": "40f77e622d345a16653c1c43fe29b7994b0fa7b8f13444b40f61213eceafb64f"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\tsconfig.core.json",
+        "unchangedFromWorkspaceBaseline": true,
+        "sha256": "b48c35624b19cc0d6060ba7abb7170222684f516cbf8cd475a05f5d6ff000bdd"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\README.md",
+        "unchangedFromWorkspaceBaseline": true,
+        "sha256": "eeacb52c0c7c31fb42006c7c902b9e33907854d8b3000bc3f286a5ca46abacf9"
+      }
+    ],
+    "preservedHistoricalEvidence": [
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\source-manifest.json",
+        "matchesSavedEvidence": true,
+        "sha256": "f3054683d375dfd5e171213062de88537fecf180209f242a5e9c8e72a3e81e5f"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\sdk-consumer.json",
+        "matchesSavedEvidence": true,
+        "sha256": "f2efab5cd0b9e2d9bdf255d10119acc92faf6407b83c64eb01cb3752bc884814"
+      },
+      {
+        "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\sdk-consumer-v22.22.0.log",
+        "matchesSavedEvidence": true,
+        "sha256": "0becec380742b798a4d4feefda00a0953bbbba03980c9a63670a3f67998e4643"
+      }
+    ],
+    "databaseFormat": "现有 JSON body 未重写；新增九个实体部分表达式索引和一个消息索引",
+    "oauthEnvelope": "三种历史 AAD 与密文布局兼容；撤权及生命周期检查紧邻写入提交",
+    "removedTests": [],
+    "removedPublicExportNames": [],
+    "guaranteeBoundary": "本地回归和消费者检查通过，不构成所有下游签名、应用或外部协议实现的穷尽证明"
+  },
+  "behaviorImprovements": [
+    "作用域查询、分页、计数与最后助手消息在 SQLite 中执行，避免反序列化无关历史",
+    "单次同步权限检查和单次结构化脱敏复用当次读取，下一次调用重新观察状态",
+    "MCP 共用增量 SSE，保留游标、字节上限、重试和取消行为",
+    "OAuth 加密存储公共实现和服务 schema 工具参数复用",
+    "未知 MCP DELETE 子路径返回 404，不再删除服务器声明",
+    "极大累计费用明确拒绝预算预留；没有新增费用记录",
+    "Office 创建工具声明与服务端既有 100000 行/500 列上限一致"
+  ],
+  "performance": {
+    "method": "Same process and inputs; one warmup then five alternating rounds, median. SQLite uses actual files; MCP uses actual client/stream code with an in-memory HTTP response, no network or model calls.",
+    "measurements": {
+      "redaction": {
+        "workload": "20 x 300 structured messages",
+        "beforeMedianMs": 1716.9946,
+        "afterMedianMs": 10.588400000000547,
+        "speedup": 162.15807865210147
+      },
+      "scopedReads": {
+        "workload": "50 reads from 10000 1KB effects, 50 matching rows",
+        "beforeMedianMs": 2997.9246000000003,
+        "afterMedianMs": 5.130900000000111,
+        "speedup": 584.2882535227612
+      },
+      "transcriptWindows": {
+        "workload": "50 offset windows of 10 from 10000 1KB messages",
+        "beforeMedianMs": 2033.0653999999995,
+        "afterMedianMs": 25.016600000002654,
+        "speedup": 81.26865361399166
+      },
+      "lastAssistant": {
+        "workload": "50 lookups from 10000 1KB messages",
+        "beforeMedianMs": 2022.0315000000046,
+        "afterMedianMs": 0.4508999999961816,
+        "speedup": 4484.434464442511
+      },
+      "permissions": {
+        "workload": "300 checks, 6 capabilities and 100 policies",
+        "beforeMedianMs": 248.47950000000128,
+        "afterMedianMs": 48.15099999999802,
+        "speedup": 5.160422421133756
+      },
+      "reservations": {
+        "workload": "30 atomic project reservations over 10000 charges",
+        "beforeMedianMs": 873.3778999999995,
+        "afterMedianMs": 28.361599999996542,
+        "speedup": 30.794380429880754
+      },
+      "mcpFrames": {
+        "workload": "256 KiB MCP catalog event delivered in 64-byte stream chunks",
+        "beforeMedianMs": 301.27790000000095,
+        "afterMedianMs": 7.844999999993888,
+        "speedup": 38.40381134483565
+      }
+    },
+    "storageTradeoff": {
+      "measuredAt": "2026-10-17T18:11:21.943Z",
+      "node": "v22.22.0",
+      "method": "Five fresh SQLite files per version, alternating order. Insert 10000 1KB effects and 10000 1KB assistant messages in one transaction; use prepared SQL to isolate index overhead from redaction. Timings include commit but exclude close. Reopen after clean close; upgrade a copy of each populated baseline file. OS filesystem cache is not cleared.",
+      "samples": {
+        "before": {
+          "insertMs": [
+            292.5728,
+            250.02769999999987,
+            263.45759999999973,
+            246.48419999999987,
+            255.61269999999968
+          ],
+          "reopenMs": [
+            2.991999999999962,
+            2.0979999999999563,
+            2.4074999999998,
+            1.8076000000000931,
+            1.8740999999999985
+          ],
+          "databaseBytes": [
+            28008448,
+            28008448,
+            28008448,
+            28008448,
+            28008448
+          ]
+        },
+        "after": {
+          "insertMs": [
+            432.1247000000001,
+            387.5321999999999,
+            374.42830000000004,
+            359.51189999999997,
+            369.89270000000033
+          ],
+          "reopenMs": [
+            1.9196999999999207,
+            2.0143000000000484,
+            2.934400000000096,
+            2.0546999999996842,
+            1.7672999999995227
+          ],
+          "databaseBytes": [
+            29102080,
+            29102080,
+            29102080,
+            29102080,
+            29102080
+          ]
+        }
+      },
+      "upgradeMs": [
+        221.3433,
+        213.05510000000004,
+        207.93059999999969,
+        204.96650000000045,
+        199.70280000000002
+      ],
+      "medians": {
+        "before": {
+          "insertMs": 255.61269999999968,
+          "reopenMs": 2.0979999999999563,
+          "databaseBytes": 28008448
+        },
+        "after": {
+          "insertMs": 374.42830000000004,
+          "reopenMs": 2.0143000000000484,
+          "databaseBytes": 29102080
+        },
+        "upgradeMs": 207.93059999999969
+      }
+    },
+    "endpointOrModelSpeedupMeasured": false
+  },
+  "boundaries": [
+    "20,000 行未达标；新增测试和测量脚本使全部手写代码增加",
+    "未执行付费模型任务成功率、真实生产端到端时延或外部厂商协议穷尽测试",
+    "本轮运行环境为 Windows / Node v22.22.0，未重测 Linux/macOS、其他 Node 版本或真实 Docker 运行时",
+    "索引增大写入成本、存储体积和首次启动工作量；大库效果需要具体负载验证",
+    "transcriptSlice 的 count 和 page 查询不声明跨进程并发写入的统一快照",
+    "未声称消除全项目 any 或所有历史问题；未修改技能规则源、缓存或历史副本",
+    "无依赖变更，因此本轮没有重复外部 npm 审计；旧审计结果未作为本轮通过项"
+  ],
+  "changedFiles": [
+    {
+      "path": "src/api/collaboration.ts",
+      "before": {
+        "path": "src/api/collaboration.ts",
+        "bytes": 2631,
+        "lines": 83,
+        "sha256": "4093be63fe5d39554737116fdfb3f115442366a3d9b0fdb78ae4c9b335213168"
+      },
+      "after": {
+        "path": "src/api/collaboration.ts",
+        "bytes": 2605,
+        "lines": 83,
+        "sha256": "cabde72e4223ae18fee5e581299ae059122ec7512fb102639b2b4ed89599b471"
+      }
+    },
+    {
+      "path": "src/api/routes/configuration.ts",
+      "before": {
+        "path": "src/api/routes/configuration.ts",
+        "bytes": 8376,
+        "lines": 258,
+        "sha256": "65e5ef66fae9127be8d86d299a876397f24839848588a550eddc8a4e764ddade"
+      },
+      "after": {
+        "path": "src/api/routes/configuration.ts",
+        "bytes": 8321,
+        "lines": 256,
+        "sha256": "5de10275c312352039616a384c64a86d4cf0380d2c4f7df6379f21e134bf55db"
+      }
+    },
+    {
+      "path": "src/api/routes/mcp.ts",
+      "before": {
+        "path": "src/api/routes/mcp.ts",
+        "bytes": 8227,
+        "lines": 224,
+        "sha256": "834e9dd48b3ce911572b7a6937130f33a89365a61dccbaa6c00032e00ee2eb54"
+      },
+      "after": {
+        "path": "src/api/routes/mcp.ts",
+        "bytes": 6185,
+        "lines": 197,
+        "sha256": "fe1220839395f970c8d11eaf6a736acacdceb3838a6a6e0cad7f01c972b1ac86"
+      }
+    },
+    {
+      "path": "src/api/routes/resources.ts",
+      "before": {
+        "path": "src/api/routes/resources.ts",
+        "bytes": 4403,
+        "lines": 137,
+        "sha256": "598ecccba86b218269429a34cba45cdbf0b35bab5afe5af64083b0c823a46930"
+      },
+      "after": {
+        "path": "src/api/routes/resources.ts",
+        "bytes": 4274,
+        "lines": 131,
+        "sha256": "9ccb100d2b5e3b832475623cea0e879560368acd06a7d439051907ab04cfe0f6"
+      }
+    },
+    {
+      "path": "src/api/routes/session-management.ts",
+      "before": {
+        "path": "src/api/routes/session-management.ts",
+        "bytes": 4187,
+        "lines": 142,
+        "sha256": "eb8cbe520bf5486db052f876b9e49c1231237c38bedf1ca3b507b76524f08337"
+      },
+      "after": {
+        "path": "src/api/routes/session-management.ts",
+        "bytes": 4076,
+        "lines": 138,
+        "sha256": "a6b13c599e95ae175569c43e62b0e279dc7886ba692a3cacf25dd0a0d336c5e3"
+      }
+    },
+    {
+      "path": "src/api/routes/sessions.ts",
+      "before": {
+        "path": "src/api/routes/sessions.ts",
+        "bytes": 4672,
+        "lines": 152,
+        "sha256": "52477faac33fac853a7752107a91b2a1d20dbb5cf8d3286ef10f55c5a2b65ba6"
+      },
+      "after": {
+        "path": "src/api/routes/sessions.ts",
+        "bytes": 4561,
+        "lines": 148,
+        "sha256": "1ee50363c589d30d7836857942fdd1c111fd53e77506baa9f5b121817e83d55d"
+      }
+    },
+    {
+      "path": "src/collaboration/internal/dispatch.ts",
+      "before": {
+        "path": "src/collaboration/internal/dispatch.ts",
+        "bytes": 8430,
+        "lines": 240,
+        "sha256": "9de39bc93e1ece4a7bb78bae6638ea48bfea5169fad11706836bccd9560e4560"
+      },
+      "after": {
+        "path": "src/collaboration/internal/dispatch.ts",
+        "bytes": 8490,
+        "lines": 241,
+        "sha256": "10f97a16f6aa3508961400fb6db926ef12a6d533769b5662897fdba90d028de8"
+      }
+    },
+    {
+      "path": "src/collaboration/internal/tasks.ts",
+      "before": {
+        "path": "src/collaboration/internal/tasks.ts",
+        "bytes": 6633,
+        "lines": 186,
+        "sha256": "eb71c84e2e2c7502f531b9d5f4e272614d3e1b64262f10e5c2a68b76094b9d93"
+      },
+      "after": {
+        "path": "src/collaboration/internal/tasks.ts",
+        "bytes": 6290,
+        "lines": 175,
+        "sha256": "0de5fe8b5b8953cb66e4bc214b28a173d3a1a634923ca612607b986a38107b87"
+      }
+    },
+    {
+      "path": "src/collaboration/internal/tool-definitions.ts",
+      "before": {
+        "path": "src/collaboration/internal/tool-definitions.ts",
+        "bytes": 8264,
+        "lines": 178,
+        "sha256": "70b916599570713e4bcf307887bff9946321d3e83d348dab29492aa8e17d54c9"
+      },
+      "after": {
+        "path": "src/collaboration/internal/tool-definitions.ts",
+        "bytes": 5270,
+        "lines": 99,
+        "sha256": "23779137134d20eb69dbd6fa09b0089f7ff9d9d46d040c1f403f2f414e342278"
+      }
+    },
+    {
+      "path": "src/core/kernel.ts",
+      "before": {
+        "path": "src/core/kernel.ts",
+        "bytes": 45732,
+        "lines": 1340,
+        "sha256": "0e6707716bd353d5173b785dea586eb57c578b9112d0e072678e7ef286673206"
+      },
+      "after": {
+        "path": "src/core/kernel.ts",
+        "bytes": 45613,
+        "lines": 1336,
+        "sha256": "2bc91f9075e221fa705481a6c4ef024cb829ded2c62ff765a720bbccf74db4e7"
+      }
+    },
+    {
+      "path": "src/core/permissions.ts",
+      "before": {
+        "path": "src/core/permissions.ts",
+        "bytes": 13751,
+        "lines": 432,
+        "sha256": "f1b099eb7380d44d7a286e6760248e8ce709685b58ba0d315827608ca74bbe22"
+      },
+      "after": {
+        "path": "src/core/permissions.ts",
+        "bytes": 13644,
+        "lines": 431,
+        "sha256": "42d22c26fdb0d4651e19c29fb1de4a80a16d6463df16a6cb9f8d92effef6dbc6"
+      }
+    },
+    {
+      "path": "src/core/util.ts",
+      "before": {
+        "path": "src/core/util.ts",
+        "bytes": 6390,
+        "lines": 210,
+        "sha256": "4fb38c289b05625175886c2360d83e61477d27492957105f8fc668aaaadd2522"
+      },
+      "after": {
+        "path": "src/core/util.ts",
+        "bytes": 6592,
+        "lines": 215,
+        "sha256": "dad3f938db8e7c916f185e20b2806a07455a9ba9a18ae84d8e0f48ec2cce4e09"
+      }
+    },
+    {
+      "path": "src/execution/sessions.ts",
+      "before": {
+        "path": "src/execution/sessions.ts",
+        "bytes": 18951,
+        "lines": 607,
+        "sha256": "369ebf4452a39c7dd1fe2e81df3ec43a945f655b3d98bf81ad295953ffff5e3d"
+      },
+      "after": {
+        "path": "src/execution/sessions.ts",
+        "bytes": 18934,
+        "lines": 608,
+        "sha256": "029186f69e0de455cd20b70b60ad52a79f505bcb8a1a9fc43d88a3a559a57e17"
+      }
+    },
+    {
+      "path": "src/extensions/mcp/auth/oauth.ts",
+      "before": {
+        "path": "src/extensions/mcp/auth/oauth.ts",
+        "bytes": 40501,
+        "lines": 1203,
+        "sha256": "6bc3fb7d1e2b20abf44fbe96c58048a4aec65f673a871fd1e9a774f5df10ea49"
+      },
+      "after": {
+        "path": "src/extensions/mcp/auth/oauth.ts",
+        "bytes": 39634,
+        "lines": 1172,
+        "sha256": "35335ebac030d2093effbf3246414b636b9fad0737213e8c1574e1d86e273716"
+      }
+    },
+    {
+      "path": "src/extensions/mcp/auth/registration.ts",
+      "before": {
+        "path": "src/extensions/mcp/auth/registration.ts",
+        "bytes": 24052,
+        "lines": 746,
+        "sha256": "ef4d07442160ccc12f84cc060ede3aaa71efee8fb720fa24fe63720098c4a8fa"
+      },
+      "after": {
+        "path": "src/extensions/mcp/auth/registration.ts",
+        "bytes": 22918,
+        "lines": 715,
+        "sha256": "7c9c9b20134b98c6cf25c2fe43e9fb2510d015ab4c4d06cc236bb60c76ded0d3"
+      }
+    },
+    {
+      "path": "src/extensions/mcp/auth/vault.ts",
+      "before": {
+        "path": "src/extensions/mcp/auth/vault.ts",
+        "bytes": 2923,
+        "lines": 99,
+        "sha256": "06fe13482916f4d9d206349da788a9bf4b2da7bc95e20b8d1500872ba9e86695"
+      },
+      "after": {
+        "path": "src/extensions/mcp/auth/vault.ts",
+        "bytes": 1758,
+        "lines": 70,
+        "sha256": "7141c56f5506142cbe8ba9b40f039d8129f079d2b31311bae63b6cef55dd1f92"
+      }
+    },
+    {
+      "path": "src/extensions/mcp/client.ts",
+      "before": {
+        "path": "src/extensions/mcp/client.ts",
+        "bytes": 63711,
+        "lines": 1961,
+        "sha256": "4901ca1fef5d901ea019d8fed0d86eb7cf946d057b596902e5f338268e9b6809"
+      },
+      "after": {
+        "path": "src/extensions/mcp/client.ts",
+        "bytes": 62195,
+        "lines": 1910,
+        "sha256": "e844b6798891aab495d31eadac8f7700cacb5f8e6db7835e0986eb8988112a0f"
+      }
+    },
+    {
+      "path": "src/extensions/mcp/interactions.ts",
+      "before": {
+        "path": "src/extensions/mcp/interactions.ts",
+        "bytes": 6774,
+        "lines": 223,
+        "sha256": "71da7acab1468278312c9de906baaee210ca60d046a25675fe6fe470fb33010d"
+      },
+      "after": {
+        "path": "src/extensions/mcp/interactions.ts",
+        "bytes": 6754,
+        "lines": 224,
+        "sha256": "c74ef83811e457eab8ffe07c01c12d9fde6865f96bad0365cad0e6832b53b3db"
+      }
+    },
+    {
+      "path": "src/extensions/mcp/manager.ts",
+      "before": {
+        "path": "src/extensions/mcp/manager.ts",
+        "bytes": 46532,
+        "lines": 1404,
+        "sha256": "94b06a7b70ede10b1e2ad714b62a2f6063bdc4134517d0fac3a908d65c2aad51"
+      },
+      "after": {
+        "path": "src/extensions/mcp/manager.ts",
+        "bytes": 46681,
+        "lines": 1409,
+        "sha256": "a9674ee937813895031d48b4c690d621273ee549e9f46810e56935a940fee441"
+      }
+    },
+    {
+      "path": "src/host/access.ts",
+      "before": {
+        "path": "src/host/access.ts",
+        "bytes": 1265,
+        "lines": 39,
+        "sha256": "d0b2ff6e09b4f2307c52132977d3d40609660b771d901bbc1dab6485c12b103b"
+      },
+      "after": {
+        "path": "src/host/access.ts",
+        "bytes": 1406,
+        "lines": 43,
+        "sha256": "27e47ba732389f68bad36f5257363134faaa962a1ee6ce9786b1da7455d613fc"
+      }
+    },
+    {
+      "path": "src/host/desktop-tools.ts",
+      "before": {
+        "path": "src/host/desktop-tools.ts",
+        "bytes": 13439,
+        "lines": 431,
+        "sha256": "bab2f5f05ed15eecc51405d810b89629bb826f3f28f8ce036819c6c00a14b47b"
+      },
+      "after": {
+        "path": "src/host/desktop-tools.ts",
+        "bytes": 10038,
+        "lines": 315,
+        "sha256": "bdf99ea8dba7a11f59d5d47a533f8f6250b5c077212f02c24ac5421111534eeb"
+      }
+    },
+    {
+      "path": "src/host/office/manager.ts",
+      "before": {
+        "path": "src/host/office/manager.ts",
+        "bytes": 22139,
+        "lines": 753,
+        "sha256": "e19373ebf978d88c755ba3fcd7dd46576c6d15668a9c582f43cead8f9af606f4"
+      },
+      "after": {
+        "path": "src/host/office/manager.ts",
+        "bytes": 21647,
+        "lines": 735,
+        "sha256": "90d489fe97ae3f6bb504875b92a8c829d748d0e30bf17fd99b0688693675a59b"
+      }
+    },
+    {
+      "path": "src/media/manager.ts",
+      "before": {
+        "path": "src/media/manager.ts",
+        "bytes": 19098,
+        "lines": 600,
+        "sha256": "b356f7c0eae5282b88fcd6d1f744e5842a35439ec0feb37477f860be7124df53"
+      },
+      "after": {
+        "path": "src/media/manager.ts",
+        "bytes": 18960,
+        "lines": 594,
+        "sha256": "5954e6895e7d10ac8579f352ea7ec1f33e021324fd5d7ac5a2eadc94223b3d97"
+      }
+    },
+    {
+      "path": "src/runtime/cost.ts",
+      "before": {
+        "path": "src/runtime/cost.ts",
+        "bytes": 11559,
+        "lines": 378,
+        "sha256": "79bde7b73ce0ee4d09d23a014048e46f6f2d40910ea11743683a1fea7016f242"
+      },
+      "after": {
+        "path": "src/runtime/cost.ts",
+        "bytes": 10945,
+        "lines": 356,
+        "sha256": "782a94e73b469b6d2d6169c46f035f0fd5a8d015efa7944601d3dac4c66cdaa2"
+      }
+    },
+    {
+      "path": "src/runtime/json-schema.ts",
+      "before": {
+        "path": "src/runtime/json-schema.ts",
+        "bytes": 3021,
+        "lines": 86,
+        "sha256": "73463e309ac2171a94f5bf1d40112f6862b179d6fb46b4c176eda26990dc93d4"
+      },
+      "after": {
+        "path": "src/runtime/json-schema.ts",
+        "bytes": 3623,
+        "lines": 103,
+        "sha256": "35824b480c4d11c4fbe18da617322cda69f37217d7d975f59d4a072139cc5fd8"
+      }
+    },
+    {
+      "path": "src/sessions/checkpoints.ts",
+      "before": {
+        "path": "src/sessions/checkpoints.ts",
+        "bytes": 5666,
+        "lines": 168,
+        "sha256": "4daa6fbb81306040d3735dc20c9307f8d00cae3d60df0aef0ab150488692d925"
+      },
+      "after": {
+        "path": "src/sessions/checkpoints.ts",
+        "bytes": 5646,
+        "lines": 174,
+        "sha256": "04404dade747e6c3507587fb192e0e65a8f2c099076c7afccfd92ed1855f51ea"
+      }
+    },
+    {
+      "path": "src/sessions/migration.ts",
+      "before": {
+        "path": "src/sessions/migration.ts",
+        "bytes": 12829,
+        "lines": 403,
+        "sha256": "64360b4c452947f71cb8dac14a0919b4c7b08e26c1d04e87a62edff2fbe41a49"
+      },
+      "after": {
+        "path": "src/sessions/migration.ts",
+        "bytes": 12815,
+        "lines": 403,
+        "sha256": "1da6637d32ec85abb570763fecb248b6fbf785f4f2da78bb2fc7389ed7e55d54"
+      }
+    },
+    {
+      "path": "src/sessions/tools.ts",
+      "before": {
+        "path": "src/sessions/tools.ts",
+        "bytes": 4383,
+        "lines": 119,
+        "sha256": "207491a8499b641c00ea06ccfc41fc4e97f83aa275eff1dc10f12bdd46e1e837"
+      },
+      "after": {
+        "path": "src/sessions/tools.ts",
+        "bytes": 4529,
+        "lines": 120,
+        "sha256": "6602a37eae9b4cb0b4c7827551dd84dd6fcb91653c3e579d71d140df48ca1014"
+      }
+    },
+    {
+      "path": "src/storage/store.ts",
+      "before": {
+        "path": "src/storage/store.ts",
+        "bytes": 13548,
+        "lines": 400,
+        "sha256": "86bb47645e6128f99616504248aa945583e140c9c14f10417ce1dfdf1de0b328"
+      },
+      "after": {
+        "path": "src/storage/store.ts",
+        "bytes": 16245,
+        "lines": 459,
+        "sha256": "6af351813638f78544ede0ef56c80f5a8470638ad70bc02794219be2a6d12fbf"
+      }
+    },
+    {
+      "path": "src/tools/assets.ts",
+      "before": {
+        "path": "src/tools/assets.ts",
+        "bytes": 4435,
+        "lines": 150,
+        "sha256": "bdde9b4f892723413038adf57204a503cc9e1c4a6139b13e351f570720f0d3fe"
+      },
+      "after": {
+        "path": "src/tools/assets.ts",
+        "bytes": 4396,
+        "lines": 147,
+        "sha256": "7c230a2cb75c5441e633cc658533501bdda8a3cdd1f5f7dcb25df6816459ffad"
+      }
+    },
+    {
+      "path": "src/tools/delegation.ts",
+      "before": {
+        "path": "src/tools/delegation.ts",
+        "bytes": 6551,
+        "lines": 170,
+        "sha256": "678159f40d36e73e29d0cd85304826b2fd426a2aa053f2cd1d63d3d5c826b481"
+      },
+      "after": {
+        "path": "src/tools/delegation.ts",
+        "bytes": 6460,
+        "lines": 167,
+        "sha256": "f8115339c66a22c7cc26695f783a7a0ac4727b1e4d691c17f26d2ad33490bc52"
+      }
+    },
+    {
+      "path": "src/tools/state.ts",
+      "before": {
+        "path": "src/tools/state.ts",
+        "bytes": 3315,
+        "lines": 120,
+        "sha256": "599fe84a91100b6282f98328446a1222426d207c478478df16b7d032a4bed4d6"
+      },
+      "after": {
+        "path": "src/tools/state.ts",
+        "bytes": 3315,
+        "lines": 122,
+        "sha256": "c8635085cf982cc6829ea089efa0997276e082b37c60150948d6fd14ebd80923"
+      }
+    },
+    {
+      "path": "src/transport/sse.ts",
+      "before": {
+        "path": "src/transport/sse.ts",
+        "bytes": 3946,
+        "lines": 126,
+        "sha256": "172dba4b77ab5af836ce80daf731a45faf76211ae073aa9e0f61e98074228631"
+      },
+      "after": {
+        "path": "src/transport/sse.ts",
+        "bytes": 4629,
+        "lines": 143,
+        "sha256": "4e313e3a8cbdda854ca183288f6991ab57d4ffcb819d0a84d2ad1a412469b97c"
+      }
+    },
+    {
+      "path": "src/storage/encrypted-file.ts",
+      "before": null,
+      "after": {
+        "path": "src/storage/encrypted-file.ts",
+        "bytes": 2775,
+        "lines": 97,
+        "sha256": "81377d6aedb5da6a1754130fde4d0820cdd21ec254e727444eb8315b535853ca"
+      }
+    },
+    {
+      "path": "src/storage/entity-query.ts",
+      "before": null,
+      "after": {
+        "path": "src/storage/entity-query.ts",
+        "bytes": 2236,
+        "lines": 74,
+        "sha256": "01f37d878fe3db62c5e83f944a07a6c89140948edeb8313d0f53275156dfad19"
+      }
+    },
+    {
+      "path": "scripts/run-core-tests.mjs",
+      "before": {
+        "path": "scripts/run-core-tests.mjs",
+        "bytes": 3128,
+        "lines": 92,
+        "sha256": "f3e795be9ce327a0bd0469ec1d03f93ff6d90926ed1a74e843de0b80f59ff474"
+      },
+      "after": {
+        "path": "scripts/run-core-tests.mjs",
+        "bytes": 3190,
+        "lines": 94,
+        "sha256": "e2dc07a8ae9c4ddaafecc8d130358f291d1e00f8f281b79118828a5609c28bcc"
+      }
+    },
+    {
+      "path": "scripts/benchmark-refactor.mjs",
+      "before": null,
+      "after": {
+        "path": "scripts/benchmark-refactor.mjs",
+        "bytes": 15523,
+        "lines": 477,
+        "sha256": "c739bdbb011282f9b14f6b5f59b2f89f4433cdc2c0d8b874b6f81f44cbde0f77"
+      }
+    },
+    {
+      "path": "test/stream-decoder.test.ts",
+      "before": {
+        "path": "test/stream-decoder.test.ts",
+        "bytes": 5202,
+        "lines": 161,
+        "sha256": "d8c05db8796f14e321dd0f74e4810043efa1086e6393624db0ac1e0c9fc99e02"
+      },
+      "after": {
+        "path": "test/stream-decoder.test.ts",
+        "bytes": 6209,
+        "lines": 192,
+        "sha256": "8ffdd320cba6e2e41f41c03305408ef5109e704b059fb283d09cb8ab280a4780"
+      }
+    },
+    {
+      "path": "test/query-execution.test.ts",
+      "before": null,
+      "after": {
+        "path": "test/query-execution.test.ts",
+        "bytes": 8770,
+        "lines": 272,
+        "sha256": "ac82344e65588f14566760c6348b62b7c71a027d3db6af9d80ecf06042462ff2"
+      }
+    },
+    {
+      "path": "test/refactor-contracts.test.ts",
+      "before": null,
+      "after": {
+        "path": "test/refactor-contracts.test.ts",
+        "bytes": 6390,
+        "lines": 195,
+        "sha256": "ec203abcf6a6d62ce776a09c68c3d52051d2a8db0ea8bce283564821ef9a36d4"
+      }
+    },
+    {
+      "path": "docs/REFACTOR-EFFICIENCY.md",
+      "before": null,
+      "after": {
+        "path": "docs/REFACTOR-EFFICIENCY.md",
+        "bytes": 10849,
+        "lines": 124,
+        "sha256": "2b8d9dc0402f4a865645cbc743fc9bd9d212f7dac7b37081e6d88fa348d0d5b6"
+      }
+    },
+    {
+      "path": ".gitignore",
+      "before": {
+        "path": ".gitignore",
+        "sha256": "cf80e71b46d003e381cc9dfb87605eb81bd8d56618dad298d8d2b9c7d8bb5e2c",
+        "bytes": 2227,
+        "lines": 61
+      },
+      "after": {
+        "path": ".gitignore",
+        "sha256": "c4e9dd32b59d55abe3776fd6efe8e327244ba9003ed08a582564eaa0cd4455fc",
+        "bytes": 2460,
+        "lines": 67
+      }
+    }
+  ],
+  "documentation": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\docs\\REFACTOR-EFFICIENCY.md",
+  "evidence": [
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-source-metrics.json",
+      "sha256": "bd5ed30c809b7eb7f3457522d5f48a030ce7bd33764c34e77afe39309cfe488f",
+      "bytes": 27395
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-source-manifest.json",
+      "sha256": "b4a71d4c95a2cfb86d509d2d414238c1a0c5f19ce596ba3f8343fa51d25dd075",
+      "bytes": 49070
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-source-check.log",
+      "sha256": "13451b3e96e1673166bcf6bf90e9f924ad725ac23e160827a5df71043afd99b6",
+      "bytes": 159
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-host-build.log",
+      "sha256": "2faa78d7b094b6a75a724e8582b5e59e79dee28fd8a921847934bcd88dd3257f",
+      "bytes": 113
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-core-tests.log",
+      "sha256": "f3a8b10fa1572aad8c76c2f02f688dbfaf4ec09e9a23eb6ff8dd34dede976696",
+      "bytes": 117362
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-host-tests.log",
+      "sha256": "c9bd3be72dfc6a9ef035092e7bdb4f8efe59db798512202350f5c58b20dc331c",
+      "bytes": 10877
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-core-smoke.log",
+      "sha256": "0c48f1a12a572b057d81a5f32cd2e6064d027da3098c613d273d2c5b8bbc4ae6",
+      "bytes": 607
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-host-smoke.log",
+      "sha256": "817d53e0794460ca0cae658f943cf96d823775ef16a346f8c6f129c8d865a8db",
+      "bytes": 356
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-test-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-benchmark-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-format.log",
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "bytes": 68
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-diff-check.log",
+      "sha256": "0a3ce73d1e6019484d48d0e9a9e6bc694b74dacaa59e8f43b7757a6d03215559",
+      "bytes": 71
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-sdk-consumer.json",
+      "sha256": "59d0b9cb240b2bb32b58488afd862c1eb08405f24c8e0bfc92dea01277dfa7e0",
+      "bytes": 2459
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-sdk-consumer.log",
+      "sha256": "042e2dbb567d5ac8b78ad0fd48fe8deb55c380f0506d0f1862b223e0ed649770",
+      "bytes": 308
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-sdk-runtime.log",
+      "sha256": "8f79711fa7fc6a79f7a4451021005ca505119440f16685caf8d3a02ed3fd2adf",
+      "bytes": 1045
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-sdk-manifest.json",
+      "sha256": "a288b1e80dd6934ed7f035ed7a7baac59bdf4c25f24d848aa9e83da8eaae4460",
+      "bytes": 33505
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-sdk-contents.json",
+      "sha256": "8b5dde5ed79a809dbb6160aff3effc1b6fee464d631e0a2d674199ef1d952335",
+      "bytes": 763
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-benchmark.json",
+      "sha256": "eb571a31e9cb7107fee56a22b266ee346e7eff42bbe503f254f5d543eb611879",
+      "bytes": 4264
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-benchmark.log",
+      "sha256": "1200abea1e9f24a004a36b47620664908a7bb9994c0d3c998452d9c416274605",
+      "bytes": 408
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-storage-cost.json",
+      "sha256": "6d944a589bc497b3fa3d4a53743062d71f94545c973c71818ed5947d6950fd93",
+      "bytes": 1840
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\efficiency-storage-benchmark.log",
+      "sha256": "60d2c55fa84dfcdafdff1070744c58cc4aba815573255770603c190aae5f196e",
+      "bytes": 461
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-baseline-build.log",
+      "sha256": "2faa78d7b094b6a75a724e8582b5e59e79dee28fd8a921847934bcd88dd3257f",
+      "bytes": 113
+    },
+    {
+      "path": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\verification\\refactor-baseline-tests.log",
+      "sha256": "0b8ddbcbc679bd7d99954bfe7d0f1e47c1047e45563dac96a56bc8f0f466c6c8",
+      "bytes": 115023
+    }
+  ]
+}

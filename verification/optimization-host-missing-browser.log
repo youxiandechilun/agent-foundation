@@ -1,0 +1,457 @@
+TAP version 13
+# (node:23128) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: application tools execute real office, browser and native work within a continuous multi-reply Agent run and publish durable owned assets
+not ok 1 - application tools execute real office, browser and native work within a continuous multi-reply Agent run and publish durable owned assets
+  ---
+  duration_ms: 2983.7551
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\applications-flow.integration.js:6:1'
+  failureType: 'testCodeFailure'
+  error: `[{"schemaVersion":1,"id":"ev_c95eba6e-e95e-4021-995e-27c833366455","runId":"run_72f2cb37-1ac6-4ca2-9120-92df11d2c938","sessionId":"session_b78b3745-2cd0-44a1-aa67-a88e88c02f7b","type":"tool.settled","timestamp":"2026-10-17T17:43:16.983Z","seq":13,"data":{"toolCallId":"call_1_0","name":"office_create","result":{"content":[{"type":"text","text":"{\\"assetId\\":\\"asset_697e0862-8e07-4805-8cce-d843b8611764\\",\\"name\\":\\"agent-output.xlsx\\",\\"bytes\\":6570}"}],"details":{"assetId":"asset_697e0862-8e07-4805-8cce-d843b8611764","name":"agent-output.xlsx","bytes":6570}},"isError":false}},{"schemaVersion":1,"id":"ev_0c6e9754-15f3-4609-bae2-a76a4b22167a","runId":"run_72f2cb37-1ac6-4ca2-9120-92df11d2c938","sessionId":"session_b78b3745-2cd0-44a1-aa67-a88e88c02f7b","type":"tool.settled","timestamp":"2026-10-17T17:43:17.127Z","seq":23,"data":{"toolCallId":"call_2_0","name":"browser_open","result":{"content":[{"type":"text","text":"browserType.launchPersistentContext: Executable doesn't exist at C:\\\\Users\\\\32761\\\\AppData\\\\Local\\\\ms-playwright\\\\chromium_headless_shell-1248\\\\chrome-headless-shell-win64\\\\chrome-headless-shell.exe\\n╔════════════════════════════════════════════════════════════╗\\n║ Looks like Playwright was just installed or updated.       ║\\n║ Please run the following command to download new browsers: ║\\n║                                                            ║\\n║     npx playwright install                                 ║\\n║                                                            ║\\n║ <3 Playwright Team                                         ║\\n╚════════════════════════════════════════════════════════════╝"}],"isError":true},"isError":true}},{"schemaVersion":1,"id":"ev_b021ed38-6101-4099-8c3b-2c20241d7159","runId":"run_72f2cb37-1ac6-4ca2-9120-92df11d2c938","sessionId":"session_b78b3745-2cd0-44a1-aa67-a88e88c02f7b","type":"tool.settled","timestamp":"2026-10-17T17:43:18.112Z","seq":33,"data":{"toolCallId":"call_3_0","name":"computer_action","result":{"content":[{"type":"text","text":"{\\"width\\":2560,\\"height\\":1600,\\"action\\":\\"inspect\\",\\"cursor\\":{\\"y\\":980,\\"x\\":1076},\\"left\\":0,\\"foregroundTitle\\":\\"ChatGPT\\",\\"ok\\":true,\\"top\\":0}"}],"details":{"width":2560,"height":1600,"action":"inspect","cursor":{"y":980,"x":1076},"left":0,"foregroundTitle":"ChatGPT","ok":true,"top":0}},"isError":false}}]`
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/test/applications-flow.integration.js:61:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# (node:10076) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: application browser pack independently exposes only browser tools and enforces API, owner and upload policies
+not ok 2 - application browser pack independently exposes only browser tools and enforces API, owner and upload policies
+  ---
+  duration_ms: 475.534
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:40:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    500: browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'internal_error'
+  stack: |-
+    FoundationClient.jsonResult (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/src/client.js:71:19)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/test/browser-app.integration.js:52:24)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes
+not ok 3 - managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes
+  ---
+  duration_ms: 76.1002
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:87:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async BrowserManager.open (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\browser\manager.js:135:27)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser-app.integration.js:90:19)
+  ...
+# Subtest: managed browser handles explicit dialogs and actual proxied WebSocket traffic
+not ok 4 - managed browser handles explicit dialogs and actual proxied WebSocket traffic
+  ---
+  duration_ms: 32.7299
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:134:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async BrowserManager.open (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\browser\manager.js:135:27)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser-app.integration.js:137:19)
+  ...
+# Subtest: managed browser cancellation destroys its context, stops queued work and releases profile capacity
+not ok 5 - managed browser cancellation destroys its context, stops queued work and releases profile capacity
+  ---
+  duration_ms: 31.9118
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:168:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async BrowserManager.open (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\browser\manager.js:135:27)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser-app.integration.js:171:19)
+  ...
+# Subtest: browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock
+not ok 6 - browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock
+  ---
+  duration_ms: 32.7073
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:192:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async BrowserManager.open (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\browser\manager.js:135:27)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser-app.integration.js:195:52)
+  ...
+# Subtest: browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials
+ok 7 - browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials
+  ---
+  duration_ms: 34.8079
+  type: 'test'
+  ...
+# Subtest: browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes
+not ok 8 - browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes
+  ---
+  duration_ms: 33.3604
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:246:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    500: browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'internal_error'
+  stack: |-
+    FoundationClient.jsonResult (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/src/client.js:71:19)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/test/browser-app.integration.js:249:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: browser proxy terminates an actual open WebSocket when a project network grant is revoked
+not ok 9 - browser proxy terminates an actual open WebSocket when a project network grant is revoked
+  ---
+  duration_ms: 32.5627
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:281:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    500: browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'internal_error'
+  stack: |-
+    FoundationClient.jsonResult (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/src/client.js:71:19)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/test/browser-app.integration.js:284:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context
+not ok 10 - aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context
+  ---
+  duration_ms: 34.7694
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-app.integration.js:315:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    500: browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'internal_error'
+  stack: |-
+    FoundationClient.jsonResult (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/src/client.js:71:19)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async TestContext.<anonymous> (file:///C:/Users/32761/Desktop/agent/agent-foundation/.agent-data-tests/compiled-tests-9pFNwT/test/browser-app.integration.js:318:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# (node:25392) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation
+not ok 11 - independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation
+  ---
+  duration_ms: 108.5606
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser-bridge-app.integration.js:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium-1248\chrome-win64\chrome.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser-bridge-app.integration.js:22:19)
+  ...
+# Subtest: browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller
+ok 12 - browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller
+  ---
+  duration_ms: 171.8896
+  type: 'test'
+  ...
+# (node:45492) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual Chromium navigation, DOM input/click, screenshots, file upload and download
+not ok 13 - actual Chromium navigation, DOM input/click, screenshots, file upload and download
+  ---
+  duration_ms: 147.9444
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser.integration.js:29:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async BrowserManager.open (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\browser\manager.js:135:27)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser.integration.js:32:25)
+  ...
+# Subtest: actual CDP attachment controls a separate browser and disconnect preserves its tabs
+not ok 14 - actual CDP attachment controls a separate browser and disconnect preserves its tabs
+  ---
+  duration_ms: 32.3514
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser.integration.js:68:1'
+  failureType: 'uncaughtException'
+  error: 'spawn C:\\Users\\32761\\AppData\\Local\\ms-playwright\\chromium-1248\\chrome-win64\\chrome.exe ENOENT'
+  code: 'ENOENT'
+  stack: |-
+    ChildProcess._handle.onexit (node:internal/child_process:285:19)
+    onErrorNT (node:internal/child_process:483:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+  ...
+# Subtest: real PDF generation and bounded text extraction
+not ok 15 - real PDF generation and bounded text extraction
+  ---
+  duration_ms: 38.9171
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser.integration.js:112:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launch: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Office.create (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\office\manager.js:353:42)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser.integration.js:115:21)
+  ...
+# Subtest: Windows native controller compiles its input helpers and reads actual desktop state without sending input
+ok 16 - Windows native controller compiles its input helpers and reads actual desktop state without sending input
+  ---
+  duration_ms: 789.0048
+  type: 'test'
+  ...
+# Subtest: actual Chrome extension bridge connects, inspects, fills and clicks only its allowed test tab
+not ok 17 - actual Chrome extension bridge connects, inspects, fills and clicks only its allowed test tab
+  ---
+  duration_ms: 31.6003
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\browser.integration.js:149:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launchPersistentContext: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium-1248\chrome-win64\chrome.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\browser.integration.js:160:19)
+  ...
+# (node:40508) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture
+ok 18 - native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture
+  ---
+  duration_ms: 14304.1527
+  type: 'test'
+  ...
+# Subtest: native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates
+ok 19 - native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates
+  ---
+  duration_ms: 9222.1953
+  type: 'test'
+  ...
+# Subtest: computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues
+ok 20 - computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues
+  ---
+  duration_ms: 797.6499
+  type: 'test'
+  ...
+# Subtest: active native processes recheck revoked permissions and timeouts without retaining their lease queue
+ok 21 - active native processes recheck revoked permissions and timeouts without retaining their lease queue
+  ---
+  duration_ms: 275.6649
+  type: 'test'
+  ...
+# (node:45988) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: paired node HTTP transport uses scoped auth, actual queued tasks and explicit results
+ok 22 - paired node HTTP transport uses scoped auth, actual queued tasks and explicit results
+  ---
+  duration_ms: 514.2351
+  type: 'test'
+  ...
+# Subtest: real WebSocket node channel authenticates, dispatches once and records results
+ok 23 - real WebSocket node channel authenticates, dispatches once and records results
+  ---
+  duration_ms: 101.8267
+  type: 'test'
+  ...
+# (node:8608) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX
+ok 24 - office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX
+  ---
+  duration_ms: 3081.3034
+  type: 'test'
+  ...
+# (node:34956) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: office pack exposes independent tools and authenticated APIs with project, schema and preview-write enforcement
+ok 25 - office pack exposes independent tools and authenticated APIs with project, schema and preview-write enforcement
+  ---
+  duration_ms: 220.5756
+  type: 'test'
+  ...
+# Subtest: DOCX edits span real styled runs, preserve opaque parts and styles, and enforce exact matches and immutable source digests
+ok 26 - DOCX edits span real styled runs, preserve opaque parts and styles, and enforce exact matches and immutable source digests
+  ---
+  duration_ms: 395.358
+  type: 'test'
+  ...
+# Subtest: PPTX inspection follows presentation relationships and source-preserving edits retain images and slide order
+ok 27 - PPTX inspection follows presentation relationships and source-preserving edits retain images and slide order
+  ---
+  duration_ms: 535.128
+  type: 'test'
+  ...
+# Subtest: XLSX range edits preserve styles and unknown parts, invalidate formula caches and report recalculation honestly
+ok 28 - XLSX range edits preserve styles and unknown parts, invalidate formula caches and report recalculation honestly
+  ---
+  duration_ms: 1159.3536
+  type: 'test'
+  ...
+# Subtest: PDF generation, page composition, rotation, extraction and raster preview execute on actual PDFs
+not ok 29 - PDF generation, page composition, rotation, extraction and raster preview execute on actual PDFs
+  ---
+  duration_ms: 2283.9772
+  type: 'test'
+  location: 'C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-tests\\compiled-tests-9pFNwT\\test\\office-app.integration.js:218:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    browserType.launch: Executable doesn't exist at C:\Users\32761\AppData\Local\ms-playwright\chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe
+    ╔════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright was just installed or updated.       ║
+    ║ Please run the following command to download new browsers: ║
+    ║                                                            ║
+    ║     npx playwright install                                 ║
+    ║                                                            ║
+    ║ <3 Playwright Team                                         ║
+    ╚════════════════════════════════════════════════════════════╝
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Office.create (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\src\host\office\manager.js:353:42)
+    async TestContext.<anonymous> (C:\Users\32761\Desktop\agent\agent-foundation\.agent-data-tests\compiled-tests-9pFNwT\test\office-app.integration.js:238:27)
+  ...
+# Subtest: Office ZIP preflight rejects actual CRC damage, expanded data, XML entities, duplicate names and macros
+ok 30 - Office ZIP preflight rejects actual CRC damage, expanded data, XML entities, duplicate names and macros
+  ---
+  duration_ms: 10.0114
+  type: 'test'
+  ...
+# Subtest: Office worker cancellation, bounded capacity, closing and CSV formula-neutralization do real work without publishing cancelled output
+ok 31 - Office worker cancellation, bounded capacity, closing and CSV formula-neutralization do real work without publishing cancelled output
+  ---
+  duration_ms: 99.2529
+  type: 'test'
+  ...
+# Subtest: office edits recheck exact tool policy and source-read authorization after actual worker processing before publishing a derived asset
+ok 32 - office edits recheck exact tool policy and source-read authorization after actual worker processing before publishing a derived asset
+  ---
+  duration_ms: 1044.9499
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 17
+# fail 15
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60973.753

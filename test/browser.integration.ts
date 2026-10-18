@@ -183,7 +183,7 @@ test("actual Chrome extension bridge connects, inspects, fills and clicks only i
       capabilities: ["browser.control"],
     });
     const extension = fileURLToPath(
-      new URL("../extensions/browser-bridge/", import.meta.url),
+      new URL("../extensions/browser-bridge", import.meta.url),
     );
     context = await chromium.launchPersistentContext(
       path.join(x.root, "extension-profile"),

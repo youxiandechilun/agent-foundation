@@ -29,7 +29,7 @@ test("independent browser pack pairs a real Chrome extension with host URL revie
       "actual user browser test",
     );
     const extension = fileURLToPath(
-      new URL("../extensions/browser-bridge/", import.meta.url),
+      new URL("../extensions/browser-bridge", import.meta.url),
     );
     browser = await chromium.launchPersistentContext(
       path.join(x.root, "bridge-profile"),

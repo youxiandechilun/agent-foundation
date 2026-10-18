@@ -1,10 +1,10 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { StringDecoder } from "node:string_decoder";
-import type { Config } from "../config.js";
-import { invariant } from "../util.js";
+import type { Config } from "../core/config.js";
+import { invariant } from "../core/util.js";
 import { realpath } from "node:fs/promises";
-import { safePath } from "../util.js";
+import { safePath } from "../core/util.js";
 
 /** All command entry points share the same network permission declaration. */
 export function executionCapabilities(config: Config): ("exec" | "network")[] {

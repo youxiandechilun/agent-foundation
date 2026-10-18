@@ -11,8 +11,8 @@ import {
   readdir,
   realpath,
 } from "node:fs/promises";
-import type { Config } from "../config.js";
-import { hash, invariant, within } from "../util.js";
+import type { Config } from "../core/config.js";
+import { hash, invariant, within } from "../core/util.js";
 import {
   nativeProcess,
   processEnvironment,

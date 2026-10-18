@@ -11,8 +11,8 @@ import {
   clientMetadataDocument,
   clientMetadataURL,
   clientAssertion,
-} from "../src/extensions/mcp-client-metadata.js";
-import { oauthSchema } from "../src/extensions/mcp-oauth.js";
+} from "../src/extensions/mcp/auth/client-metadata.js";
+import { oauthSchema } from "../src/extensions/mcp/auth/oauth.js";
 import { setup } from "./support/wire-server.js";
 async function tlsFlow(algorithm: string, scenario = "normal") {
   const root = await mkdtemp(path.join(tmpdir(), "foundation-cimd-tls-")),

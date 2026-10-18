@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setup } from "./support/wire-server.js";
-import { estimateTokens, estimateTextTokens } from "../src/context.js";
+import { estimateTokens, estimateTextTokens } from "../src/core/context.js";
 import type { Message } from "../src/runtime/types.js";
 
 test("Chinese context uses UTF-8 weighted budgets and hierarchical consolidation processes the tail segment", async () => {

@@ -1,6 +1,6 @@
 import type { MediaRequest, MediaOutput } from "../contracts.js";
-import type { Route } from "../config.js";
-import { invariant } from "../util.js";
+import type { Route } from "../core/config.js";
+import { invariant } from "../core/util.js";
 
 export interface AdapterResult {
   /** Optional trusted adapter report, translated from the vendor's billing response. */
@@ -146,7 +146,7 @@ export const videoJobAdapter: MediaAdapter = {
     });
     return normalize(data, "video");
   },
-  async poll(id, state, context) {
+  async poll(id, _state, context) {
     return normalize(
       await context.request(
         context.route.pollPath.replace("{id}", encodeURIComponent(id)),
@@ -157,7 +157,7 @@ export const videoJobAdapter: MediaAdapter = {
   async recover(id, state, context) {
     return this.poll!(id, state, context);
   },
-  async cancel(id, state, context) {
+  async cancel(id, _state, context) {
     invariant(
       context.route.cancelPath,
       "Provider cancel path is not configured",
@@ -240,7 +240,7 @@ export const mappedHttpAdapter: MediaAdapter = {
     const data = await context.request(context.route.submitPath, body);
     return mapped(data, context.route, request.kind);
   },
-  async poll(id, state, context) {
+  async poll(id, _state, context) {
     return mapped(
       await context.request(
         context.route.pollPath.replace("{id}", encodeURIComponent(id)),
@@ -252,7 +252,7 @@ export const mappedHttpAdapter: MediaAdapter = {
   async recover(id, state, context) {
     return this.poll!(id, state, context);
   },
-  async cancel(id, state, context) {
+  async cancel(id, _state, context) {
     invariant(context.route.cancelPath, "Cancel path missing", 501);
     return mapped(
       await context.request(

@@ -1,4 +1,4 @@
-# 执行循环增强：重试、提示缓存、生命周期钩子与子 Agent
+# 执行循环增强：重试、提示缓存、钩子、子 Agent、结构化输出、续写、回滚与检索
 
 本轮参考 Claude Code（hooks、Task 子代理、请求重试、Anthropic 提示缓存）与 pi（可扩展事件钩子、steer/follow-up 队列）的公开设计，在本工程自有源码中实现，不引入任何 Agent 框架或模型 SDK。所有新能力均保持原有安全不变量：钩子只能收紧或注释，不能授予权限；子 Agent 不能越过父会话的模式、路由与自主级别。
 
@@ -106,20 +106,71 @@ const off = kernel.addHooks({
 
 源码：`src/runtime/hooks.ts`，引擎接入点在 `src/runtime/engine.ts`。
 
-## 4. 子 Agent（`agent_delegate`）
+## 4. 子 Agent（`agent_delegate` / `agent_result`）
 
-模型可调用 `agent_delegate { description, prompt, agentId? }` 把独立子任务交给一个上下文全新的子会话，返回其最终回答。同一步发出的多个委托并行执行。
+模型可调用 `agent_delegate { description, prompt, agentId?, background? }` 把独立子任务交给一个上下文全新的子会话。
 
+- **前台**（默认）：等待并返回子 Agent 的最终回答；同一步发出的多个委托并行执行。
+- **后台**（`background: true`）：立即返回 `{ runId, status: "running" }`，父 Agent 可以继续工作，之后用 `agent_result { runId, waitMs? }` 查询或等待（最多 10 分钟）。本会话之后的运行也能查询；只能查询本会话派生的子 Agent，否则 403。
 - 子会话：同项目、**同模式、同路由、同自主级别**；`agentId` 只能选择与父会话同模式的 Agent 定义（其工具白名单进一步收窄），否则 403。
-- 深度为 1：子会话带 `parentSessionId`，不提供 `agent_delegate`。
-- 调度：工具声明 `scheduling.detached`，等待期间不占用工具槽位，避免子运行因槽位被父运行占满而死锁。
-- 取消：父运行取消或超时时取消子运行。
+- 层数：`limits.maxAgentDepth`（默认 1，即子 Agent 不能再委托；最大 5；0 关闭委托）。子会话记录 `parentSessionId` 与 `delegationDepth`。
+- 调度：两个工具都声明 `scheduling.detached`，等待期间不占用工具槽位，避免子运行因槽位被父运行占满而死锁。
+- 取消：前台子运行随工具调用一起取消；后台子运行在父运行被取消或超时时取消，父运行正常结束后继续运行。
 - 并发：子运行占用 `limits.maxConcurrentRuns`，超出时工具返回 429 错误，不排队等待。
-- 审批：子运行内需要审批的工具在子运行上发出审批事件；父运行发出 `subagent.started { sessionId, runId }` 供客户端订阅，完成时发 `subagent.completed`。
+- 审批：子运行内需要审批的工具在子运行上发出审批事件；父运行发出 `subagent.started { sessionId, runId, background }` 供客户端订阅，前台完成时发 `subagent.completed`。
 - 费用：子运行按自身会话/运行作用域计入预算账本；运行级上限 `maxRunUsd` 不累计子运行。
 
-源码：`src/tools.ts`（`agent_delegate`）、`src/runtime/engine.ts`（detached 调度）。
+源码：`src/tools/index.ts`（`agent_delegate`、`agent_result`）、`src/runtime/engine.ts`（detached 调度）。
+
+## 5. 结构化输出
+
+提交运行时附带 JSON Schema，最终结果按它校验后存到运行记录：
+
+```json
+POST /v1/sessions/{id}/inputs
+{ "text": "提取发票信息", "outputSchema": { "type": "object", "properties": { "total": { "type": "number" } }, "required": ["total"] } }
+```
+
+- 运行内增加 `submit_result` 工具，参数就是该 Schema（非 object 根的 Schema 自动包成 `{ result }`，`$defs` 上提）。系统提示要求完成时调用它。
+- 参数不符合 Schema 时作为工具错误返回，模型据此修正后重试。
+- 合法调用立即结束运行，结果写入 `GET /v1/runs/{id}` 的 `output`，并发出 `run.output` 事件。
+- 模型不调用就结束时，最多提醒 2 次，仍不调用则运行失败（422）。
+- `submit_result` 只记录结果、无副作用，因此不受模式、Agent 定义和路由工具白名单限制；仍受计划模式等其它规则约束。
+- 仅 `delivery: "start"` 接受 `outputSchema`；Schema 不可引用外部地址。
+- 带 `outputSchema` 的运行以 `submit_result` 作为结束条件，不调用 Stop 钩子。
+
+源码：`src/runtime/structured-output.ts`、`src/core/kernel.ts`、`src/runtime/engine.ts`（`finishTool`）。
+
+## 6. 输出被截断时自动续写
+
+模型因达到输出上限停止（`length` / `max_tokens` / `incomplete`）、且回复中没有工具调用时，引擎自动追加一条续写提示再请求一次，最多 `limits.maxOutputContinuations` 次（默认 3，设 0 关闭）。每次发出 `model.continued` 事件。截断发生在工具调用中时仍然报错，因为参数可能不完整，不能执行。
+
+## 7. 文件检查点与回滚
+
+`file_write` / `file_patch` 写入前自动保存原文件（按 SHA-256 去重，存于 `dataDir/checkpoints`，单文件上限 16 MiB），写入后记录新内容哈希。
+
+```json
+POST /v1/sessions/{id}/rewind
+{ "beforeMessageId": "message_…", "files": true, "conversation": true, "force": false }
+```
+
+- 用 `beforeMessageId`（回到该消息之前）或 `throughMessageId`（保留到该消息）二选一。
+- **文件**：把该点之后由本会话文件工具改过的文件恢复到改动前；当时新建的文件会被删除。
+- **冲突**：文件在 Agent 最后一次写入后又被别的途径改过（人工编辑、`exec_run`、其它会话），默认不覆盖，列入 `conflicts`；`force: true` 强制恢复。
+- **对话**：通过分叉实现，返回新会话，原会话记录完整保留。设 `conversation: false` 只恢复文件。
+- 已回滚的检查点不会重复应用；可以先回到较近的点，再回到更早的点。
+- 返回 `{ files: { restored, deleted, conflicts, unchanged }, session, rewoundMessages }`。`GET /v1/sessions/{id}/checkpoints` 列出检查点。
+- 不跟踪：`exec_run`、插件、MCP 等对文件的改动，以及子 Agent 会话中的写入（它们记在子会话上）。
+
+源码：`src/sessions/checkpoints.ts`、`Kernel.rewind`。
+
+## 8. 代码检索
+
+- `file_search`：新增 `regex`、`ignoreCase`、`glob`（如 `*.ts`、`src/**/*.test.ts`）、`includeIgnored` 参数；默认遵守根目录与各级子目录的 `.gitignore` 和 `.git/info/exclude`（支持 `!` 取反、`/` 锚定、目录规则、`**`）。始终跳过 `.git`、`node_modules`、`.agent-data` 和符号链接。
+- `file_glob`：按通配符查找文件，按修改时间从新到旧，最多返回 500 个；不含 `/` 的模式匹配任意层级的文件名。
+
+源码：`src/runtime/project-walk.ts`。
 
 ## 验证
 
-`test/agent-loop.test.ts`、`test/subagents.test.ts` 使用本地协议服务和真实文件/子进程执行：重试与 Retry-After、重试上限、缓存断点数量与不可变性、三种钩子决策、改写参数的重新校验与权限拒绝、配置命令钩子退出码/JSON 协议、钩子崩溃的失败关闭、并行子 Agent 在单工具槽位下不死锁、模式越权拒绝、级联取消。未对真实 Anthropic 缓存命中率与真实限流头做外部联调。
+`test/agent-loop.test.ts`、`test/subagents.test.ts`、`test/run-control.test.ts`、`test/project-search.test.ts`、`test/checkpoints.test.ts` 使用本地协议服务和真实文件/子进程执行：重试与 Retry-After、重试上限、缓存断点数量与不可变性、三种钩子决策、改写参数的重新校验与权限拒绝、配置命令钩子退出码/JSON 协议、钩子崩溃的失败关闭、并行子 Agent 在单工具槽位下不死锁、模式越权拒绝、级联取消、后台子 Agent 与跨会话查询拒绝、多层委托上限、截断续写及上限、截断工具调用不执行、结构化输出的校验/包装/提醒/白名单豁免、.gitignore 规则与 glob、检查点恢复/删除/冲突/强制/不重复应用。未对真实 Anthropic 缓存命中率与真实限流头做外部联调。

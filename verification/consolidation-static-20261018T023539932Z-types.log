@@ -1,0 +1,13 @@
+Executable: C:\Program Files\nodejs\node.exe
+Arguments: ["node_modules/typescript/bin/tsc","-p",".agent-data-refactor/consolidation-static-tests-20261018T023539932Z.json","--noEmit"]
+Exit code: 2
+Signal: null
+Elapsed ms: 6791
+
+STDOUT
+test/mcp-client.test.ts(19,5): error TS2322: Type '{ [k: string]: string | undefined; }' is not assignable to type 'Record<string, string>'.
+  'string' index signatures are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+
+STDERR

@@ -1,6 +1,7 @@
-import type { Kernel } from "../kernel.js";
+import type { Kernel } from "../core/kernel.js";
 import type { Capability } from "../runtime/types.js";
-import { invariant } from "../util.js";
+import type { PolicyRule } from "../contracts.js";
+import { invariant } from "../core/util.js";
 
 /** The authenticated operator API still obeys host and project deny policies. */
 export function hostApplicationAccess(
@@ -10,6 +11,10 @@ export function hostApplicationAccess(
   toolName: string,
 ) {
   kernel.store.project(projectId);
+  const policies = capabilities.length
+    ? kernel.store.list<PolicyRule>("policies")
+    : [];
+  const pluginId = "application-" + toolName.split("_")[0];
   for (const capability of capabilities) {
     invariant(
       kernel.config.permissions[capability] !== "deny",
@@ -17,15 +22,14 @@ export function hostApplicationAccess(
       403,
       "permission_denied",
     );
-    for (const rule of kernel.store.list<any>("policies"))
+    for (const rule of policies)
       if (
         rule.effect === "deny" &&
         rule.capabilities?.includes(capability) &&
         (!rule.projectId || rule.projectId === projectId) &&
         !rule.routeId &&
         !rule.mode &&
-        (!rule.pluginId ||
-          rule.pluginId === "application-" + toolName.split("_")[0]) &&
+        (!rule.pluginId || rule.pluginId === pluginId) &&
         (!rule.tools || rule.tools.includes(toolName)) &&
         (!rule.expiresAt || Date.parse(rule.expiresAt) > Date.now())
       )

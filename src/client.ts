@@ -1,4 +1,5 @@
 import type { FoundationEvent, Input, Mode } from "./contracts.js";
+import { decodeEventStream } from "./transport/sse.js";
 export class FoundationHttpError extends Error {
   constructor(
     readonly status: number,
@@ -31,22 +32,28 @@ async function pause(ms: number, signal?: AbortSignal) {
     signal?.addEventListener("abort", abort, { once: true });
   });
 }
-function parseFrame(frame: string): FoundationEvent | undefined {
-  const data = frame
-    .split("\n")
-    .filter((line) => line.startsWith("data:"))
-    .map((line) => line.slice(5).replace(/^ /, ""))
-    .join("\n");
-  if (!data) return;
-  const event = JSON.parse(data);
-  if (
-    event.schemaVersion !== 1 ||
-    typeof event.type !== "string" ||
-    typeof event.runId !== "string" ||
-    !(event.seq === null || (Number.isSafeInteger(event.seq) && event.seq > 0))
-  )
+function parseEvent(data: string): FoundationEvent {
+  const event: unknown = JSON.parse(data);
+  if (!isFoundationEvent(event))
     throw new Error("Invalid foundation event frame");
   return event;
+}
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isFoundationEvent(event: unknown): event is FoundationEvent {
+  return (
+    isRecord(event) &&
+    event.schemaVersion === 1 &&
+    ["id", "sessionId", "runId", "type", "timestamp"].every(
+      (key) => typeof event[key] === "string",
+    ) &&
+    (event.seq === null ||
+      (typeof event.seq === "number" &&
+        Number.isSafeInteger(event.seq) &&
+        event.seq > 0)) &&
+    isRecord(event.data)
+  );
 }
 
 /** Own fetch client, portable to Node/Electron/browsers. Only replay-safe GET streams reconnect automatically. */
@@ -194,8 +201,67 @@ export class FoundationClient {
   project(name: string, directory?: string) {
     return this.request("POST", "/v1/projects", { name, directory });
   }
-  session(projectId: string, mode: Mode = "chat", routeId?: string) {
-    return this.request("POST", "/v1/sessions", { projectId, mode, routeId });
+  session(
+    projectId: string,
+    mode: Mode = "chat",
+    routeId?: string,
+    options: {
+      agentId?: string;
+      subagentsEnabled?: boolean;
+      reasoningEffort?: import("./contracts.js").ReasoningEffort;
+      reasoningBudgetTokens?: number;
+    } = {},
+  ) {
+    return this.request("POST", "/v1/sessions", {
+      projectId,
+      mode,
+      routeId,
+      ...options,
+    });
+  }
+  teams() {
+    return this.request<{
+      teams: import("./collaboration/types.js").TeamDefinition[];
+    }>("GET", "/v1/teams");
+  }
+  putTeam(team: import("./collaboration/types.js").TeamDefinition) {
+    return this.request<import("./collaboration/types.js").TeamDefinition>(
+      "POST",
+      "/v1/teams",
+      team,
+    );
+  }
+  configureCollaboration(
+    sessionId: string,
+    settings: import("./collaboration/types.js").TeamBindingInput | null,
+  ) {
+    return this.request<import("./contracts.js").Session>(
+      settings === null ? "DELETE" : "PUT",
+      `/v1/sessions/${encodeURIComponent(sessionId)}/collaboration`,
+      settings === null ? undefined : settings,
+    );
+  }
+  forkSession(sessionId: string, throughMessageId?: string) {
+    return this.request<import("./contracts.js").Session>(
+      "POST",
+      `/v1/sessions/${encodeURIComponent(sessionId)}/fork`,
+      { throughMessageId },
+    );
+  }
+  resolveTeamRoles(sessionId: string, decision: "redistribute" | "add_agents") {
+    return this.request<import("./contracts.js").Session>(
+      "POST",
+      `/v1/sessions/${encodeURIComponent(sessionId)}/role-review/decision`,
+      { decision },
+    );
+  }
+  sessionBranches(sessionId: string) {
+    return this.request<{
+      branches: Pick<
+        import("./contracts.js").Session,
+        "id" | "name" | "forkedFromSessionId" | "forkedThroughMessageId"
+      >[];
+    }>("GET", `/v1/sessions/${encodeURIComponent(sessionId)}/branches`);
   }
   exportMigration(sessionId: string, signal?: AbortSignal) {
     return this.request(
@@ -436,7 +502,6 @@ export class FoundationClient {
       options.reconnect === false ? 0 : (options.maxReconnects ?? 8);
     while (true) {
       signal?.throwIfAborted();
-      let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
       try {
         const response = await fetch(
           `${this.baseUrl}/v1/runs/${encodeURIComponent(runId)}/events?after=${cursor}`,
@@ -464,34 +529,19 @@ export class FoundationClient {
           !response.body
         )
           throw new Error("Expected an event stream");
-        reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          buffer += done
-            ? decoder.decode()
-            : decoder.decode(value, { stream: true });
-          buffer = buffer.replaceAll("\r\n", "\n");
-          if (done && buffer.trim()) buffer += "\n\n";
-          if (buffer.length > (options.maxFrameChars || 64 * 1024 * 1024))
-            throw new Error("Event stream frame exceeds limit");
-          let end: number;
-          while ((end = buffer.indexOf("\n\n")) >= 0) {
-            const frame = buffer.slice(0, end);
-            buffer = buffer.slice(end + 2);
-            const event = parseFrame(frame);
-            if (!event) continue;
-            if (event.runId !== runId) throw new Error("Event run ID mismatch");
-            if (event.seq !== null) {
-              if (event.seq <= cursor) continue;
-              cursor = event.seq;
-              retries = 0;
-            }
-            yield event;
-            if (event.type === "run.completed") return;
+        for await (const frame of decodeEventStream(response.body, {
+          signal,
+          maxFrameChars: options.maxFrameChars || 64 * 1024 * 1024,
+        })) {
+          const event = parseEvent(frame.data);
+          if (event.runId !== runId) throw new Error("Event run ID mismatch");
+          if (event.seq !== null) {
+            if (event.seq <= cursor) continue;
+            cursor = event.seq;
+            retries = 0;
           }
-          if (done) break;
+          yield event;
+          if (event.type === "run.completed") return;
         }
         throw new Error("Event stream ended before run settlement");
       } catch (error) {
@@ -499,8 +549,6 @@ export class FoundationClient {
         if (error instanceof FoundationHttpError && !error.retryable)
           throw error;
         if (retries++ >= maximum) throw error;
-      } finally {
-        await reader?.cancel().catch(() => undefined);
       }
       await pause(
         Math.min(

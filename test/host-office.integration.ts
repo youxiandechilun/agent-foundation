@@ -9,9 +9,9 @@ import {
   until,
   wireServer,
 } from "./support/wire-server.js";
-import { makeTools } from "../src/tools.js";
-import { parseCsv } from "../src/office.js";
-import { safePath } from "../src/util.js";
+import { makeTools } from "../src/tools/index.js";
+import { parseCsv } from "../src/host/office/manager.js";
+import { safePath } from "../src/core/util.js";
 
 test("office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX", async () => {
   const x = await setup();

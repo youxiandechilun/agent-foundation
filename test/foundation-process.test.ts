@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setup, until } from "./support/wire-server.js";
-import { Kernel } from "../src/kernel.js";
+import { Kernel } from "../src/core/kernel.js";
 
 async function output(x: any, pid: string, sid: string, pattern: RegExp) {
   return until(async () => {

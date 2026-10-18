@@ -2,10 +2,11 @@ import http from "node:http";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { Kernel } from "../../src/kernel.js";
-import { parseConfig } from "../../src/config.js";
-import { serve } from "../../src/server.js";
+import { Kernel } from "../../src/core/kernel.js";
+import { parseConfig } from "../../src/core/config.js";
+import { serve } from "../../src/api/server.js";
 import { FoundationClient } from "../../src/client.js";
+import { listenHttp } from "../../src/transport/http-listener.js";
 import type { FoundationEvent } from "../../src/contracts.js";
 
 export interface Reply {
@@ -171,11 +172,11 @@ export async function wireServer(
       res.end(JSON.stringify({ error: { message: String(error) } }));
     }
   });
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = await listenHttp(server, { port: 0, host: "127.0.0.1" });
   return {
     server,
     requests,
-    url: `http://127.0.0.1:${(server.address() as any).port}`,
+    url: `http://127.0.0.1:${address.port}`,
     close: async () => {
       server.closeAllConnections();
       await new Promise<void>((resolve) => server.close(() => resolve()));
@@ -191,69 +192,111 @@ export async function setup(
     integrations?: import("../../src/runtime/registry.js").KernelIntegration[];
   } = {},
 ) {
-  const wire = await wireServer(respond),
-    root = await mkdtemp(path.join(tmpdir(), "foundation-v2-"));
-  const config = parseConfig({
-    server: { port: 0 },
-    dataDir: path.join(root, "data"),
-    workspaceRoots: [path.join(root, "project")],
-    extensions: { allowedRoots: [path.join(root, "extensions")] },
-    defaultRoutes: { chat: "text", code: "text", office: "text" },
-    routes: {
-      text: {
-        kind: "text",
-        adapter: "openai-completions",
-        model: "protocol-test-model",
-        baseUrl: wire.url + "/v1",
-        contextWindow: 128000,
+  const wire = await wireServer(respond);
+  let kernel:
+    (Kernel & import("../../src/host/desktop.js").DesktopServices) | undefined;
+  let api: Awaited<ReturnType<typeof serve>> | undefined;
+  let closing: Promise<void> | undefined;
+  let stage = "temporary-directory";
+  const close = () =>
+    (closing ??= (async () => {
+      const errors: unknown[] = [];
+      for (const stop of [
+        () => (api ? api.close() : kernel?.close()),
+        () => wire.close(),
+      ]) {
+        try {
+          await stop();
+        } catch (error) {
+          errors.push(error);
+        }
+      }
+      if (errors.length)
+        throw new AggregateError(errors, "Test fixture cleanup failed");
+    })());
+  try {
+    const root = await mkdtemp(path.join(tmpdir(), "foundation-v2-"));
+    stage = "configuration";
+    const config = parseConfig({
+      server: { port: 0 },
+      dataDir: path.join(root, "data"),
+      workspaceRoots: [path.join(root, "project")],
+      extensions: { allowedRoots: [path.join(root, "extensions")] },
+      defaultRoutes: { chat: "text", code: "text", office: "text" },
+      routes: {
+        text: {
+          kind: "text",
+          adapter: "openai-completions",
+          model: "protocol-test-model",
+          baseUrl: wire.url + "/v1",
+          contextWindow: 128000,
+        },
       },
-    },
-    permissions: {
-      exec: "allow",
-      media: "allow",
-      browser: "allow",
-      mcp: "allow",
-      plugin: "allow",
-      node: "allow",
-    },
-    browser: { headless: true, allowPrivateNetwork: true },
-    ...overrides,
-  });
-  const integrations = [
-    ...(host.integrations || []),
-    ...(host.desktop
-      ? [(await import("../../src/host/desktop.js")).desktopIntegration()]
-      : []),
-  ];
-  const kernel = new Kernel(config, { integrations }) as Kernel &
-      import("../../src/host/desktop.js").DesktopServices,
-    api = await serve(kernel, token),
-    client = new FoundationClient(api.url, token),
-    project = await client.project("test");
-  const session = async (
-    mode: "chat" | "code" | "office" = "chat",
-    routeId?: string,
-  ) => {
-    const s = await client.session(project.id, mode, routeId);
-    await client.request("PATCH", `/v1/sessions/${s.id}`, {
-      autonomy: "autonomous",
+      permissions: {
+        exec: "allow",
+        media: "allow",
+        browser: "allow",
+        mcp: "allow",
+        plugin: "allow",
+        node: "allow",
+      },
+      browser: { headless: true, allowPrivateNetwork: true },
+      ...overrides,
     });
-    return s;
-  };
-  return {
-    wire,
-    root,
-    config,
-    kernel,
-    api,
-    client,
-    project,
-    session,
-    close: async () => {
-      await api.close();
-      await wire.close();
-    },
-  };
+    stage = "integrations";
+    const integrations = [
+      ...(host.integrations || []),
+      ...(host.desktop
+        ? [(await import("../../src/host/desktop.js")).desktopIntegration()]
+        : []),
+    ];
+    stage = "kernel";
+    kernel = new Kernel(config, { integrations }) as Kernel &
+      import("../../src/host/desktop.js").DesktopServices;
+    stage = "api-listen";
+    api = await serve(kernel, token);
+    stage = "project-create";
+    const client = new FoundationClient(api.url, token),
+      project = await client.project("test");
+    const session = async (
+      mode: "chat" | "code" | "office" = "chat",
+      routeId?: string,
+    ) => {
+      const s = await client.session(project.id, mode, routeId);
+      await client.request("PATCH", `/v1/sessions/${s.id}`, {
+        autonomy: "autonomous",
+      });
+      return s;
+    };
+    return { wire, root, config, kernel, api, client, project, session, close };
+  } catch (error) {
+    const cause = error instanceof Error ? error.cause : undefined;
+    console.error("Test fixture initialization failed", {
+      stage,
+      apiOrigin: api?.url,
+      providerOrigin: wire.url,
+      causeName: cause instanceof Error ? cause.name : undefined,
+      causeCode:
+        cause &&
+        typeof cause === "object" &&
+        "code" in cause &&
+        typeof cause.code === "string" &&
+        /^[A-Z][A-Z0-9_]{0,63}$/.test(cause.code)
+          ? cause.code
+          : undefined,
+      badPort: cause instanceof Error && cause.message === "bad port",
+    });
+    try {
+      await close();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Test setup failed and resource cleanup failed",
+        { cause: error },
+      );
+    }
+    throw error;
+  }
 }
 export async function collect(client: FoundationClient, runId: string) {
   const events: FoundationEvent[] = [];

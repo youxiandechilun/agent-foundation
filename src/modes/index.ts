@@ -1,8 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
-import path from "node:path";
 import type { Mode, Session } from "../contracts.js";
 import type { ToolDefinition, Capability } from "../runtime/types.js";
-import { safePath } from "../util.js";
+import { safePath } from "../core/util.js";
 
 export interface WorkMode {
   id: Mode;

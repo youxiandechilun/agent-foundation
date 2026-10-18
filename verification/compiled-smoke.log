@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.1",
   "runtime": "foundation-owned",
   "model": "test-only HTTP protocol server",
   "runStatus": "completed",
@@ -15,5 +15,3 @@
   "compiledPluginWorker": true,
   "actualCode": "export const result = 47;\n"
 }
-(node:31480) ExperimentalWarning: SQLite is an experimental feature and might change at any time
-(Use `node --trace-warnings ...` to show where the warning was created)

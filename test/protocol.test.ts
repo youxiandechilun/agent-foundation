@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { parseConfig } from "../src/config.js";
+import { parseConfig } from "../src/core/config.js";
 import { HttpTextProvider } from "../src/providers/text.js";
 import {
   completionsMessages,

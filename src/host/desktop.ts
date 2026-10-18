@@ -1,14 +1,14 @@
 /** Optional reference integration. Never imported by the default core entry point. */
-import { BrowserManager, validateBrowserUrl } from "../browser.js";
-import { ComputerController } from "../computer.js";
-import { NodeManager } from "../nodes.js";
-import { Office } from "../office.js";
-import type { Kernel } from "../kernel.js";
+import { BrowserManager, validateBrowserUrl } from "./browser/manager.js";
+import { ComputerController } from "./computer/manager.js";
+import { NodeManager } from "./nodes.js";
+import { Office } from "./office/manager.js";
+import type { Kernel } from "../core/kernel.js";
 import type { KernelIntegration } from "../runtime/registry.js";
 import type { Capability } from "../runtime/types.js";
 import { desktopTools } from "./desktop-tools.js";
 import { desktopManagement } from "./desktop-api.js";
-import { officeExtractor } from "./office-extractor.js";
+import { officeExtractor } from "./office/extractor.js";
 import { hostApplicationAccess } from "./access.js";
 
 export interface DesktopServices {
@@ -16,7 +16,7 @@ export interface DesktopServices {
   computer: ComputerController;
   nodes: NodeManager;
   office: Office;
-  browserBridge?: import("./browser-bridge.js").BrowserBridge;
+  browserBridge?: import("./browser/bridge.js").BrowserBridge;
 }
 export type DesktopKernel = Kernel & DesktopServices;
 export function desktopIntegration(): KernelIntegration {

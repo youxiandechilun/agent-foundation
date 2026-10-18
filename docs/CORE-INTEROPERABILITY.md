@@ -110,7 +110,7 @@ completion/complete 与 logging/setLevel 由实际服务能力控制。宿主可
 
 ### HTTP OAuth
 
-自维护 OAuth 源码在 `src/extensions/mcp-oauth.ts`，支持预注册 clientId（0.7.0 另增显式动态注册），可配置保密客户端 env 引用：
+自维护 OAuth 源码在 `src/extensions/mcp/auth/oauth.ts`，支持预注册 clientId（0.7.0 另增显式动态注册），可配置保密客户端 env 引用：
 
 ```json
 {

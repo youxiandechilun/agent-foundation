@@ -18,9 +18,9 @@ const output = await mkdtemp(path.join(scratch, "compiled-tests-"));
 const host = process.argv.includes("--host"),
   browserOnly = process.argv.includes("--browser");
 const tests = [];
-const filter = process.argv
-  .find((arg) => arg.startsWith("--filter="))
-  ?.slice(9);
+const filters = process.argv
+  .filter((arg) => arg.startsWith("--filter="))
+  .map((arg) => arg.slice(9));
 async function compile(directory) {
   for (const entry of await readdir(path.join(root, directory), {
     withFileTypes: true,
@@ -78,8 +78,10 @@ if (host || browserOnly)
     { recursive: true },
   );
 tests.sort();
-if (filter) {
-  const matching = tests.filter((file) => path.basename(file).includes(filter));
+if (filters.length) {
+  const matching = tests.filter((file) =>
+    filters.some((filter) => path.basename(file).includes(filter)),
+  );
   tests.splice(0, tests.length, ...matching);
 }
 if (!tests.length) throw Error("No matching test files");

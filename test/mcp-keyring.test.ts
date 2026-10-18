@@ -6,15 +6,15 @@ import path from "node:path";
 import { randomBytes, createPublicKey, verify } from "node:crypto";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { OAuthVault } from "../src/extensions/oauth-vault.js";
-import { MCPKeyring } from "../src/extensions/mcp-keyring.js";
-import { clientMetadataSchema } from "../src/extensions/mcp-client-metadata.js";
+import { OAuthVault } from "../src/extensions/mcp/auth/vault.js";
+import { MCPKeyring } from "../src/extensions/mcp/auth/keyring.js";
+import { clientMetadataSchema } from "../src/extensions/mcp/auth/client-metadata.js";
 import {
   hash,
   registerSecret,
   redactSecrets,
   processSecretSnapshot,
-} from "../src/util.js";
+} from "../src/core/util.js";
 import { setup } from "./support/wire-server.js";
 test("OAuth short-lived assertion redaction expires without removing persistent credential redaction", async () => {
   const ephemeral = "ephemeral-assertion-" + randomBytes(20).toString("hex"),

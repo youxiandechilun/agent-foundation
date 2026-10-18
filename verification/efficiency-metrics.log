@@ -1,0 +1,131 @@
+{
+  "metrics": {
+    "src": {
+      "before": {
+        "files": 135,
+        "lines": 33693,
+        "bytes": 1139680
+      },
+      "after": {
+        "files": 137,
+        "lines": 33535,
+        "bytes": 1133806
+      }
+    },
+    "extensions": {
+      "before": {
+        "files": 3,
+        "lines": 429,
+        "bytes": 16353
+      },
+      "after": {
+        "files": 3,
+        "lines": 429,
+        "bytes": 16353
+      }
+    },
+    "scripts": {
+      "before": {
+        "files": 27,
+        "lines": 2671,
+        "bytes": 93415
+      },
+      "after": {
+        "files": 28,
+        "lines": 3150,
+        "bytes": 109000
+      }
+    },
+    "test": {
+      "before": {
+        "files": 84,
+        "lines": 23923,
+        "bytes": 790644
+      },
+      "after": {
+        "files": 86,
+        "lines": 24421,
+        "bytes": 806811
+      }
+    },
+    "examples": {
+      "before": {
+        "files": 9,
+        "lines": 545,
+        "bytes": 19159
+      },
+      "after": {
+        "files": 9,
+        "lines": 545,
+        "bytes": 19159
+      }
+    }
+  },
+  "changed": [
+    "src/api/collaboration.ts",
+    "src/api/routes/configuration.ts",
+    "src/api/routes/mcp.ts",
+    "src/api/routes/resources.ts",
+    "src/api/routes/session-management.ts",
+    "src/api/routes/sessions.ts",
+    "src/collaboration/internal/dispatch.ts",
+    "src/collaboration/internal/tasks.ts",
+    "src/collaboration/internal/tool-definitions.ts",
+    "src/core/kernel.ts",
+    "src/core/permissions.ts",
+    "src/core/util.ts",
+    "src/execution/sessions.ts",
+    "src/extensions/mcp/auth/oauth.ts",
+    "src/extensions/mcp/auth/registration.ts",
+    "src/extensions/mcp/auth/vault.ts",
+    "src/extensions/mcp/client.ts",
+    "src/extensions/mcp/interactions.ts",
+    "src/extensions/mcp/manager.ts",
+    "src/host/access.ts",
+    "src/host/desktop-tools.ts",
+    "src/host/office/manager.ts",
+    "src/media/manager.ts",
+    "src/runtime/cost.ts",
+    "src/runtime/json-schema.ts",
+    "src/sessions/checkpoints.ts",
+    "src/sessions/migration.ts",
+    "src/sessions/tools.ts",
+    "src/storage/store.ts",
+    "src/tools/assets.ts",
+    "src/tools/delegation.ts",
+    "src/tools/state.ts",
+    "src/transport/sse.ts",
+    "src/storage/encrypted-file.ts",
+    "src/storage/entity-query.ts",
+    "scripts/run-core-tests.mjs",
+    "scripts/benchmark-refactor.mjs",
+    "test/stream-decoder.test.ts",
+    "test/query-execution.test.ts",
+    "test/refactor-contracts.test.ts",
+    "docs/REFACTOR-EFFICIENCY.md",
+    ".gitignore"
+  ],
+  "exports": [
+    {
+      "entry": "index.d.ts",
+      "before": 136,
+      "after": 136,
+      "removed": [],
+      "added": []
+    },
+    {
+      "entry": "client.d.ts",
+      "before": 3,
+      "after": 3,
+      "removed": [],
+      "added": []
+    },
+    {
+      "entry": "host/index.d.ts",
+      "before": 5,
+      "after": 5,
+      "removed": [],
+      "added": []
+    }
+  ]
+}

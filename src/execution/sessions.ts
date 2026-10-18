@@ -6,8 +6,8 @@ import { randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import { spawn } from "node:child_process";
 import { mkdir, readFile, writeFile, access, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import type { Config } from "../config.js";
-import { Store } from "../store.js";
+import type { Config } from "../core/config.js";
+import { Store } from "../storage/store.js";
 import {
   nativeProcess,
   prepareCommand,
@@ -23,7 +23,7 @@ import {
   redactJson,
   processSecretSnapshot,
   abortable,
-} from "../util.js";
+} from "../core/util.js";
 
 export interface ProcessRecord {
   id: string;
@@ -405,9 +405,10 @@ export class ProcessManager {
   }
   async list(sessionId: string, all = false) {
     this.store.session(sessionId);
-    const entries = this.store
-      .list<ProcessRecord>("processes")
-      .filter((p) => all || p.sessionId === sessionId);
+    const entries = this.store.list<ProcessRecord>(
+      "processes",
+      all ? {} : { sessionId },
+    );
     return Promise.all(entries.map((p) => this.status(p.id, p.sessionId)));
   }
   private async rpc(

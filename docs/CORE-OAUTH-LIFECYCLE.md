@@ -123,7 +123,7 @@ RFC 7592 的凭据轮换时机由授权服务器决定。本地能自动接收�
 
 原 `/registration` 查询与本地 DELETE 重置接口、`auth-begin`/`auth-complete` PKCE 接口保持原有用途。Read 使用宿主 POST 路由，因为授权服务器 GET 可以轮换凭据；底座对远端实际执行 GET。
 
-主要源码：`src/extensions/mcp-device.ts`、`mcp-keyring.ts`、`oauth-vault.ts`、`mcp-registration.ts`、`mcp-client-metadata.ts`、`mcp-oauth.ts`，以及 MCP manager、管理 API、便携 fetch 客户端的接入。可导入的配置见 [mcp-oauth-lifecycle.json](../examples/mcp-oauth-lifecycle.json)。
+主要源码：`src/extensions/mcp/auth/device.ts`、`mcp-keyring.ts`、`oauth-vault.ts`、`mcp-registration.ts`、`mcp-client-metadata.ts`、`mcp-oauth.ts`，以及 MCP manager、管理 API、便携 fetch 客户端的接入。可导入的配置示例位于维护者源码工程的 `examples/mcp-oauth-lifecycle.json`，不随 SDK 包提供。
 
 ## 测试和未验收边界
 
@@ -131,10 +131,10 @@ RFC 7592 的凭据轮换时机由授权服务器决定。本地能自动接收�
 
 设备流覆盖回调缺省、默认间隔、真实 slow_down 等待、连接故障退避、拒绝/过期、并发取消、重启恢复、最终状态写入失败、DCR 三种认证，以及 CIMD none / 托管 private_key_jwt 的受信 HTTPS 授权和刷新。RFC 7592 覆盖完整 PUT、扩展字段保留、凭据轮换、删除、未知结果、重启和配置互斥。
 
-轮换测试既有注入时钟验证完整长期状态周期，也有实际等待 60 秒的 HTTPS 测试，授权服务器真实校验切换前后的 JWT 并完成 PKCE 和 refresh。测试 CA、证书和私钥仅是公开测试夹具，不能当成生产 TLS 凭据。具体通过数与逐项证据以 [core-acceptance.json](../verification/core-acceptance.json) 和 [report.json](../verification/report.json) 为准。
+轮换测试既有注入时钟验证完整长期状态周期，也有实际等待 60 秒的 HTTPS 测试，授权服务器真实校验切换前后的 JWT 并完成 PKCE 和 refresh。测试 CA、证书和私钥仅是公开测试夹具，不能当成生产 TLS 凭据。具体通过数与逐项证据以维护者工作区中的 `verification/core-acceptance.json` 和 `verification/report.json` 为准；验证报告不放入 SDK 安装包。
 
 单独列出未验收事项：真实模型供应商与费用/质量、第三方 OAuth/企业身份平台、真实公网 HTTPS 元数据部署、Docker 实际容器、Linux/macOS PTY 和实际不同操作系统机器迁移。它们不因本地协议测试通过而标记为完成。
 
-仍未实现的底座扩展包括：特定企业 SSO、HSM/KMS/主加密密钥轮换、外部 jwks_uri 管理、RFC 7009 远端 token 撤销、RFC 7662 introspection、OIDC 身份登录层；MCP 隐式跨会话 sampling context/音频；原生 OS 沙箱、多租户/分布式 Gateway、跨主机实时合并及完整项目备份。未声明的 OAuth/MCP profile 均不表示已实现。
+仍未实现的底座扩展包括：特定企业 SSO、HSM/KMS/主加密密钥轮换、外部 jwks_uri 管理、RFC 7009 远端 token 撤销、RFC 7662 introspection、OIDC 身份登录层；MCP 隐式跨会话 sampling context/音频；多租户/分布式 Gateway、跨主机实时合并及完整项目备份。Windows AppContainer 等已有执行隔离的当前范围见 [CORE-EXECUTION.md](CORE-EXECUTION.md)。未声明的 OAuth/MCP profile 均不表示已实现。
 
 规范依据：[RFC 8628](https://www.rfc-editor.org/rfc/rfc8628.html)、[RFC 7592](https://www.rfc-editor.org/rfc/rfc7592.html)、[RFC 7591](https://www.rfc-editor.org/rfc/rfc7591.html)、[RFC 7523](https://www.rfc-editor.org/rfc/rfc7523.html)。前版 CIMD 与 MCP task profile 见 [CORE-TASKS-CIMD.md](CORE-TASKS-CIMD.md)。

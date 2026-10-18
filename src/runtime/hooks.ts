@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { terminateProcessTree } from "../execution/lifecycle.js";
-import { errorText, redactSecrets } from "../util.js";
+import { abortable, errorText, redactSecrets } from "../core/util.js";
+import { textOf } from "./types.js";
 import type {
   JsonObject,
   ToolCall,
@@ -88,13 +89,6 @@ export interface EngineHooks {
 }
 const tagged = (source: string, text: string) =>
   `<hook_context source="${source}">\n${text}\n</hook_context>`;
-const textOfInput = (message: UserMessage) =>
-  typeof message.content === "string"
-    ? message.content
-    : message.content
-        .filter((p) => p.type === "text")
-        .map((p) => (p as { text: string }).text)
-        .join("\n");
 /**
  * Compose hooks in registration order. A pre-tool hook that throws fails closed (denies);
  * other failing hooks are reported and skipped so observability hooks cannot break a run.
@@ -107,11 +101,16 @@ export function bindHooks(
   if (!hooks.length) return undefined;
   const settle = async <T>(
     event: string,
+    signal: AbortSignal,
     work: () => Promise<T> | T,
   ): Promise<T | undefined> => {
+    signal.throwIfAborted();
     try {
-      return await work();
+      const result = await abortable(Promise.resolve(work()), signal);
+      signal.throwIfAborted();
+      return result;
     } catch (error) {
+      signal.throwIfAborted();
       onError(event, error);
       return undefined;
     }
@@ -119,14 +118,11 @@ export function bindHooks(
   return {
     async userPromptSubmit(message, signal) {
       const context_: string[] = [];
+      const text = textOf(message);
       for (const hook of hooks) {
         if (!hook.userPromptSubmit) continue;
-        const result = await settle("UserPromptSubmit", () =>
-          hook.userPromptSubmit!(
-            context,
-            { text: textOfInput(message) },
-            signal,
-          ),
+        const result = await settle("UserPromptSubmit", signal, () =>
+          hook.userPromptSubmit!(context, { text }, signal),
         );
         if (result?.block) return { message, block: result.block };
         if (result?.additionalContext) context_.push(result.additionalContext);
@@ -154,15 +150,27 @@ export function bindHooks(
         updated = false;
       for (const hook of hooks) {
         if (!hook.preToolUse) continue;
+        signal.throwIfAborted();
         let result: PreToolHookResult | void;
         try {
-          result = await hook.preToolUse(
-            context,
-            { id: call.id, name: call.name, arguments: structuredClone(args) },
-            tool,
+          result = await abortable(
+            Promise.resolve(
+              hook.preToolUse(
+                context,
+                {
+                  id: call.id,
+                  name: call.name,
+                  arguments: structuredClone(args),
+                },
+                tool,
+                signal,
+              ),
+            ),
             signal,
           );
+          signal.throwIfAborted();
         } catch (error) {
+          signal.throwIfAborted();
           onError("PreToolUse", error);
           return { deny: `PreToolUse hook failed: ${errorText(error)}` };
         }
@@ -178,7 +186,7 @@ export function bindHooks(
       const notes: string[] = [];
       for (const hook of hooks) {
         if (!hook.postToolUse) continue;
-        const output = await settle("PostToolUse", () =>
+        const output = await settle("PostToolUse", signal, () =>
           hook.postToolUse!(
             context,
             { id: call.id, name: call.name, arguments: call.arguments },
@@ -201,7 +209,7 @@ export function bindHooks(
     async stop(lastMessage, continuations, signal) {
       for (const hook of hooks) {
         if (!hook.stop) continue;
-        const output = await settle("Stop", () =>
+        const output = await settle("Stop", signal, () =>
           hook.stop!(context, { lastMessage, continuations }, signal),
         );
         if (output?.continue) return output.continue;

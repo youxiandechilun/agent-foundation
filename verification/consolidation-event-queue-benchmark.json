@@ -1,0 +1,27 @@
+{
+  "node": "v22.22.0",
+  "rounds": 5,
+  "scope": "isolated production SSE queue drain with a response gate; real slow HTTP coverage is in event-stream-backpressure.test.ts",
+  "results": [
+    {
+      "queuedEvents": 10000,
+      "beforeMs": 2.49,
+      "afterMs": 2.35
+    },
+    {
+      "queuedEvents": 20000,
+      "beforeMs": 517.56,
+      "afterMs": 1.59
+    },
+    {
+      "queuedEvents": 40000,
+      "beforeMs": 2094.43,
+      "afterMs": 3.92
+    },
+    {
+      "queuedEvents": 60000,
+      "beforeMs": 4802.54,
+      "afterMs": 5.9
+    }
+  ]
+}

@@ -1,5 +1,4 @@
-import { type ValidateFunction } from "ajv";
-import { compileSchema } from "./json-schema.js";
+import { compileSchema, type SchemaValidator } from "./json-schema.js";
 import {
   id,
   invariant,
@@ -9,15 +8,14 @@ import {
   abortable,
   deepFreeze,
   redactJson,
-  AppError,
-} from "../util.js";
+} from "../core/util.js";
 import type { EngineHooks } from "./hooks.js";
 import type { ToolEffect, InboxEntry } from "../contracts.js";
-import { Store } from "../store.js";
+import { Store } from "../storage/store.js";
 import { normalizedResultDigest } from "./tool-result.js";
 import { ToolScheduler } from "./scheduler.js";
+import { ToolExecution } from "./tool-execution.js";
 import {
-  emptyUsage,
   type Message,
   type UserMessage,
   type ToolDefinition,
@@ -31,6 +29,10 @@ export interface EngineOptions {
   signal?: AbortSignal;
   runId: string;
   routeId: string;
+  modelSettings?: Pick<
+    import("./types.js").ModelRequest,
+    "reasoningEffort" | "reasoningBudgetTokens"
+  >;
   instructions: string;
   contextMessages?: Message[];
   history: Message[];
@@ -51,6 +53,10 @@ export interface EngineOptions {
   hooks?: EngineHooks;
   /** Upper bound on Stop-hook continuations per run (default 3). */
   maxStopContinuations?: number;
+  /** Continue a reply cut off by the output limit (no tool calls) up to this many times (default 0). */
+  maxOutputContinuations?: number;
+  /** Structured output: a successful call to this tool ends the run; finishing without it is retried, then fails. */
+  finishTool?: string;
   store: Store;
   publish: (
     type: string,
@@ -75,21 +81,27 @@ export class ExecutionEngine {
   isRunning = false;
   private steerQueue: UserMessage[] = [];
   private followQueue: UserMessage[] = [];
-  private validators = new Map<string, ValidateFunction>();
-  private toolCount = 0;
+  private validators = new Map<string, SchemaValidator>();
+  private toolExecution: ToolExecution;
+  private batchResults = new Map<string, boolean>();
   private repeatedResults = new Map<
     string,
     { digest: string; count: number }
   >();
   private stopReason?: "cancelled" | "timeout";
+  private readonly onParentAbort = () => {
+    const reason: unknown = this.options.signal?.reason;
+    this.abort(
+      reason &&
+        typeof reason === "object" &&
+        "message" in reason &&
+        reason.message === "timeout"
+        ? "timeout"
+        : "cancelled",
+    );
+  };
   steps = 0;
   constructor(readonly options: EngineOptions) {
-    const abort = () =>
-      this.abort(
-        options.signal?.reason?.message === "timeout" ? "timeout" : "cancelled",
-      );
-    if (options.signal?.aborted) abort();
-    else options.signal?.addEventListener("abort", abort, { once: true });
     this.history = options.history.slice();
     this.tools = new Map();
     for (const tool of options.tools) {
@@ -107,6 +119,20 @@ export class ExecutionEngine {
       this.tools.set(tool.name, snapshot);
       this.validators.set(tool.name, compileSchema(snapshot.parameters));
     }
+    this.toolExecution = new ToolExecution({
+      options,
+      tools: this.tools,
+      validators: this.validators,
+      signal: this.controller.signal,
+    });
+    this.listenForAbort();
+  }
+  private listenForAbort(): void {
+    if (this.options.signal?.aborted) this.onParentAbort();
+    else
+      this.options.signal?.addEventListener("abort", this.onParentAbort, {
+        once: true,
+      });
   }
   enqueue(message: UserMessage, delivery: "steer" | "enqueue") {
     invariant(
@@ -128,8 +154,6 @@ export class ExecutionEngine {
       413,
     );
     message = redactJson(message);
-    if (message.role === "user") this.repeatedResults.clear();
-    this.history.push(message);
     this.options.store.transaction(() => {
       this.options.checkpoint(message, messageId);
       if (message.role === "user") {
@@ -143,7 +167,11 @@ export class ExecutionEngine {
         }
       }
     });
+    this.history.push(message);
+    if (message.role === "toolResult")
+      this.batchResults.set(message.toolCallId, !message.isError);
     if (message.role === "user") {
+      this.repeatedResults.clear();
       this.options.publish("input.applied", {
         messageId,
         inputId: message.inputId,
@@ -161,6 +189,7 @@ export class ExecutionEngine {
     steps: number;
   }> {
     invariant(!this.isRunning, "Engine already running", 409);
+    this.listenForAbort();
     this.isRunning = true;
     const signal = this.controller.signal,
       timer = setTimeout(() => this.abort("timeout"), this.options.timeoutMs);
@@ -174,7 +203,9 @@ export class ExecutionEngine {
           error: `Input blocked by UserPromptSubmit hook: ${this.lastRejection}`,
           steps: this.steps,
         };
-      let stopContinuations = 0;
+      let stopContinuations = 0,
+        outputContinuations = 0,
+        finishReminders = 0;
       while (this.steps < this.options.maxSteps) {
         signal.throwIfAborted();
         invariant(
@@ -214,6 +245,7 @@ export class ExecutionEngine {
             this.options.provider.complete(
               {
                 routeId: this.options.routeId,
+                ...this.options.modelSettings,
                 messages: context,
                 tools: [...this.tools.values()],
               },
@@ -243,19 +275,24 @@ export class ExecutionEngine {
           if (partial) this.commit(partial, messageId);
           throw error;
         }
-        const declaredCalls = assistant.content.filter(
-          (p) => p.type === "toolCall",
-        ).length;
+        const calls = assistant.content.filter(
+          (part): part is ToolCall => part.type === "toolCall",
+        );
         invariant(
-          this.history.length + 1 + declaredCalls <=
+          this.history.length + 1 + calls.length <=
             (this.options.maxMessages ?? Infinity),
           "Session budget cannot retain this assistant/tool group",
           413,
         );
         this.commit(assistant, messageId);
+        // A plain-text reply cut off by the output limit can safely continue; truncated tool calls cannot.
+        const truncated =
+          assistant.stopReason === "length" &&
+          calls.length === 0 &&
+          outputContinuations < (this.options.maxOutputContinuations ?? 0);
         if (
           assistant.stopReason === "error" ||
-          assistant.stopReason === "length"
+          (assistant.stopReason === "length" && !truncated)
         )
           throw new Error(
             assistant.errorMessage ||
@@ -265,9 +302,6 @@ export class ExecutionEngine {
           this.abort();
           signal.throwIfAborted();
         }
-        const calls = assistant.content.filter(
-          (c): c is ToolCall => c.type === "toolCall",
-        );
         // Validate the whole batch before executing any effect from it.
         const callIds = new Set<string>();
         for (const call of calls) {
@@ -285,9 +319,46 @@ export class ExecutionEngine {
           usage: assistant.usage,
         });
         stepOpen = false;
+        const finish = this.options.finishTool;
+        if (
+          finish &&
+          calls.some(
+            (c) => c.name === finish && this.batchResults.get(c.id) === true,
+          )
+        )
+          return { status: "completed", steps: this.steps };
         if (await this.admitNext(this.steerQueue)) continue;
         if (calls.length) continue;
+        if (truncated) {
+          outputContinuations++;
+          this.options.publish("model.continued", {
+            reason: "length",
+            continuation: outputContinuations,
+          });
+          this.commit({
+            role: "user",
+            content:
+              "<system_notice>Your previous reply hit the output token limit and was cut off. Continue exactly where it stopped, without repeating what was already written.</system_notice>",
+            timestamp: Date.now(),
+          });
+          continue;
+        }
         if (await this.admitNext(this.followQueue)) continue;
+        if (finish) {
+          invariant(
+            finishReminders < 2,
+            `Run ended without calling ${finish}; no structured output was produced`,
+            422,
+          );
+          finishReminders++;
+          this.options.publish("output.reminder", { attempt: finishReminders });
+          this.commit({
+            role: "user",
+            content: `<system_notice>This task requires a structured result. Call ${finish} now with arguments that match its schema.</system_notice>`,
+            timestamp: Date.now(),
+          });
+          continue;
+        }
         const hooks = this.options.hooks;
         if (
           hooks &&
@@ -336,6 +407,7 @@ ${feedback}
       };
     } finally {
       clearTimeout(timer);
+      this.options.signal?.removeEventListener("abort", this.onParentAbort);
       this.isRunning = false;
     }
   }
@@ -375,9 +447,10 @@ ${feedback}
     return false;
   }
   private async executeBatch(calls: ToolCall[], route: string) {
+    this.batchResults.clear();
     const scheduler = this.options.scheduler || new ToolScheduler(1);
     let index = 0,
-      failure: unknown;
+      failure: { error: unknown } | undefined;
     const worker = async () => {
       while (index < calls.length) {
         const call = calls[index++];
@@ -405,12 +478,8 @@ ${feedback}
           }
           await this.execute(call, route);
         } catch (error) {
-          failure ||= error;
-          if (
-            !this.history.some(
-              (m) => m.role === "toolResult" && m.toolCallId === call.id,
-            )
-          )
+          failure ??= { error };
+          if (!this.batchResults.has(call.id))
             this.skip(
               call,
               "Skipped because tool scheduling or execution was interrupted",
@@ -424,201 +493,28 @@ ${feedback}
     const detached = calls.filter(
       (c) => this.tools.get(c.name)?.scheduling?.detached,
     ).length;
-    await Promise.all(
+    const workers = await Promise.allSettled(
       Array.from(
         { length: Math.min(scheduler.limit + detached, calls.length) },
         worker,
       ),
     );
-    if (failure) throw failure;
+    if (failure) throw failure.error;
+    for (const worker of workers)
+      if (worker.status === "rejected") throw worker.reason;
     this.controller.signal.throwIfAborted();
   }
   private async execute(call: ToolCall, effectiveRoute: string) {
-    const { store, runId, publish } = this.options,
+    this.options.publish("tool.dispatched", {
+      toolCallId: call.id,
+      name: call.name,
+    });
+    const { result, argsHash } = await this.toolExecution.execute(
+      call,
+      effectiveRoute,
+    );
+    const publish = this.options.publish,
       signal = this.controller.signal;
-    publish("tool.dispatched", { toolCallId: call.id, name: call.name });
-    let result: any;
-    let createdEffect = false;
-    const effectId = `${runId}:${call.id}`,
-      argsHash = hash(JSON.stringify(call.arguments));
-    try {
-      invariant(
-        ++this.toolCount <= this.options.maxToolCalls,
-        "Tool call budget exhausted",
-        429,
-      );
-      const tool = this.tools.get(call.name);
-      invariant(
-        tool,
-        `Tool ${call.name} is not allowed for this run`,
-        403,
-        "tool_denied",
-      );
-      const validate = this.validators.get(call.name)!;
-      invariant(
-        validate(call.arguments),
-        `Invalid arguments for ${call.name}: ${JSON.stringify(validate.errors)}`,
-      );
-      const previous = store.find<ToolEffect>("effects", effectId);
-      if (previous) {
-        await this.options.authorize?.(
-          tool,
-          call.arguments,
-          call.id,
-          signal,
-          effectiveRoute,
-        );
-        invariant(
-          previous.argsHash === argsHash && previous.tool === call.name,
-          "Tool call ID reused with a different tool or arguments",
-          409,
-        );
-        invariant(
-          previous.status === "completed",
-          "Tool effect outcome unknown or failed; explicit recovery is required",
-          409,
-        );
-        result = previous.result;
-      } else {
-        store.put("effects", {
-          id: effectId,
-          runId,
-          callId: call.id,
-          tool: call.name,
-          argsHash,
-          status: "prepared",
-          createdAt: now(),
-          updatedAt: now(),
-        } satisfies ToolEffect);
-        createdEffect = true;
-        publish("tool.requested", {
-          toolCallId: call.id,
-          name: call.name,
-          args: call.arguments,
-          risk: tool.risk,
-          source: tool.source,
-        });
-        let args = call.arguments;
-        if (this.options.hooks) {
-          const decision = await abortable(
-            this.options.hooks.preToolUse(call, tool, signal),
-            signal,
-          );
-          if (decision.deny) {
-            publish("hook.denied", {
-              toolCallId: call.id,
-              name: call.name,
-              reason: decision.deny,
-            });
-            throw new AppError(
-              403,
-              "hook_denied",
-              `Denied by PreToolUse hook: ${decision.deny}`,
-            );
-          }
-          if (decision.updatedInput) {
-            invariant(
-              validate(decision.updatedInput),
-              `PreToolUse hook produced invalid arguments for ${call.name}: ${JSON.stringify(validate.errors)}`,
-              502,
-            );
-            // Scheduler locks were taken for the original arguments.
-            const resources = tool.scheduling?.resources;
-            invariant(
-              !resources ||
-                JSON.stringify(resources(decision.updatedInput)) ===
-                  JSON.stringify(resources(call.arguments)),
-              "PreToolUse hook cannot change the resources a tool locks",
-              409,
-            );
-            args = decision.updatedInput;
-            publish("tool.input.updated", {
-              toolCallId: call.id,
-              name: call.name,
-              args,
-            });
-          }
-        }
-        await this.options.authorize?.(
-          tool,
-          args,
-          call.id,
-          signal,
-          effectiveRoute,
-        );
-        signal.throwIfAborted();
-        const effect = store.get<ToolEffect>("effects", effectId);
-        store.put("effects", {
-          ...effect,
-          status: "running",
-          updatedAt: now(),
-        });
-        publish("tool.started", { toolCallId: call.id, name: call.name });
-        result = await abortable(
-          tool.execute(
-            call.id,
-            args,
-            signal,
-            (partial) =>
-              !signal.aborted &&
-              publish(
-                "tool.output",
-                { toolCallId: call.id, result: partial },
-                false,
-              ),
-            { routeId: effectiveRoute },
-          ),
-          signal,
-        );
-        signal.throwIfAborted();
-        if (this.options.normalizeResult)
-          result = await abortable(
-            this.options.normalizeResult(result, signal),
-            signal,
-          );
-        invariant(
-          result && Array.isArray(result.content),
-          `Tool ${call.name} returned invalid content`,
-          502,
-        );
-        store.put("effects", {
-          ...effect,
-          status: result.isError ? "failed" : "completed",
-          result,
-          updatedAt: now(),
-        });
-        if (this.options.hooks && !result.isError)
-          result = await abortable(
-            this.options.hooks.postToolUse(
-              { ...call, arguments: args },
-              result,
-              signal,
-            ),
-            signal,
-          );
-      }
-    } catch (error) {
-      result = {
-        content: [{ type: "text", text: errorText(error) }],
-        isError: true,
-      };
-      const effect = store.find<ToolEffect>("effects", effectId);
-      if (
-        createdEffect &&
-        effect &&
-        ["prepared", "running"].includes(effect.status)
-      )
-        store.put("effects", {
-          ...effect,
-          status:
-            effect.status === "running" &&
-            this.tools.get(call.name)?.risk !== "read"
-              ? "unknown"
-              : "failed",
-          error: errorText(error),
-          updatedAt: now(),
-        });
-    }
     this.commit({
       role: "toolResult",
       toolCallId: call.id,
@@ -638,7 +534,10 @@ ${feedback}
     if (repeatLimit) {
       const key = `${call.name}:${argsHash}`,
         digest: string =
-          result[normalizedResultDigest] ||
+          (normalizedResultDigest in result &&
+          typeof result[normalizedResultDigest] === "string"
+            ? result[normalizedResultDigest]
+            : undefined) ||
           hash(
             JSON.stringify({
               content: result.content,

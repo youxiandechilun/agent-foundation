@@ -1,5 +1,5 @@
 import type { Asset } from "../contracts.js";
-import { invariant } from "../util.js";
+import { invariant } from "../core/util.js";
 export interface AssetExtractor {
   id: string;
   supports: (asset: Asset) => boolean;

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import http from "node:http";
-import { MCPClient } from "../src/extensions/mcp-client.js";
+import { MCPClient } from "../src/extensions/mcp/client.js";
 import { setup, until, collect } from "./support/wire-server.js";
 const childFile = fileURLToPath(
   new URL("./support/adversarial-mcp.mjs", import.meta.url),
@@ -18,8 +18,10 @@ async function ownStdio(mode?: string) {
     args: [childFile, root, ...(mode ? [mode] : [])],
     env: {
       ...Object.fromEntries(
-        Object.entries(process.env).filter(([name]) =>
-          /^(PATH|Path|SystemRoot|TEMP|TMP|WINDIR|PATHEXT)$/.test(name),
+        Object.entries(process.env).filter(
+          (entry): entry is [string, string] =>
+            entry[1] !== undefined &&
+            /^(PATH|Path|SystemRoot|TEMP|TMP|WINDIR|PATHEXT)$/.test(entry[0]),
         ),
       ),
     },
@@ -119,6 +121,165 @@ test("MCP catalog rejects repeated pagination cursors", async () => {
     await assert.rejects(x.kernel.mcp.catalog("pages"), /repeated/);
   } finally {
     await x.close();
+  }
+});
+
+test("concurrent MCP catalogs share only in-flight pages and isolate cancellation, changes and reconnects", async () => {
+  const x = await setup();
+  const pending: { id: number; response: http.ServerResponse }[] = [];
+  const server = http.createServer(async (request, response) => {
+    if (request.method !== "POST") {
+      response.writeHead(405).end();
+      return;
+    }
+    const chunks: Buffer[] = [];
+    for await (const chunk of request) chunks.push(Buffer.from(chunk));
+    const message = JSON.parse(Buffer.concat(chunks).toString()) as {
+      id: number;
+      method: string;
+      params?: { protocolVersion?: string };
+    };
+    if (message.method === "tools/list") {
+      pending.push({ id: message.id, response });
+      return;
+    }
+    if (message.method === "initialize") {
+      response.setHeader("Content-Type", "application/json");
+      response.end(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: message.id,
+          result: {
+            protocolVersion: message.params?.protocolVersion,
+            capabilities: { tools: { listChanged: true } },
+            serverInfo: { name: "shared-catalog", version: "1.0.0" },
+          },
+        }),
+      );
+    } else response.writeHead(202).end();
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  const complete = (index: number, name: string, nextCursor?: string) => {
+    const { id, response } = pending[index];
+    const reply = {
+      jsonrpc: "2.0",
+      id,
+      result: {
+        tools: [{ name, inputSchema: { type: "object" } }],
+        nextCursor,
+      },
+    };
+    if (!response.headersSent)
+      response.setHeader("Content-Type", "application/json");
+    response.end(
+      response.getHeader("Content-Type") === "text/event-stream"
+        ? `data: ${JSON.stringify(reply)}\n\n`
+        : JSON.stringify(reply),
+    );
+  };
+  try {
+    x.kernel.mcp.install({
+      id: "shared",
+      name: "shared",
+      transport: "http",
+      protocol: "legacy",
+      url: `http://127.0.0.1:${address.port}/mcp`,
+    });
+    await x.kernel.mcp.connect("shared");
+    const cancelled = new AbortController();
+    const first = x.kernel.mcp.catalog("shared", cancelled.signal);
+    const joined = Array.from({ length: 11 }, () =>
+      x.kernel.mcp.catalog("shared"),
+    );
+    await until(() => pending.length === 1);
+    cancelled.abort(Error("caller stopped"));
+    await assert.rejects(first, /caller stopped/);
+    complete(0, "first", "next");
+    await until(() => pending.length === 2);
+    complete(1, "second");
+    const results = await Promise.all(joined);
+    assert.equal(
+      pending.length,
+      2,
+      "12 callers must issue only two paginated requests",
+    );
+    assert.deepEqual(
+      results[0].map((tool: { name: string }) => tool.name),
+      ["first", "second"],
+    );
+    results[0][0].name = "caller-local mutation";
+    assert.equal(results[1][0].name, "first");
+
+    const refresh = x.kernel.mcp.catalog("shared");
+    await until(() => pending.length === 3);
+    complete(2, "fresh");
+    assert.equal(
+      (await refresh)[0].name,
+      "fresh",
+      "completed catalogs must not be cached",
+    );
+
+    const abandoned = new AbortController();
+    const old = x.kernel.mcp.catalog("shared", abandoned.signal);
+    await until(() => pending.length === 4);
+    abandoned.abort(Error("all callers left"));
+    await assert.rejects(old, /all callers left/);
+    const retry = x.kernel.mcp.catalog("shared");
+    await until(() => pending.length === 5);
+    complete(3, "abandoned");
+    complete(4, "retry");
+    assert.equal((await retry)[0].name, "retry");
+
+    const changed = x.kernel.mcp.catalog("shared");
+    const staleRejected = assert.rejects(changed, /catalog changed|cancelled/);
+    await until(() => pending.length === 6);
+    pending[5].response.setHeader("Content-Type", "text/event-stream");
+    pending[5].response.write(
+      `data: ${JSON.stringify({ jsonrpc: "2.0", method: "notifications/tools/list_changed" })}\n\n`,
+    );
+    await until(() =>
+      x.kernel.mcp
+        .notifications("shared")
+        .some((event) => event.method === "notifications/tools/list_changed"),
+    );
+    const current = x.kernel.mcp.catalog("shared");
+    await until(() => pending.length === 7);
+    complete(6, "current");
+    assert.equal((await current)[0].name, "current");
+    complete(5, "stale");
+    await staleRejected;
+
+    const beforeDisconnect = x.kernel.mcp.catalog("shared");
+    const disconnected = assert.rejects(
+      beforeDisconnect,
+      /closed|disconnected|cancelled/i,
+    );
+    await until(() => pending.length === 8);
+    await x.kernel.mcp.disconnect("shared");
+    await disconnected;
+    await x.kernel.mcp.connect("shared");
+    const afterReconnect = x.kernel.mcp.catalog("shared");
+    await until(() => pending.length === 9);
+    complete(7, "old-connection");
+    complete(8, "new-connection");
+    assert.equal((await afterReconnect)[0].name, "new-connection");
+    const definitions = x.kernel.mcp.tools();
+    await until(() => pending.length === 10);
+    complete(9, "revoked");
+    const [tool] = await definitions;
+    await x.kernel.mcp.disconnect("shared");
+    await assert.rejects(
+      tool.execute("revoked-call", {}),
+      /revoked|disconnected/,
+    );
+  } finally {
+    await x.close();
+    server.closeAllConnections();
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
   }
 });
 

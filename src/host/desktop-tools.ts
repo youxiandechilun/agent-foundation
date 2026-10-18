@@ -1,97 +1,29 @@
+import { toolParameters } from "../runtime/json-schema.js";
+import {
+  officeSheetEditSchema,
+  officeReplaceSchema,
+  officeAnalyzeSchema,
+  officeTransformSchema,
+  officeCreateSchema,
+  officePdfComposeSchema,
+} from "./office/manager.js";
+import { computerActionSchema } from "./computer/manager.js";
 import { Type } from "typebox";
-import { readFile, readdir, mkdir, stat } from "node:fs/promises";
-import path from "node:path";
 import type { DesktopKernel as Kernel } from "./desktop.js";
-import type { Session } from "../contracts.js";
-import type {
-  ToolDefinition,
-  Risk,
-  Capability,
-  ToolResult,
-} from "../runtime/types.js";
-import { atomicWrite, safePath, invariant, truncate, now } from "../util.js";
+import type { ToolContext as RuntimeToolContext } from "../runtime/registry.js";
+import type { ToolDefinition } from "../runtime/types.js";
+import { invariant } from "../core/util.js";
+import { createBuiltinTools } from "../tools/builtin.js";
 
-export interface ToolContext {
-  kernel: Kernel;
-  runId: string;
-  session: Session;
-  routeId: string;
-}
-const cell = Type.Union([
-  Type.String({ maxLength: 10000 }),
-  Type.Number(),
-  Type.Boolean(),
-  Type.Null(),
-]);
+export type ToolContext = RuntimeToolContext & { kernel: Kernel };
 export async function desktopTools(
   ctx: ToolContext,
   features: readonly string[] = ["office", "browser", "computer", "node"],
 ): Promise<ToolDefinition[]> {
-  const { kernel: k, runId, session } = ctx,
-    root = k.store.project(session.projectId).root,
-    tools: ToolDefinition[] = [],
-    runner = k.commands;
-  const add = (
-    name: string,
-    description: string,
-    parameters: any,
-    risk: Risk,
-    capabilities: Capability[],
-    execute: (
-      args: any,
-      signal: AbortSignal | undefined,
-      callId: string,
-    ) => Promise<any>,
-  ) =>
-    tools.push({
-      name,
-      description,
-      parameters,
-      risk,
-      capabilities,
-      source: { kind: "builtin", id: "foundation" },
-      execute: async (callId, args, signal) => {
-        signal?.throwIfAborted();
-        const result = await execute(args, signal, callId);
-        const response: ToolResult = {
-          content: [
-            {
-              type: "text",
-              text: truncate(
-                JSON.stringify(result),
-                k.config.limits.maxOutputBytes,
-              ),
-            },
-          ],
-          details: result,
-        };
-        const assetId = result?.asset?.id || result?.assetId;
-        if (assetId && k.config.routes[ctx.routeId].acceptsImages) {
-          const asset = k.assets.owned(assetId, session.projectId);
-          if (
-            ["image/png", "image/jpeg", "image/webp", "image/gif"].includes(
-              asset.mime,
-            ) &&
-            asset.size <= 5 * 1024 * 1024
-          )
-            response.content.push({
-              type: "image",
-              mimeType: asset.mime,
-              data: (await k.assets.read(asset.id, session.projectId)).toString(
-                "base64",
-              ),
-            });
-        }
-        return response;
-      },
-    });
-  const artifact = (asset: any) => {
-    k.store.emit(runId, "artifact.created", {
-      asset,
-      download: `/v1/assets/${asset.id}/content`,
-    });
-    return { assetId: asset.id, name: asset.name, bytes: asset.size };
-  };
+  const { kernel: k, runId, session } = ctx;
+  const { tools, add, artifact } = createBuiltinTools(ctx, {
+    filesystemScheduling: false,
+  });
   add(
     "office_inspect",
     "Inspect actual DOCX paragraphs, workbook sheets/formula cache status, PPTX slide order, or PDF page metadata.",
@@ -103,16 +35,7 @@ export async function desktopTools(
   add(
     "office_edit_sheet",
     "Edit exact XLSX cell ranges while preserving unrelated package parts and styles. Formulas are written for real recalculation; no calculated result is fabricated.",
-    Type.Object({
-      assetId: Type.String(),
-      name: Type.String(),
-      sheet: Type.Optional(Type.String()),
-      range: Type.String(),
-      values: Type.Array(
-        Type.Array(Type.Union([cell, Type.Object({ formula: Type.String() })])),
-      ),
-      expectedSha256: Type.Optional(Type.String()),
-    }),
+    toolParameters(officeSheetEditSchema),
     "write",
     ["files.read", "files.write"],
     async (args, signal) => {
@@ -128,19 +51,7 @@ export async function desktopTools(
   add(
     "office_replace_text",
     "Replace literal DOCX/PPTX text across formatting runs. Match count must equal expectedMatches (default one). Preserve all unrelated ZIP entries.",
-    Type.Object({
-      assetId: Type.String(),
-      name: Type.String(),
-      parts: Type.Optional(Type.Array(Type.String())),
-      replacements: Type.Array(
-        Type.Object({
-          find: Type.String(),
-          replace: Type.String(),
-          expectedMatches: Type.Optional(Type.Integer({ minimum: 0 })),
-        }),
-      ),
-      expectedSha256: Type.Optional(Type.String()),
-    }),
+    toolParameters(officeReplaceSchema),
     "write",
     ["files.read", "files.write"],
     async (args, signal) => {
@@ -156,16 +67,7 @@ export async function desktopTools(
   add(
     "office_pdf_compose",
     "Merge, select/reorder/split and rotate actual PDF pages into a new PDF asset. Inputs remain unchanged.",
-    Type.Object({
-      name: Type.String(),
-      sources: Type.Array(
-        Type.Object({
-          assetId: Type.String(),
-          pages: Type.Optional(Type.Array(Type.Integer({ minimum: 1 }))),
-          rotation: Type.Optional(Type.Integer({ minimum: 0, maximum: 270 })),
-        }),
-      ),
-    }),
+    toolParameters(officePdfComposeSchema),
     "write",
     ["files.read", "files.write"],
     async (args, signal) => {
@@ -235,24 +137,7 @@ export async function desktopTools(
   add(
     "office_analyze",
     "Compute count/sum/average/min/max from actual named numeric columns, optionally grouped and filtered.",
-    Type.Object({
-      assetId: Type.String(),
-      sheet: Type.Optional(Type.String()),
-      valueColumn: Type.String(),
-      groupBy: Type.Optional(Type.String()),
-      filter: Type.Optional(
-        Type.Object({
-          column: Type.String(),
-          op: Type.Union([
-            Type.Literal("eq"),
-            Type.Literal("contains"),
-            Type.Literal("gt"),
-            Type.Literal("lt"),
-          ]),
-          value: cell,
-        }),
-      ),
-    }),
+    toolParameters(officeAnalyzeSchema),
     "read",
     ["files.read"],
     async (args, signal) => k.office.analyze(session.projectId, args, signal),
@@ -260,22 +145,7 @@ export async function desktopTools(
   add(
     "office_transform",
     "Filter/select/sort actual source rows and create a new CSV/XLSX asset.",
-    Type.Object({
-      assetId: Type.String(),
-      sheet: Type.Optional(Type.String()),
-      name: Type.String(),
-      format: Type.Union([Type.Literal("csv"), Type.Literal("xlsx")]),
-      select: Type.Optional(Type.Array(Type.String())),
-      sort: Type.Optional(
-        Type.Object({
-          column: Type.String(),
-          direction: Type.Union([Type.Literal("asc"), Type.Literal("desc")]),
-        }),
-      ),
-      filter: Type.Optional(
-        Type.Object({ column: Type.String(), equals: cell }),
-      ),
-    }),
+    toolParameters(officeTransformSchema),
     "write",
     ["files.read", "files.write"],
     async (args, signal) =>
@@ -284,30 +154,7 @@ export async function desktopTools(
   add(
     "office_create",
     "Generate a real DOCX/XLSX/CSV/PDF/PPTX from provided content. Derive source values with office_analyze instead of inventing them.",
-    Type.Object({
-      format: Type.Union(
-        ["docx", "xlsx", "csv", "pdf", "pptx"].map((value) =>
-          Type.Literal(value),
-        ),
-      ),
-      name: Type.String({ maxLength: 180 }),
-      title: Type.String({ maxLength: 1000 }),
-      paragraphs: Type.Optional(
-        Type.Array(Type.String({ maxLength: 20000 }), { maxItems: 1000 }),
-      ),
-      rows: Type.Optional(
-        Type.Array(Type.Array(cell, { maxItems: 100 }), { maxItems: 10000 }),
-      ),
-      slides: Type.Optional(
-        Type.Array(
-          Type.Object({
-            title: Type.String(),
-            body: Type.Array(Type.String()),
-          }),
-          { maxItems: 100 },
-        ),
-      ),
-    }),
+    toolParameters(officeCreateSchema),
     "write",
     ["files.write"],
     async (args, signal) =>
@@ -421,42 +268,7 @@ export async function desktopTools(
   add(
     "computer_action",
     "Inspect windows/accessibility, invoke native control patterns, capture a window, or send targeted input on Windows. Specify windowId AND processId from windows; elementId from tree. Pointer coordinates are relative to window bounds. Focus explicitly before keyboard/pointer input. Requires exclusive project/run lease.",
-    Type.Object({
-      action: Type.Union(
-        [
-          "inspect",
-          "windows",
-          "tree",
-          "screenshot",
-          "focus",
-          "move",
-          "click",
-          "drag",
-          "type",
-          "key",
-          "scroll",
-          "set_value",
-          "invoke",
-          "toggle",
-          "select",
-          "expand",
-          "collapse",
-        ].map((value) => Type.Literal(value)),
-      ),
-      x: Type.Optional(Type.Integer()),
-      y: Type.Optional(Type.Integer()),
-      toX: Type.Optional(Type.Integer()),
-      toY: Type.Optional(Type.Integer()),
-      windowId: Type.Optional(Type.String({ pattern: "^[1-9][0-9]{0,15}$" })),
-      processId: Type.Optional(Type.Integer({ minimum: 1 })),
-      elementId: Type.Optional(Type.String({ maxLength: 500 })),
-      text: Type.Optional(Type.String({ maxLength: 10000 })),
-      key: Type.Optional(Type.String({ maxLength: 100 })),
-      button: Type.Optional(
-        Type.Union([Type.Literal("left"), Type.Literal("right")]),
-      ),
-      delta: Type.Optional(Type.Integer({ minimum: -10000, maximum: 10000 })),
-    }),
+    toolParameters(computerActionSchema),
     "control",
     ["computer"],
     async (args, signal) => {

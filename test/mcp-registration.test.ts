@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { MCPOAuth, oauthSchema } from "../src/extensions/mcp-oauth.js";
+import { MCPOAuth, oauthSchema } from "../src/extensions/mcp/auth/oauth.js";
 import { setup, until } from "./support/wire-server.js";
 import { registrationPeer } from "./support/oauth-registration.js";
 function install(

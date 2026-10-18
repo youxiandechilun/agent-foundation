@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-10-18T02:42:07.797Z",
+  "completedAt": "2026-10-18T02:42:16.475Z",
+  "command": {
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "args": [
+      "scripts/run-core-tests.mjs",
+      "--filter=mcp-client"
+    ]
+  },
+  "exitCode": 0,
+  "log": "verification/consolidation-static-20261018T024207797Z-mcp-client.log",
+  "file": "test/mcp-client.test.ts",
+  "beforeSha256": "daed963e4792cd5c1c558682408de4790cd1288d7d2317c4d7cb9f4aa5ea170f",
+  "afterSha256": "daed963e4792cd5c1c558682408de4790cd1288d7d2317c4d7cb9f4aa5ea170f",
+  "stableInput": true,
+  "summary": [
+    "# tests 6",
+    "# suites 0",
+    "# pass 6",
+    "# fail 0",
+    "# cancelled 0",
+    "# skipped 0",
+    "# todo 0",
+    "# duration_ms 4422.372"
+  ]
+}

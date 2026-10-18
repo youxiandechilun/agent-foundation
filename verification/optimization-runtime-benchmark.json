@@ -1,0 +1,126 @@
+{
+  "checkedAt": "2026-10-17T17:18:27.506Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "rounds": 5,
+  "method": "Same process and inputs; one warmup then five samples per implementation. No external model/network calls. File-backed SQLite.",
+  "workloads": {
+    "schemas": "200 identical tool schemas and two validations each",
+    "streams": "256 KiB SSE frame in 64-byte chunks",
+    "reads": "30000 project reads",
+    "memoryWrites": "30 new memory IDs with 12000 historical revisions",
+    "context": "3000 messages with 1000 ASCII characters each; cached summary, 1M token window"
+  },
+  "before": {
+    "schemas": {
+      "samplesMs": [
+        664.0759,
+        665.0098999999998,
+        647.3456000000001,
+        624.2952999999998,
+        559.4865
+      ],
+      "medianMs": 647.3456000000001
+    },
+    "streams": {
+      "samplesMs": [
+        249.46740000000045,
+        242.54999999999927,
+        230.58770000000004,
+        233.61969999999928,
+        228.0689000000002
+      ],
+      "medianMs": 233.61969999999928
+    },
+    "reads": {
+      "samplesMs": [
+        353.58630000000085,
+        325.64940000000024,
+        331.5151999999998,
+        340.33480000000054,
+        316.2322000000004
+      ],
+      "medianMs": 331.5151999999998
+    },
+    "memoryWrites": {
+      "samplesMs": [
+        1487.8302000000003,
+        1455.7744999999995,
+        1509.5738000000001,
+        1574.825499999999,
+        1573.8020000000015
+      ],
+      "medianMs": 1509.5738000000001
+    },
+    "context": {
+      "samplesMs": [
+        421.51840000000084,
+        433.32310000000143,
+        392.7638999999981,
+        395.63510000000315,
+        430.6826000000001
+      ],
+      "medianMs": 421.51840000000084
+    }
+  },
+  "after": {
+    "schemas": {
+      "samplesMs": [
+        1.2498999999988882,
+        1.1582999999991443,
+        1.1537000000025728,
+        1.1190999999998894,
+        1.1120000000009895
+      ],
+      "medianMs": 1.1537000000025728
+    },
+    "streams": {
+      "samplesMs": [
+        6.838299999999435,
+        5.0297000000027765,
+        5.202399999998306,
+        4.3188999999983935,
+        3.9131000000015774
+      ],
+      "medianMs": 5.0297000000027765
+    },
+    "reads": {
+      "samplesMs": [
+        137.88450000000012,
+        139.02260000000024,
+        147.97309999999925,
+        153.73669999999765,
+        152.44480000000112
+      ],
+      "medianMs": 147.97309999999925
+    },
+    "memoryWrites": {
+      "samplesMs": [
+        89.20579999999973,
+        92.34899999999834,
+        91.3269999999975,
+        87.80649999999878,
+        85.45899999999892
+      ],
+      "medianMs": 89.20579999999973
+    },
+    "context": {
+      "samplesMs": [
+        17.537099999997736,
+        19.14890000000014,
+        18.484199999998964,
+        17.928899999998976,
+        16.786199999998644
+      ],
+      "medianMs": 17.928899999998976
+    }
+  },
+  "speedup": {
+    "schemas": 561.1039264961051,
+    "streams": 46.44803865039074,
+    "reads": 2.240374770819842,
+    "memoryWrites": 16.922372760515625,
+    "context": 23.51055558344488
+  },
+  "limitation": "Microbenchmarks measure only these workloads; do not imply the same speedup for complete agent runs or remote model latency."
+}

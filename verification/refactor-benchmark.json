@@ -1,0 +1,150 @@
+{
+  "measuredAt": "2026-10-17T18:18:34.256Z",
+  "node": "v22.22.0",
+  "baseline": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\baseline-20261018\\dist",
+  "method": "Same process and inputs; one warmup then five alternating rounds, median. SQLite uses actual files; MCP uses actual client/stream code with an in-memory HTTP response, no network or model calls.",
+  "workloads": {
+    "redaction": "20 x 300 structured messages",
+    "scopedReads": "50 reads from 10000 1KB effects, 50 matching rows",
+    "transcriptWindows": "50 offset windows of 10 from 10000 1KB messages",
+    "lastAssistant": "50 lookups from 10000 1KB messages",
+    "permissions": "300 checks, 6 capabilities and 100 policies",
+    "reservations": "30 atomic project reservations over 10000 charges",
+    "mcpFrames": "256 KiB MCP catalog event delivered in 64-byte stream chunks"
+  },
+  "measurements": {
+    "redaction": {
+      "beforeMs": [
+        1709.7329999999997,
+        1683.3545999999997,
+        1808.5753999999997,
+        1884.2272999999986,
+        1716.9946
+      ],
+      "afterMs": [
+        9.935300000000097,
+        10.025800000000345,
+        10.588400000000547,
+        13.303900000000795,
+        12.168800000001283
+      ],
+      "beforeMedianMs": 1716.9946,
+      "afterMedianMs": 10.588400000000547,
+      "speedup": 162.15807865210147
+    },
+    "scopedReads": {
+      "beforeMs": [
+        2997.9246000000003,
+        2963.231200000002,
+        3040.4419000000016,
+        2899.1752000000015,
+        3091.103600000002
+      ],
+      "afterMs": [
+        4.885899999997491,
+        5.45140000000174,
+        6.501800000001822,
+        4.558600000000297,
+        5.130900000000111
+      ],
+      "beforeMedianMs": 2997.9246000000003,
+      "afterMedianMs": 5.130900000000111,
+      "speedup": 584.2882535227612
+    },
+    "transcriptWindows": {
+      "beforeMs": [
+        2042.2574999999997,
+        2152.5499999999956,
+        2024.7819999999992,
+        2012.5594000000056,
+        2033.0653999999995
+      ],
+      "afterMs": [
+        28.652099999999336,
+        27.796399999999267,
+        23.309199999996054,
+        23.033000000003085,
+        25.016600000002654
+      ],
+      "beforeMedianMs": 2033.0653999999995,
+      "afterMedianMs": 25.016600000002654,
+      "speedup": 81.26865361399166
+    },
+    "lastAssistant": {
+      "beforeMs": [
+        1970.3069000000032,
+        2095.282500000001,
+        2022.0315000000046,
+        1962.6042000000016,
+        2092.673299999995
+      ],
+      "afterMs": [
+        0.5648999999975786,
+        0.308100000002014,
+        0.4508999999961816,
+        0.3890000000028522,
+        0.6887000000060652
+      ],
+      "beforeMedianMs": 2022.0315000000046,
+      "afterMedianMs": 0.4508999999961816,
+      "speedup": 4484.434464442511
+    },
+    "permissions": {
+      "beforeMs": [
+        266.58340000000317,
+        238.09879999999976,
+        231.26260000000184,
+        248.65310000000318,
+        248.47950000000128
+      ],
+      "afterMs": [
+        49.84399999999732,
+        47.719300000004296,
+        53.47239999999874,
+        47.57700000000477,
+        48.15099999999802
+      ],
+      "beforeMedianMs": 248.47950000000128,
+      "afterMedianMs": 48.15099999999802,
+      "speedup": 5.160422421133756
+    },
+    "reservations": {
+      "beforeMs": [
+        897.4936000000016,
+        856.8453000000009,
+        860.7862000000023,
+        887.7153999999937,
+        873.3778999999995
+      ],
+      "afterMs": [
+        27.02440000000206,
+        26.642299999999523,
+        28.421299999994517,
+        29.57100000000355,
+        28.361599999996542
+      ],
+      "beforeMedianMs": 873.3778999999995,
+      "afterMedianMs": 28.361599999996542,
+      "speedup": 30.794380429880754
+    },
+    "mcpFrames": {
+      "beforeMs": [
+        304.34939999999915,
+        297.7959999999948,
+        291.6319999999978,
+        301.27790000000095,
+        302.6532999999981
+      ],
+      "afterMs": [
+        7.844999999993888,
+        10.16359999999986,
+        7.134500000000116,
+        8.138500000000931,
+        6.750999999996566
+      ],
+      "beforeMedianMs": 301.27790000000095,
+      "afterMedianMs": 7.844999999993888,
+      "speedup": 38.40381134483565
+    }
+  }
+}

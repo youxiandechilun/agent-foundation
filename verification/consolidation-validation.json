@@ -1,0 +1,72 @@
+{
+  "checkedAt": "2026-10-18T02:31:22.874Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "consolidation-core-build",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 6590,
+      "stdoutLog": "consolidation-core-build.log",
+      "stderrLog": "consolidation-core-build.stderr.log"
+    },
+    {
+      "name": "consolidation-host-build",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 7331,
+      "stdoutLog": "consolidation-host-build.log",
+      "stderrLog": "consolidation-host-build.stderr.log"
+    },
+    {
+      "name": "consolidation-core-tests",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 291512,
+      "stdoutLog": "consolidation-core-tests.log",
+      "stderrLog": "consolidation-core-tests.stderr.log",
+      "tests": {
+        "passed": 453,
+        "failed": 0
+      }
+    },
+    {
+      "name": "consolidation-host-tests",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 66574,
+      "stdoutLog": "consolidation-host-tests.log",
+      "stderrLog": "consolidation-host-tests.stderr.log",
+      "tests": {
+        "passed": 33,
+        "failed": 0
+      }
+    },
+    {
+      "name": "consolidation-core-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1301,
+      "stdoutLog": "consolidation-core-smoke.log",
+      "stderrLog": "consolidation-core-smoke.stderr.log"
+    },
+    {
+      "name": "consolidation-host-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 3711,
+      "stdoutLog": "consolidation-host-smoke.log",
+      "stderrLog": "consolidation-host-smoke.stderr.log"
+    },
+    {
+      "name": "consolidation-source-check",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 162,
+      "stdoutLog": "consolidation-source-check.log",
+      "stderrLog": "consolidation-source-check.stderr.log"
+    }
+  ]
+}

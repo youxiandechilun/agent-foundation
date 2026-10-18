@@ -1,4 +1,8 @@
 import type { Message, Capability } from "./runtime/types.js";
+import type { TeamBinding } from "./collaboration/types.js";
+
+export type ReasoningEffort =
+  "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 
 export type Mode = "chat" | "code" | "office" | (string & {});
 export type RunStatus =
@@ -28,8 +32,20 @@ export interface Session {
   autonomy?: Autonomy;
   archived?: boolean;
   agentId?: string;
-  /** Set on sub-agent sessions created by agent_delegate; they cannot delegate further. */
+  subagentsEnabled?: boolean;
+  reasoningEffort?: ReasoningEffort;
+  reasoningBudgetTokens?: number;
+  collaboration?: TeamBinding;
+  teamRootSessionId?: string;
+  teamMemberId?: string;
+  forkedFromSessionId?: string;
+  forkedThroughMessageId?: string;
+  /** Explicit cross-session reading grants; project scope still applies. */
+  readableSessionIds?: string[];
+  /** Set on delegated sessions; their effective permissions include the parent's restrictions. */
   parentSessionId?: string;
+  /** Nesting level of a sub-agent session (1 = direct child of a user session). */
+  delegationDepth?: number;
 }
 export interface Run {
   id: string;
@@ -38,6 +54,9 @@ export interface Run {
   error?: string;
   createdAt: string;
   updatedAt: string;
+  /** Requested structured-output schema and the validated result, when used. */
+  outputSchema?: Record<string, unknown>;
+  output?: unknown;
 }
 export interface Asset {
   id: string;
@@ -50,12 +69,16 @@ export interface Asset {
   origin: "upload" | "artifact" | "model";
 }
 export interface Input {
+  teamRoleDecision?: "redistribute" | "add_agents";
+  contextSessionIds?: string[];
   resumeFromRunId?: string;
   text?: string;
   assetIds?: string[];
   delivery?: "start" | "steer" | "enqueue";
   clientMessageId?: string;
   skillIds?: string[];
+  /** JSON Schema for a structured final result (start inputs only). */
+  outputSchema?: Record<string, unknown>;
 }
 export interface FoundationEvent {
   schemaVersion: 1;
@@ -188,6 +211,8 @@ export interface AgentDefinition {
   instructions: string;
   mode: Mode;
   routeId?: string;
+  reasoningEffort?: ReasoningEffort;
+  reasoningBudgetTokens?: number;
   skillIds: string[];
   toolAllowlist: string[];
   maxSteps: number;

@@ -1,108 +1,79 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.1",
   "baseline": {
-    "version": "0.10.0",
-    "testsPassed": 280,
-    "archiveSha256": "C2CC697360F45F34B8FAC9FE9C2BC226D4AAA9AA54D91FE2965FD5F4A1302D16"
+    "version": "0.11.0",
+    "testsPassed": 300,
+    "evidence": "previous verification/report.json; historical baseline only"
   },
-  "references": "docs/CORE-FOUNDATION.md",
+  "references": [
+    "docs/RELEASE.md",
+    "docs/CORE-AGENT-LOOP.md",
+    "docs/CORE-WEB.md",
+    "docs/COLLABORATION.md",
+    "docs/SERVERS.md"
+  ],
   "previousAuditReferences": "docs/AUDIT-REFERENCES.json",
   "auditCriteria": [
-    "foundation-windows-sandbox-1",
-    "foundation-windows-sandbox-2",
-    "foundation-windows-sandbox-3",
-    "foundation-windows-sandbox-4",
-    "foundation-windows-sandbox-5",
-    "foundation-windows-sandbox-6",
-    "foundation-windows-sandbox-7",
-    "foundation-windows-sandbox-8",
-    "foundation-windows-sandbox-9",
-    "foundation-windows-sandbox-10",
-    "foundation-windows-sandbox-11",
-    "foundation-windows-sandbox-12",
-    "foundation-windows-sandbox-13",
-    "foundation-windows-sandbox-14",
-    "foundation-windows-sandbox-15",
-    "foundation-windows-sandbox-16",
-    "foundation-windows-sandbox-17",
-    "foundation-kernel-scope-1",
-    "foundation-kernel-scope-2",
-    "foundation-kernel-scope-3"
+    "release12-agent-loop-1",
+    "release12-agent-loop-2",
+    "release12-agent-loop-3",
+    "release12-agent-loop-4",
+    "release12-agent-loop-5",
+    "release12-agent-loop-6",
+    "release12-agent-loop-7",
+    "release12-agent-loop-8",
+    "release12-agent-loop-9",
+    "release12-subagents-1",
+    "release12-subagents-2",
+    "release12-subagents-3",
+    "release12-subagents-4",
+    "release12-subagents-5",
+    "release12-subagents-6",
+    "release12-run-control-1",
+    "release12-run-control-2",
+    "release12-run-control-3",
+    "release12-run-control-4",
+    "release12-run-control-5",
+    "release12-checkpoints-1",
+    "release12-checkpoints-2",
+    "release12-project-search-1",
+    "release12-project-search-2",
+    "release12-project-search-3",
+    "release12-web-1",
+    "release12-web-2",
+    "release12-web-3",
+    "release12-web-4",
+    "release12-web-5",
+    "release12-web-6",
+    "release12-web-7",
+    "release12-collaboration-1",
+    "release12-collaboration-2",
+    "release12-collaboration-3",
+    "release12-collaboration-4",
+    "release12-collaboration-5",
+    "release12-collaboration-6",
+    "release12-collaboration-7",
+    "release12-collaboration-8",
+    "release12-collaboration-9",
+    "release12-collaboration-10",
+    "release12-session-collaboration-controls-1",
+    "release12-session-collaboration-controls-2",
+    "release12-session-collaboration-controls-3",
+    "release12-session-collaboration-controls-4",
+    "release12-session-collaboration-controls-5",
+    "release12-session-collaboration-controls-6",
+    "release12-servers-1",
+    "release12-servers-2",
+    "release12-servers-3",
+    "release12-servers-4",
+    "release12-servers-5",
+    "release12-servers-6",
+    "release12-servers-7",
+    "release12-servers-8",
+    "release12-servers-9"
   ],
-  "newRegressionTests": 20,
-  "externalValidation": [
-    {
-      "id": "live-vendors",
-      "status": "not-run",
-      "reason": "未提供真实文本/图片/视频/embedding 供应商联调凭据；本地协议服务不证明真实模型质量或账单。"
-    },
-    {
-      "id": "docker-runtime",
-      "status": "environment-unavailable",
-      "reason": "Docker 保持可选。源码插件和 MCP stdio 容器宿主已接入；本机缺少 Docker CLI/engine，真实容器运行、隔离与清理未验收，见 verification/docker-runtime.json。"
-    },
-    {
-      "id": "third-party-mcp-oauth-ecosystem",
-      "status": "not-exhaustive",
-      "reason": "已声明 MCP task/CIMD/OAuth profile、设备流、RFC 7592 管理与自动签名钥轮换使用实际本地 stdio、HTTP/SSE、受测试 CA 信任的 HTTPS 验证；真实第三方身份平台与 MCP 服务未全面联调。"
-    },
-    {
-      "id": "posix-pty",
-      "status": "not-run",
-      "reason": "POSIX PTY 桥接源码已有；当前 Windows 主机实测管道与 ConPTY，Linux/macOS 待验收。"
-    },
-    {
-      "id": "cross-os-migration",
-      "status": "not-run",
-      "reason": "独立内核数据目录之间的 HTTP 会话/字节迁移、数据库重启恢复已通过；Windows/Linux/macOS 实际不同机器传输待验收。"
-    },
-    {
-      "id": "public-oauth-hosting",
-      "status": "not-run",
-      "reason": "未部署真实公网 HTTPS Client Metadata URL，也未验证第三方 AS 的缓存、设备授权 UI 或企业策略。生产需自有 HTTPS 发布和可信客户端配置。"
-    },
-    {
-      "id": "windows-public-network",
-      "status": "separate-explicit-probe",
-      "reason": "可选脚本对同一公网 TCP 端点验证宿主可达、AppContainer none 拒绝和 internet 允许，并确认清理；实际状态见 verification/windows-sandbox-network.json。普通核心测试不依赖公网连通性。"
-    }
-  ],
-  "deferredByUser": ["UI", "ESP32 和其他实物硬件"],
-  "goal": "单用户、可嵌入的源码 Agent 内核；可选且实际验证的 Windows OS 执行隔离与可靠清理，Docker 非必装；移除账户、多租户、企业身份与分布式集群目标。",
-  "outOfScope": [
-    {
-      "id": "accounts-and-tenants",
-      "detail": "账户注册、业务登录、用户组织和多租户管理不属于当前单用户 Agent 内核目标。"
-    },
-    {
-      "id": "enterprise-identity-and-cloud-keys",
-      "detail": "企业 SSO、OIDC 登录、HSM/KMS 与共享多主机密钥环不作为当前底座待办；未来有具体外部集成需求再扩展。"
-    },
-    {
-      "id": "distributed-execution",
-      "detail": "分布式 Gateway、跨主机执行租约、实时同步合并、进程迁移和完整项目/Git 备份不在当前目标；已有有界会话/资产离线迁移保留。"
-    }
-  ],
-  "notImplemented": [
-    {
-      "id": "mcp-optional-profiles",
-      "status": "not-implemented",
-      "detail": "未声明 sampling.context 隐式跨会话上下文与音频采样。sampling.tools、旧版任务关联回调、客户端异步任务接收，以及现代 io.modelcontextprotocol/tasks 已有源码和本地验收；其他未声明 MCP 扩展仍不代表已实现。"
-    },
-    {
-      "id": "native-nonwindows-isolation",
-      "status": "not-implemented",
-      "detail": "Linux/macOS 原生 OS 文件/网络隔离后端未实现；可选 Docker 源码已有，实际容器环境验收另列。Windows AppContainer 当前有界支持与实测见 CORE-FOUNDATION.md。"
-    },
-    {
-      "id": "isolated-windows-pty",
-      "status": "not-implemented",
-      "detail": "Windows AppContainer 与 PTY 的组合尚未实现可用 I/O；调用明确拒绝，未使用 native 偷换隔离。旧版 Node/libuv 子 stdio/IPC 管道不兼容，预加载仅快速报告限制，不代表已解决全部构建工具兼容。"
-    },
-    {
-      "id": "optional-external-oauth-profiles",
-      "status": "not-implemented-optional-integration",
-      "detail": "外部 MCP 所需已声明 OAuth profile 保留；RFC 7009 token 撤销、RFC 7662 introspection、外部 jwks_uri 和主 vault key 轮换未实现，不作为当前最小内核完成条件。业务身份登录和企业 SSO 移至当前目标之外。"
-    }
-  ]
+  "regressionCriteriaCount": 57,
+  "definition": "本轮纳入统一验收的回归条件，包含此前已有但未登记的执行循环和子 Agent 测试；数量不是本轮新编写测试数。每项通过或跳过均由实际 TAP 日志生成。",
+  "goal": "收尾现有内核、固定团队协作和服务器插件，统一 0.12.0 版本、验收与 SDK 交付；不新增用户暂缓功能，不进行额外真实外部环境验证。",
+  "scopeSource": "docs/CORE-ACCEPTANCE.json"
 }

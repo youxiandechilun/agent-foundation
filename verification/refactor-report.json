@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "version": "0.12.1",
+  "scope": "源码目录整理、模块拆分、重复及无用实现精简；不新增产品能力。",
+  "sourceStatistics": {
+    "method": "递归读取 src 下全部普通文件，UTF-8 文本按 split(/\\r?\\n/) 统计物理行数，含空白行及末尾换行产生的最后一项；bytes 为原始字节数。",
+    "baseline": ".agent-data-tests/refactor-baseline.json",
+    "baselineSnapshot": ".agent-data-tests/refactor-before/src",
+    "baselineSnapshotMatchesManifest": true,
+    "before": {
+      "fileCount": 114,
+      "rootFileCount": 30,
+      "physicalLineCount": 33204,
+      "bytes": 1118498
+    },
+    "after": {
+      "fileCount": 131,
+      "rootFileCount": 5,
+      "physicalLineCount": 33342,
+      "bytes": 1123762
+    },
+    "delta": {
+      "fileCount": 17,
+      "rootFileCount": -25,
+      "physicalLineCount": 138,
+      "bytes": 5264
+    },
+    "interpretation": "重复及无用实现已精简；模块导入和类型声明增加，因此源码总物理行数增加约 0.42%，不宣称总量下降或运行性能提升。"
+  },
+  "refactoring": {
+    "pathMappings": 52,
+    "movedPathsRetained": 51,
+    "unusedReExportRemoved": "src/models.ts",
+    "entryFileLines": [
+      {
+        "beforePath": "src/kernel.ts",
+        "afterPath": "src/core/kernel.ts",
+        "before": 1814,
+        "after": 1491
+      },
+      {
+        "beforePath": "src/server.ts",
+        "afterPath": "src/api/server.ts",
+        "before": 542,
+        "after": 219
+      },
+      {
+        "beforePath": "src/management-api.ts",
+        "afterPath": "src/api/management.ts",
+        "before": 823,
+        "after": 45
+      },
+      {
+        "beforePath": "src/tools.ts",
+        "afterPath": "src/tools/index.ts",
+        "before": 886,
+        "after": 39
+      }
+    ],
+    "entryLineCaveat": "与整体统计相同，按 split(/\\r?\\n/) 计算并包含末尾空项。入口行数下降主要来自按职责提取，不代表这些模块的总实现行数按相同比例下降。",
+    "deduplication": [
+      "内置和宿主工具复用结果包装、图片回传及 artifact 事件处理。",
+      "复制脚本和 SDK 包检查共用 scripts/runtime-files.mjs 的运行资源清单。",
+      "HTTP 路由复用请求、响应、游标、能力及配置 schema。",
+      "内核移除从未读取的 transcript 副本并合并重复的资源关闭分支。",
+      "移除无引用模型转导出、11 项无用导入和两个内部未用参数。"
+    ]
+  },
+  "publicExports": {
+    "method": "分别创建基线与当前源码的 TypeScript Program，以现有 tsconfig.json 编译选项和 noEmit，通过 TypeChecker.getExportsOfModule 提取并排序三个入口的全部导出符号名称，包含类型导出和 export type *。",
+    "namesOnly": true,
+    "allNamesEqual": true,
+    "entries": [
+      {
+        "entry": ".",
+        "beforeCount": 136,
+        "afterCount": 136,
+        "added": [],
+        "removed": [],
+        "unresolvedAliasesBefore": [],
+        "unresolvedAliasesAfter": [],
+        "sortedNamesJsonSha256": "ae313af5a17ecd277b9e8eeae920b8cfd8bfa20c703b3eb8399f8dfd371703c9"
+      },
+      {
+        "entry": "./client",
+        "beforeCount": 3,
+        "afterCount": 3,
+        "added": [],
+        "removed": [],
+        "unresolvedAliasesBefore": [],
+        "unresolvedAliasesAfter": [],
+        "sortedNamesJsonSha256": "2078fd7edb1fedb0280b87f767178a27761fb058558dba67dbfd1535fafce1b7"
+      },
+      {
+        "entry": "./host",
+        "beforeCount": 5,
+        "afterCount": 5,
+        "added": [],
+        "removed": [],
+        "unresolvedAliasesBefore": [],
+        "unresolvedAliasesAfter": [],
+        "sortedNamesJsonSha256": "726c49328a4e650af81f737bfeac49a48f799442731e7811e617d1010027d6ab"
+      }
+    ],
+    "limitation": "此项仅比较含类型的导出名称，不单独证明所有泛型约束和方法签名完全等价；编译与消费者验证另外记录。"
+  },
+  "movedCommonJsResources": {
+    "method": "读取为 Buffer，通过 Buffer.equals 逐字节比较并计算 SHA256。",
+    "allByteIdentical": true,
+    "files": [
+      {
+        "before": "src/host/office-format-worker.cjs",
+        "after": "src/host/office/format-worker.cjs",
+        "bytes": 26206,
+        "sha256": "339f3df929f5e46b2990255341012dee83af7b9f7bf688c8a1427615f74c5a19",
+        "byteIdentical": true
+      },
+      {
+        "before": "src/host/office-archive.cjs",
+        "after": "src/host/office/office-archive.cjs",
+        "bytes": 4471,
+        "sha256": "5b314f177199e976b83f9de7ee994edf3d6df16ebc5f8d9b3249e8b54ffd1554",
+        "byteIdentical": true
+      }
+    ]
+  },
+  "independentReview": {
+    "status": "no-actionable-regression-found",
+    "method": "独立代理只读比较基线 AST、路由分支、权限与生命周期、动态资源路径。",
+    "toolMetadata": {
+      "coreToolsCompared": 23,
+      "hostToolsCompared": 15,
+      "equal": true
+    },
+    "hostResultAndArtifactCasesCompared": 28,
+    "reviewIsNotRuntimeAcceptance": true
+  },
+  "hostValidation": {
+    "completeAcceptancePassed": false,
+    "typecheck": "passed",
+    "hostOffice": {
+      "passed": 1,
+      "failed": 0
+    },
+    "hostNodes": {
+      "passed": 2,
+      "failed": 0
+    },
+    "officeApp": {
+      "passed": 7,
+      "failed": 1,
+      "failure": "PDF 创建所需的 Chromium 可执行文件缺失。"
+    },
+    "applicationsFlow": "browser_open 因 Chromium 缺失失败；同轮办公文件创建和 Windows 状态读取成功。",
+    "evidenceSource": "本轮执行代理的工具输出及独立复核，不引用旧版 application-report.json 作为当前版本通过证据。",
+    "externalProviders": false,
+    "remoteBusinessServers": false,
+    "dockerRuntime": false
+  },
+  "checkedAt": "2026-10-17T17:00:30.554Z",
+  "status": "completed-with-host-environment-limitation",
+  "validation": {
+    "core": {
+      "report": "verification/report.json",
+      "allChecksPassed": true,
+      "tests": {
+        "passed": 357,
+        "failed": 0
+      },
+      "criteriaPassed": 332,
+      "criteriaNotTested": 0,
+      "productionDependencyVulnerabilities": 0
+    },
+    "sdk": {
+      "packageReport": "verification/sdk-package.json",
+      "consumerReport": "verification/sdk-consumer.json",
+      "tarball": "releases/0.12.1/local-agent-foundation-0.12.1.tgz",
+      "sha256": "505258e37fd8cee8399e67f4390c4fb40209755ff7ff85bfeeed0f1e2239ff40",
+      "bytes": 443543,
+      "files": 285,
+      "engines": {
+        "node": "^22.19.0 || >=24.0.0"
+      },
+      "supportedRuntimesTested": [
+        "v22.22.0",
+        "v24.15.0"
+      ],
+      "unsupportedRuntimesChecked": [
+        "v20.13.1",
+        "v23.1.0"
+      ],
+      "minimumExactRuntimeTested": false,
+      "strictConsumerTypesPassed": true,
+      "packageDigestMatchesAllRecords": true,
+      "published": false
+    },
+    "lockfileDigestMatchesCoreReport": true,
+    "sourceManifestMatchesCurrentFiles": true,
+    "evidenceDigests": [
+      {
+        "file": "verification/report.json",
+        "sha256": "0ec7439a550712e1c9f7b41cffdb9f4a2c74df9577bd0e6f92ba7d569f63fba8"
+      },
+      {
+        "file": "verification/core-acceptance.json",
+        "sha256": "95598d00b5fa02c2180ed96178b87d6ec74ba7f75841635f7bede8d75b190f94"
+      },
+      {
+        "file": "verification/sdk-package.json",
+        "sha256": "a987108676cca8a394e2f16b5478c8377e9d70ed7485d8206dd9593bb5de223c"
+      },
+      {
+        "file": "verification/sdk-consumer.json",
+        "sha256": "ddf6a14cc92eae67fcc41cc1feb6aa36ed1c447f597fde25a7aa589b38f24cc1"
+      },
+      {
+        "file": "verification/source-manifest.json",
+        "sha256": "e4dc2e5786b97537a9e6fd5f7af811297892108dd17f74d057dd8cb74c68de0d"
+      }
+    ]
+  }
+}

@@ -1,4 +1,6 @@
-# 扩展与源码接口 · 0.11.0
+# 扩展与宿主接口 · 0.12.0
+
+当前版本和支持范围见 [RELEASE.md](RELEASE.md)。本文定义 Skill、Plugin、MCP、工具/媒体和宿主集成契约；固定团队及服务器集成分别见 [COLLABORATION.md](COLLABORATION.md)、[SERVERS.md](SERVERS.md)。
 
 内核提供三种用户扩展：Skill（指令和资源）、Plugin（经信任的原生源码）、MCP（外部标准服务）。宿主开发者还可直接注册工具、解析器、计数器和生命周期集成。扩展不会自行绕过统一权限。
 
@@ -92,7 +94,7 @@ envRefs 的键是子进程变量名，值是宿主变量名；默认仅保留必
 
 ## 自维护 MCP 客户端
 
-src/extensions/mcp-client.ts 自行实现 JSON-RPC 与传输，不依赖官方 MCP SDK，也不通过其他 Agent CLI 转发。按 MCP 生命周期与 Streamable HTTP 规范维护：
+src/extensions/mcp/client.ts 自行实现 JSON-RPC 与传输，不依赖官方 MCP SDK，也不通过其他 Agent CLI 转发。按 MCP 生命周期与 Streamable HTTP 规范维护：
 
 - stdio：argv 启动、环境引用、UTF-8 换行帧、消息/缓冲上限、请求关联、取消、进程树清理。
 - 旧版 HTTP：JSON 或 SSE 响应、会话/协议请求头、GET 通知流、事件 ID 恢复、禁止重定向。

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { Kernel } from "../src/kernel.js";
+import { Kernel } from "../src/core/kernel.js";
 import { setup, collect, until } from "./support/wire-server.js";
 
 test("custom mode persists across restart, restricts advertised tools, and cannot elevate a denied capability", async () => {

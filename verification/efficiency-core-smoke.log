@@ -1,0 +1,19 @@
+(node:35944) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "version": "0.12.1",
+  "runtime": "foundation-owned",
+  "model": "test-only HTTP protocol server",
+  "runStatus": "completed",
+  "assistantMessages": 2,
+  "tools": 1,
+  "generated": [
+    {
+      "name": "reference.json",
+      "bytes": 13,
+      "sha256": "c9418ba8d6839ddc6abc7faa950e8d46967a9ebcef88a8f1c24dc4597f065a0f"
+    }
+  ],
+  "compiledPluginWorker": true,
+  "actualCode": "export const result = 47;\n"
+}

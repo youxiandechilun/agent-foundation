@@ -4,7 +4,7 @@
 
 ## 带工具调用的 sampling
 
-`src/extensions/mcp-sampling.ts` 负责 MCP 消息与内核消息的转换、工具声明校验、历史调用组校验、工具名映射和模型输出校验。`src/kernel.ts` 将它接到现有文本路由、权限、上下文预算与成本账本。三种文本协议都支持 `auto`、`required`、`none` 的工具选择。Anthropic 映射为 `auto`、`any`、`none`；配置了手动 extended thinking 时不能强制工具调用。具体厂商模型是否支持强制工具选择，仍须按其真实接口联调。
+`src/extensions/mcp/sampling.ts` 负责 MCP 消息与内核消息的转换、工具声明校验、历史调用组校验、工具名映射和模型输出校验。`src/core/kernel.ts` 将它接到现有文本路由、权限、上下文预算与成本账本。三种文本协议都支持 `auto`、`required`、`none` 的工具选择。Anthropic 映射为 `auto`、`any`、`none`；配置了手动 extended thinking 时不能强制工具调用。具体厂商模型是否支持强制工具选择，仍须按其真实接口联调。
 
 每个 MCP 服务器必须由宿主显式启用工具采样：
 
@@ -38,7 +38,7 @@
 
 ## 异步任务的反向输入
 
-`src/extensions/mcp-task-context.ts` 保存连接内的任务来源；`mcp-client.ts` 在收到创建结果的同一个同步处理阶段绑定来源。因此，即使创建响应与反向请求位于同一段 stdio 输出中，也不会丢失权限上下文。上下文使用原 Agent 运行的 AbortSignal，独立于已经结束的创建 RPC。
+`src/extensions/mcp/tasks/context.ts` 保存连接内的任务来源；`mcp-client.ts` 在收到创建结果的同一个同步处理阶段绑定来源。因此，即使创建响应与反向请求位于同一段 stdio 输出中，也不会丢失权限上下文。上下文使用原 Agent 运行的 AbortSignal，独立于已经结束的创建 RPC。
 
 旧版 `2025-11-25` 任务的反向请求必须带：
 
@@ -60,7 +60,7 @@
 
 ## OAuth 动态客户端注册
 
-`src/extensions/mcp-registration.ts` 实现 RFC 7591；`mcp-oauth.ts` 复用它完成发现、PKCE、换码和刷新。已有预注册 `clientId` 配置继续有效。动态注册是显式选项，和固定 clientId / clientSecretEnv 互斥。
+`src/extensions/mcp/auth/registration.ts` 实现 RFC 7591；`mcp-oauth.ts` 复用它完成发现、PKCE、换码和刷新。已有预注册 `clientId` 配置继续有效。动态注册是显式选项，和固定 clientId / clientSecretEnv 互斥。
 
 ```json
 {

@@ -1,5 +1,5 @@
-import { spawnSync } from "node:child_process";
-import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
+import { auditFlags, runCheck, writeReport } from "./verification.mjs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -15,53 +15,25 @@ const checks = [
   ["core-integration", [path.join(root, "scripts/run-core-tests.mjs")]],
   [
     "production-dependency-audit",
-    [npm, "audit", "--omit=dev", "--omit=optional", "--json"],
+    [npm, "audit", "--omit=dev", "--omit=optional", ...auditFlags],
   ],
   ["compiled-smoke", [path.join(root, "test/smoke.compiled.mjs")]],
   ["acceptance-evidence", [path.join(root, "scripts/verify-acceptance.mjs")]],
 ];
+/** @type {import("./verification.mjs").CheckResult[]} */
 const results = [];
-for (const [name, args] of checks) {
-  console.log("Checking " + name + "...");
-  const start = Date.now(),
-    r = spawnSync(process.execPath, args, {
-      cwd: root,
-      encoding: "utf8",
-      maxBuffer: 20 * 1024 * 1024,
-    });
-  const log = (r.stdout || "") + (r.stderr || "");
-  await writeFile(path.join(output, name + ".log"), log);
-  const passed = Number(log.match(/# pass (\d+)/)?.[1] || 0),
-    failed = Number(log.match(/# fail (\d+)/)?.[1] || 0);
-  results.push({
-    name,
-    status: r.status === 0 ? "passed" : "failed",
-    exitCode: r.status,
-    durationMs: Date.now() - start,
-    ...(passed || failed ? { tests: { passed, failed } } : {}),
-  });
-  if (r.status !== 0) console.error(log);
-}
-const audit = JSON.parse(
-  await readFile(path.join(output, "production-dependency-audit.log"), "utf8"),
-);
 const report = {
-  version: JSON.parse(await readFile(path.join(root, "package.json"), "utf8"))
-    .version,
+  version: null,
   checkedAt: new Date().toISOString(),
   node: process.version,
   platform: process.platform,
   runtime: "foundation-owned",
+  status: "running",
   checks: results,
-  tests: {
-    passed: results.reduce((n, r) => n + (r.tests?.passed || 0), 0),
-    failed: results.reduce((n, r) => n + (r.tests?.failed || 0), 0),
-  },
-  dependencyAudit: audit.metadata?.vulnerabilities,
+  tests: { passed: 0, failed: 0 },
+  dependencyAudit: null,
+  dependencyAuditStatus: "unavailable",
   sourceManifest: "source-manifest.json",
-  lockfileSha256: createHash("sha256")
-    .update(await readFile(path.join(root, "package-lock.json")))
-    .digest("hex"),
   validationBoundary: {
     paidModelQualityTest: false,
     textProtocols:
@@ -89,9 +61,42 @@ const report = {
       "Configured USD prices, real protocol usage, reservations and operator reconciliation; live vendor invoices not reconciled",
   },
 };
-await writeFile(
-  path.join(output, "report.json"),
-  JSON.stringify(report, null, 2),
-);
-console.log(JSON.stringify({ checks: results, tests: report.tests }, null, 2));
-if (results.some((r) => r.status !== "passed")) process.exitCode = 1;
+const reportFile = path.join(output, "report.json");
+await writeReport(reportFile, report);
+try {
+  report.version = JSON.parse(
+    await readFile(path.join(root, "package.json"), "utf8"),
+  ).version;
+  for (const [name, args] of checks) {
+    const check = await runCheck(root, output, name, args, {
+      audit: name === "production-dependency-audit",
+    });
+    results.push(check);
+    report.tests.passed += check.tests?.passed || 0;
+    report.tests.failed += check.tests?.failed || 0;
+    if (check.audit) {
+      report.dependencyAudit = check.audit.vulnerabilities;
+      report.dependencyAuditStatus = check.audit.status;
+    }
+    await writeReport(reportFile, report);
+  }
+  Object.assign(report, {
+    lockfileSha256: createHash("sha256")
+      .update(await readFile(path.join(root, "package-lock.json")))
+      .digest("hex"),
+  });
+  report.status = results.every((check) => check.status === "passed")
+    ? "passed"
+    : "failed";
+} catch (error) {
+  report.status = "failed";
+  Object.assign(report, {
+    error: error instanceof Error ? error.message : String(error),
+  });
+  console.error(error);
+} finally {
+  report.checkedAt = new Date().toISOString();
+  await writeReport(reportFile, report);
+  console.log(JSON.stringify(report, null, 2));
+  if (report.status !== "passed") process.exitCode = 1;
+}

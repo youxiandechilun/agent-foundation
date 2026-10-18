@@ -1,9 +1,13 @@
-import type { Route } from "../config.js";
+import type { Route } from "../core/config.js";
 import type { Message, ToolDefinition } from "./types.js";
-import { invariant } from "../util.js";
+import { invariant } from "../core/util.js";
 export const estimateTextTokens = (text: string) =>
   Math.ceil(Buffer.byteLength(text, "utf8") / 2);
 export function estimateTokens(messages: Message[]): number {
+  return Math.ceil(estimateTokenBytes(messages) / 2);
+}
+/** Unrounded weight lets context selection combine groups without rounding drift. */
+export function estimateTokenBytes(messages: Message[]): number {
   let images = 0;
   const serialized = JSON.stringify(messages, (_key, value) => {
     if (value?.type === "image") {
@@ -12,7 +16,7 @@ export function estimateTokens(messages: Message[]): number {
     }
     return value;
   });
-  return estimateTextTokens(serialized) + images * 4096;
+  return Buffer.byteLength(serialized, "utf8") + images * 8192;
 }
 export interface TokenCounter {
   id: string;

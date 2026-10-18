@@ -1,0 +1,1506 @@
+[
+  {
+    "id": "@local/agent-foundation@0.12.1",
+    "name": "@local/agent-foundation",
+    "version": "0.12.1",
+    "size": 455063,
+    "unpackedSize": 1881877,
+    "shasum": "939d4764c0f938fc8ece9079972d88a705c5404e",
+    "integrity": "sha512-fuzFYN8GxclY4WMszGLZC/rC+Va5ExkEmFqFqvy7KyyN38BaxejF9nmNC5gPx/g3c86Xz0O12MDOWr/KBqeCzA==",
+    "filename": "local-agent-foundation-0.12.1.tgz",
+    "files": [
+      {
+        "path": "README.md",
+        "size": 24261,
+        "mode": 420
+      },
+      {
+        "path": "config.example.json",
+        "size": 4668,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/collaboration.d.ts",
+        "size": 1534,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/collaboration.js",
+        "size": 2749,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/events.d.ts",
+        "size": 306,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/events.js",
+        "size": 3820,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/management.d.ts",
+        "size": 294,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/management.js",
+        "size": 1523,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/configuration.d.ts",
+        "size": 157,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/configuration.js",
+        "size": 9571,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/extensions.d.ts",
+        "size": 153,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/extensions.js",
+        "size": 3357,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/mcp.d.ts",
+        "size": 147,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/mcp.js",
+        "size": 5858,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/memory.d.ts",
+        "size": 150,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/memory.js",
+        "size": 4339,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/resources.d.ts",
+        "size": 129,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/resources.js",
+        "size": 4520,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/session-management.d.ts",
+        "size": 161,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/session-management.js",
+        "size": 4354,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/sessions.d.ts",
+        "size": 128,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/routes/sessions.js",
+        "size": 4800,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/server.d.ts",
+        "size": 349,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/server.js",
+        "size": 6798,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/shared.d.ts",
+        "size": 785,
+        "mode": 420
+      },
+      {
+        "path": "dist/api/shared.js",
+        "size": 1164,
+        "mode": 420
+      },
+      {
+        "path": "dist/cli.d.ts",
+        "size": 31,
+        "mode": 420
+      },
+      {
+        "path": "dist/cli.js",
+        "size": 4709,
+        "mode": 420
+      },
+      {
+        "path": "dist/client.d.ts",
+        "size": 5344,
+        "mode": 420
+      },
+      {
+        "path": "dist/client.js",
+        "size": 13020,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/index.d.ts",
+        "size": 179,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/index.js",
+        "size": 77,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/catalog.d.ts",
+        "size": 813,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/catalog.js",
+        "size": 4373,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/context.d.ts",
+        "size": 543,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/context.js",
+        "size": 983,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/dispatch.d.ts",
+        "size": 1873,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/dispatch.js",
+        "size": 8539,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/role-review.d.ts",
+        "size": 1718,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/role-review.js",
+        "size": 8574,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/tasks.d.ts",
+        "size": 4833,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/tasks.js",
+        "size": 6520,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/tool-definitions.d.ts",
+        "size": 477,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/internal/tool-definitions.js",
+        "size": 5075,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/manager.d.ts",
+        "size": 6391,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/manager.js",
+        "size": 2105,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/prompts.d.ts",
+        "size": 911,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/prompts.js",
+        "size": 7450,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/scopes.d.ts",
+        "size": 300,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/scopes.js",
+        "size": 1274,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/types.d.ts",
+        "size": 4109,
+        "mode": 420
+      },
+      {
+        "path": "dist/collaboration/types.js",
+        "size": 3038,
+        "mode": 420
+      },
+      {
+        "path": "dist/contracts.d.ts",
+        "size": 6173,
+        "mode": 420
+      },
+      {
+        "path": "dist/contracts.js",
+        "size": 150,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/agents.d.ts",
+        "size": 1453,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/agents.js",
+        "size": 1414,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/config.d.ts",
+        "size": 30124,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/config.js",
+        "size": 19758,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/context.d.ts",
+        "size": 919,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/context.js",
+        "size": 11121,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel.d.ts",
+        "size": 9088,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel.js",
+        "size": 43527,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/authorization.d.ts",
+        "size": 1188,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/authorization.js",
+        "size": 4295,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/history.d.ts",
+        "size": 223,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/history.js",
+        "size": 1682,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/input.d.ts",
+        "size": 1283,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/input.js",
+        "size": 3331,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/lifecycle.d.ts",
+        "size": 1258,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/lifecycle.js",
+        "size": 3153,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/mcp-host.d.ts",
+        "size": 926,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/kernel/mcp-host.js",
+        "size": 4663,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/permissions.d.ts",
+        "size": 1139,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/permissions.js",
+        "size": 13382,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/util.d.ts",
+        "size": 1612,
+        "mode": 420
+      },
+      {
+        "path": "dist/core/util.js",
+        "size": 6409,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/extension-host.d.ts",
+        "size": 917,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/extension-host.js",
+        "size": 6968,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/lifecycle.d.ts",
+        "size": 235,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/lifecycle.js",
+        "size": 1226,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/native/AppContainerHost.cs",
+        "size": 20351,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/native/ConPtyHost.cs",
+        "size": 10144,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/native/node-appcontainer-guard.cjs",
+        "size": 1878,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/native/pty_host.py",
+        "size": 2330,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/process-broker.mjs",
+        "size": 15502,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/process.d.ts",
+        "size": 2416,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/process.js",
+        "size": 13347,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/sessions.d.ts",
+        "size": 1937,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/sessions.js",
+        "size": 18653,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/tools.d.ts",
+        "size": 219,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/tools.js",
+        "size": 3184,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/windows-sandbox.d.ts",
+        "size": 947,
+        "mode": 420
+      },
+      {
+        "path": "dist/execution/windows-sandbox.js",
+        "size": 11392,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/client-metadata.d.ts",
+        "size": 2055,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/client-metadata.js",
+        "size": 9056,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/device.d.ts",
+        "size": 3506,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/device.js",
+        "size": 7435,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/keyring.d.ts",
+        "size": 1715,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/keyring.js",
+        "size": 9072,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/oauth.d.ts",
+        "size": 10964,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/oauth.js",
+        "size": 38836,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/registration.d.ts",
+        "size": 3059,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/registration.js",
+        "size": 21803,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/vault.d.ts",
+        "size": 542,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/auth/vault.js",
+        "size": 1641,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/client.d.ts",
+        "size": 6407,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/client.js",
+        "size": 60021,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/headers.d.ts",
+        "size": 371,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/headers.js",
+        "size": 3314,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/interactions.d.ts",
+        "size": 1029,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/interactions.js",
+        "size": 6233,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/manager.d.ts",
+        "size": 29637,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/manager.js",
+        "size": 46443,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/sampling.d.ts",
+        "size": 3615,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/sampling.js",
+        "size": 9577,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/tasks/context.d.ts",
+        "size": 872,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/tasks/context.js",
+        "size": 3374,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/tasks/modern.d.ts",
+        "size": 2968,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/tasks/modern.js",
+        "size": 5800,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/tasks/receiver.d.ts",
+        "size": 2357,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/mcp/tasks/receiver.js",
+        "size": 10698,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/plugins/container-worker.mjs",
+        "size": 2318,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/plugins/manager.d.ts",
+        "size": 5485,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/plugins/manager.js",
+        "size": 23063,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/plugins/source-bundle.d.ts",
+        "size": 453,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/plugins/source-bundle.js",
+        "size": 4161,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/plugins/worker.mjs",
+        "size": 2083,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/skills.d.ts",
+        "size": 1979,
+        "mode": 420
+      },
+      {
+        "path": "dist/extensions/skills.js",
+        "size": 7018,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/access.d.ts",
+        "size": 320,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/access.js",
+        "size": 1221,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/applications.d.ts",
+        "size": 937,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/applications.js",
+        "size": 9735,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/browser/bridge.d.ts",
+        "size": 1727,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/browser/bridge.js",
+        "size": 3713,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/browser/manager.d.ts",
+        "size": 3206,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/browser/manager.js",
+        "size": 23274,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/browser/network.d.ts",
+        "size": 1137,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/browser/network.js",
+        "size": 13169,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/computer/manager.d.ts",
+        "size": 3089,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/computer/manager.js",
+        "size": 13177,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/computer/native/windows-computer.cs",
+        "size": 12114,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/computer/native/windows-computer.ps1",
+        "size": 2614,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/desktop-api.d.ts",
+        "size": 889,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/desktop-api.js",
+        "size": 4317,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/desktop-tools.d.ts",
+        "size": 386,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/desktop-tools.js",
+        "size": 8711,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/desktop.d.ts",
+        "size": 732,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/desktop.js",
+        "size": 5492,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/index.d.ts",
+        "size": 279,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/index.js",
+        "size": 251,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/nodes.d.ts",
+        "size": 2473,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/nodes.js",
+        "size": 11198,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/api.d.ts",
+        "size": 416,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/api.js",
+        "size": 3527,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/extractor.d.ts",
+        "size": 251,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/extractor.js",
+        "size": 456,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/format-worker.cjs",
+        "size": 26206,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/jobs.d.ts",
+        "size": 315,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/jobs.js",
+        "size": 2922,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/manager.d.ts",
+        "size": 5744,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/manager.js",
+        "size": 20563,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/office/office-archive.cjs",
+        "size": 4471,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/request-signal.d.ts",
+        "size": 270,
+        "mode": 420
+      },
+      {
+        "path": "dist/host/request-signal.js",
+        "size": 650,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 4306,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 2349,
+        "mode": 420
+      },
+      {
+        "path": "dist/media/adapters.d.ts",
+        "size": 2195,
+        "mode": 420
+      },
+      {
+        "path": "dist/media/adapters.js",
+        "size": 6407,
+        "mode": 420
+      },
+      {
+        "path": "dist/media/manager.d.ts",
+        "size": 1441,
+        "mode": 420
+      },
+      {
+        "path": "dist/media/manager.js",
+        "size": 18294,
+        "mode": 420
+      },
+      {
+        "path": "dist/modes/index.d.ts",
+        "size": 491,
+        "mode": 420
+      },
+      {
+        "path": "dist/modes/index.js",
+        "size": 2797,
+        "mode": 420
+      },
+      {
+        "path": "dist/modes/registry.d.ts",
+        "size": 1955,
+        "mode": 420
+      },
+      {
+        "path": "dist/modes/registry.js",
+        "size": 2184,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/reasoning.d.ts",
+        "size": 419,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/reasoning.js",
+        "size": 3621,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/serialize.d.ts",
+        "size": 586,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/serialize.js",
+        "size": 7384,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/sse.d.ts",
+        "size": 1211,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/sse.js",
+        "size": 2527,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/text.d.ts",
+        "size": 3050,
+        "mode": 420
+      },
+      {
+        "path": "dist/providers/text.js",
+        "size": 29666,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/cost.d.ts",
+        "size": 3207,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/cost.js",
+        "size": 10403,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/engine.d.ts",
+        "size": 2934,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/engine.js",
+        "size": 19130,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/extractors.d.ts",
+        "size": 576,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/extractors.js",
+        "size": 588,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/hooks.d.ts",
+        "size": 3906,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/hooks.js",
+        "size": 12190,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/json-schema.d.ts",
+        "size": 574,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/json-schema.js",
+        "size": 3406,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/project-walk.d.ts",
+        "size": 1471,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/project-walk.js",
+        "size": 5711,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/registry.d.ts",
+        "size": 1710,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/registry.js",
+        "size": 2492,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/scheduler.d.ts",
+        "size": 522,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/scheduler.js",
+        "size": 3823,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/structured-output.d.ts",
+        "size": 1147,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/structured-output.js",
+        "size": 2194,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/token-counter.d.ts",
+        "size": 907,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/token-counter.js",
+        "size": 1264,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/tool-execution.d.ts",
+        "size": 835,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/tool-execution.js",
+        "size": 7273,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/tool-result.d.ts",
+        "size": 411,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/tool-result.js",
+        "size": 3179,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/types.d.ts",
+        "size": 4022,
+        "mode": 420
+      },
+      {
+        "path": "dist/runtime/types.js",
+        "size": 647,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/access.d.ts",
+        "size": 548,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/access.js",
+        "size": 1969,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/index.d.ts",
+        "size": 639,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/index.js",
+        "size": 3531,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/manager.d.ts",
+        "size": 1959,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/manager.js",
+        "size": 8388,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/ssh.d.ts",
+        "size": 1392,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/ssh.js",
+        "size": 9545,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/tools.d.ts",
+        "size": 274,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/tools.js",
+        "size": 3972,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/transfers.d.ts",
+        "size": 810,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/transfers.js",
+        "size": 4682,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/types.d.ts",
+        "size": 4132,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/types.js",
+        "size": 3305,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/vault.d.ts",
+        "size": 516,
+        "mode": 420
+      },
+      {
+        "path": "dist/servers/vault.js",
+        "size": 4712,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/checkpoints.d.ts",
+        "size": 2089,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/checkpoints.js",
+        "size": 5008,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/codec.d.ts",
+        "size": 475,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/codec.js",
+        "size": 4793,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/migration.d.ts",
+        "size": 2258,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/migration.js",
+        "size": 12555,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/tools.d.ts",
+        "size": 306,
+        "mode": 420
+      },
+      {
+        "path": "dist/sessions/tools.js",
+        "size": 4649,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/assets.d.ts",
+        "size": 912,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/assets.js",
+        "size": 5458,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/encrypted-file.d.ts",
+        "size": 645,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/encrypted-file.js",
+        "size": 2557,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/entity-query.d.ts",
+        "size": 619,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/entity-query.js",
+        "size": 2030,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/memory.d.ts",
+        "size": 2742,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/memory.js",
+        "size": 17120,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/store.d.ts",
+        "size": 3071,
+        "mode": 420
+      },
+      {
+        "path": "dist/storage/store.js",
+        "size": 14188,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/assets.d.ts",
+        "size": 236,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/assets.js",
+        "size": 4066,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/builtin.d.ts",
+        "size": 949,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/builtin.js",
+        "size": 3303,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/delegation.d.ts",
+        "size": 148,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/delegation.js",
+        "size": 6747,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/index.d.ts",
+        "size": 257,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/index.js",
+        "size": 1315,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/project.d.ts",
+        "size": 168,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/project.js",
+        "size": 9874,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/state.d.ts",
+        "size": 300,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/state.js",
+        "size": 2937,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/web.d.ts",
+        "size": 138,
+        "mode": 420
+      },
+      {
+        "path": "dist/tools/web.js",
+        "size": 3054,
+        "mode": 420
+      },
+      {
+        "path": "dist/transport/http-listener.d.ts",
+        "size": 271,
+        "mode": 420
+      },
+      {
+        "path": "dist/transport/http-listener.js",
+        "size": 2741,
+        "mode": 420
+      },
+      {
+        "path": "dist/transport/sse.d.ts",
+        "size": 524,
+        "mode": 420
+      },
+      {
+        "path": "dist/transport/sse.js",
+        "size": 4489,
+        "mode": 420
+      },
+      {
+        "path": "dist/version.d.ts",
+        "size": 41,
+        "mode": 420
+      },
+      {
+        "path": "dist/version.js",
+        "size": 68,
+        "mode": 420
+      },
+      {
+        "path": "dist/web/client.d.ts",
+        "size": 3168,
+        "mode": 420
+      },
+      {
+        "path": "dist/web/client.js",
+        "size": 22346,
+        "mode": 420
+      },
+      {
+        "path": "docs/API.md",
+        "size": 32966,
+        "mode": 420
+      },
+      {
+        "path": "docs/APPLICATIONS-PLAN.json",
+        "size": 12083,
+        "mode": 420
+      },
+      {
+        "path": "docs/APPLICATIONS.md",
+        "size": 14817,
+        "mode": 420
+      },
+      {
+        "path": "docs/ARCHITECTURE.md",
+        "size": 5272,
+        "mode": 420
+      },
+      {
+        "path": "docs/AUDIT-REFERENCES.json",
+        "size": 14368,
+        "mode": 420
+      },
+      {
+        "path": "docs/COLLABORATION.md",
+        "size": 10589,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-ACCEPTANCE.json",
+        "size": 204443,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-AGENT-LOOP.md",
+        "size": 12882,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-AUDIT-PLAN.json",
+        "size": 2700,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-AUDIT.md",
+        "size": 16436,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-EXECUTION.md",
+        "size": 9370,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-FOUNDATION.md",
+        "size": 11788,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-INTEROPERABILITY.md",
+        "size": 14317,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-MCP-OAUTH.md",
+        "size": 11159,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-OAUTH-LIFECYCLE.md",
+        "size": 14337,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-TASKS-CIMD.md",
+        "size": 11620,
+        "mode": 420
+      },
+      {
+        "path": "docs/CORE-WEB.md",
+        "size": 5771,
+        "mode": 420
+      },
+      {
+        "path": "docs/EXTENSIONS.md",
+        "size": 13608,
+        "mode": 420
+      },
+      {
+        "path": "docs/MEDIA-ADAPTERS.md",
+        "size": 9550,
+        "mode": 420
+      },
+      {
+        "path": "docs/OAUTH-LIFECYCLE-REFERENCES.json",
+        "size": 2768,
+        "mode": 420
+      },
+      {
+        "path": "docs/OPTIMIZATION.md",
+        "size": 6252,
+        "mode": 420
+      },
+      {
+        "path": "docs/RELEASE.md",
+        "size": 7717,
+        "mode": 420
+      },
+      {
+        "path": "docs/SDK.md",
+        "size": 11832,
+        "mode": 420
+      },
+      {
+        "path": "docs/SERVERS.md",
+        "size": 9382,
+        "mode": 420
+      },
+      {
+        "path": "docs/SOURCE-BOUNDARY.md",
+        "size": 8810,
+        "mode": 420
+      },
+      {
+        "path": "examples/sdk/embedded.mjs",
+        "size": 1316,
+        "mode": 420
+      },
+      {
+        "path": "examples/sdk/http-client.mjs",
+        "size": 951,
+        "mode": 420
+      },
+      {
+        "path": "examples/sdk/team-service.mjs",
+        "size": 2638,
+        "mode": 420
+      },
+      {
+        "path": "extensions/browser-bridge/background.js",
+        "size": 14817,
+        "mode": 420
+      },
+      {
+        "path": "extensions/browser-bridge/connect.html",
+        "size": 577,
+        "mode": 420
+      },
+      {
+        "path": "extensions/browser-bridge/connect.js",
+        "size": 959,
+        "mode": 420
+      },
+      {
+        "path": "extensions/browser-bridge/manifest.json",
+        "size": 442,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 2783,
+        "mode": 420
+      }
+    ],
+    "entryCount": 298,
+    "bundled": []
+  }
+]

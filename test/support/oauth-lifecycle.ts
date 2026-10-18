@@ -1,6 +1,6 @@
 import http from "node:http";
 import { randomBytes } from "node:crypto";
-import { DEVICE_GRANT } from "../../src/extensions/mcp-device.js";
+import { DEVICE_GRANT } from "../../src/extensions/mcp/auth/device.js";
 
 /** Controlled authorization server; every protocol operation uses an actual HTTP socket. */
 export async function lifecyclePeer() {

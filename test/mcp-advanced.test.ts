@@ -5,11 +5,11 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import http from "node:http";
-import { MCPClient } from "../src/extensions/mcp-client.js";
+import { MCPClient } from "../src/extensions/mcp/client.js";
 import {
   decodeSamplingRequest,
   samplingResult,
-} from "../src/extensions/mcp-sampling.js";
+} from "../src/extensions/mcp/sampling.js";
 import { emptyUsage } from "../src/runtime/types.js";
 import { setup, until, collect } from "./support/wire-server.js";
 const fixture = fileURLToPath(

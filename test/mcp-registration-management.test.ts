@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { MCPOAuth } from "../src/extensions/mcp-oauth.js";
-import { DEVICE_GRANT } from "../src/extensions/mcp-device.js";
+import { MCPOAuth } from "../src/extensions/mcp/auth/oauth.js";
+import { DEVICE_GRANT } from "../src/extensions/mcp/auth/device.js";
 import { setup, until } from "./support/wire-server.js";
 import { lifecyclePeer } from "./support/oauth-lifecycle.js";
 for (const phase of ["registration", "management"])

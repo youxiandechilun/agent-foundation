@@ -1,4 +1,4 @@
-import type { Config, Route } from "../config.js";
+import type { Config, Route } from "../core/config.js";
 import {
   estimateTokens,
   estimateTextTokens,
@@ -7,11 +7,10 @@ import {
   id,
   invariant,
   errorText,
-  redactSecrets,
   redactJson,
   registerSecret,
   delay as wait,
-} from "../util.js";
+} from "../core/util.js";
 import {
   sse,
   readJson,
@@ -20,6 +19,8 @@ import {
   TRANSIENT_STATUSES,
 } from "./sse.js";
 import type { CostLedger, CostScope } from "../runtime/cost.js";
+import { isOutputTool } from "../runtime/structured-output.js";
+import { applyReasoning, wantsReasoning } from "./reasoning.js";
 import {
   completionsMessages,
   responsesInput,
@@ -33,8 +34,6 @@ import {
   type ModelRequest,
   type ModelDelta,
   type TextProvider,
-  type ToolCall,
-  type Usage,
 } from "../runtime/types.js";
 
 export function routeHeaders(route: Route): Record<string, string> {
@@ -116,7 +115,7 @@ export class HttpTextProvider implements TextProvider {
       part.text += value;
       await delta?.({ type: "text", text: value });
     };
-    const thought = async (value: string, index?: number) => {
+    const thought = async (value: string) => {
       if (!value) return;
       started = true;
       let part = output.content.find((p) => p.type === "thinking");
@@ -246,32 +245,14 @@ export class HttpTextProvider implements TextProvider {
       invariant(
         !(
           r.adapter === "anthropic-messages" &&
-          r.reasoning &&
+          wantsReasoning(r, request) &&
           request.toolChoice === "required"
         ),
         "Anthropic extended thinking cannot force tool use",
         400,
       );
     }
-    if (r.reasoning) {
-      if (r.adapter === "openai-responses")
-        body.reasoning ??= { effort: "medium", summary: "auto" };
-      else if (
-        r.adapter === "openai-completions" &&
-        r.compat.supportsReasoningEffort !== false
-      )
-        body.reasoning_effort ??= "medium";
-      else if (r.adapter === "anthropic-messages") {
-        invariant(
-          budget >= 1280,
-          "Anthropic reasoning requires at least 1280 output tokens",
-        );
-        body.thinking ??= {
-          type: "enabled",
-          budget_tokens: Math.min(2048, budget - 256),
-        };
-      }
-    }
+    applyReasoning(body, r, request, budget);
     const base = r.baseUrl.replace(/\/$/, "");
     if (r.adapter === "anthropic-messages" && base.endsWith("/v1"))
       suffix = "/messages";
@@ -603,12 +584,16 @@ export class RouteRouter implements TextProvider {
       503,
     );
     let last: unknown;
-    const chain = [request.routeId, ...primary.fallbackRouteIds];
+    const chain = [request.routeId, ...primary.fallbackRouteIds].filter(
+      (id) =>
+        this.config.routes[id]?.enabled &&
+        this.config.routes[id].kind === "text",
+    );
     for (const [index, routeId] of chain.entries()) {
       const route = this.config.routes[routeId];
-      if (!route?.enabled || route.kind !== "text") continue;
       const tools = request.tools.filter(
         (t) =>
+          isOutputTool(t) ||
           route.toolAllowlist.includes("*") ||
           route.toolAllowlist.includes(t.name),
       );
@@ -670,9 +655,7 @@ export class RouteRouter implements TextProvider {
           }
         };
         // Fallback routes absorb transient failures first; the last route in the chain retries in place.
-        const lastInChain = !chain
-          .slice(index + 1)
-          .some((id) => this.config.routes[id]?.enabled);
+        const lastInChain = index === chain.length - 1;
         const policy = { ...DEFAULT_RETRY, ...route.retry };
         for (let retry = 0; ; retry++) {
           try {

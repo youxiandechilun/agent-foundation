@@ -1,29 +1,36 @@
 {
-  "version": "0.11.0",
-  "checkedAt": "2026-10-16T20:27:29.989Z",
-  "node": "v22.23.2",
+  "version": "0.12.1",
+  "checkedAt": "2026-10-17T17:42:37.082Z",
+  "node": "v22.22.0",
   "platform": "win32",
   "runtime": "foundation-owned",
+  "status": "passed",
   "checks": [
     {
       "name": "build",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 2415
+      "durationMs": 6891,
+      "stdoutLog": "build.log",
+      "stderrLog": "build.stderr.log"
     },
     {
       "name": "source-independence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 76
+      "durationMs": 163,
+      "stdoutLog": "source-independence.log",
+      "stderrLog": "source-independence.stderr.log"
     },
     {
       "name": "core-integration",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 184940,
+      "durationMs": 295676,
+      "stdoutLog": "core-integration.log",
+      "stderrLog": "core-integration.stderr.log",
       "tests": {
-        "passed": 300,
+        "passed": 411,
         "failed": 0
       }
     },
@@ -31,23 +38,40 @@
       "name": "production-dependency-audit",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 1022
+      "durationMs": 1308,
+      "stdoutLog": "production-dependency-audit.log",
+      "stderrLog": "production-dependency-audit.stderr.log",
+      "audit": {
+        "status": "passed",
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        }
+      }
     },
     {
       "name": "compiled-smoke",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 815
+      "durationMs": 1658,
+      "stdoutLog": "compiled-smoke.log",
+      "stderrLog": "compiled-smoke.stderr.log"
     },
     {
       "name": "acceptance-evidence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 96
+      "durationMs": 250,
+      "stdoutLog": "acceptance-evidence.log",
+      "stderrLog": "acceptance-evidence.stderr.log"
     }
   ],
   "tests": {
-    "passed": 300,
+    "passed": 411,
     "failed": 0
   },
   "dependencyAudit": {
@@ -58,8 +82,8 @@
     "critical": 0,
     "total": 0
   },
+  "dependencyAuditStatus": "passed",
   "sourceManifest": "source-manifest.json",
-  "lockfileSha256": "e2b43ef65a32db23f4cd832bc9e5fc30a0329e7e91286f507edcb7082f865d91",
   "validationBoundary": {
     "paidModelQualityTest": false,
     "textProtocols": "three real HTTP/SSE parsers tested against protocol servers",
@@ -74,5 +98,6 @@
     "windowsIsolation": "Optional AppContainer backend tested with real commands, persistent pipes, source plugins, stdio MCP, verified child tokens, private-file and network denials, process limits, cancellation, owner crash, ACL revocation and restart recovery. Isolated PTY remains unavailable; legacy Node child stdio/IPC pipes are explicitly rejected. DLL and complex toolchain compatibility is not exhaustive.",
     "deployment": "Single-user embedded kernel; no application account login or multi-tenant target. OAuth is optional external MCP authorization and is not instantiated without an explicit server declaration.",
     "financials": "Configured USD prices, real protocol usage, reservations and operator reconciliation; live vendor invoices not reconciled"
-  }
+  },
+  "lockfileSha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
 }

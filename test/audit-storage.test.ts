@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { Kernel } from "../src/kernel.js";
-import { Store } from "../src/store.js";
-import { parseConfig } from "../src/config.js";
+import { Kernel } from "../src/core/kernel.js";
+import { Store } from "../src/storage/store.js";
+import { parseConfig } from "../src/core/config.js";
 
 test("another live kernel cannot recover active runs; a dead owner's lease is recovered atomically", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "foundation-owner-"));

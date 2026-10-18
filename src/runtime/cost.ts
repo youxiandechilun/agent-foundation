@@ -1,7 +1,7 @@
-import type { Config, Route } from "../config.js";
+import type { Config, Route } from "../core/config.js";
 import type { AssistantMessage, ModelRequest, Usage } from "./types.js";
-import { Store } from "../store.js";
-import { id, invariant, now } from "../util.js";
+import { Store } from "../storage/store.js";
+import { id, invariant, now } from "../core/util.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 export interface CostScope {
@@ -45,12 +45,13 @@ export class CostLedger {
     return this.scopes.run(scope, operation);
   }
   recover() {
-    for (const e of this.store.list<CostEntry>("cost-ledger"))
-      if (e.status === "reserved")
-        this.update(e.id, {
-          status: "unknown",
-          error: "Interrupted request; charge requires reconciliation",
-        });
+    for (const e of this.store.list<CostEntry>("cost-ledger", {
+      status: "reserved",
+    }))
+      this.update(e.id, {
+        status: "unknown",
+        error: "Interrupted request; charge requires reconciliation",
+      });
   }
   private update(key: string, patch: Partial<CostEntry>) {
     return this.store.put("cost-ledger", {
@@ -60,38 +61,31 @@ export class CostLedger {
     });
   }
   entries(filter: Partial<CostScope> = {}) {
-    return this.store
-      .list<CostEntry>("cost-ledger")
-      .filter((e) =>
-        Object.entries(filter).every(
-          ([k, v]) => v === undefined || e[k as keyof CostScope] === v,
-        ),
-      );
+    return this.store.list<CostEntry>("cost-ledger", filter);
   }
   summary(filter: Partial<CostScope> = {}) {
     const entries = this.entries(filter);
-    const committedMicros = entries.reduce(
-      (n, e) =>
-        n +
-        (e.status === "void"
-          ? 0
-          : e.status === "settled"
-            ? e.chargedMicros || 0
-            : e.reservedMicros),
-      0,
-    );
+    let chargedMicros = 0,
+      heldMicros = 0,
+      committedMicros = 0,
+      unpriced = 0;
+    for (const entry of entries) {
+      const charged = entry.chargedMicros || 0;
+      chargedMicros += charged;
+      if (entry.status === "reserved" || entry.status === "unknown")
+        heldMicros += entry.reservedMicros;
+      if (entry.status !== "void")
+        committedMicros +=
+          entry.status === "settled" ? charged : entry.reservedMicros;
+      if (entry.basis === "unpriced") unpriced++;
+    }
     return {
       currency: "USD",
       committedMicros,
       committedUsd: committedMicros / 1e6,
-      chargedMicros: entries.reduce((n, e) => n + (e.chargedMicros || 0), 0),
-      heldMicros: entries.reduce(
-        (n, e) =>
-          n +
-          (["reserved", "unknown"].includes(e.status) ? e.reservedMicros : 0),
-        0,
-      ),
-      unpriced: entries.filter((e) => e.basis === "unpriced").length,
+      chargedMicros,
+      heldMicros,
+      unpriced,
       entries,
     };
   }
@@ -141,52 +135,29 @@ export class CostLedger {
           402,
           "pricing_required",
         );
-        const b = this.config.budgets,
-          all = this.entries(),
-          day = now().slice(0, 10);
-        const limits: [
-          string,
-          number | undefined,
-          (e: CostEntry) => boolean,
-        ][] = [
-          [
-            "run",
-            b.maxRunUsd,
-            (e) => Boolean(scope.runId) && e.runId === scope.runId,
-          ],
-          [
-            "session",
-            b.maxSessionUsd,
-            (e) => Boolean(scope.sessionId) && e.sessionId === scope.sessionId,
-          ],
-          [
-            "project",
-            b.maxProjectUsd,
-            (e) => Boolean(scope.projectId) && e.projectId === scope.projectId,
-          ],
-          ["day", b.maxDayUsd, (e) => e.createdAt.slice(0, 10) === day],
-          ["total", b.maxTotalUsd, () => true],
+        const b = this.config.budgets;
+        const limits = [
+          {
+            name: "run",
+            limit: scope.runId ? b.maxRunUsd : undefined,
+            filter: { runId: scope.runId },
+          },
+          {
+            name: "session",
+            limit: scope.sessionId ? b.maxSessionUsd : undefined,
+            filter: { sessionId: scope.sessionId },
+          },
+          {
+            name: "project",
+            limit: scope.projectId ? b.maxProjectUsd : undefined,
+            filter: { projectId: scope.projectId },
+          },
+          { name: "day", limit: b.maxDayUsd, day: now().slice(0, 10) },
+          { name: "total", limit: b.maxTotalUsd },
         ];
-        for (const [name, limit, include] of limits) {
-          if (
-            limit === undefined ||
-            (name === "run" && !scope.runId) ||
-            (name === "session" && !scope.sessionId) ||
-            (name === "project" && !scope.projectId)
-          )
-            continue;
-          const used = all
-            .filter(include)
-            .reduce(
-              (n, e) =>
-                n +
-                (e.status === "void"
-                  ? 0
-                  : e.status === "settled"
-                    ? e.chargedMicros || 0
-                    : e.reservedMicros),
-              0,
-            );
+        for (const { name, limit, filter, day } of limits) {
+          if (limit === undefined) continue;
+          const used = this.store.committedCost(filter, day);
           invariant(
             used + amountMicros <= micros(limit),
             `${name} cost budget exhausted`,
@@ -247,7 +218,13 @@ export class CostLedger {
       const current = this.store.get<CostEntry>("cost-ledger", entry.id);
       if (current.status !== "settled")
         this.update(entry.id, {
-          status: (error as any).requestSent === false ? "void" : "unknown",
+          status:
+            error &&
+            typeof error === "object" &&
+            "requestSent" in error &&
+            error.requestSent === false
+              ? "void"
+              : "unknown",
           error: "No conclusive terminal usage received",
         });
       throw error;
@@ -276,20 +253,34 @@ export class CostLedger {
           u.cacheRead * (p.cacheReadPerMillion ?? p.inputPerMillion) +
           u.cacheWrite * (p.cacheWritePerMillion ?? p.inputPerMillion),
       ) + micros(p.requestUsd);
-    const settled = this.update(key, {
+    return this.settle(
+      entry,
+      { chargedMicros, usage: u },
+      "Provider charge exceeded the configured reservation; no further tools were dispatched",
+    );
+  }
+  private settle(
+    entry: CostEntry,
+    charge: Pick<CostEntry, "usage" | "reference"> & { chargedMicros: number },
+    exceededMessage: string,
+  ) {
+    const settled = this.update(entry.id, {
+      ...charge,
       status: "settled",
-      chargedMicros,
-      usage: u,
       basis: "provider-usage",
     });
     if (entry.runId)
       this.store.emit(entry.runId, "cost.settled", {
         entry: settled,
-        exceededReservation: chargedMicros > entry.reservedMicros,
+        ...(charge.reference === undefined
+          ? {}
+          : { reference: charge.reference }),
+        exceededReservation: charge.chargedMicros > entry.reservedMicros,
       });
     invariant(
-      !this.config.budgets.enabled || chargedMicros <= entry.reservedMicros,
-      "Provider charge exceeded the configured reservation; no further tools were dispatched",
+      !this.config.budgets.enabled ||
+        charge.chargedMicros <= entry.reservedMicros,
+      exceededMessage,
       402,
       "cost_reservation_exceeded",
     );
@@ -325,26 +316,11 @@ export class CostLedger {
         reference.length <= 2000,
       "Invalid media billing reference",
     );
-    const chargedMicros = micros(actualUsd);
-    const result = this.update(key, {
-      status: "settled",
-      chargedMicros,
-      basis: "provider-usage",
-      reference,
-    });
-    if (entry.runId)
-      this.store.emit(entry.runId, "cost.settled", {
-        entry: result,
-        reference,
-        exceededReservation: chargedMicros > entry.reservedMicros,
-      });
-    invariant(
-      !this.config.budgets.enabled || chargedMicros <= entry.reservedMicros,
+    return this.settle(
+      entry,
+      { chargedMicros: micros(actualUsd), reference },
       "Media charge exceeded the configured maximum",
-      402,
-      "cost_reservation_exceeded",
     );
-    return result;
   }
   reconcile(key: string, actualUsd: number, reference: string) {
     invariant(

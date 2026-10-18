@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { Store } from "../src/store.js";
+import { Store } from "../src/storage/store.js";
 import { ExecutionEngine } from "../src/runtime/engine.js";
 import {
   emptyUsage,

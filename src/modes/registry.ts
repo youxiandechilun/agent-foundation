@@ -2,7 +2,7 @@ import { z } from "zod";
 import { workModes, type WorkMode } from "./index.js";
 import type { Capability } from "../runtime/types.js";
 import { CAPABILITIES } from "../runtime/types.js";
-import { invariant } from "../util.js";
+import { invariant } from "../core/util.js";
 export const modeIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/);
 export const modeDefinitionSchema = z
   .object({

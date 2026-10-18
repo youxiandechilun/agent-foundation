@@ -29,7 +29,7 @@
 
 `clientFeatures.tasks` 默认为未启用。任务接收对应的 sampling/elicitation 也必须启用；直接使用 MCPClient 时必须提供对应 handler。能力只在旧版初始化中声明，不把旧版接收协议混入现代 task 扩展。
 
-源码 `src/extensions/mcp-task-receiver.ts` 实现：
+源码 `src/extensions/mcp/tasks/receiver.ts` 实现：
 
 - 256 位随机任务 ID、逐连接所有权、立即 CreateTaskResult、持久状态、真实后台输入处理。
 - `tasks/get`、阻塞式 `tasks/result`、`tasks/list` 与不透明分页 cursor、`tasks/cancel`，状态变更通知及结果关联元数据。
@@ -52,7 +52,7 @@ SQLite 表 `mcp-client-tasks` 保存 serverId、connectionId、原运行、状�
 
 客户端在每次请求的 capabilities.extensions 中声明扩展；服务端也需要在 discover 中声明。工具调用可以直接返回普通结果，也可以由服务端选择返回 `resultType: "task"` 的平铺句柄。客户端不会把旧版 `task.ttl` 参数加入现代工具调用。
 
-`src/extensions/mcp-modern-tasks.ts` 和 `mcp-client.ts` 实现了完整的本版 requester 流程：
+`src/extensions/mcp/tasks/modern.ts` 和 `mcp-client.ts` 实现了完整的本版 requester 流程：
 
 1. 保存远端 taskId、原运行、服务配置绑定和初始状态，再轮询 `tasks/get`。轮询遵守服务端 pollIntervalMs、宿主总截止时间及从 createdAt 计算的 ttlMs。
 2. 遇到 input_required，对每个 inputRequests 执行相同的确认、权限和采样预算流程，通过 `tasks/update` 提交 inputResponses。
@@ -91,7 +91,7 @@ CIMD 允许客户端使用自己控制的 HTTPS JSON URL 作为 client_id。授�
 }
 ```
 
-示例域名不是已经部署的服务。`src/extensions/mcp-client-metadata.ts` 生成 document；`server.ts` 在配置的 pathname 提供无需管理令牌的 GET/HEAD、Content-Type、nosniff、Cache-Control、ETag 和条件 GET。其它管理接口继续要求 Bearer token，预留 API 路径和不一致的文档路径冲突会被拒绝。Host 或转发头不能替换配置中的 client_id。
+示例域名不是已经部署的服务。`src/extensions/mcp/auth/client-metadata.ts` 生成 document；`server.ts` 在配置的 pathname 提供无需管理令牌的 GET/HEAD、Content-Type、nosniff、Cache-Control、ETag 和条件 GET。其它管理接口继续要求 Bearer token，预留 API 路径和不一致的文档路径冲突会被拒绝。Host 或转发头不能替换配置中的 client_id。
 
 默认底座 HTTP 监听不变。公网使用时需要由宿主在自己控制的 HTTPS 域名通过反向代理发布该路径，或设置 publish:false 后把导出的 JSON 部署在指定 HTTPS URL。本版提供元数据生成和服务代码，没有自动购买域名、配置公网证书或部署远程站点。
 

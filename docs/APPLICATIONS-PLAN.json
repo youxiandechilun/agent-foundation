@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.1",
   "status": "acceptance-derived-from-verification/application-report.json",
   "goal": "Add independently enabled browser, Windows computer-control and office application plugins to the source-owned Agent foundation; retain a separately installable core and optional Docker.",
   "baseline": {
@@ -187,8 +187,12 @@
     }
   ],
   "deferredByUser": [
-    "Client UI design",
-    "ESP32 and physical hardware"
+    "配置界面与客户端 UI",
+    "完整办公编辑器和公式引擎",
+    "OCR",
+    "专门的 LSP 代码智能",
+    "Linux/macOS 等更多平台的桌面控制",
+    "ESP32 和其他实物硬件"
   ],
   "externalValidation": [
     {
@@ -222,8 +226,8 @@
       "detail": "No full Excel formula evaluator, full office editor, OCR, arbitrary format conversion or PDF interactive-form flattening."
     },
     {
-      "id": "os-and-multi-tenant-isolation",
-      "detail": "No native OS file/network sandbox, multi-tenant boundary or distributed computer lease."
+      "id": "multi-tenant-and-distributed-control",
+      "detail": "单用户宿主，不实现多租户边界或分布式电脑租约。Windows AppContainer 命令/Plugin/MCP 文件和网络隔离已有有界实现，见 CORE-FOUNDATION.md；电脑控制本身仍运行在用户桌面会话，隔离 PTY 未实现。"
     },
     {
       "id": "extension-upload-and-frames",
