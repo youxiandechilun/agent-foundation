@@ -1,4 +1,5 @@
 import type { FoundationEvent, Input, Mode } from "./contracts.js";
+import type { SecurityAuditRecord } from "./security/types.js";
 import { decodeEventStream } from "./transport/sse.js";
 export class FoundationHttpError extends Error {
   constructor(
@@ -425,6 +426,23 @@ export class FoundationClient {
       "POST",
       `/v1/sessions/${sessionId}/inputs`,
       input,
+    );
+  }
+  securityAudits(
+    sessionId: string,
+    page: { limit?: number; offset?: number } = {},
+  ): Promise<{
+    records: SecurityAuditRecord[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    const query = new URLSearchParams();
+    if (page.limit !== undefined) query.set("limit", String(page.limit));
+    if (page.offset !== undefined) query.set("offset", String(page.offset));
+    return this.request(
+      "GET",
+      `/v1/sessions/${encodeURIComponent(sessionId)}/security-audits?${query}`,
     );
   }
   processAction(

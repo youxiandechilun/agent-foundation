@@ -4,6 +4,7 @@ import type { Input, Session } from "../../contracts.js";
 import type { Assets } from "../../storage/assets.js";
 import type { SkillManager } from "../../extensions/skills.js";
 import type { ImagePart, TextPart, UserMessage } from "../../runtime/types.js";
+import { textOf } from "../../runtime/types.js";
 import { invariant, redactJson } from "../util.js";
 
 export const inputSchema = z
@@ -31,7 +32,8 @@ export function createInputBuilder(
     session: Session,
     inputId: string,
     signal?: AbortSignal,
-  ): Promise<UserMessage> {
+    includeAuditText = false,
+  ): Promise<{ message: UserMessage; auditText?: string }> {
     signal?.throwIfAborted();
     const content: (TextPart | ImagePart)[] = [
       { type: "text", text: input.text || "" },
@@ -95,11 +97,16 @@ export function createInputBuilder(
         type: "text",
         text: `<selected_skill_instructions>\n${skills.instructions(input.skillIds)}\n</selected_skill_instructions>`,
       });
-    return {
+    const message: UserMessage = {
       role: "user",
       content: redactJson(content),
       timestamp: Date.now(),
       inputId,
+    };
+    // Keep pre-redaction text separate: it may be inspected, but never persisted as a message.
+    return {
+      message,
+      auditText: includeAuditText ? textOf({ content }) : undefined,
     };
   };
 }

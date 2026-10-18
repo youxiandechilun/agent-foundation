@@ -1,0 +1,393 @@
+{
+  "generatedAt": "2026-10-18T05:31:59.756Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "arch": "x64",
+  "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+  "rounds": 8,
+  "runs": 24,
+  "warmups": 6,
+  "versions": [
+    {
+      "label": "baseline",
+      "directory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-security-audit\\baseline\\dist",
+      "compiled": {
+        "files": 113,
+        "bytes": 865402,
+        "sha256": "801b9ec3252af20b0d4feef6ea495f96e53944977176640114eb22743bffbeba"
+      }
+    },
+    {
+      "label": "current",
+      "directory": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\dist",
+      "compiled": {
+        "files": 144,
+        "bytes": 1103790,
+        "sha256": "2319337f11fba95fce0b8b0613ae246c04fc7055ef1ac2de3073e18761a74df2"
+      }
+    }
+  ],
+  "scripts": [
+    {
+      "file": "benchmark-security-audit.mjs",
+      "sha256": "b3b1b4e0dc078a23d8cda0272fe5d507961b5b499f6670040e3184212c4ec095"
+    },
+    {
+      "file": "benchmark-hotpaths-fixtures.mjs",
+      "sha256": "1ccca9810e4c16baedce2dfb6d1338d3e7c6fd6377ed16c86ec850272b223a45"
+    },
+    {
+      "file": "benchmark-hotpaths-report.mjs",
+      "sha256": "5b334b7852fdcf03910a4cc1d54802d8ace5c7f4d2cbcedf51b9876ed51f47f7"
+    }
+  ],
+  "scenario": "Kernel.submit + wait; 3 model steps, 2 read tools, 1 input; local HTTP/SSE; fresh session per run; startup/session setup excluded; audit/enforce enable prompt-injection and 1 literal rule",
+  "summaries": [
+    {
+      "mode": "baseline",
+      "medianMsPerRun": 38.901339583333325,
+      "minMsPerRun": 36.88827083333334,
+      "maxMsPerRun": 73.7958625
+    },
+    {
+      "mode": "off",
+      "medianMsPerRun": 38.632672916666664,
+      "minMsPerRun": 36.97997083333333,
+      "maxMsPerRun": 41.98640833333334
+    },
+    {
+      "mode": "audit",
+      "medianMsPerRun": 41.457647916666666,
+      "minMsPerRun": 40.742241666666665,
+      "maxMsPerRun": 42.33121666666666
+    },
+    {
+      "mode": "enforce",
+      "medianMsPerRun": 41.2590875,
+      "minMsPerRun": 40.376933333333334,
+      "maxMsPerRun": 56.33032916666665
+    }
+  ],
+  "samples": [
+    {
+      "mode": "baseline",
+      "elapsedMs": 914.367,
+      "cpuMs": 609,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 0,
+      "position": 0,
+      "stderr": "(node:36048) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 923.7229000000001,
+      "cpuMs": 547,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 0,
+      "position": 1,
+      "stderr": "(node:34436) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 987.0628,
+      "cpuMs": 578,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 0,
+      "position": 2,
+      "stderr": "(node:39768) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 973.1518,
+      "cpuMs": 657,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 0,
+      "position": 3,
+      "stderr": "(node:43496) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 887.5193,
+      "cpuMs": 345,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 1,
+      "position": 0,
+      "stderr": "(node:37428) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 1015.9491999999999,
+      "cpuMs": 516,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 1,
+      "position": 1,
+      "stderr": "(node:27564) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 991.1969999999999,
+      "cpuMs": 625,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 1,
+      "position": 2,
+      "stderr": "(node:37516) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 904.6214999999999,
+      "cpuMs": 500,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 1,
+      "position": 3,
+      "stderr": "(node:45520) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 999.9761999999998,
+      "cpuMs": 578,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 2,
+      "position": 0,
+      "stderr": "(node:43052) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 990.7578,
+      "cpuMs": 531,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 2,
+      "position": 1,
+      "stderr": "(node:27380) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 885.3185000000001,
+      "cpuMs": 594,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 2,
+      "position": 2,
+      "stderr": "(node:30004) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 1002.8170999999999,
+      "cpuMs": 562,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 2,
+      "position": 3,
+      "stderr": "(node:40508) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 970.4841999999999,
+      "cpuMs": 500,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 3,
+      "position": 0,
+      "stderr": "(node:14168) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 937.0341999999999,
+      "cpuMs": 532,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 3,
+      "position": 1,
+      "stderr": "(node:39156) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 921.2829,
+      "cpuMs": 547,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 3,
+      "position": 2,
+      "stderr": "(node:46228) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 989.9909000000001,
+      "cpuMs": 578,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 3,
+      "position": 3,
+      "stderr": "(node:14176) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 930.2300999999999,
+      "cpuMs": 594,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 4,
+      "position": 0,
+      "stderr": "(node:46248) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 948.7599000000001,
+      "cpuMs": 704,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 4,
+      "position": 1,
+      "stderr": "(node:27720) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 1004.2425,
+      "cpuMs": 688,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 4,
+      "position": 2,
+      "stderr": "(node:42164) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 969.0464,
+      "cpuMs": 609,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 4,
+      "position": 3,
+      "stderr": "(node:9852) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 928.5511999999999,
+      "cpuMs": 515,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 5,
+      "position": 0,
+      "stderr": "(node:34336) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 977.8137999999999,
+      "cpuMs": 546,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 5,
+      "position": 1,
+      "stderr": "(node:46964) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 989.6784,
+      "cpuMs": 625,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 5,
+      "position": 2,
+      "stderr": "(node:46316) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 1771.1007,
+      "cpuMs": 1515,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 5,
+      "position": 3,
+      "stderr": "(node:45484) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 982.4906000000003,
+      "cpuMs": 672,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 6,
+      "position": 0,
+      "stderr": "(node:25816) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 1092.5295999999998,
+      "cpuMs": 671,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 6,
+      "position": 1,
+      "stderr": "(node:26912) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 1022.1009999999999,
+      "cpuMs": 719,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 6,
+      "position": 2,
+      "stderr": "(node:42332) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 925.8171,
+      "cpuMs": 547,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 6,
+      "position": 3,
+      "stderr": "(node:46964) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "enforce",
+      "elapsedMs": 1351.9278999999997,
+      "cpuMs": 890,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 7,
+      "position": 0,
+      "stderr": "(node:44732) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "baseline",
+      "elapsedMs": 972.9751000000001,
+      "cpuMs": 593,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 7,
+      "position": 1,
+      "stderr": "(node:24900) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "off",
+      "elapsedMs": 1007.6738,
+      "cpuMs": 891,
+      "runs": 24,
+      "auditRecords": 0,
+      "round": 7,
+      "position": 2,
+      "stderr": "(node:46932) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "mode": "audit",
+      "elapsedMs": 1005.8235,
+      "cpuMs": 735,
+      "runs": 24,
+      "auditRecords": 90,
+      "round": 7,
+      "position": 3,
+      "stderr": "(node:8724) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    }
+  ]
+}

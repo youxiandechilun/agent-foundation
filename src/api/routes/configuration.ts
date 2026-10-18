@@ -76,6 +76,11 @@ export const configurationRoutes = apiRoutes({
     processControl: true,
     budgets: k.config.budgets,
 
+    securityAudit: {
+      mode: k.config.securityAudit.mode,
+      stages: ["input", "tool"],
+      records: "session-security-audits",
+    },
     memory: {
       fullText: true,
       semantic: Boolean(k.config.defaultRoutes.embedding),

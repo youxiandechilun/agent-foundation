@@ -67,7 +67,7 @@ export interface EngineOptions {
   prepare: (messages: Message[], signal: AbortSignal) => Promise<Message[]>;
   authorize?: (
     tool: ToolDefinition,
-    args: unknown,
+    args: ToolCall["arguments"],
     callId: string,
     signal: AbortSignal,
     effectiveRoute: string,

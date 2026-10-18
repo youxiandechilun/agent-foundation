@@ -1,5 +1,7 @@
 # Agent Foundation 0.12.1
 
+当前源码新增默认关闭的内容安全审计：支持 off/audit/enforce、输入和工具参数检查、结构化记录及宿主规则扩展。现有系统提示词、权限和审批保持各自职责，配置与扩展位置见 [SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)。
+
 可嵌入、可独立部署的通用 Agent 内核，使用本工程维护的 TypeScript 源码。通过职责提示词、模型路由、权限、Skill、Plugin/MCP 与固定团队配置组合不同 Agent。默认运行包含 Agent 调度、模型协议、工具注册与权限、上下文、附件资产、记忆、会话与扩展管理；服务器和应用宿主显式启用。
 
 0.12.1 整理源码模块边界、内核辅助逻辑、HTTP 路由和内置工具，复用结果包装及运行资源清单。源码结构、模块职责和阅读顺序见 [ARCHITECTURE.md](docs/ARCHITECTURE.md)。SDK 公开入口、HTTP/工具协议与数据格式保持兼容，实际回归和独立安装结果以当前版本报告为准。

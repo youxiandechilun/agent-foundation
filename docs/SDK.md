@@ -55,6 +55,8 @@ npm install --save-dev typescript @types/node
 
 请使用公开导出，避免依赖 `dist` 内部文件路径；内部目录可以随维护调整。
 
+可选的 `SecurityAudit`、规则类型、`KernelOptions.securityAuditRules` 和 `FoundationClient.securityAudits` 也通过现有入口提供。审计默认关闭，启用方式、业务规则示例和覆盖边界见 [SECURITY-AUDIT.md](SECURITY-AUDIT.md)。源码更新不会自动改写之前已生成的 SDK 压缩包。
+
 ## 最小嵌入调用
 
 下面的模型地址只是本机兼容服务示例，应替换为真实可用的供应商配置：

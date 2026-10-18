@@ -40,6 +40,7 @@ export type Table =
   | "assets"
   | "jobs"
   | "approvals"
+  | "security-audits"
   | "memories"
   | "skills"
   | "plugins"
@@ -72,6 +73,7 @@ export type Table =
   | "checkpoints";
 
 const redactedTables = new Set<Table>([
+  "security-audits",
   "inbox",
   "effects",
   "memories",

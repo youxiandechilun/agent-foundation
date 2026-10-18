@@ -86,6 +86,11 @@ const routes = apiRoutes({
     k.store.session(id);
     return k.updateSession(id, sessionUpdate.parse(await json()));
   },
+  "GET sessions/:id/security-audits": ({ k, id, url }) =>
+    k.securityAudit.list(id, {
+      limit: Number(url.searchParams.get("limit") ?? 100),
+      offset: Number(url.searchParams.get("offset") ?? 0),
+    }),
   "POST sessions/:id/inputs": status(202, async ({ k, id, json }) => {
     k.store.session(id);
     const result = await k.submit(id, await json());

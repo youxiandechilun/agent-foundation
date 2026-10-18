@@ -1,0 +1,213 @@
+{
+  "generatedAt": "2026-10-18T05:32:13.835Z",
+  "baselineCommit": "f1af89195ca9574a7d24da98d80805cdf5b0a3cf",
+  "baselinePreparation": [
+    "git archive --format=tar --output=.agent-data-security-audit/baseline.tar f1af89195ca9574a7d24da98d80805cdf5b0a3cf",
+    "tar -xf .agent-data-security-audit/baseline.tar -C .agent-data-security-audit/baseline",
+    "node node_modules/typescript/bin/tsc -p .agent-data-security-audit/baseline/tsconfig.core.json --outDir .agent-data-security-audit/baseline/dist"
+  ],
+  "source": {
+    "files": 144,
+    "bytes": 1151823,
+    "sha256": "09b1f5e121f64407efe77d9db64e8da8e1651eb66d25e9e973cee9a87a500e2f"
+  },
+  "status": "passed",
+  "checks": [
+    {
+      "name": "core-build",
+      "status": "passed",
+      "durationMs": 5723
+    },
+    {
+      "name": "copy-runtime",
+      "status": "passed",
+      "durationMs": 63
+    },
+    {
+      "name": "host-build",
+      "status": "passed",
+      "durationMs": 6344
+    },
+    {
+      "name": "copy-host-runtime",
+      "status": "passed",
+      "durationMs": 60
+    },
+    {
+      "name": "new-test-types",
+      "status": "passed",
+      "durationMs": 5307
+    },
+    {
+      "name": "benchmark-types",
+      "status": "passed",
+      "durationMs": 4757
+    },
+    {
+      "name": "format",
+      "status": "passed",
+      "durationMs": 974
+    },
+    {
+      "name": "core-tests",
+      "status": "passed",
+      "tests": {
+        "passed": 484,
+        "failed": 0
+      },
+      "durationMs": 278886
+    },
+    {
+      "name": "host-targeted",
+      "status": "passed",
+      "tests": {
+        "passed": 4,
+        "failed": 0
+      },
+      "durationMs": 8395
+    },
+    {
+      "name": "compiled-smoke",
+      "status": "passed",
+      "durationMs": 1176
+    },
+    {
+      "name": "host-compiled-smoke",
+      "status": "passed",
+      "durationMs": 3349
+    }
+  ],
+  "performance": [
+    {
+      "mode": "baseline",
+      "medianMsPerRun": 38.901339583333325,
+      "minMsPerRun": 36.88827083333334,
+      "maxMsPerRun": 73.7958625,
+      "changeVsBaselinePercent": 0,
+      "changeVsOffPercent": 0.6954389804872951
+    },
+    {
+      "mode": "off",
+      "medianMsPerRun": 38.632672916666664,
+      "minMsPerRun": 36.97997083333333,
+      "maxMsPerRun": 41.98640833333334,
+      "changeVsBaselinePercent": -0.6906360283329915,
+      "changeVsOffPercent": 0
+    },
+    {
+      "mode": "audit",
+      "medianMsPerRun": 41.457647916666666,
+      "minMsPerRun": 40.742241666666665,
+      "maxMsPerRun": 42.33121666666666,
+      "changeVsBaselinePercent": 6.571260426282466,
+      "changeVsOffPercent": 7.312398513283469
+    },
+    {
+      "mode": "enforce",
+      "medianMsPerRun": 41.2590875,
+      "minMsPerRun": 40.376933333333334,
+      "maxMsPerRun": 56.33032916666665,
+      "changeVsBaselinePercent": 6.060839914306748,
+      "changeVsOffPercent": 6.798428338103069
+    }
+  ],
+  "metrics": {
+    "scope": "Physical lines incl. blanks/comments in src/extensions/test/scripts/examples; TS/MTS/CTS/JS/MJS/CJS/PY/SH/PS1/CS/INO/HTML; excludes dependencies/builds/docs/configuration/evidence/scratch",
+    "before": {
+      "groups": {
+        "src": {
+          "files": 139,
+          "lines": 33553,
+          "bytes": 1133001
+        },
+        "extensions": {
+          "files": 3,
+          "lines": 429,
+          "bytes": 16353
+        },
+        "test": {
+          "files": 97,
+          "lines": 26629,
+          "bytes": 879653
+        },
+        "scripts": {
+          "files": 35,
+          "lines": 4554,
+          "bytes": 157099
+        },
+        "examples": {
+          "files": 9,
+          "lines": 545,
+          "bytes": 19159
+        }
+      },
+      "productionLines": 33982,
+      "totalLines": 65710
+    },
+    "after": {
+      "groups": {
+        "src": {
+          "files": 144,
+          "lines": 34148,
+          "bytes": 1151823
+        },
+        "extensions": {
+          "files": 3,
+          "lines": 429,
+          "bytes": 16353
+        },
+        "test": {
+          "files": 99,
+          "lines": 27528,
+          "bytes": 908151
+        },
+        "scripts": {
+          "files": 36,
+          "lines": 4854,
+          "bytes": 167700
+        },
+        "examples": {
+          "files": 9,
+          "lines": 545,
+          "bytes": 19159
+        }
+      },
+      "productionLines": 34577,
+      "totalLines": 67504
+    }
+  },
+  "limitations": [
+    "仅本机Windows Node v22.22.0；外部模型/网络推理耗时不在性能结论中。",
+    "基准仅覆盖一次输入、三个模型步骤与两个读工具，启动和会话准备不计时；不能外推所有工作负载。",
+    "内置提示词注入检测是可选启发式，不保证识别所有攻击；默认off，开启后默认flag。",
+    "未重跑全部原生桌面输入、外部付费模型或SDK打包；新增代码不重写已生成的发行包。",
+    "当前审计范围是Kernel提交材料、模型工具参数与进程控制，不是全量模型输入/输出过滤。",
+    "20,000行目标未达到。本轮新增功能，不以压缩格式或删除能力降低行数。"
+  ],
+  "evidenceSha256": {
+    "benchmark-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmark-types.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmark.json": "ce95ca3c9d039e5ffdda20fc6314d28be30ea00ffd4a6fc216e2933068148b52",
+    "compiled-smoke.log": "681074f625627c80294a0795e59379f6cce3534c17de63c4ed9d5f3f8aceb844",
+    "compiled-smoke.stderr.log": "b40f9856b8e150c8f7863bda58c3a806044ef6fda70e8e5bdaed10ad10ff9ae1",
+    "copy-host-runtime.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "copy-host-runtime.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "copy-runtime.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "copy-runtime.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "core-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "core-build.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "core-tests.log": "b742af25847976f92717759253428c61f9d61a2ed7fea273e08fc8f40021d283",
+    "core-tests.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "format.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "format.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-build.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host-compiled-smoke.log": "bb715d3e8ab1d301252c125ec2ad6d3f74ca9ad5394c240d7d703cfea4288d5a",
+    "host-compiled-smoke.stderr.log": "ff87aec45af0035aa31d3c284b34d0bfa4c8dc07226e4500c597074292d8d5f4",
+    "host-targeted.log": "9394527abeee8b3b8b2d73f88713ffc450630661457615e2e2ea684e702681ba",
+    "host-targeted.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "new-test-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "new-test-types.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "validation.json": "7d2dad6993adce6ebf11c14196daf98257c5a2722f097d334bee01a956aebd1d"
+  }
+}

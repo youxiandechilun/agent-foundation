@@ -167,6 +167,13 @@
     "maxTextChars": 2000000,
     "maxPages": 1000
   },
+  "securityAudit": {
+    "mode": "off",
+    "timeoutMs": 1000,
+    "onError": "deny",
+    "promptInjection": "flag",
+    "textRules": []
+  },
   "hooks": {
     "timeoutMs": 30000,
     "maxStopContinuations": 3,

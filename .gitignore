@@ -69,3 +69,4 @@ demo-output/
 !/verification/refactor-hotpath-benchmark.json
 !/verification/refactor-optimization-20261018.json
 !/verification/hotpath-fix/
+!/verification/security-audit/

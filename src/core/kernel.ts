@@ -74,9 +74,16 @@ import {
   resolveToolPolicy,
 } from "./kernel/authorization.js";
 import { RunLifecycle } from "./kernel/lifecycle.js";
+import {
+  SecurityAudit,
+  type SecurityAuditRequest,
+  type SecurityAuditRule,
+} from "../security/index.js";
 
 export interface KernelOptions {
   integrations?: KernelIntegration[];
+  /** Trusted, in-process audit extensions. Inactive while securityAudit.mode is off. */
+  securityAuditRules?: readonly SecurityAuditRule[];
 }
 export class Kernel {
   readonly modes = new ModeRegistry();
@@ -90,6 +97,7 @@ export class Kernel {
   readonly migrations: SessionMigration;
   readonly media: Media;
   readonly permissions: Permissions;
+  readonly securityAudit: SecurityAudit;
   readonly memory: MemoryStore;
   readonly skills: SkillManager;
   readonly plugins: PluginManager;
@@ -147,6 +155,16 @@ export class Kernel {
       if (integration.tools)
         this.toolRegistry.register(integration.id, integration.tools);
     this.store = new Store(config.dataDir, { exclusiveKernel: true });
+    try {
+      this.securityAudit = new SecurityAudit(
+        config.securityAudit,
+        this.store,
+        options.securityAuditRules,
+      );
+    } catch (error) {
+      this.store.close();
+      throw error;
+    }
     this.store.recover();
     this.costs = new CostLedger(this.store, config);
     this.web = new WebClient(config.web);
@@ -588,6 +606,26 @@ export class Kernel {
       this.submitUnlocked(sessionId, input),
     );
   }
+  private async checkSecurityAudit(
+    request: SecurityAuditRequest,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const record = await this.securityAudit.check(request, signal);
+    signal.throwIfAborted();
+    if (record && request.stage === "tool")
+      this.store.emit(request.runId, "security.audit", {
+        auditId: record.id,
+        stage: record.stage,
+        decision: record.decision,
+        findings: record.findings,
+      });
+    invariant(
+      record?.decision !== "deny",
+      "请求被安全审计策略拒绝，请联系宿主管理员查看审计记录。",
+      403,
+      "security_audit_denied",
+    );
+  }
   private async submitUnlocked(sessionId: string, raw: Input) {
     this.registerRouteSecrets();
     invariant(!this.lifecycle.closing, "Kernel is shutting down", 503);
@@ -667,10 +705,47 @@ export class Kernel {
     ]);
     try {
       const inputId = id("input"),
-        message = await abortable(
-          this.buildInput(input, session, inputId, preparationSignal),
+        { message, auditText } = await abortable(
+          this.buildInput(
+            input,
+            session,
+            inputId,
+            preparationSignal,
+            this.securityAudit.enabled,
+          ),
           preparationSignal,
         );
+      if (this.securityAudit.enabled) {
+        const scope = {
+          projectId: session.projectId,
+          sessionId,
+          routeId: session.routeId,
+        };
+        await this.checkSecurityAudit(
+          {
+            ...scope,
+            stage: "input",
+            inputId,
+            delivery: input.delivery,
+            text: auditText ?? "",
+            assetIds: input.assetIds,
+          },
+          preparationSignal,
+        );
+        // Pending inputs may have been accepted before the current policy was enabled.
+        for (const entry of recovered)
+          await this.checkSecurityAudit(
+            {
+              ...scope,
+              stage: "input",
+              inputId: entry.id,
+              delivery: entry.delivery,
+              text: textOf(entry.message),
+              assetIds: [],
+            },
+            preparationSignal,
+          );
+      }
       invariant(!this.lifecycle.closing, "Kernel shutting down", 503);
       const runId = current?.runId || id("run"),
         result = { runId, inputId };
@@ -1016,6 +1091,20 @@ export class Kernel {
               );
             },
             authorize: async (tool, args, callId, signal, effectiveRoute) => {
+              if (this.securityAudit.enabled)
+                await this.checkSecurityAudit(
+                  {
+                    stage: "tool",
+                    projectId: session.projectId,
+                    sessionId: session.id,
+                    routeId: effectiveRoute,
+                    runId,
+                    toolCallId: callId,
+                    toolName: tool.name,
+                    arguments: args,
+                  },
+                  signal,
+                );
               const policyTool = await resolveToolPolicy(
                 { kernel: this, runId, session, routeId: effectiveRoute },
                 tool,
@@ -1297,6 +1386,20 @@ export class Kernel {
     const done = Promise.resolve().then(async () => {
       this.store.status(runId, "running");
       try {
+        if (this.securityAudit.enabled)
+          await this.checkSecurityAudit(
+            {
+              stage: "tool",
+              projectId: session.projectId,
+              sessionId,
+              routeId: session.routeId,
+              runId,
+              toolCallId: "control",
+              toolName: tool.name,
+              arguments: z.record(z.string(), z.json()).parse(args),
+            },
+            signal,
+          );
         const policyTool = await resolveToolPolicy(
           { kernel: this, session, runId, routeId: session.routeId },
           tool,

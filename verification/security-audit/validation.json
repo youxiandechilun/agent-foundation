@@ -1,0 +1,202 @@
+{
+  "baseline": "f1af89195ca9574a7d24da98d80805cdf5b0a3cf",
+  "generatedAt": "2026-10-18T05:25:18.859Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "checks": [
+    {
+      "name": "core-build",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 5723,
+      "stdoutLog": "core-build.log",
+      "stderrLog": "core-build.stderr.log"
+    },
+    {
+      "name": "copy-runtime",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 63,
+      "stdoutLog": "copy-runtime.log",
+      "stderrLog": "copy-runtime.stderr.log"
+    },
+    {
+      "name": "host-build",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 6344,
+      "stdoutLog": "host-build.log",
+      "stderrLog": "host-build.stderr.log"
+    },
+    {
+      "name": "copy-host-runtime",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 60,
+      "stdoutLog": "copy-host-runtime.log",
+      "stderrLog": "copy-host-runtime.stderr.log"
+    },
+    {
+      "name": "new-test-types",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 5307,
+      "stdoutLog": "new-test-types.log",
+      "stderrLog": "new-test-types.stderr.log"
+    },
+    {
+      "name": "benchmark-types",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 4757,
+      "stdoutLog": "benchmark-types.log",
+      "stderrLog": "benchmark-types.stderr.log"
+    },
+    {
+      "name": "format",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 974,
+      "stdoutLog": "format.log",
+      "stderrLog": "format.stderr.log"
+    },
+    {
+      "name": "core-tests",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 278886,
+      "stdoutLog": "core-tests.log",
+      "stderrLog": "core-tests.stderr.log",
+      "tests": {
+        "passed": 484,
+        "failed": 0
+      }
+    },
+    {
+      "name": "host-targeted",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 8395,
+      "stdoutLog": "host-targeted.log",
+      "stderrLog": "host-targeted.stderr.log",
+      "tests": {
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    {
+      "name": "compiled-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1176,
+      "stdoutLog": "compiled-smoke.log",
+      "stderrLog": "compiled-smoke.stderr.log"
+    },
+    {
+      "name": "host-compiled-smoke",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 3349,
+      "stdoutLog": "host-compiled-smoke.log",
+      "stderrLog": "host-compiled-smoke.stderr.log"
+    }
+  ],
+  "commands": {
+    "core-build": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.core.json"
+    ],
+    "copy-runtime": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "scripts/copy-runtime.mjs"
+    ],
+    "host-build": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.json"
+    ],
+    "copy-host-runtime": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "scripts/copy-runtime.mjs",
+      "--host"
+    ],
+    "new-test-types": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--noUnusedLocals",
+      "--noUnusedParameters",
+      "--target",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--skipLibCheck",
+      "test/security-audit.test.ts",
+      "test/security-audit-integration.test.ts"
+    ],
+    "benchmark-types": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--noUnusedLocals",
+      "--noUnusedParameters",
+      "--target",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--skipLibCheck",
+      "--allowJs",
+      "--checkJs",
+      "scripts/benchmark-security-audit.mjs"
+    ],
+    "format": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "src/security",
+      "src/core/kernel.ts",
+      "src/core/kernel/input.ts",
+      "src/core/config.ts",
+      "src/api/routes/sessions.ts",
+      "src/api/routes/configuration.ts",
+      "src/client.ts",
+      "src/runtime/engine.ts",
+      "src/storage/store.ts",
+      "src/index.ts",
+      "test/security-audit.test.ts",
+      "test/security-audit-integration.test.ts",
+      "scripts/benchmark-security-audit.mjs",
+      "config.example.json",
+      "docs/SECURITY-AUDIT.md"
+    ],
+    "core-tests": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "scripts/run-core-tests.mjs"
+    ],
+    "host-targeted": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "scripts/run-core-tests.mjs",
+      "--host",
+      "--filter=host-route-boundaries",
+      "--filter=host-office",
+      "--filter=host-nodes"
+    ],
+    "compiled-smoke": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "test/smoke.compiled.mjs"
+    ],
+    "host-compiled-smoke": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "test/smoke-host.compiled.mjs"
+    ]
+  }
+}

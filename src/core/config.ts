@@ -3,6 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { invariant } from "./util.js";
 import { CAPABILITIES } from "../runtime/types.js";
+import { securityAuditSchema } from "../security/config.js";
 
 const endpoint = z
   .string()
@@ -341,6 +342,7 @@ export const configSchema = z
       })
       .strict()
       .prefault({}),
+    securityAudit: securityAuditSchema.prefault({}),
     /** Host-trusted lifecycle hook commands (Claude Code compatible stdin/exit-code protocol). */
     hooks: z
       .object({
@@ -506,6 +508,13 @@ export function publicConfig(config: Config) {
     })),
     modes: ["chat", "code", "office"],
     permissions: config.permissions,
+    securityAudit: {
+      mode: config.securityAudit.mode,
+      timeoutMs: config.securityAudit.timeoutMs,
+      onError: config.securityAudit.onError,
+      promptInjection: config.securityAudit.promptInjection,
+      textRuleIds: config.securityAudit.textRules.map((rule) => rule.id),
+    },
     limits: config.limits,
     execution: config.execution,
     budgets: config.budgets,

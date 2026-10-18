@@ -1,4 +1,5 @@
 export { Kernel } from "./core/kernel.js";
+export * from "./security/index.js";
 export { VERSION } from "./version.js";
 export { ModeRegistry } from "./modes/registry.js";
 export type { ModeDefinition } from "./modes/registry.js";
@@ -23,7 +24,10 @@ export type {
 export { MCPOAuth } from "./extensions/mcp/auth/oauth.js";
 export { MCPKeyring } from "./extensions/mcp/auth/keyring.js";
 export { MCPDeviceFlow, DEVICE_GRANT } from "./extensions/mcp/auth/device.js";
-export type { DeviceContext, DeviceGrant } from "./extensions/mcp/auth/device.js";
+export type {
+  DeviceContext,
+  DeviceGrant,
+} from "./extensions/mcp/auth/device.js";
 export type { MCPOAuthConfig } from "./extensions/mcp/auth/oauth.js";
 export { MCPRegistrations } from "./extensions/mcp/auth/registration.js";
 export { MCPTaskReceiver } from "./extensions/mcp/tasks/receiver.js";
