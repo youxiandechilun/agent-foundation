@@ -238,12 +238,11 @@ export function registerProject({
         root,
         signal,
         (text, stream) =>
-          k.store.emit(
-            runId,
-            "tool.output",
-            { toolCallId: callId, text, stream },
-            false,
-          ),
+          k.store.emitEphemeral(runId, "tool.output", {
+            toolCallId: callId,
+            text,
+            stream,
+          }),
       );
       invariant(
         result.exitCode === 0,

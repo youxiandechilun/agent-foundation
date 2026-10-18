@@ -18,7 +18,7 @@ import type {
   StoredMessage,
   ToolEffect,
 } from "../contracts.js";
-import { id, now, invariant, redactJson } from "../core/util.js";
+import { id, now, invariant, redactJson, redactJsonText } from "../core/util.js";
 import {
   entityIndexes,
   entityWhere,
@@ -81,6 +81,8 @@ export class Store {
   readonly db: DatabaseSync;
   readonly events = new EventEmitter();
   private readonly statements = new Map<string, StatementSync>();
+  // Run -> session is immutable; caching it removes a JSON query from every streamed event.
+  private readonly runSessions = new Map<string, string>();
   private transactionDepth = 0;
   private leaseOwner?: string;
   private closed = false;
@@ -105,6 +107,7 @@ export class Store {
       CREATE INDEX IF NOT EXISTS memories_project_namespace ON entities(json_extract(body,'$.projectId'),json_extract(body,'$.namespace')) WHERE kind='memories';
       CREATE INDEX IF NOT EXISTS memory_revisions_latest ON entities(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC) WHERE kind='memory-revisions';
       CREATE INDEX IF NOT EXISTS memory_proposals_project ON entities(json_extract(body,'$.projectId')) WHERE kind='memory-proposals';
+      CREATE INDEX IF NOT EXISTS cost_ledger_day ON entities(substr(json_extract(body,'$.createdAt'),1,10)) WHERE kind='cost-ledger';
     `);
     try {
       if (options.exclusiveKernel) this.acquireKernelLease();
@@ -183,14 +186,36 @@ export class Store {
       this.leaseOwner = owner;
     });
   }
-  put<T extends { id: string }>(kind: Table, item: T): T {
+  private insert<T extends { id: string }>(kind: Table, item: T): string {
     const body = redactedTables.has(kind)
-      ? JSON.stringify(redactJson(item))
+      ? redactJsonText(item)
       : JSON.stringify(item);
     this.prepare(
       "INSERT INTO entities(kind,id,body) VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET body=excluded.body",
     ).run(kind, item.id, body);
-    return JSON.parse(body);
+    const sessionId = (item as Partial<Run>).sessionId;
+    if (kind === "runs" && sessionId) this.cacheRunSession(item.id, sessionId);
+    return body;
+  }
+  /** Persist when the caller does not need a redacted copy of the record. */
+  write<T extends { id: string }>(kind: Table, item: T): void {
+    this.insert(kind, item);
+  }
+  put<T extends { id: string }>(kind: Table, item: T): T {
+    return JSON.parse(this.insert(kind, item));
+  }
+  private cacheRunSession(runId: string, sessionId: string) {
+    this.runSessions.delete(runId);
+    this.runSessions.set(runId, sessionId);
+    if (this.runSessions.size > 4096)
+      this.runSessions.delete(this.runSessions.keys().next().value!);
+  }
+  private runSession(runId: string): string {
+    const cached = this.runSessions.get(runId);
+    if (cached) return cached;
+    const sessionId = this.run(runId).sessionId;
+    this.cacheRunSession(runId, sessionId);
+    return sessionId;
   }
   get<T>(kind: Table, entityId: string): T {
     const item = this.find<T>(kind, entityId);
@@ -250,6 +275,7 @@ export class Store {
       kind,
       entityId,
     );
+    if (kind === "runs") this.runSessions.delete(entityId);
   }
   transaction<T>(operation: () => T): T {
     const depth = this.transactionDepth,
@@ -263,6 +289,8 @@ export class Store {
     } catch (error) {
       this.db.exec(depth ? `ROLLBACK TO SAVEPOINT ${savepoint}` : "ROLLBACK");
       if (depth) this.db.exec(`RELEASE SAVEPOINT ${savepoint}`);
+      // A rolled-back insert must not leave a cached run -> session binding.
+      if (this.runSessions.size) this.runSessions.clear();
       throw error;
     } finally {
       this.transactionDepth--;
@@ -329,7 +357,9 @@ export class Store {
     };
   }
   appendTranscript(sessionId: string, message: StoredMessage) {
-    const body = JSON.stringify(redactJson(message));
+    const body = redactJsonText(message);
+    // A conflicting INSERT is dramatically slower in Node's SQLite binding, so
+    // check the unique key first and write only fresh messages.
     const previous = this.prepare(
       "SELECT body FROM messages WHERE session_id=? AND message_id=?",
     ).get(sessionId, message.id) as { body: string } | undefined;
@@ -355,13 +385,12 @@ export class Store {
     data: Record<string, unknown>,
     durable = true,
   ): FoundationEvent {
-    const run = this.run(runId);
     const safeData = redactJson(data);
     const event: FoundationEvent = {
       schemaVersion: 1,
       id: id("ev"),
       runId,
-      sessionId: run.sessionId,
+      sessionId: this.runSession(runId),
       type,
       timestamp: now(),
       seq: null,
@@ -382,6 +411,11 @@ export class Store {
     ).get(runId) as { cursor: number | null };
     return row.cursor ?? 0;
   }
+  /** Ephemeral deltas are only observable by live subscribers. */
+  emitEphemeral(runId: string, type: string, data: Record<string, unknown>) {
+    if (!this.events.listenerCount(runId)) return;
+    this.emit(runId, type, data, false);
+  }
   replay(
     runId: string,
     after = 0,
@@ -398,7 +432,12 @@ export class Store {
     ).map((r) => ({ ...JSON.parse(r.body), seq: r.seq }));
   }
   status(runId: string, status: Run["status"], error?: string) {
-    this.put("runs", { ...this.run(runId), status, error, updatedAt: now() });
+    this.write("runs", {
+      ...this.run(runId),
+      status,
+      error,
+      updatedAt: now(),
+    });
     this.emit(runId, "run.status", { status, ...(error ? { error } : {}) });
   }
   lookupInput(
@@ -438,9 +477,9 @@ export class Store {
       this.emit(run.id, "run.completed", { status: "interrupted" });
     }
     for (const a of this.list<Approval>("approvals", { status: "pending" }))
-      this.put("approvals", { ...a, status: "expired" });
+      this.write("approvals", { ...a, status: "expired" });
     for (const job of this.list<Job>("jobs", { status: ["queued", "running"] }))
-      this.put("jobs", {
+      this.write("jobs", {
         ...job,
         status: "unknown",
         error: "Restart interrupted job; inspect remoteId before resubmission",
@@ -449,14 +488,14 @@ export class Store {
     for (const effect of this.list<ToolEffect>("effects", {
       status: ["running", "prepared"],
     }))
-      this.put("effects", {
+      this.write("effects", {
         ...effect,
         status: "unknown",
         error: "Host restarted during an effect; inspect before repeating",
         updatedAt: now(),
       });
     for (const node of this.list<{ id: string; connected: boolean }>("nodes"))
-      this.put("nodes", { ...node, connected: false });
+      this.write("nodes", { ...node, connected: false });
   }
   close() {
     if (this.closed) return;
@@ -466,6 +505,7 @@ export class Store {
       );
     this.db.close();
     this.statements.clear();
+    this.runSessions.clear();
     this.closed = true;
   }
 }

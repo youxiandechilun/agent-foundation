@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-10-17T17:45:11.397Z",
+  "checkedAt": "2026-10-18T04:16:39.905Z",
   "status": "passed",
   "published": false,
   "checks": [
     {
-      "binary": "C:\\Program Files\\nodejs\\node.exe",
-      "node": "v22.22.0",
-      "consumer": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-A9YNG2\\1",
+      "binary": "E:\\nodejs\\node.exe",
+      "node": "v22.23.2",
+      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-sdFMsq\\1",
       "status": "passed",
       "portableClientWithoutNodeBuiltins": true,
       "exampleSyntaxChecks": [
@@ -16,9 +16,9 @@
       ],
       "strictTypes": true,
       "runtime": {
-        "node": "v22.22.0",
+        "node": "v22.23.2",
         "version": "0.12.1",
-        "packageRoot": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-A9YNG2\\1\\node_modules\\@local\\agent-foundation\\",
+        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-sdFMsq\\1\\node_modules\\@local\\agent-foundation\\",
         "checks": {
           "modelAndFileWrite": true,
           "httpAndSseClient": true,
@@ -30,28 +30,28 @@
             "exec_stop"
           ],
           "packagedOfficeWorkerCsv": true,
-          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\WINDOWS\\TEMP\\agent-foundation-sdk-A9YNG2\\1\\node_modules\\@local\\agent-foundation\\package.json",
+          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-sdFMsq\\1\\node_modules\\@local\\agent-foundation\\package.json",
           "cli": {
             "started": true,
-            "runtime": "v22.22.0",
+            "runtime": "v22.23.2",
             "command": "agent-foundation serve --config <file>",
-            "installedBin": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-A9YNG2\\1\\node_modules\\.bin\\agent-foundation.cmd"
+            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-sdFMsq\\1\\node_modules\\.bin\\agent-foundation.cmd"
           }
         },
         "status": "passed"
       }
     }
   ],
-  "package": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
-  "sha256": "85bf9332ddda2f35ea79d7e3407a64584aeff97cefcb55c40b4169fda3fdde21",
+  "package": "C:\\Users\\chilun\\Desktop\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+  "sha256": "7c02c78d6d796fe712416eb81a5dbe2190a4fc95490f88361f4e4c4520c48ced",
   "version": "0.12.1",
-  "consumerDirectory": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-A9YNG2",
+  "consumerDirectory": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-sdFMsq",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "validationBoundary": {
     "supportedRuntimeVersions": [
-      "v22.22.0"
+      "v22.23.2"
     ],
     "unsupportedRuntimeVersions": [],
     "minimumExactRuntimeTested": false,

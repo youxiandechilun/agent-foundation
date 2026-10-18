@@ -6,7 +6,7 @@ import {
   randomBytes,
   type KeyObject,
 } from "node:crypto";
-import { invariant, registerSecret, hash } from "../../../core/util.js";
+import { invariant, registerSecret } from "../../../core/util.js";
 export function clientMetadataURL(value: string) {
   let url: URL;
   try {
@@ -283,15 +283,4 @@ export function clientAssertion(
   // A fresh assertion is created for every request; do not retain all historical JWTs indefinitely.
   registerSecret(assertion, 120000);
   return assertion;
-}
-export function publicMetadataResponse(
-  config: MCPClientMetadata,
-  redirectUri: string,
-) {
-  const document = clientMetadataDocument(config, redirectUri);
-  return {
-    document,
-    etag: '"' + hash(JSON.stringify(document)) + '"',
-    cacheControl: "public, max-age=" + config.cacheMaxAge,
-  };
 }

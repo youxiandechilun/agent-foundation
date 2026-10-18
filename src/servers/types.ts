@@ -37,7 +37,6 @@ export const execInputSchema = z.object({
   command: z.string().min(1).max(16000).refine((value) => !value.includes("\0")),
   timeoutMs: z.number().int().min(100).max(300000).optional(),
 }).strict();
-export type ExecInput = z.infer<typeof execInputSchema>;
 export const commandEvidenceSchema = z.object({
   command: z.string(),
   status: z.enum(["completed", "unknown", "failed"]),

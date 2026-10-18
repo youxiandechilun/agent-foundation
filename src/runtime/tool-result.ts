@@ -1,6 +1,6 @@
 import type { ToolResult } from "./types.js";
 import type { Assets } from "../storage/assets.js";
-import { invariant, redactJson, hash } from "../core/util.js";
+import { invariant, redactJsonText, hash } from "../core/util.js";
 export const normalizedResultDigest = Symbol("normalizedResultDigest");
 
 /** Validate and bound data from every tool source before it enters context or durable effects. */
@@ -47,7 +47,7 @@ export async function normalizeToolResult(
     invariant(Array.isArray(result.artifacts), "Invalid tool artifacts", 502);
     for (const id of result.artifacts) assets.owned(id, projectId);
   }
-  const encoded = JSON.stringify(redactJson(result));
+  const encoded = redactJsonText(result);
   invariant(
     Buffer.byteLength(encoded) <= assets.config.limits.maxUploadBytes,
     "Tool result exceeds maximum asset size",

@@ -126,7 +126,7 @@ export class ContextManager {
       compacted: false,
       updatedAt: now(),
     };
-    this.store.put("work-contexts", workContext);
+    this.store.write("work-contexts", workContext);
     if (before <= budget && budgetScale === 1) return messages;
     invariant(
       budget > 1000,
@@ -312,7 +312,7 @@ export class ContextManager {
       retainedOriginal: true,
       cached: useCached,
     });
-    this.store.put("work-contexts", {
+    this.store.write("work-contexts", {
       ...workContext,
       inputTokens: after,
       compacted: true,

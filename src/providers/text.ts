@@ -7,7 +7,7 @@ import {
   id,
   invariant,
   errorText,
-  redactJson,
+  redactJsonText,
   registerSecret,
   delay as wait,
 } from "../core/util.js";
@@ -258,7 +258,7 @@ export class HttpTextProvider implements TextProvider {
       suffix = "/messages";
     try {
       const headers = routeHeaders(r),
-        payload = JSON.stringify(redactJson(body));
+        payload = redactJsonText(body);
       requestSent = true;
       const response = await fetch(base + suffix, {
         method: "POST",

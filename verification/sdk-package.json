@@ -1,19 +1,19 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-17T17:45:01.366Z",
-  "node": "v22.22.0",
+  "checkedAt": "2026-10-18T04:16:32.282Z",
+  "node": "v22.23.2",
   "platform": "win32",
   "status": "passed",
   "published": false,
-  "tarball": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
-  "sha256": "85bf9332ddda2f35ea79d7e3407a64584aeff97cefcb55c40b4169fda3fdde21",
-  "bytes": 453574,
-  "unpackedBytes": 1883264,
+  "tarball": "C:\\Users\\chilun\\Desktop\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+  "sha256": "7c02c78d6d796fe712416eb81a5dbe2190a4fc95490f88361f4e4c4520c48ced",
+  "bytes": 472106,
+  "unpackedBytes": 1914481,
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "entryChecks": {
-    "files": 294,
+    "files": 306,
     "exportTargets": [
       "./dist/index.d.ts",
       "./dist/index.js",
@@ -29,7 +29,6 @@
       "dist/execution/native/node-appcontainer-guard.cjs",
       "dist/execution/native/pty_host.py",
       "dist/extensions/plugins/worker.mjs",
-      "dist/extensions/plugins/container-worker.mjs",
       "dist/host/office/format-worker.cjs",
       "dist/host/office/office-archive.cjs",
       "dist/host/computer/native/windows-computer.ps1",

@@ -41,3 +41,50 @@ export function hostApplicationAccess(
         );
   }
 }
+export function browserAccess(
+  kernel: Kernel,
+  projectId: string,
+  action?: { action?: string },
+) {
+  hostApplicationAccess(
+    kernel,
+    projectId,
+    [
+      "browser",
+      "network",
+      ...(action?.action === "upload" ? ["files.read" as const] : []),
+      ...(["screenshot", "download"].includes(action?.action || "")
+        ? ["files.write" as const]
+        : []),
+    ],
+    action ? "browser_action" : "browser_open",
+  );
+}
+export function computerAccess(
+  kernel: Kernel,
+  projectId: string,
+  action: { action?: string },
+) {
+  hostApplicationAccess(
+    kernel,
+    projectId,
+    [
+      "computer",
+      ...(action.action === "screenshot" ? ["files.write" as const] : []),
+    ],
+    "computer_action",
+  );
+}
+export function officeAccess(
+  kernel: Kernel,
+  projectId: string,
+  write: boolean,
+  toolName?: string,
+) {
+  hostApplicationAccess(
+    kernel,
+    projectId,
+    [write ? "files.write" : "files.read"],
+    toolName || "office_action",
+  );
+}

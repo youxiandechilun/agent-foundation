@@ -75,6 +75,7 @@ export class ToolExecution {
     const { store, runId, publish } = options;
     let result: ToolResult;
     let createdEffect = false;
+    let effect: ToolEffect | undefined;
     const effectId = `${runId}:${call.id}`,
       argsHash = hash(JSON.stringify(call.arguments));
     try {
@@ -122,7 +123,7 @@ export class ToolExecution {
         );
         result = previous.result;
       } else {
-        store.put("effects", {
+        effect = store.put("effects", {
           id: effectId,
           runId,
           callId: call.id,
@@ -183,12 +184,11 @@ export class ToolExecution {
         }
         await authorize(args);
         signal.throwIfAborted();
-        const effect = store.get<ToolEffect>("effects", effectId);
-        store.put("effects", {
-          ...effect,
+        effect = store.put("effects", {
+          ...effect!,
           status: "running",
           updatedAt: now(),
-        });
+        } satisfies ToolEffect);
         publish("tool.started", { toolCallId: call.id, name: call.name });
         result = await abortable(
           tool.execute(
@@ -217,12 +217,12 @@ export class ToolExecution {
           `Tool ${call.name} returned invalid content`,
           502,
         );
-        store.put("effects", {
-          ...effect,
+        effect = store.put("effects", {
+          ...effect!,
           status: result.isError ? "failed" : "completed",
           result,
           updatedAt: now(),
-        });
+        } satisfies ToolEffect);
         if (options.hooks && !result.isError)
           result = await abortable(
             options.hooks.postToolUse(
@@ -243,13 +243,12 @@ export class ToolExecution {
         content: [{ type: "text", text: errorText(error) }],
         isError: true,
       };
-      const effect = store.find<ToolEffect>("effects", effectId);
       if (
         createdEffect &&
         effect &&
         ["prepared", "running"].includes(effect.status)
       )
-        store.put("effects", {
+        store.write("effects", {
           ...effect,
           status:
             effect.status === "running" && tools.get(call.name)?.risk !== "read"

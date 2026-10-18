@@ -160,16 +160,18 @@ function secretRedactor(): (text: string) => string {
 export function redactSecrets(text: string): string {
   return secretRedactor()(text);
 }
-export function redactJson<T>(value: T): T {
-  // One snapshot per operation, never across calls: env rotation and expiry stay visible.
+/** Serialize with per-string and whole-payload redaction, without allocating a parsed copy. */
+export function redactJsonText(value: unknown): string {
   const redact = secretRedactor();
-  return JSON.parse(
-    redact(
-      JSON.stringify(value, (_key, item) =>
-        typeof item === "string" ? redact(item) : item,
-      ),
+  return redact(
+    JSON.stringify(value, (_key, item) =>
+      typeof item === "string" ? redact(item) : item,
     ),
   );
+}
+export function redactJson<T>(value: T): T {
+  // One snapshot per operation, never across calls: env rotation and expiry stay visible.
+  return JSON.parse(redactJsonText(value));
 }
 export function delay(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {

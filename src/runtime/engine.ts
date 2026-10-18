@@ -78,6 +78,7 @@ export class ExecutionEngine {
   readonly controller = new AbortController();
   readonly history: Message[];
   readonly tools: Map<string, ToolDefinition>;
+  private readonly toolList: ToolDefinition[];
   isRunning = false;
   private steerQueue: UserMessage[] = [];
   private followQueue: UserMessage[] = [];
@@ -119,6 +120,7 @@ export class ExecutionEngine {
       this.tools.set(tool.name, snapshot);
       this.validators.set(tool.name, compileSchema(snapshot.parameters));
     }
+    this.toolList = [...this.tools.values()];
     this.toolExecution = new ToolExecution({
       options,
       tools: this.tools,
@@ -163,7 +165,7 @@ export class ExecutionEngine {
             message.inputId,
           );
           if (inbox)
-            this.options.store.put("inbox", { ...inbox, status: "applied" });
+            this.options.store.write("inbox", { ...inbox, status: "applied" });
         }
       }
     });
@@ -247,7 +249,7 @@ export class ExecutionEngine {
                 routeId: this.options.routeId,
                 ...this.options.modelSettings,
                 messages: context,
-                tools: [...this.tools.values()],
+                tools: this.toolList,
               },
               async (event) => {
                 this.options.publish(
@@ -429,7 +431,7 @@ ${feedback}
             message.inputId,
           );
           if (inbox)
-            this.options.store.put("inbox", { ...inbox, status: "rejected" });
+            this.options.store.write("inbox", { ...inbox, status: "rejected" });
         }
         this.options.publish("input.rejected", {
           inputId: message.inputId,
@@ -571,7 +573,7 @@ ${feedback}
     };
     const effectId = `${this.options.runId}:${call.id}`;
     if (!this.options.store.find("effects", effectId))
-      this.options.store.put("effects", {
+      this.options.store.write("effects", {
         id: effectId,
         runId: this.options.runId,
         callId: call.id,

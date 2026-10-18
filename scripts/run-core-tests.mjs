@@ -78,6 +78,10 @@ if (host || browserOnly)
     { recursive: true },
   );
 tests.sort();
+if (process.argv.includes("--compile-only")) {
+  console.log(output);
+  process.exit(0);
+}
 if (filters.length) {
   const matching = tests.filter((file) =>
     filters.some((filter) => path.basename(file).includes(filter)),

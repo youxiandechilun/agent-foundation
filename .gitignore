@@ -66,3 +66,5 @@ demo-output/
 !/verification/refactor-benchmark.json
 !/verification/refactor-benchmark.log
 !/verification/refactor-storage-cost.json
+!/verification/refactor-hotpath-benchmark.json
+!/verification/refactor-optimization-20261018.json

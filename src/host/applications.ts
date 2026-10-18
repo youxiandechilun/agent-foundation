@@ -6,7 +6,12 @@ import { desktopTools } from "./desktop-tools.js";
 import { desktopManagement } from "./desktop-api.js";
 import { invariant } from "../core/util.js";
 import { officeManagement } from "./office/api.js";
-import { hostApplicationAccess } from "./access.js";
+import {
+  browserAccess,
+  computerAccess,
+  hostApplicationAccess,
+  officeAccess,
+} from "./access.js";
 import { requestSignal } from "./request-signal.js";
 export { hostApplicationAccess } from "./access.js";
 
@@ -61,49 +66,20 @@ export function applicationIntegration(
           kernel.config,
           kernel.store,
           kernel.assets,
-          (projectId, action) =>
-            hostApplicationAccess(
-              kernel,
-              projectId,
-              [
-                "browser",
-                "network",
-                ...(action?.action === "upload" ? ["files.read" as const] : []),
-                ...(["screenshot", "download"].includes(action?.action || "")
-                  ? ["files.write" as const]
-                  : []),
-              ],
-              action ? "browser_action" : "browser_open",
-            ),
+          (projectId, action) => browserAccess(kernel, projectId, action),
         );
       if (computer)
         created.computer = new computer.ComputerController(
           kernel.config,
           kernel.assets,
-          (projectId, action) =>
-            hostApplicationAccess(
-              kernel,
-              projectId,
-              [
-                "computer",
-                ...(action.action === "screenshot"
-                  ? ["files.write" as const]
-                  : []),
-              ],
-              "computer_action",
-            ),
+          (projectId, action) => computerAccess(kernel, projectId, action),
         );
       if (office)
         created.office = new office.Office(
           kernel.assets,
           kernel.config,
           (projectId, write, toolName) =>
-            hostApplicationAccess(
-              kernel,
-              projectId,
-              [write ? "files.write" : "files.read"],
-              toolName || "office_action",
-            ),
+            officeAccess(kernel, projectId, write, toolName),
         );
       services = created;
       if (bridge) {

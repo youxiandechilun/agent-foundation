@@ -185,19 +185,6 @@ export function parseCsv(source: string): string[][] {
   if (rows[0]?.[0]) rows[0][0] = rows[0][0].replace(/^\uFEFF/, "");
   return rows;
 }
-export const csvText = (rows: Cell[][]) =>
-  rows
-    .map((row) =>
-      row
-        .map((value) => {
-          const text = String(value ?? "");
-          return /[",\r\n]/.test(text)
-            ? '"' + text.replaceAll('"', '""') + '"'
-            : text;
-        })
-        .join(","),
-    )
-    .join("\r\n");
 /** Source-owned job protocol, immutable asset provenance and format edits, with bounded parsing workers. */
 export class Office {
   private jobs: OfficeJobs;

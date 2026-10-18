@@ -33,6 +33,13 @@ export function processEnvironment(): NodeJS.ProcessEnv {
     if (process.env[name]) env[name] = process.env[name];
   return env;
 }
+/** libuv >=1.53 can pass Node pipe handles into an AppContainer child. */
+export function nodePipeCompatibility() {
+  const [major, minor] = process.versions.uv.split(".").map(Number);
+  return major > 1 || minor >= 53
+    ? "native-runtime"
+    : "inherited-or-file-stdio-only";
+}
 export interface PreparedCommand extends Command {
   env: NodeJS.ProcessEnv;
   boundary: "native" | "docker" | "windows-appcontainer";
@@ -186,20 +193,7 @@ export function nativeProcess(
 ): Promise<CommandResult> {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const env: NodeJS.ProcessEnv = {};
-    for (const name of [
-      "PATH",
-      "Path",
-      "PATHEXT",
-      "SystemRoot",
-      "WINDIR",
-      "TEMP",
-      "TMP",
-      "HOME",
-      "USERPROFILE",
-      "LANG",
-    ])
-      if (process.env[name]) env[name] = process.env[name];
+    const env = processEnvironment();
     const child = spawn(request.command, request.args, {
       cwd: request.cwd,
       env,
@@ -423,11 +417,7 @@ export class CommandRunner {
         network: this.config.execution.windowsSandbox.network,
         persistentPipes: true,
         pty: false,
-        nodePipeCompatibility:
-          Number(process.versions.uv.split(".")[0]) > 1 ||
-          Number(process.versions.uv.split(".")[1]) >= 53
-            ? "native-runtime"
-            : "inherited-or-file-stdio-only",
+        nodePipeCompatibility: nodePipeCompatibility(),
       };
     }
     const response = await nativeProcess({
