@@ -80,8 +80,14 @@ export const CAPABILITIES = [
   "memory.write",
   "network",
   "node",
+  /** Starts sub-agents that act with the caller's permissions. */
+  "agent",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
+/** Behaviours that policy keys on, so rules do not depend on tool names. */
+export type ToolRole =
+  /** Records plan progress only; the one write a plan-autonomy session may make. */
+  "plan-state";
 export interface ToolResult {
   content: (TextPart | ImagePart)[];
   details?: unknown;
@@ -94,6 +100,13 @@ export interface ToolDefinition<T = any> {
   parameters: Record<string, any>;
   risk?: Risk;
   capabilities?: Capability[];
+  /** Trusted host declaration of behaviours that permission rules recognise. */
+  roles?: ToolRole[];
+  /**
+   * Trusted host declaration: capabilities a specific call needs beyond `capabilities`,
+   * derived from its arguments before permission checks. Throw to deny the call.
+   */
+  constrain?: (params: T, call: { routeId: string }) => Capability[] | void;
   source?: { kind: "builtin" | "mcp" | "plugin" | "device"; id: string };
   /** Trusted host declaration. Undeclared tools take an exclusive global lock. */
   scheduling?: {

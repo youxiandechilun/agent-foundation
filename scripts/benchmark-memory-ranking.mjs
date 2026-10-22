@@ -79,8 +79,15 @@ try {
     memory.put({ id: "seed", projectId: "project", content: "seed" });
     const { embeddingVersion } = await memory.embed("seed");
     memory.remove("seed", "project");
+    // Baseline builds keep every kind in one entities table; current builds split per kind.
     const entity = store.db.prepare(
-      "INSERT INTO entities VALUES('memories',?,?)",
+      store.db
+        .prepare(
+          "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='entities'",
+        )
+        .get()
+        ? "INSERT INTO entities VALUES('memories',?,?)"
+        : "INSERT INTO e_memories(id,body) VALUES(?,?)",
     );
     const vector = store.db.prepare("INSERT INTO memory_vectors VALUES(?,?,?)");
     store.transaction(() => {

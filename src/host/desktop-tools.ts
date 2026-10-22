@@ -14,6 +14,7 @@ import type { ToolContext as RuntimeToolContext } from "../runtime/registry.js";
 import type { ToolDefinition } from "../runtime/types.js";
 import { invariant } from "../core/util.js";
 import { createBuiltinTools } from "../tools/builtin.js";
+import { sentences } from "../prompts/sentences.js";
 
 export type ToolContext = RuntimeToolContext & { kernel: Kernel };
 export async function desktopTools(
@@ -267,7 +268,13 @@ export async function desktopTools(
   );
   add(
     "computer_action",
-    "Inspect windows/accessibility, invoke native control patterns, capture a window, or send targeted input on Windows. Specify windowId AND processId from windows; elementId from tree. Pointer coordinates are relative to window bounds. Focus explicitly before keyboard/pointer input. Requires exclusive project/run lease.",
+    sentences(
+      "Inspect windows/accessibility, invoke native control patterns, capture a window, or send targeted input on Windows.",
+      "Specify windowId AND processId from windows; elementId from tree.",
+      "Pointer coordinates are relative to window bounds.",
+      "Focus explicitly before keyboard/pointer input.",
+      "Requires exclusive project/run lease.",
+    ),
     toolParameters(computerActionSchema),
     "control",
     ["computer"],

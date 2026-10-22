@@ -56,7 +56,7 @@ async function fixture(t: TestContext) {
   const { embeddingVersion } = await memory.embed("seed");
   memory.remove("seed", "project");
   const entity = store.db.prepare(
-    "INSERT INTO entities VALUES('memories',?,?)",
+    "INSERT INTO e_memories(id,body) VALUES(?,?)",
   );
   const vector = store.db.prepare("INSERT INTO memory_vectors VALUES(?,?,?)");
   const add = (

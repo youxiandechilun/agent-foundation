@@ -1,8 +1,44 @@
 import type { Kernel } from "../core/kernel.js";
-import type { Capability } from "../runtime/types.js";
+import type { Capability, ToolDefinition } from "../runtime/types.js";
 import type { PolicyRule } from "../contracts.js";
 import { invariant } from "../core/util.js";
 
+export function browserCapabilities(
+  tool: ToolDefinition,
+  args: Record<string, unknown>,
+) {
+  const capabilities: Capability[] = [...(tool.capabilities || [])];
+  if (tool.name === "browser_open" || tool.name === "browser_action")
+    capabilities.push("network");
+  if (tool.name === "browser_action" && args.action === "upload")
+    capabilities.push("files.read");
+  if (
+    tool.name === "browser_action" &&
+    ["screenshot", "download"].includes(String(args.action))
+  )
+    capabilities.push("files.write");
+  return [...new Set(capabilities)];
+}
+/**
+ * Capabilities an application tool call needs, from its declaration plus its arguments.
+ * Shared by the desktop host and the individually enabled application packs.
+ */
+export function applicationCapabilities(
+  tool: ToolDefinition,
+  args: Record<string, unknown>,
+): Capability[] {
+  const capabilities = browserCapabilities(tool, args);
+  if (tool.name === "browser_action" && args.nodeId) capabilities.push("node");
+  if (tool.name === "computer_action" && args.action === "screenshot")
+    capabilities.push("files.write");
+  if (tool.name === "node_call") {
+    const cap = String(args.capability || "");
+    if (cap.startsWith("browser.")) capabilities.push("browser");
+    if (cap.startsWith("computer.")) capabilities.push("computer");
+    if (cap.startsWith("exec.")) capabilities.push("exec");
+  }
+  return [...new Set(capabilities)];
+}
 /** The authenticated operator API still obeys host and project deny policies. */
 export function hostApplicationAccess(
   kernel: Kernel,

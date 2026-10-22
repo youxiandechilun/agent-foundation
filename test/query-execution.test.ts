@@ -73,10 +73,16 @@ test("indexed entity queries upgrade existing JSON data and preserve ordering, r
     assert.deepEqual(ids({ sessionId: "' OR 1=1 --" }), []);
     const plan = store.db
       .prepare(
-        "EXPLAIN QUERY PLAN SELECT body FROM entities WHERE kind=? AND json_extract(body,'$.sessionId') IN (?) ORDER BY rowid LIMIT ? OFFSET ?",
+        "EXPLAIN QUERY PLAN SELECT body FROM e_runs WHERE json_extract(body,'$.sessionId') IN (?) ORDER BY rowid LIMIT ? OFFSET ?",
       )
-      .all("runs", "s", 2, 0);
-    assert.match(JSON.stringify(plan), /entities_sessionId/);
+      .all("s", 2, 0);
+    assert.match(JSON.stringify(plan), /e_runs_sessionId/);
+    assert.equal(
+      store.db
+        .prepare("SELECT 1 FROM sqlite_schema WHERE name='entities'")
+        .get(),
+      undefined,
+    );
   } finally {
     observer.close();
     store.close();

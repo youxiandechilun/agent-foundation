@@ -6,6 +6,7 @@ import { processTools } from "../execution/tools.js";
 import { executionCapabilities } from "../execution/process.js";
 import { globMatcher, walkProject } from "../runtime/project-walk.js";
 import type { BuiltinTools } from "./builtin.js";
+import { sentences } from "../prompts/sentences.js";
 
 export function registerProject({
   ctx,
@@ -128,7 +129,11 @@ export function registerProject({
   );
   add(
     "file_search",
-    'Search project text files line by line (literal text, or a regular expression with regex=true). Skips .gitignore\'d paths, .git, node_modules and symlinks unless includeIgnored is set; glob filters file paths (e.g. "*.ts" or "src/**/*.test.ts").',
+    sentences(
+      "Search project text files line by line (literal text, or a regular expression with regex=true).",
+      "Skips .gitignore'd paths, .git, node_modules and symlinks unless includeIgnored is set; glob filters file paths (e.g.",
+      '"*.ts" or "src/**/*.test.ts").',
+    ),
     Type.Object({
       query: Type.String({ minLength: 1, maxLength: 1000 }),
       path: Type.Optional(Type.String()),
@@ -177,7 +182,11 @@ export function registerProject({
   );
   add(
     "file_glob",
-    'Find project files by glob pattern ("**/*.ts", "src/**/index.{js,ts}"; a pattern without / matches file names at any depth). Newest first. Skips .gitignore\'d paths unless includeIgnored is set.',
+    sentences(
+      'Find project files by glob pattern ("**/*.ts", "src/**/index.{js,ts}"; a pattern without / matches file names at any depth).',
+      "Newest first.",
+      "Skips .gitignore'd paths unless includeIgnored is set.",
+    ),
     Type.Object({
       pattern: Type.String({ minLength: 1, maxLength: 500 }),
       path: Type.Optional(Type.String()),

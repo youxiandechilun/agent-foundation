@@ -38,30 +38,13 @@ export function mergeToolConstraints(
 }
 
 function modelPolicyTool(
-  { kernel, session, routeId: effectiveRoute }: ToolContext,
+  { routeId }: ToolContext,
   tool: ToolDefinition,
   args: Record<string, unknown>,
 ): ToolDefinition {
   const capabilities = new Set(tool.capabilities);
-  if (tool.name === "media_generate") {
-    const routeId =
-      typeof args.routeId === "string"
-        ? args.routeId
-        : args.kind === "image" || args.kind === "video"
-          ? kernel.config.defaultRoutes[args.kind]
-          : undefined;
-    if (routeId && kernel.config.routes[routeId]?.adapter === "custom-media")
-      capabilities.add("plugin");
-    invariant(
-      routeId &&
-        [session.routeId, effectiveRoute].every((id) => {
-          const allow = kernel.config.routes[id]?.mediaRouteAllowlist;
-          return allow?.includes("*") || allow?.includes(routeId);
-        }),
-      "Media route denied by primary or effective text model",
-      403,
-    );
-  }
+  for (const capability of tool.constrain?.(args, { routeId }) || [])
+    capabilities.add(capability);
   return { ...tool, capabilities: [...capabilities] };
 }
 
@@ -136,24 +119,19 @@ export function filterModelContext(
   tools: ToolDefinition[],
 ): Message[] {
   let memoryAllowed: boolean | undefined;
+  const allowed = (tool: ToolDefinition) =>
+    permissions.evaluate(session, session.routeId, tool).effect === "allow" &&
+    (routeId === session.routeId ||
+      permissions.evaluate(session, routeId, tool).effect === "allow");
   return messages.filter(
     (message) =>
       message.role !== "system" ||
       !message.requiredCapabilities?.length ||
       message.requiredCapabilities.every((capability) => {
         if (capability !== "memory.read") return false;
-        if (memoryAllowed === undefined) {
-          const tool = tools.find(
-            (candidate) => candidate.name === "memory_search",
-          );
-          memoryAllowed = Boolean(
-            tool &&
-            permissions.evaluate(session, session.routeId, tool).effect ===
-              "allow" &&
-            (routeId === session.routeId ||
-              permissions.evaluate(session, routeId, tool).effect === "allow"),
-          );
-        }
+        memoryAllowed ??= tools.some(
+          (tool) => tool.capabilities?.includes("memory.read") && allowed(tool),
+        );
         return memoryAllowed;
       }),
   );

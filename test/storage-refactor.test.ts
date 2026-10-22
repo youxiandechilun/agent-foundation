@@ -215,7 +215,7 @@ test("opening an existing database adds selective memory indexes without changin
     content: "existing fact",
   });
   const before = store.db
-    .prepare("SELECT kind,id,body FROM entities ORDER BY rowid")
+    .prepare("SELECT id,body FROM e_memories ORDER BY rowid")
     .all();
   store.db.exec(`
     DROP INDEX memories_project_namespace;
@@ -227,13 +227,13 @@ test("opening an existing database adds selective memory indexes without changin
   try {
     assert.deepEqual(
       reopened.db
-        .prepare("SELECT kind,id,body FROM entities ORDER BY rowid")
+        .prepare("SELECT id,body FROM e_memories ORDER BY rowid")
         .all(),
       before,
     );
     const plan = reopened.db
       .prepare(
-        "EXPLAIN QUERY PLAN SELECT body FROM entities WHERE kind='memory-revisions' AND json_extract(body,'$.memoryId')=? ORDER BY json_extract(body,'$.revision') DESC LIMIT 1",
+        "EXPLAIN QUERY PLAN SELECT body FROM e_memory_revisions WHERE json_extract(body,'$.memoryId')=? ORDER BY json_extract(body,'$.revision') DESC LIMIT 1",
       )
       .all(entry.id);
     assert.ok(
@@ -271,12 +271,11 @@ if (process.env.FOUNDATION_STORAGE_BENCHMARK === "1")
       updatedAt: "2026-01-01T00:00:00.000Z",
     };
     const insert = store.db.prepare(
-      "INSERT INTO entities(kind,id,body) VALUES(?,?,?)",
+      "INSERT INTO e_memory_revisions(id,body) VALUES(?,?)",
     );
     store.transaction(() => {
       for (let i = 0; i < 12000; i++)
         insert.run(
-          "memory-revisions",
           `revision-${i}`,
           JSON.stringify({
             id: `revision-${i}`,

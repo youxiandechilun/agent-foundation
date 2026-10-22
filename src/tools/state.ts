@@ -70,7 +70,7 @@ export function registerMemory({ k, session, runId, add }: BuiltinTools): void {
 }
 
 export function registerPlan({ k, runId, add }: BuiltinTools): void {
-  add(
+  const plan = add(
     "plan_update",
     "Persist a work plan and actual progress for the current run.",
     Type.Object({
@@ -90,15 +90,16 @@ export function registerPlan({ k, runId, add }: BuiltinTools): void {
     "write",
     [],
     async (args) => {
-      const plan = k.store.put("work-plans", {
+      const saved = k.store.put("work-plans", {
         id: runId,
         steps: args.steps,
         updatedAt: now(),
       });
-      k.store.emit(runId, "plan.updated", { plan });
-      return plan;
+      k.store.emit(runId, "plan.updated", { plan: saved });
+      return saved;
     },
   );
+  plan.roles = ["plan-state"];
 }
 
 export function registerTranscript({ k, session, add }: BuiltinTools): void {

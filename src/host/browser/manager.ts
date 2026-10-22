@@ -15,6 +15,7 @@ import { Assets } from "../../storage/assets.js";
 import { Store } from "../../storage/store.js";
 import { id, invariant, hash, abortable } from "../../core/util.js";
 import { BrowserNetwork, validateBrowserUrl } from "./network.js";
+import { browserInputFields } from "./input.js";
 export { validateBrowserUrl } from "./network.js";
 
 export const browserActionSchema = z
@@ -45,12 +46,7 @@ export const browserActionSchema = z
     tabId: z.string().max(100).optional(),
     frameId: z.string().max(100).optional(),
     ref: z.string().max(100).optional(),
-    selector: z.string().max(2000).optional(),
-    text: z.string().max(100000).optional(),
-    key: z.string().max(100).optional(),
-    url: z.string().max(16384).optional(),
-    x: z.number().finite().min(-100000).max(100000).optional(),
-    y: z.number().finite().min(-100000).max(100000).optional(),
+    ...browserInputFields,
     assetId: z.string().optional(),
     values: z.array(z.string().max(1000)).max(100).optional(),
     state: z.enum(["visible", "hidden", "attached", "detached"]).optional(),

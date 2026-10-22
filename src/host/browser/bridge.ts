@@ -3,6 +3,7 @@ import type { Kernel } from "../../core/kernel.js";
 import { NodeManager } from "../nodes.js";
 import { hostApplicationAccess } from "../access.js";
 import { validateBrowserUrl } from "./network.js";
+import { browserInputFields } from "./input.js";
 import { invariant } from "../../core/util.js";
 
 export const bridgeActionSchema = z
@@ -29,12 +30,7 @@ export const bridgeActionSchema = z
     tabId: z
       .union([z.string().regex(/^\d+$/), z.number().int().positive()])
       .optional(),
-    selector: z.string().max(2000).optional(),
-    text: z.string().max(100000).optional(),
-    key: z.string().max(100).optional(),
-    url: z.string().max(16384).optional(),
-    x: z.number().finite().min(-100000).max(100000).optional(),
-    y: z.number().finite().min(-100000).max(100000).optional(),
+    ...browserInputFields,
     values: z.array(z.string().max(1000)).max(100).optional(),
   })
   .strict();

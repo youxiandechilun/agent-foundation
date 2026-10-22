@@ -65,14 +65,15 @@ export class Permissions {
     tool: ToolDefinition,
     policies: PolicyRule[],
   ): Decision {
-    if (session.collaboration && tool.name === "agent_delegate")
+    const delegates = Boolean(tool.capabilities?.includes("agent"));
+    if (session.collaboration && delegates)
       return {
         effect: "deny" as const,
         reasons: ["Team sessions must use reviewed team_dispatch assignments"],
       };
     if (
       session.collaboration?.roleReview?.status === "needs_user" &&
-      (tool.name === "agent_delegate" || !researchOnly(tool))
+      (delegates || !researchOnly(tool))
     )
       return {
         effect: "deny" as const,
@@ -152,7 +153,7 @@ export class Permissions {
     if (
       session.autonomy === "plan" &&
       !(
-        tool.name === "plan_update" &&
+        tool.roles?.includes("plan-state") &&
         tool.source?.kind === "builtin" &&
         tool.source.id === "foundation" &&
         !tool.capabilities?.length

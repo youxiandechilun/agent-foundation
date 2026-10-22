@@ -1,5 +1,5 @@
 import type { KernelIntegration, ToolContext } from "../runtime/registry.js";
-import type { Capability, ToolDefinition } from "../runtime/types.js";
+import type { Capability } from "../runtime/types.js";
 import type { Kernel } from "../core/kernel.js";
 import type { DesktopKernel } from "./desktop.js";
 import { desktopTools } from "./desktop-tools.js";
@@ -7,34 +7,19 @@ import { desktopManagement } from "./desktop-api.js";
 import { invariant } from "../core/util.js";
 import { officeManagement } from "./office/api.js";
 import {
+  applicationCapabilities,
   browserAccess,
   computerAccess,
   hostApplicationAccess,
   officeAccess,
 } from "./access.js";
 import { requestSignal } from "./request-signal.js";
-export { hostApplicationAccess } from "./access.js";
+export { browserCapabilities, hostApplicationAccess } from "./access.js";
 
 export interface ApplicationOptions {
   browser?: boolean;
   computer?: boolean;
   office?: boolean;
-}
-export function browserCapabilities(
-  tool: ToolDefinition,
-  args: Record<string, unknown>,
-) {
-  const capabilities: Capability[] = [...(tool.capabilities || [])];
-  if (tool.name === "browser_open" || tool.name === "browser_action")
-    capabilities.push("network");
-  if (tool.name === "browser_action" && args.action === "upload")
-    capabilities.push("files.read");
-  if (
-    tool.name === "browser_action" &&
-    ["screenshot", "download"].includes(String(args.action))
-  )
-    capabilities.push("files.write");
-  return [...new Set(capabilities)];
 }
 /** Individually enabled source application packs; importing this entry does not load optional engines. */
 export function applicationIntegration(
@@ -110,12 +95,7 @@ export function applicationIntegration(
       }));
     },
     authorize(_context, tool, args) {
-      const capabilities = browserCapabilities(tool, args);
-      if (tool.name === "browser_action" && args.nodeId)
-        capabilities.push("node");
-      if (tool.name === "computer_action" && args.action === "screenshot")
-        capabilities.push("files.write");
-      return { ...tool, capabilities: [...new Set(capabilities)] };
+      return { ...tool, capabilities: applicationCapabilities(tool, args) };
     },
     async handle(kernel, req, url, json) {
       const request = requestSignal(req);

@@ -13,6 +13,28 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
+/** Raw seeding for both the shared entities schema (baseline) and per-kind tables. */
+function entityInserter(db) {
+  const legacy = db
+    .prepare(
+      "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='entities'",
+    )
+    .get();
+  const statements = new Map();
+  return (kind, id, body) => {
+    let statement = statements.get(kind);
+    if (!statement) {
+      statement = legacy
+        ? db.prepare(`INSERT INTO entities(kind,id,body) VALUES('${kind}',?,?)`)
+        : db.prepare(
+            `INSERT INTO e_${kind.replaceAll("-", "_")}(id,body) VALUES(?,?)`,
+          );
+      statements.set(kind, statement);
+    }
+    return statement.run(id, body);
+  };
+}
+
 /** @param {string} name */
 const option = (name) =>
   process.argv
@@ -72,9 +94,7 @@ async function fixture(runtime, optimized) {
     root: directory,
     createdAt: new Date(0).toISOString(),
   });
-  const insert = store.db.prepare(
-    "INSERT INTO entities(kind,id,body) VALUES(?,?,?)",
-  );
+  const insert = { run: entityInserter(store.db) };
   const message = store.db.prepare(
     "INSERT INTO messages(session_id,message_id,body) VALUES(?,?,?)",
   );
@@ -374,9 +394,10 @@ async function benchmarkStorage() {
         const location = path.join(directory, name);
         const store = new runtimes[name].Store(location);
         try {
-          const entity = store.db.prepare(
-            "INSERT INTO entities(kind,id,body) VALUES('effects',?,?)",
-          );
+          const insertEntity = entityInserter(store.db);
+          const entity = {
+            run: (id, body) => insertEntity("effects", id, body),
+          };
           const message = store.db.prepare(
             "INSERT INTO messages(session_id,message_id,body) VALUES('s',?,?)",
           );

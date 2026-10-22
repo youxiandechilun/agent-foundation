@@ -26,51 +26,17 @@ import {
   redactJsonText,
 } from "../core/util.js";
 import {
-  entityIndexes,
+  entitySchema,
+  entityTable,
   entityWhere,
   entityPage,
+  tables,
   type EntityFilter,
   type EntityPage,
+  type Table,
 } from "./entity-query.js";
 
-export type Table =
-  | "projects"
-  | "sessions"
-  | "runs"
-  | "assets"
-  | "jobs"
-  | "approvals"
-  | "security-audits"
-  | "memories"
-  | "skills"
-  | "plugins"
-  | "mcps"
-  | "policies"
-  | "agents"
-  | "teams"
-  | "team-tasks"
-  | "servers"
-  | "server-facts"
-  | "inbox"
-  | "effects"
-  | "nodes"
-  | "node-tasks"
-  | "summaries"
-  | "browser-sessions"
-  | "work-plans"
-  | "memory-revisions"
-  | "memory-proposals"
-  | "work-contexts"
-  | "media-route-versions"
-  | "mode-profiles"
-  | "processes"
-  | "cost-ledger"
-  | "cost-adjustments"
-  | "session-migrations"
-  | "mcp-interactions"
-  | "mcp-tasks"
-  | "mcp-client-tasks"
-  | "checkpoints";
+export type { Table } from "./entity-query.js";
 
 const redactedTables = new Set<Table>([
   "security-audits",
@@ -97,7 +63,7 @@ export class Store {
     this.db = new DatabaseSync(path.join(dataDir, "foundation.sqlite"));
     this.db
       .exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=3000;
-      CREATE TABLE IF NOT EXISTS entities (kind TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(kind,id));
+      PRAGMA temp_store=MEMORY;
       CREATE TABLE IF NOT EXISTS events (seq INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT NOT NULL, body TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS events_run ON events(run_id,seq);
       CREATE TABLE IF NOT EXISTS transcripts (session_id TEXT PRIMARY KEY, body TEXT NOT NULL);
@@ -110,15 +76,11 @@ export class Store {
       CREATE INDEX IF NOT EXISTS messages_session ON messages(session_id,seq);
       CREATE INDEX IF NOT EXISTS messages_run_assistant ON messages(session_id,json_extract(body,'$.runId'),seq) WHERE json_extract(body,'$.message.role')='assistant';
       CREATE TABLE IF NOT EXISTS kernel_owner(slot INTEGER PRIMARY KEY CHECK(slot=1),owner TEXT NOT NULL,pid INTEGER NOT NULL,host TEXT NOT NULL,created_at TEXT NOT NULL);
-      CREATE INDEX IF NOT EXISTS memories_project_namespace ON entities(json_extract(body,'$.projectId'),json_extract(body,'$.namespace')) WHERE kind='memories';
-      CREATE INDEX IF NOT EXISTS memory_revisions_latest ON entities(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC) WHERE kind='memory-revisions';
-      CREATE INDEX IF NOT EXISTS memory_proposals_project ON entities(json_extract(body,'$.projectId')) WHERE kind='memory-proposals';
-      CREATE INDEX IF NOT EXISTS cost_ledger_day ON entities(substr(json_extract(body,'$.createdAt'),1,10)) WHERE kind='cost-ledger';
-      CREATE INDEX IF NOT EXISTS runs_session ON entities(id,json_extract(body,'$.sessionId')) WHERE kind='runs';
     `);
     try {
       if (options.exclusiveKernel) this.acquireKernelLease();
-      this.db.exec(entityIndexes);
+      this.db.exec(entitySchema);
+      this.splitEntities();
       if (!this.prepare("SELECT 1 FROM migrations WHERE version=3").get())
         this.transaction(() => {
           for (const row of this.prepare(
@@ -193,13 +155,49 @@ export class Store {
       this.leaseOwner = owner;
     });
   }
+  /** One-time move from the shared entities table into per-kind tables, keeping rowid order. */
+  private splitEntities() {
+    const legacy = () =>
+      this.db
+        .prepare(
+          "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='entities'",
+        )
+        .get();
+    if (!legacy()) return;
+    this.transaction(() => {
+      // Another connection may have finished the move while this one waited for the lock.
+      if (!legacy()) return;
+      for (const kind of tables)
+        this.db
+          .prepare(
+            `INSERT OR IGNORE INTO ${entityTable(kind)}(id,body) SELECT id,body FROM entities WHERE kind=? ORDER BY rowid`,
+          )
+          .run(kind);
+      const known = tables.map(() => "?").join(",");
+      const { unknown } = this.db
+        .prepare(
+          `SELECT COUNT(*) AS unknown FROM entities WHERE kind NOT IN (${known})`,
+        )
+        .get(...tables) as { unknown: number };
+      // Rows of kinds this version does not read are kept aside rather than dropped.
+      if (unknown)
+        this.db
+          .prepare(
+            `CREATE TABLE IF NOT EXISTS entities_legacy AS SELECT kind,id,body FROM entities WHERE kind NOT IN (${known})`,
+          )
+          .run(...tables);
+      // Dropping the table also frees the legacy index names reused by the split tables.
+      this.db.exec(`DROP TABLE entities; ${entitySchema};
+        INSERT OR IGNORE INTO migrations VALUES(4,datetime('now'))`);
+    });
+  }
   private insert<T extends { id: string }>(kind: Table, item: T): string {
     const body = redactedTables.has(kind)
       ? redactJsonText(item)
       : JSON.stringify(item);
     this.prepare(
-      "INSERT INTO entities(kind,id,body) VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET body=excluded.body",
-    ).run(kind, item.id, body);
+      `INSERT INTO ${entityTable(kind)}(id,body) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body`,
+    ).run(item.id, body);
     return body;
   }
   /** Persist when the caller does not need a redacted copy of the record. */
@@ -212,7 +210,7 @@ export class Store {
   private runSession(runId: string): string {
     // Read the persisted index value without reparsing large Run JSON records.
     const row = this.prepare(
-      "SELECT json_extract(body,'$.sessionId') AS sessionId FROM entities INDEXED BY runs_session WHERE kind='runs' AND id=?",
+      "SELECT json_extract(body,'$.sessionId') AS sessionId FROM e_runs INDEXED BY runs_session WHERE id=?",
     ).get(runId) as { sessionId: string } | undefined;
     invariant(row, `runs/${runId} not found`, 404, "not_found");
     return row.sessionId;
@@ -231,15 +229,15 @@ export class Store {
     const where = entityWhere(filter),
       order = entityPage(page);
     return this.selectJson<T>(
-      "SELECT body FROM entities WHERE kind=?" + where.sql + order.sql,
-      [kind, ...where.values, ...order.values],
+      `SELECT body FROM ${entityTable(kind)}${where.sql}${order.sql}`,
+      [...where.values, ...order.values],
     );
   }
   count(kind: Table, filter: EntityFilter = {}): number {
     const where = entityWhere(filter);
     const row = this.prepare(
-      "SELECT COUNT(*) AS count FROM entities WHERE kind=?" + where.sql,
-    ).get(kind, ...where.values) as { count: number };
+      `SELECT COUNT(*) AS count FROM ${entityTable(kind)}${where.sql}`,
+    ).get(...where.values) as { count: number };
     return row.count;
   }
   committedCost(
@@ -247,11 +245,15 @@ export class Store {
     day?: string,
   ): number {
     const where = entityWhere(filter);
+    const dayClause =
+      day === undefined
+        ? ""
+        : `${where.sql ? " AND" : " WHERE"} substr(json_extract(body,'$.createdAt'),1,10)=?`;
     const row = this.prepare(
       `SELECT TOTAL(CASE json_extract(body,'$.status')
       WHEN 'void' THEN 0 WHEN 'settled' THEN COALESCE(json_extract(body,'$.chargedMicros'),0)
       ELSE json_extract(body,'$.reservedMicros') END) AS total
-      FROM entities WHERE kind='cost-ledger'${where.sql}${day === undefined ? "" : " AND substr(json_extract(body,'$.createdAt'),1,10)=?"}`,
+      FROM e_cost_ledger${where.sql}${dayClause}`,
     ).get(...where.values, ...(day === undefined ? [] : [day])) as {
       total: number;
     };
@@ -266,15 +268,12 @@ export class Store {
   }
   find<T>(kind: Table, entityId: string): T | undefined {
     return this.selectJsonOne<T>(
-      "SELECT body FROM entities WHERE kind=? AND id=?",
-      [kind, entityId],
+      `SELECT body FROM ${entityTable(kind)} WHERE id=?`,
+      [entityId],
     );
   }
   remove(kind: Table, entityId: string) {
-    this.prepare("DELETE FROM entities WHERE kind=? AND id=?").run(
-      kind,
-      entityId,
-    );
+    this.prepare(`DELETE FROM ${entityTable(kind)} WHERE id=?`).run(entityId);
   }
   transaction<T>(operation: () => T): T {
     const depth = this.transactionDepth,
@@ -370,10 +369,27 @@ export class Store {
         "INSERT INTO messages(session_id,message_id,body) VALUES(?,?,?)",
       ).run(sessionId, message.id, body);
   }
+  /** Replace a transcript, rewriting only the suffix after the unchanged prefix. */
   saveTranscript(sessionId: string, messages: StoredMessage[]) {
     this.transaction(() => {
-      this.prepare("DELETE FROM messages WHERE session_id=?").run(sessionId);
-      for (const message of messages) this.appendTranscript(sessionId, message);
+      const existing = this.prepare(
+        "SELECT seq,message_id,body FROM messages WHERE session_id=? ORDER BY seq",
+      ).all(sessionId) as { seq: number; message_id: string; body: string }[];
+      let kept = 0;
+      while (
+        kept < existing.length &&
+        kept < messages.length &&
+        existing[kept].message_id === messages[kept].id &&
+        existing[kept].body === redactJsonText(messages[kept])
+      )
+        kept++;
+      if (kept < existing.length)
+        this.prepare("DELETE FROM messages WHERE session_id=? AND seq>=?").run(
+          sessionId,
+          existing[kept].seq,
+        );
+      for (const message of messages.slice(kept))
+        this.appendTranscript(sessionId, message);
     });
   }
   emit(

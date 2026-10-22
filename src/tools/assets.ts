@@ -45,7 +45,7 @@ export function registerAssets({
       };
     },
   );
-  add(
+  const media = add(
     "media_generate",
     "Create a real image/video job through the selected canonical provider adapter. Returns actual outputs or an explicit failure.",
     Type.Object({
@@ -96,6 +96,27 @@ export function registerAssets({
       return result;
     },
   );
+  // The chosen route must be allowed for both the session model and the model making the call.
+  media.constrain = (args, { routeId: effectiveRoute }) => {
+    const routeId =
+      typeof args.routeId === "string"
+        ? args.routeId
+        : args.kind === "image" || args.kind === "video"
+          ? k.config.defaultRoutes[args.kind]
+          : undefined;
+    invariant(
+      routeId &&
+        [session.routeId, effectiveRoute].every((id) => {
+          const allow = k.config.routes[id]?.mediaRouteAllowlist;
+          return allow?.includes("*") || allow?.includes(routeId);
+        }),
+      "Media route denied by primary or effective text model",
+      403,
+    );
+    return k.config.routes[routeId]?.adapter === "custom-media"
+      ? ["plugin"]
+      : [];
+  };
 }
 
 export function registerSkills({

@@ -12,15 +12,17 @@ src/
 ├─ contracts.ts               跨模块公开数据契约
 ├─ version.ts                 运行时版本
 ├─ core/                      内核组装、配置、权限、上下文、Agent 定义
-│  └─ kernel/                 输入构造、历史修复、MCP 宿主和授权纯逻辑
+│  └─ kernel/                 输入构造、历史修复、运行装配、MCP 宿主和授权纯逻辑
 ├─ api/                       HTTP 生命周期、认证、SSE 和通用请求处理
 │  └─ routes/                 按配置、会话、资源、记忆、扩展、MCP 分组
 ├─ runtime/                   执行循环、工具注册、调度、钩子、费用与结果
 ├─ security/                  默认关闭的输入/工具审计、规则扩展与结构化记录
 ├─ tools/                     内置工具及共用结果包装
-├─ storage/                   SQLite、资产、记忆
+├─ storage/                   SQLite（每类实体一张表）、资产、记忆
 ├─ sessions/                  会话快照、引用工具、迁移与文件检查点
-├─ providers/                 模型协议、序列化、流解析和思考参数
+├─ providers/                 HTTP 传输、协议注册表、序列化、流解析和思考参数
+│  └─ protocols/              各文本协议适配器（OpenAI Chat/Responses、Anthropic）
+├─ prompts/                   内核拥有的系统提示词模板
 ├─ transport/                 跨环境 SSE 解码与 Node HTTP 监听
 ├─ modes/                     工作模式定义与策略
 ├─ collaboration/             固定团队契约、协调与成员任务
@@ -58,6 +60,14 @@ src/
 运行状态由 `core/kernel/lifecycle.ts` 集中维护，工具授权约束由 `core/kernel/authorization.ts` 合并；`runtime/engine.ts` 负责对话循环和检查点，`runtime/tool-execution.ts` 负责校验、授权、hook 与外部效果记录。调度器、Schema 校验器和持久化语句分别维护自己的有界或固定集合缓存，不缓存权限判定或数据库记录。具体优化和复现方式见 [OPTIMIZATION.md](OPTIMIZATION.md)。
 
 HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优先；路由输入 Schema 在模块加载时构造，请求解析与授权仍逐次执行，文件下载和 SSE 保留专用处理。JSON Schema 校验按 dialect 复用并轮换 Ajv 编译器，用户 schema 注册项在每次编译后清理；Memory 的同步查询复用有界 statement，跨异步等待的语义检索游标使用独立 statement。MCP 仅合并同连接、同目录版本的在途目录请求，结果完成后不缓存；SSE 用读指针处理积压队列，历史尚未回放完时发生溢出会结束连接，让客户端从最后成功发送的游标重连。本轮实现、计量口径与验证限制见 [REFACTOR-CONSOLIDATION.md](REFACTOR-CONSOLIDATION.md)。
+
+## 运行装配、协议与存储
+
+- `Kernel.startRun` 只负责生命周期：`prepareEngine` 读取历史、筛选工具、检索记忆并生成提示词，`createEngine` 构造执行引擎，`settleRun` 通知集成并结算。历史加载、工具筛选与记忆上下文位于 `core/kernel/run-setup.ts`。
+- 文本模型协议实现 `providers/protocol.ts` 的 `TextProtocol`，由 `providers/registry.ts` 按 `route.adapter` 查找。宿主在加载配置前调用 `registerTextProtocol` 即可接入新协议，`HttpTextProvider` 只负责传输、错误和部分结果。
+- 权限规则通过工具声明的 `capabilities`、`roles`（`plan-state`）与按参数补充约束的 `constrain` 判断，不依赖工具名称。启动子 Agent 的工具声明 `agent` 能力（宿主默认 allow，可在 `permissions.agent` 改为 ask/deny），团队会话据此拒绝绕过派工的委托。`tools/index.ts` 汇总工具时拒绝扩展工具冒用 `builtin/foundation` 来源或与已有工具重名，因此声明可以被信任。
+- 提示词按句写在 `prompts/` 与各模块的 `sentences(...)` 中，拼接结果与原单行文本一致。
+- 实体按类型存放在 `e_<kind>` 表中，只为实际使用的过滤字段建立表达式索引；旧数据库打开时在一个事务内从 `entities` 迁移，未知类型的行保存在 `entities_legacy`。会话历史替换只重写变化之后的消息。
 
 ## 维护边界
 

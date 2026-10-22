@@ -5,11 +5,10 @@ import { NodeManager } from "./nodes.js";
 import { Office } from "./office/manager.js";
 import type { Kernel } from "../core/kernel.js";
 import type { KernelIntegration } from "../runtime/registry.js";
-import type { Capability } from "../runtime/types.js";
 import { desktopTools } from "./desktop-tools.js";
 import { desktopManagement } from "./desktop-api.js";
 import { officeExtractor } from "./office/extractor.js";
-import { hostApplicationAccess } from "./access.js";
+import { applicationCapabilities, hostApplicationAccess } from "./access.js";
 
 export interface DesktopServices {
   browser: BrowserManager;
@@ -81,26 +80,7 @@ export function desktopIntegration(): KernelIntegration {
     tools: (context) =>
       desktopTools({ ...context, kernel: context.kernel as DesktopKernel }),
     async authorize(context, tool, args) {
-      const capabilities: Capability[] = [...(tool.capabilities || [])];
-      if (tool.name === "browser_action" && args.nodeId)
-        capabilities.push("node");
-      if (tool.name === "browser_open" || tool.name === "browser_action")
-        capabilities.push("network");
-      if (tool.name === "browser_action" && args.action === "upload")
-        capabilities.push("files.read");
-      if (
-        tool.name === "browser_action" &&
-        ["download", "screenshot"].includes(String(args.action))
-      )
-        capabilities.push("files.write");
-      if (tool.name === "computer_action" && args.action === "screenshot")
-        capabilities.push("files.write");
-      if (tool.name === "node_call") {
-        const cap = String(args.capability || "");
-        if (cap.startsWith("browser.")) capabilities.push("browser");
-        if (cap.startsWith("computer.")) capabilities.push("computer");
-        if (cap.startsWith("exec.")) capabilities.push("exec");
-      }
+      const capabilities = applicationCapabilities(tool, args);
       const browserArgs =
         tool.name === "browser_action" && args.nodeId
           ? args
@@ -113,7 +93,7 @@ export function desktopIntegration(): KernelIntegration {
           String(browserArgs.url),
           context.kernel.config,
         );
-      return { ...tool, capabilities: [...new Set(capabilities)] };
+      return { ...tool, capabilities };
     },
     handle: (kernel, req, url, json) =>
       desktopManagement(kernel as DesktopKernel, req, url, json),

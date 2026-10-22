@@ -113,13 +113,19 @@ async function benchmark(directory) {
       for (let i = 0; i < 30000; i++)
         assert.equal(store.project("project").id, "project");
     });
-    const insert = store.db.prepare(
-      "INSERT INTO entities(kind,id,body) VALUES(?,?,?)",
-    );
+    // Baseline builds keep every kind in one entities table; current builds split per kind.
+    const insert = store.db
+      .prepare(
+        "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='entities'",
+      )
+      .get()
+      ? store.db.prepare(
+          "INSERT INTO entities(kind,id,body) VALUES('memory-revisions',?,?)",
+        )
+      : store.db.prepare("INSERT INTO e_memory_revisions(id,body) VALUES(?,?)");
     store.transaction(() => {
       for (let i = 0; i < 12000; i++)
         insert.run(
-          "memory-revisions",
           `revision-${i}`,
           JSON.stringify({
             id: `revision-${i}`,

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { invariant } from "./util.js";
 import { CAPABILITIES } from "../runtime/types.js";
 import { securityAuditSchema } from "../security/config.js";
+import { findTextProtocol } from "../providers/registry.js";
 
 const endpoint = z
   .string()
@@ -32,16 +33,8 @@ const hookCommand = z
 export const routeSchema = z
   .object({
     kind: z.enum(["text", "image", "video", "embedding"]),
-    adapter: z.enum([
-      "openai-completions",
-      "openai-responses",
-      "anthropic-messages",
-      "image-json",
-      "video-job",
-      "media-http",
-      "custom-media",
-      "openai-embeddings",
-    ]),
+    // Media/embedding adapters are fixed; text adapters name a registered TextProtocol.
+    adapter: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/),
     model: z.string().min(1),
     baseUrl: endpoint,
     apiKeyEnv: z
@@ -156,6 +149,7 @@ export const configSchema = z
         "files.write": policy.default("allow"),
         "memory.read": policy.default("allow"),
         "memory.write": policy.default("allow"),
+        agent: policy.default("allow"),
         approvalTimeoutMs: z.number().int().min(100).default(120_000),
       })
       .prefault({}),
@@ -459,6 +453,10 @@ export function parseConfig(input: unknown, baseDir = process.cwd()): Config {
               ? r.kind
               : "text";
     invariant(r.kind === expected, `Route adapter kind mismatch: ${name}`);
+    invariant(
+      r.kind !== "text" || findTextProtocol(r.adapter),
+      `Unknown text protocol ${r.adapter} for route ${name}`,
+    );
     if (r.kind === "text")
       for (const key of [
         "model",

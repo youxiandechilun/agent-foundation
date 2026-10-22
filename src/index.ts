@@ -69,6 +69,14 @@ export {
   applyCacheBreakpoints,
 } from "./providers/text.js";
 export type { RetryPolicy, RetryNotice } from "./providers/text.js";
+export { registerTextProtocol, textProtocolIds } from "./providers/registry.js";
+export { ResponseBuilder, parseArgs } from "./providers/protocol.js";
+export type {
+  TextProtocol,
+  ProtocolRequest,
+  ReasoningSettings,
+  PendingCall,
+} from "./providers/protocol.js";
 export { bindHooks, commandHooks, runHookCommand } from "./runtime/hooks.js";
 export type {
   RunHooks,

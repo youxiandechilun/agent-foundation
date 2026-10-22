@@ -86,14 +86,14 @@ export class MemoryStore {
     const existing = parsed.id
       ? this.store.find<MemoryEntry>("memories", parsed.id)
       : this.store.selectJsonOne<MemoryEntry>(
-          "SELECT body FROM entities WHERE kind='memories' AND json_extract(body,'$.projectId')=? AND json_extract(body,'$.namespace')=? AND json_extract(body,'$.content')=? AND (json_extract(body,'$.expiresAt') IS NULL OR json_extract(body,'$.expiresAt')>?) ORDER BY rowid LIMIT 1",
+          "SELECT body FROM e_memories WHERE json_extract(body,'$.projectId')=? AND json_extract(body,'$.namespace')=? AND json_extract(body,'$.content')=? AND (json_extract(body,'$.expiresAt') IS NULL OR json_extract(body,'$.expiresAt')>?) ORDER BY rowid LIMIT 1",
           [parsed.projectId, parsed.namespace, parsed.content, now()],
         );
     const previousRevision =
       !existing && parsed.id
         ? (this.store
             .prepare(
-              "SELECT json_extract(body,'$.projectId') AS projectId,json_extract(body,'$.revision') AS revision FROM entities WHERE kind='memory-revisions' AND json_extract(body,'$.memoryId')=? ORDER BY json_extract(body,'$.revision') DESC LIMIT 1",
+              "SELECT json_extract(body,'$.projectId') AS projectId,json_extract(body,'$.revision') AS revision FROM e_memory_revisions WHERE json_extract(body,'$.memoryId')=? ORDER BY json_extract(body,'$.revision') DESC LIMIT 1",
             )
             .get(parsed.id) as
             Pick<MemoryRevision, "projectId" | "revision"> | undefined)
@@ -165,14 +165,14 @@ export class MemoryStore {
   list(projectId: string, namespace?: string): MemoryEntry[] {
     this.store.project(projectId);
     return this.store.selectJson<MemoryEntry>(
-      "SELECT body FROM entities WHERE kind='memories' AND json_extract(body,'$.projectId')=? AND (? IS NULL OR json_extract(body,'$.namespace')=?) AND (json_extract(body,'$.expiresAt') IS NULL OR json_extract(body,'$.expiresAt')>?) ORDER BY rowid",
+      "SELECT body FROM e_memories WHERE json_extract(body,'$.projectId')=? AND (? IS NULL OR json_extract(body,'$.namespace')=?) AND (json_extract(body,'$.expiresAt') IS NULL OR json_extract(body,'$.expiresAt')>?) ORDER BY rowid",
       [projectId, namespace ?? null, namespace ?? null, now()],
     );
   }
   history(memoryId: string, projectId: string): MemoryRevision[] {
     this.store.project(projectId);
     return this.store.selectJson<MemoryRevision>(
-      "SELECT body FROM entities WHERE kind='memory-revisions' AND json_extract(body,'$.memoryId')=? AND json_extract(body,'$.projectId')=? ORDER BY json_extract(body,'$.revision') DESC LIMIT 1000",
+      "SELECT body FROM e_memory_revisions WHERE json_extract(body,'$.memoryId')=? AND json_extract(body,'$.projectId')=? ORDER BY json_extract(body,'$.revision') DESC LIMIT 1000",
       [memoryId, projectId],
     );
   }
@@ -205,7 +205,7 @@ export class MemoryStore {
       .join(query.trim().length <= 20 ? " AND " : " OR ");
     const rows = this.store
       .prepare(
-        "SELECT e.body,bm25(memory_fts) AS score FROM memory_fts JOIN entities e ON e.kind='memories' AND e.id=memory_fts.id WHERE memory_fts MATCH ? AND project_id=? AND (? IS NULL OR namespace=?) AND (json_extract(e.body,'$.expiresAt') IS NULL OR json_extract(e.body,'$.expiresAt')>?) ORDER BY score LIMIT ?",
+        "SELECT e.body,bm25(memory_fts) AS score FROM memory_fts JOIN e_memories e ON e.id=memory_fts.id WHERE memory_fts MATCH ? AND project_id=? AND (? IS NULL OR namespace=?) AND (json_extract(e.body,'$.expiresAt') IS NULL OR json_extract(e.body,'$.expiresAt')>?) ORDER BY score LIMIT ?",
       )
       .all(
         match,
@@ -221,7 +221,7 @@ export class MemoryStore {
     this.store.project(projectId);
     const rows = this.store
       .prepare(
-        "SELECT id FROM entities WHERE kind='memories' AND json_extract(body,'$.projectId')=? AND json_extract(body,'$.expiresAt')<=?",
+        "SELECT id FROM e_memories WHERE json_extract(body,'$.projectId')=? AND json_extract(body,'$.expiresAt')<=?",
       )
       .all(projectId, now()) as { id: string }[];
     this.store.transaction(() => {
@@ -271,7 +271,7 @@ export class MemoryStore {
     const parsed = inputSchema.parse(input);
     this.store.project(parsed.projectId);
     const existing = this.store.selectJsonOne<MemoryProposal>(
-      "SELECT body FROM entities WHERE kind='memory-proposals' AND json_extract(body,'$.projectId')=? AND json_extract(body,'$.namespace')=? AND json_extract(body,'$.content')=? AND json_extract(body,'$.status')='pending' ORDER BY rowid LIMIT 1",
+      "SELECT body FROM e_memory_proposals WHERE json_extract(body,'$.projectId')=? AND json_extract(body,'$.namespace')=? AND json_extract(body,'$.content')=? AND json_extract(body,'$.status')='pending' ORDER BY rowid LIMIT 1",
       [parsed.projectId, parsed.namespace, parsed.content],
     );
     if (existing) return existing;
@@ -432,7 +432,7 @@ export class MemoryStore {
       qNorm = norm(q),
       best: { body: string; score: number }[] = [];
     const statement = this.store.db.prepare(
-      "SELECT e.body,v.vector FROM memory_vectors v JOIN entities e ON e.kind='memories' AND e.id=v.id WHERE v.model=? AND json_extract(e.body,'$.projectId')=? AND (? IS NULL OR json_extract(e.body,'$.namespace')=?) AND (json_extract(e.body,'$.expiresAt') IS NULL OR json_extract(e.body,'$.expiresAt')>?)",
+      "SELECT e.body,v.vector FROM memory_vectors v JOIN e_memories e ON e.id=v.id WHERE v.model=? AND json_extract(e.body,'$.projectId')=? AND (? IS NULL OR json_extract(e.body,'$.namespace')=?) AND (json_extract(e.body,'$.expiresAt') IS NULL OR json_extract(e.body,'$.expiresAt')>?)",
     );
     let scanned = 0;
     for (const row of statement.iterate(

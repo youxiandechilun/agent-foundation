@@ -3,6 +3,7 @@ import { terminalStatuses } from "../contracts.js";
 import { delay, invariant, truncate } from "../core/util.js";
 import { textOf } from "../runtime/types.js";
 import type { BuiltinTools } from "./builtin.js";
+import { sentences } from "../prompts/sentences.js";
 
 export function registerDelegation({
   ctx,
@@ -43,7 +44,12 @@ export function registerDelegation({
     };
     const delegate = add(
       "agent_delegate",
-      `Delegate a self-contained subtask to a sub-agent with its own fresh context, in this project and mode, with the same permissions. Give it a complete brief: it cannot see this conversation. By default waits and returns its final answer; several delegations in one step run in parallel. With background=true it returns immediately; collect the answer later with agent_result.${catalog.length ? ` Agent definitions: ${catalog.join("; ")}.` : ""}`,
+      sentences(
+        `Delegate a self-contained subtask to a sub-agent with its own fresh context, in this project and mode, with the same permissions.`,
+        `Give it a complete brief: it cannot see this conversation.`,
+        `By default waits and returns its final answer; several delegations in one step run in parallel.`,
+        `With background=true it returns immediately; collect the answer later with agent_result.${catalog.length ? ` Agent definitions: ${catalog.join("; ")}.` : ""}`,
+      ),
       Type.Object({
         description: Type.String({ minLength: 1, maxLength: 120 }),
         prompt: Type.String({ minLength: 1, maxLength: 40000 }),
@@ -51,7 +57,7 @@ export function registerDelegation({
         background: Type.Optional(Type.Boolean()),
       }),
       "read",
-      [],
+      ["agent"],
       async (args, signal, callId) => {
         const definition = args.agentId
           ? k.agents.get(args.agentId)
@@ -138,7 +144,11 @@ export function registerDelegation({
     delegate.scheduling = { parallelSafe: true, detached: true };
     const result = add(
       "agent_result",
-      "Check a sub-agent started by agent_delegate (including background ones from earlier runs of this session). Optionally wait up to waitMs for it to finish. Returns status and, when finished, its final answer.",
+      sentences(
+        "Check a sub-agent started by agent_delegate (including background ones from earlier runs of this session).",
+        "Optionally wait up to waitMs for it to finish.",
+        "Returns status and, when finished, its final answer.",
+      ),
       Type.Object({
         runId: Type.String({ minLength: 1, maxLength: 200 }),
         waitMs: Type.Optional(Type.Integer({ minimum: 0, maximum: 600000 })),
