@@ -77,16 +77,25 @@ const project = await kernel.createProject("客户项目", workspace, {
 
 ## 与现有 Agent 产品如何选择
 
-以下比较核查于 **2026-10-23**，产品与接口会继续变化。四类产品都有程序化接入或扩展方式；SDK、多模型、MCP 和用量追踪并非本工程独有。选择时应看接入方式与所需的具体组合。
+本工程的具体优势集中在**业务账户计费、宿主审批策略和现成后台接口的组合**。本次源码核查不能证明模型质量、通用执行循环或内存占用全面领先；SDK、多模型、SQLite 和 MCP 都不是独有能力。
 
-| 产品                                                    | 官方定位与已确认的接入方式                                                                                                                        | 选择本工程时侧重的需求                                                                                               | 官方资料                                                                                                                                                                                                              |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Claude Code / Claude Agent SDK**                      | 成品编码代理；Python / TypeScript SDK 可运行 Claude Code agent，支持工具、会话、权限、hooks 和 MCP；SDK 提供费用追踪，使用原生 Claude Code 运行时 | 希望在自己的 Node 进程内直接维护执行循环与三种文本协议，把 SQLite、业务审批和账户计费组合到同一宿主                  | [官网](https://code.claude.com/docs/en/overview) · [Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) · [运行与依赖](https://code.claude.com/docs/en/agent-sdk/quickstart)                               |
-| **Pi coding agent（原 pi-mono，现 earendil-works/pi）** | 可扩展 agent harness；有 TUI、print / JSON、RPC、进程内 TypeScript SDK、多提供方、扩展及内置 MCP；pi-ai 有 token 与费用追踪                       | 希望直接采用本工程统一的项目/会话 SQLite、HTTP/SSE、权限审批、账户计费与可选宿主接口，减少自行组合这些具体接口的工作 | [官网](https://pi.dev/) · [TypeScript SDK](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md) · [模型与费用接口](https://github.com/earendil-works/pi/blob/main/packages/ai/README.md) |
-| **Z.ai ZCode**                                          | 面向开发者的 Agent 工作区，提供桌面、Web、TUI/CLI；支持自定义兼容模型端点、插件、MCP，源码含 Agent client SDK 与服务接口                          | 希望独立设计产品界面、业务流程和数据模型，以本工程的 Node 库与客户端作为接入起点                                     | [官网与配置](https://zcode.z.ai/en/docs/configuration) · [源码与客户端结构](https://github.com/zai-org/ZCode/blob/main/README.en.md) · [插件](https://zcode.z.ai/en/docs/plugin)                                      |
-| **DeepSeek Harness 官方桌面版**                         | 官方开源插件化 Harness，提供桌面、Web 与 Python SDK；可接多提供方和兼容端点，Python SDK 通过内置 dsh 进程运行                                     | 希望使用直接导入的 Node 内核，围绕本工程的事件、持久化、审批与计费契约构建宿主                                       | [官网](https://www.deepseek.com/harness/) · [Python SDK](https://deepseek-harness.github.io/deepseek-harness/guide/python-sdk) · [模型配置](https://deepseek-harness.github.io/deepseek-harness/guide/providers)      |
+以下按 **2026-10-23** 检出的固定源码比较，完整路径、提交 SHA 和边界见 [源码比较说明](docs/SOURCE-COMPARISON.md)。
 
-需要现成开发工作区时，可先评估这些产品入口；开发自己的应用时，本工程提供一组可以直接接入和修改的执行基础。表中列出的是本工程的组合与接入侧重，不代表其他项目无法满足这些需求，也不构成速度或内存排名。
+| 项目与固定源码                                                                                                                                                                           | 已核实的实现，以及本工程减少的接入工作                                                                                                                                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Pi** · [`74f4686` SDK 导出](https://github.com/earendil-works/pi/blob/74f46864025c68504cd10c89eeb626b7e3d64cea/packages/coding-agent/src/index.ts#L254-L264)                           | 已有进程内 SDK、MCP、权限钩子、按需供应商加载，也可通过 pi-durable 使用 SQLite。本工程把项目账户归属、宿主收费回调、多级 USD 预算、对账与实体 HTTP API 直接组合，减少自建这些业务接口的工作；Pi 的扩展和存储选择仍有优势。                                         |
+| **Z.ai ZCode** · [`3c5b227` 应用入口](https://github.com/zai-org/ZCode/blob/3c5b227649371507ddc4eb46ac5133afe6db1cab/apps/zcode-cli/packages/bootstrap/src/app/create-app.ts#L163-L181)  | 已有可注入端口的 Node 应用 API、SQLite 会话、客户端/服务端、套餐余额与用量统计。本工程提供标准 HTTP JSON / 游标 SSE、宿主权限交集及通用计费状态链路，适合自己实现业务产品；ZCode 的成品界面和插件市场更完整。                                                      |
+| **DeepSeek Harness** · [`687f282` SDK 启动契约](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/packages/sdk/client/src/launch.ts#L50-L75) | 官方 TypeScript / Python SDK 默认通过配套运行时子进程运行，内部 AgentLoop 也可进程内组合；标准 profile 用 JSONL 持久化，SQLite 是可丢弃的 FTS 读模型。本工程公开 Kernel 可直接进程内运行，将项目、会话、审批和费用放进同一业务存储，接自有客户账户时少写跨层适配。 |
+
+选择本工程时，可以直接复用以下部分：
+
+1. **接入自己的收费规则**：`Project.billingAccount` 关联业务账户，`authorize` 在请求前检查额度，`record` 报告用量与状态；支持运行、会话、项目、日期和总额预算，费用未知时保留预留额并按实际账单对账，通知可幂等重投。见 [计费契约](src/runtime/billing.ts)、[费用账本](src/runtime/cost.ts)。
+2. **直接建设产品后台**：复用项目、会话、资产、输入队列、审批和费用 API，通过 HTTP / SSE 或同进程 SDK 接入。统一存储与事件契约减少自行组合状态同步的工作，见 [HTTP API](docs/API.md)、[Kernel 公开入口](src/index.ts)。
+3. **把宿主限制落实到执行**：宿主、项目、模式、实际模型与祖先会话取最严格权限，审批后复核撤销；需要本机隔离时可选 Windows AppContainer。见 [权限实现](src/core/permissions.ts)、[隔离范围](docs/CORE-FOUNDATION.md)。这些机制已组合在内核中，其他项目也可通过扩展实现相近需求。
+
+对方在成品 UI、插件生态、存储自由度或明确的开源许可方面各有强处；本工程当前为 `UNLICENSED`，复用许可尚未确定。没有同条件的跨项目性能测试，不能据依赖数量或空闲核心数据作速度、内存排名。
+
+**Claude Code / Claude Agent SDK** 仅核查了[公开 SDK 接口](https://code.claude.com/docs/en/agent-sdk/overview)，缺少完整运行时源码，未纳入上述三个开源项目同等级的源码结论。
 
 ## 能力一览
 

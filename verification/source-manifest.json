@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-22T15:59:12.552Z",
+  "checkedAt": "2026-10-22T16:19:37.817Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -25,7 +25,7 @@
     "ws": "8.22.0"
   },
   "productionFixtureAdapters": [],
-  "sourceFiles": 388,
+  "sourceFiles": 389,
   "files": [
     {
       "path": "src/api/collaboration.ts",
@@ -1313,6 +1313,11 @@
       "sha256": "340401b0cb1182189d56941e66720a056f6abcd2cf4687248f5636fa4479350f"
     },
     {
+      "path": "docs/SOURCE-COMPARISON.md",
+      "bytes": 22402,
+      "sha256": "c3e270134734e6796dc8cd42809065474dee25d731cb01dc6e64bbae113e5328"
+    },
+    {
       "path": "docs/STORAGE-PERFORMANCE.md",
       "bytes": 5754,
       "sha256": "8de02d07bf889f7e44db7e198bab62d580c0af0b531151175e38b486b93a10a6"
@@ -1964,8 +1969,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 20227,
-      "sha256": "2e51d0e2094fab3a4f12765f24c491c990640075b6eeed040ad581b8fe62943e"
+      "bytes": 20563,
+      "sha256": "40a66923e85e48b151e2672aaaa855a659eb5fd6741d5b5e9900b3c4b845325d"
     }
   ]
 }

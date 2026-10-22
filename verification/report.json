@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-22T15:59:12.566Z",
+  "checkedAt": "2026-10-22T16:19:37.830Z",
   "node": "v22.22.0",
   "platform": "win32",
   "runtime": "foundation-owned",
@@ -18,7 +18,7 @@
       "name": "source-independence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 188,
+      "durationMs": 165,
       "stdoutLog": "source-independence.log",
       "stderrLog": "source-independence.stderr.log"
     },
