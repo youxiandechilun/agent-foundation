@@ -8,6 +8,13 @@ import {
   type MCPToolResult,
 } from "../protocol.js";
 
+interface MCPToolMetadata {
+  input: ReturnType<typeof compileSchema>;
+  output?: ReturnType<typeof compileSchema>;
+  headers: HeaderBinding[];
+}
+export type MCPToolOutputValidator = ReturnType<typeof compileSchema> | null;
+
 function isToolDeclaration(value: unknown): value is MCPToolDeclaration {
   const tool = wireObject(value);
   if (
@@ -31,28 +38,29 @@ function isToolDeclaration(value: unknown): value is MCPToolDeclaration {
 
 /** Validated tool schemas and HTTP parameter bindings come from the same catalog. */
 export class MCPToolCatalog {
-  private toolHeaders = new Map<string, HeaderBinding[]>();
-  private toolSchemas = new Map<
-    string,
-    {
-      input: ReturnType<typeof compileSchema>;
-      output?: ReturnType<typeof compileSchema>;
-    }
-  >();
+  private metadata = new Map<string, MCPToolMetadata>();
   constructor(private record: (method: string, params: unknown) => void) {}
   headers(name: string): HeaderBinding[] | undefined {
-    return this.toolHeaders.get(name);
+    return this.metadata.get(name)?.headers;
   }
-  accept(
-    r: WireObject,
-    bindHeaders: boolean,
-  ): WireObject & { tools: MCPToolDeclaration[] } {
+  accept(r: WireObject, bindHeaders: boolean) {
+    const { page, metadata } = this.prepare(r, bindHeaders);
+    this.append(metadata);
+    return page;
+  }
+  prepare(r: WireObject, bindHeaders: boolean) {
     const declared = r.tools;
     invariant(
       Array.isArray(declared) && declared.every(isToolDeclaration),
       "Invalid MCP tool list",
       502,
     );
+    invariant(
+      r.nextCursor === undefined || typeof r.nextCursor === "string",
+      "Invalid MCP tool pagination cursor",
+      502,
+    );
+    const metadata = new Map<string, MCPToolMetadata>();
     const tools = declared.filter((tool) => {
       try {
         if (!tool.inputSchema.$schema)
@@ -69,9 +77,8 @@ export class MCPToolCatalog {
                   "https://json-schema.org/draft/2020-12/schema",
               })
             : undefined;
-        this.toolSchemas.set(tool.name, { input, output });
-        if (bindHeaders)
-          this.toolHeaders.set(tool.name, headerBindings(tool.inputSchema));
+        const headers = bindHeaders ? headerBindings(tool.inputSchema) : [];
+        metadata.set(tool.name, { input, output, headers });
         return true;
       } catch (error) {
         this.record("tools/rejected", {
@@ -81,27 +88,42 @@ export class MCPToolCatalog {
         return false;
       }
     });
-    return { ...r, tools };
+    return { page: { ...r, tools, nextCursor: r.nextCursor }, metadata };
+  }
+  replace(metadata: Map<string, MCPToolMetadata>): void {
+    this.metadata = metadata;
+  }
+  append(metadata: Map<string, MCPToolMetadata>): void {
+    for (const [name, entry] of metadata) this.metadata.set(name, entry);
+  }
+  clear(): void {
+    this.metadata.clear();
+  }
+  outputValidator(name: string): MCPToolOutputValidator {
+    return this.metadata.get(name)?.output ?? null;
   }
   validateInput(name: string, value: unknown): void {
-    const schema = this.toolSchemas.get(name);
+    const schema = this.metadata.get(name);
     if (schema)
       invariant(
         schema.input(value),
         "MCP tool input violates its catalog schema",
       );
   }
-  validateResult(name: string, value: unknown): MCPToolResult {
-    const schema = this.toolSchemas.get(name),
-      r = wireObject(value);
+  validateResult(
+    name: string,
+    value: unknown,
+    output: MCPToolOutputValidator = this.outputValidator(name),
+  ): MCPToolResult {
+    const r = wireObject(value);
     invariant(
       r && (Array.isArray(r.content) || r.structuredContent !== undefined),
       "Invalid MCP tool result",
       502,
     );
-    if (!r.isError && schema?.output)
+    if (!r.isError && output)
       invariant(
-        r.structuredContent !== undefined && schema.output(r.structuredContent),
+        r.structuredContent !== undefined && output(r.structuredContent),
         "MCP tool structured output violates its catalog schema",
         502,
       );

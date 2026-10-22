@@ -6,6 +6,8 @@ import type { EntityPage } from "../storage/entity-query.js";
 import { AppError, errorText, id, invariant, now } from "../core/util.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { findTextProtocol } from "../providers/registry.js";
+import { nativeWebSearchEnabled } from "../providers/responses-search.js";
+import { KeyedQueue } from "./keyed-queue.js";
 import type {
   BillingCharge,
   BillingOutcome,
@@ -31,7 +33,11 @@ export interface CostEntry extends CostScope {
   account?: string;
   units?: MediaUnits;
   /** Delivery to the host billing provider; absent when none is installed. */
-  billing?: { state: "authorized" | "recorded" | "failed"; error?: string };
+  billing?: {
+    state: "authorized" | "recorded" | "failed";
+    error?: string;
+    deliveryId?: string;
+  };
   endpoint: string;
   responseId?: string;
   reference?: string;
@@ -43,6 +49,8 @@ export interface CostEntry extends CostScope {
   createdAt: string;
   updatedAt: string;
   error?: string;
+  /** Token usage alone cannot settle provider-hosted tool charges. */
+  requiresReconciliation?: boolean;
 }
 const micros = (usd: number) => {
   invariant(
@@ -66,6 +74,7 @@ export function billingTokens(adapter: string, u: Usage): BillingTokens {
 export class CostLedger {
   private scopes = new AsyncLocalStorage<CostScope>();
   private deliveries = new Set<Promise<void>>();
+  private readonly deliveryQueue = new KeyedQueue<string>();
   constructor(
     readonly store: Store,
     readonly config: Config,
@@ -238,6 +247,7 @@ export class CostLedger {
     signal?: AbortSignal,
   ) {
     const p = route.pricing,
+      nativeSearch = nativeWebSearchEnabled(route, request),
       output = Math.min(
         request.maxOutputTokens || route.maxOutputTokens,
         route.maxOutputTokens,
@@ -248,17 +258,42 @@ export class CostLedger {
       p?.cacheReadPerMillion ?? p?.inputPerMillion ?? 0,
       p?.cacheWritePerMillion ?? p?.inputPerMillion ?? 0,
     );
-    const bound =
+    const tokenBound =
       Math.ceil(
         route.contextWindow * inputRate + output * (p?.outputPerMillion || 0),
       ) + micros(p?.requestUsd || 0);
+    invariant(
+      !nativeSearch ||
+        !this.config.budgets.enabled ||
+        p?.maxRequestUsd !== undefined,
+      "Native web search maxRequestUsd is required with cost budgets",
+      402,
+      "pricing_required",
+    );
+    const bound = nativeSearch
+      ? Math.max(tokenBound, micros(p?.maxRequestUsd || 0))
+      : tokenBound;
+    const reservation = this.reserve(routeId, route, scope, bound);
+    // Keep this requirement durable before the provider can start a billed effect.
     const entry = await this.authorize(
-      this.reserve(routeId, route, scope, bound),
+      nativeSearch
+        ? this.update(reservation.id, { requiresReconciliation: true })
+        : reservation,
       signal,
     );
     try {
       const result = await operation();
-      this.settleUsage(entry.id, route, result.usage, result.responseId);
+      if (nativeSearch)
+        this.deliver(
+          this.update(entry.id, {
+            status: "unknown",
+            requiresReconciliation: true,
+            usage: result.usage,
+            ...(result.responseId ? { responseId: result.responseId } : {}),
+            error: "Provider-hosted web search charges require reconciliation",
+          }),
+        );
+      else this.settleUsage(entry.id, route, result.usage, result.responseId);
       return result;
     } catch (error) {
       const current = this.store.get<CostEntry>("cost-ledger", entry.id);
@@ -420,11 +455,22 @@ export class CostLedger {
   private deliver(entry: CostEntry) {
     const billing = this.billing;
     if (!billing || !entry.billing || entry.status === "reserved") return;
+    const deliveryId = id("billing-delivery");
+    this.update(entry.id, { billing: { state: "authorized", deliveryId } });
+    const markDelivery = (state: "recorded" | "failed", error?: string) => {
+      const current = this.store.get<CostEntry>("cost-ledger", entry.id);
+      if (current.billing?.deliveryId === deliveryId)
+        this.update(entry.id, {
+          billing: { state, deliveryId, ...(error ? { error } : {}) },
+        });
+    };
     const outcome: BillingOutcome = {
       // Reported usage on an unpriced route is conclusive for the host even though
       // the kernel's own USD ledger still needs reconciliation.
       status:
-        entry.status === "unknown" && entry.usage?.reported
+        entry.status === "unknown" &&
+        entry.usage?.reported &&
+        !entry.requiresReconciliation
           ? "settled"
           : entry.status,
       ...(entry.usage?.reported
@@ -436,21 +482,20 @@ export class CostLedger {
         : { chargedMicros: entry.chargedMicros }),
       ...(entry.reference === undefined ? {} : { reference: entry.reference }),
     };
-    const delivery = (async () => {
-      try {
-        await billing.record(this.charge(entry), outcome);
-        this.update(entry.id, { billing: { state: "recorded" } });
-      } catch (error) {
-        this.update(entry.id, {
-          billing: { state: "failed", error: errorText(error) },
-        });
-        if (entry.runId)
-          this.store.emit(entry.runId, "billing.record.failed", {
-            chargeId: entry.id,
-            error: errorText(error),
-          });
-      }
-    })()
+    const delivery = this.deliveryQueue
+      .run(entry.id, async () => {
+        try {
+          await billing.record(this.charge(entry), outcome);
+          markDelivery("recorded");
+        } catch (error) {
+          markDelivery("failed", errorText(error));
+          if (entry.runId)
+            this.store.emit(entry.runId, "billing.record.failed", {
+              chargeId: entry.id,
+              error: errorText(error),
+            });
+        }
+      })
       // The store may already be closed; redelivery happens on the next start.
       .catch(() => undefined)
       .finally(() => this.deliveries.delete(delivery));
@@ -486,7 +531,7 @@ export class CostLedger {
       "Invoice or reconciliation reference required",
     );
     const chargedMicros = micros(actualUsd);
-    return this.store.transaction(() => {
+    const reconciled = this.store.transaction(() => {
       const previous = this.store.get<CostEntry>("cost-ledger", key);
       invariant(
         previous.status !== "reserved",
@@ -508,5 +553,7 @@ export class CostLedger {
         reference,
       });
     });
+    if (reconciled.requiresReconciliation) this.deliver(reconciled);
+    return reconciled;
   }
 }

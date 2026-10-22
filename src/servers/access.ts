@@ -1,5 +1,6 @@
 import type { Store } from "../storage/store.js";
 import { invariant } from "../core/util.js";
+import { KeyedQueue } from "../runtime/keyed-queue.js";
 
 interface Lease {
   controller: AbortController;
@@ -10,7 +11,7 @@ interface Lease {
 class ServerAccess {
   private active = new Map<string, Set<Lease>>();
   private changing = new Set<string>();
-  private mutations: Promise<void> = Promise.resolve();
+  private mutations = new KeyedQueue<string>();
   acquire(serverId: string): Lease {
     invariant(
       !this.changing.has(serverId),
@@ -38,7 +39,7 @@ class ServerAccess {
     return lease;
   }
   change<T>(serverId: string, operation: () => Promise<T>): Promise<T> {
-    const pending = this.mutations.then(async () => {
+    return this.mutations.run(serverId, async () => {
       this.changing.add(serverId);
       try {
         const leases = [...(this.active.get(serverId) ?? [])];
@@ -52,11 +53,6 @@ class ServerAccess {
         this.changing.delete(serverId);
       }
     });
-    this.mutations = pending.then(
-      () => undefined,
-      () => undefined,
-    );
-    return pending;
   }
 }
 const coordinators = new WeakMap<Store, ServerAccess>();

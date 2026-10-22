@@ -24,7 +24,6 @@ interface HttpHost {
   receive: (message: RpcMessage, parentId?: RpcId) => void;
   hasPending: (id: RpcId) => boolean;
   sessionExpired: (error: MCPProtocolError) => void;
-  toolHeaders: (name: string) => HeaderBinding[] | undefined;
   record: (method: string, params: unknown) => void;
 }
 /** HTTP session identity, routing headers and SSE recovery belong to one connection. */
@@ -54,7 +53,12 @@ export class MCPHttpTransport {
         : {}),
     };
   }
-  async send(message: RpcMessage, data: string, signal: AbortSignal) {
+  async send(
+    message: RpcMessage,
+    data: string,
+    signal: AbortSignal,
+    toolHeaders?: HeaderBinding[],
+  ) {
     const response = await fetch(this.options.url!, {
       method: "POST",
       headers: {
@@ -81,9 +85,7 @@ export class MCPHttpTransport {
           : {}),
         ...(this.host.modern() && message.method === "tools/call"
           ? parameterHeaders(
-              this.host.toolHeaders(
-                String(wireMember(message.params, "name")),
-              ) || [],
+              toolHeaders || [],
               wireMember(message.params, "arguments"),
             )
           : {}),

@@ -1,0 +1,190 @@
+{
+  "checkedAt": "2026-10-18T08:51:08.130Z",
+  "node": "v22.22.0",
+  "platform": "win32",
+  "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+  "rounds": 5,
+  "syntheticRowsPerTable": 12000,
+  "directories": [
+    "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\.agent-data-refactor\\streamline-before-dist",
+    "C:\\Users\\32761\\Desktop\\agent\\agent-foundation\\dist"
+  ],
+  "method": "Separate fresh SQLite databases, identical synthetic records, untimed setup and one warmup round, alternate version order, validate result IDs and full records before and after each timed batch.",
+  "limitation": "In-process local query microbenchmark. Excludes model inference, full Kernel authorization, networking and cold startup. Do not interpret query speedup as end-to-end Agent speedup.",
+  "versions": [
+    {
+      "label": "baseline",
+      "hashes": {
+        "storage/store.js": "d0740d1ab2956b9faa8b7befb09e54a72eaa73fe4b33a0b593d4b3fdf334ae60",
+        "servers/manager.js": "1c07ec4bf1ba02b6c877e8afed239f079072c3c6ddbc9f1c4a9fdfe6e101a5f2"
+      }
+    },
+    {
+      "label": "current",
+      "hashes": {
+        "storage/store.js": "57318d2ad84b6796f0edd035a7d86d6653f2e70f5ac774928a508f94acc9f8c2",
+        "servers/manager.js": "0b79b4f654b8a7338db4c22cc52ddd9f2ff327f93da507dd55abcf5558974530"
+      }
+    }
+  ],
+  "results": [
+    {
+      "scenario": "authorized-sessions",
+      "perOperationMs": {
+        "baseline": 27.076620000000002,
+        "current": 0.0337650000000167
+      },
+      "speedup": 801.913816081345
+    },
+    {
+      "scenario": "latest-server-facts",
+      "perOperationMs": {
+        "baseline": 62.57400000000007,
+        "current": 0.3936200000000099
+      },
+      "speedup": 158.97058076316878
+    }
+  ],
+  "samples": [
+    {
+      "scenario": "authorized-sessions",
+      "label": "baseline",
+      "round": 1,
+      "operations": 20,
+      "elapsedMs": 557.4502000000002
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "current",
+      "round": 1,
+      "operations": 20,
+      "elapsedMs": 0.610700000000179
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "current",
+      "round": 2,
+      "operations": 20,
+      "elapsedMs": 0.675300000000334
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "baseline",
+      "round": 2,
+      "operations": 20,
+      "elapsedMs": 541.5324
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "baseline",
+      "round": 3,
+      "operations": 20,
+      "elapsedMs": 566.5445999999997
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "current",
+      "round": 3,
+      "operations": 20,
+      "elapsedMs": 0.6817999999998392
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "current",
+      "round": 4,
+      "operations": 20,
+      "elapsedMs": 0.5914000000002488
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "baseline",
+      "round": 4,
+      "operations": 20,
+      "elapsedMs": 508.5466999999999
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "baseline",
+      "round": 5,
+      "operations": 20,
+      "elapsedMs": 520.0729999999999
+    },
+    {
+      "scenario": "authorized-sessions",
+      "label": "current",
+      "round": 5,
+      "operations": 20,
+      "elapsedMs": 0.6925000000001091
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "baseline",
+      "round": 1,
+      "operations": 10,
+      "elapsedMs": 622.2551000000003
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "current",
+      "round": 1,
+      "operations": 10,
+      "elapsedMs": 4.399800000000141
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "current",
+      "round": 2,
+      "operations": 10,
+      "elapsedMs": 3.936200000000099
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "baseline",
+      "round": 2,
+      "operations": 10,
+      "elapsedMs": 610.8410999999996
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "baseline",
+      "round": 3,
+      "operations": 10,
+      "elapsedMs": 634.4177
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "current",
+      "round": 3,
+      "operations": 10,
+      "elapsedMs": 4.342200000000048
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "current",
+      "round": 4,
+      "operations": 10,
+      "elapsedMs": 3.675600000000486
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "baseline",
+      "round": 4,
+      "operations": 10,
+      "elapsedMs": 625.7400000000007
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "baseline",
+      "round": 5,
+      "operations": 10,
+      "elapsedMs": 645.4341000000004
+    },
+    {
+      "scenario": "latest-server-facts",
+      "label": "current",
+      "round": 5,
+      "operations": 10,
+      "elapsedMs": 3.691499999998996
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import {
 } from "./client-metadata.js";
 import { OAuthVault } from "./vault.js";
 import { hash, invariant, registerSecret } from "../../../core/util.js";
+import { KeyedQueue } from "../../../runtime/keyed-queue.js";
 
 type SigningKey = {
   kid: string;
@@ -31,7 +32,7 @@ type Ring = {
 };
 /** Host-owned private keys never leave the encrypted vault. Only a served JWKS starts the overlap clock. */
 export class MCPKeyring {
-  private locks = new Map<string, Promise<unknown>>();
+  private locks = new KeyedQueue<string>();
   private tracked = new Map<string, MCPClientMetadata>();
   private failures = new Map<string, string>();
   private timer?: ReturnType<typeof setInterval>;
@@ -80,24 +81,15 @@ export class MCPKeyring {
     );
     return { ...auth.managed, alg: auth.alg };
   }
-  private async locked<T>(
+  private locked<T>(
     config: MCPClientMetadata,
     action: () => Promise<T>,
   ): Promise<T> {
-    const id = this.identity(config),
-      previous = this.locks.get(id);
-    const operation = (async () => {
-      await previous?.catch(() => undefined);
+    return this.locks.run(this.identity(config), () => {
       this.lifetime.throwIfAborted();
       invariant(!this.closed, "OAuth key manager is closed", 503);
       return action();
-    })();
-    this.locks.set(id, operation);
-    try {
-      return await operation;
-    } finally {
-      if (this.locks.get(id) === operation) this.locks.delete(id);
-    }
+    });
   }
   private async generate(alg: string): Promise<SigningKey> {
     const keys = await new Promise<{

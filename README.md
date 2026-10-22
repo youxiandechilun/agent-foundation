@@ -1,53 +1,108 @@
 # Agent Foundation
 
-可嵌入的 TypeScript / Node.js Agent 内核，提供 HTTP / SSE API 和独立客户端，用于构建自己的 AI 助手、开发工具和自动化应用。
+把 Agent 能力接进自己的产品：**可嵌入的 TypeScript / Node.js 内核、独立 HTTP / SSE 客户端，以及按需启用的浏览器、桌面和办公集成。**
 
-项目负责模型调用、持续执行、工具权限、上下文、会话、记忆和扩展管理。开发者通过模型路由、职责提示词、工具和团队配置组合不同 Agent，再接入自己的网页、Electron 或后端服务。当前交付是内核、SDK 和 API，没有成品聊天界面或配置界面。
+你决定界面、业务流程、模型、数据保存位置和收费方式；Agent Foundation 提供持续执行、工具调用、权限审批、会话存储与费用记录。适合开发自己的 AI 助手、企业内部工具、付费应用后端和自动化服务。
 
-当前版本 **0.12.1**。源码和验证记录在本仓库维护；npm 包尚未公开发布，授权条款尚未确定，`package.json` 标记为 `private: true`、`UNLICENSED`。
+## 为什么选择这个工程
 
-## 适合用来做什么
+- **直接嵌入现有 Node.js 应用**：在同一进程创建 `Kernel`，使用自己的工具和业务接口；也可独立运行服务，通过 HTTP / SSE 接入网页、Electron 或其他语言。
+- **把产品规则放在自己手中**：模型路由、角色、工作区、审批和计费由宿主配置，项目、会话、附件和执行记录保存到自己的 SQLite 与资产目录。
+- **支持按业务账户计费**：项目可绑定账户；每次模型调用前由宿主检查余额或积分，调用后报告用量和结果，接入已有的账户系统。
+- **轻量运行、按需扩展**：核心只有四项直接运行依赖，浏览器、Office 与桌面能力单独启用。无需为了运行内核安装另一套 Agent CLI。
+- **复用一套执行与审计接口**：文件、命令、MCP、子 Agent 和可选宿主共用会话、权限、审批、资产与事件，方便在产品中展示进度、处理授权和追踪结果。
 
-- **接入自己的产品**：复用执行循环、流式事件和会话存储，在上层实现聊天界面、审批交互和业务流程。
-- **构建项目助手**：在指定工作区读取、搜索和修改文件，调用 Git 与命令行程序，并记录工具执行结果。
-- **组合不同职责的 Agent**：为角色配置模型、指令、工具范围和记忆空间，启用子 Agent 或固定团队协作。
-- **连接外部能力**：通过 Skill、源码 Plugin、MCP 或宿主集成，接入业务服务、浏览器、Windows 桌面和办公文件处理。
+交付形态是内核、SDK 与 API。面向最终用户的聊天界面、账户页面和业务管理界面由调用方实现。
 
-## 一次任务如何运行
+## 从产品到执行
 
 ```text
-网页 / Electron / CLI / 其他程序
-             │ HTTP + SSE，或进程内 SDK
-             ▼
-           Kernel
-             ├─ 项目、会话、输入队列与持久化
-             ├─ 模型路由 → 模型回复 → 工具调用 → 继续执行
-             ├─ 工具校验、权限、审批、预算与生命周期钩子
-             └─ 上下文、记忆、附件、扩展与 Agent 协作
-                         │
-             模型服务 / 本机工具 / 外部服务
+你的网页 / Electron / 后端 / 自动化服务
+                 │ 进程内 SDK，或 HTTP + SSE
+                 ▼
+               Kernel
+                 ├─ 项目、会话、输入队列与 SQLite 存储
+                 ├─ 模型路由 → 回复 → 工具调用 → 继续执行
+                 ├─ 参数校验、权限、审批、预算与宿主计费
+                 └─ 上下文、记忆、资产、扩展与 Agent 协作
+                               │
+                   模型服务 / 本机工具 / 业务系统
 ```
 
-调用方创建项目和会话、提交输入，再订阅运行事件。模型可以多次调用工具并继续工作；一条回复提交后，任务仍可能继续。`assistant.message.delta` 用于显示流式文字，`assistant.message.committed` 表示一条完整回复，`run.completed` 表示本次运行结束。
+创建项目和会话、提交输入、订阅事件，即可接入一次运行。`assistant.message.delta` 用于流式显示，`assistant.message.committed` 表示一条完整回复，`run.completed` 表示整次运行结束。审批请求也通过事件交给你的界面处理。
 
-## 核心能力
+## 轻量与效率设计
 
-| 能力 | 当前实现 |
-| --- | --- |
-| 模型接入 | OpenAI Chat Completions、OpenAI Responses、Anthropic Messages 三种文本协议；可配置地址、模型、凭据、回退和重试，支持图像输入与结构化输出 |
-| 执行与工具 | 持续执行循环、并行工具调度、输入追加与任务转向、取消和恢复；文件、命令、持久进程、Git、网页抓取与可插拔搜索 |
-| 权限与审批 | 宿主、项目、模型、模式和扩展的权限共同约束执行；支持逐次审批、资源限制、费用预算，以及默认关闭的内容安全审计 |
-| 上下文与存储 | SQLite 项目和会话、附件资产、上下文压缩、会话分叉与迁移、文件检查点和回滚、工具效果日志 |
-| 记忆 | 中英文全文检索、命名空间、有效期、修订历史；可选向量检索，自动记忆提案需人工批准后入库 |
-| Agent 协作 | 自定义角色、子 Agent 委托、固定团队分工与只读讨论；成员可配置各自模型和职责 |
-| 扩展 | 按需加载 Skill、受信任源码 Plugin、MCP stdio / Streamable HTTP；工具、资源、提示词及授权能力的具体范围见扩展文档 |
-| 媒体与服务器 | 可选图片/视频适配器、任务轮询与产物管理；可选服务器档案、加密凭据、SSH 命令与 SFTP |
+核心直接运行依赖为 **Ajv、TypeBox、YAML、Zod**；SQLite 使用 Node 内置模块。文本协议和 MCP 客户端由本工程维护，核心不依赖外部 Agent CLI、模型厂商 SDK 或 MCP SDK。开发依赖、可选依赖与实际安装体积另计，见 [package.json](package.json)。
 
-内置 `chat`、`code`、`office` 是工作策略，实际能力还取决于模型、权限和已启用的集成。模型协议与 MCP 客户端由本工程维护，不依赖外部 Agent CLI、模型厂商 SDK 或 MCP SDK；通用库及其许可见依赖清单。
+- **减少流式处理开销**：增量在引擎内按短时间窗口合并，消息提交复用脱敏后的序列化文本，多个 SSE 订阅者共享事件 JSON。
+- **控制慢客户端积压**：HTTP / SSE 按 `write` / `drain` 处理背压，超过队列限制时断开；客户端可按游标恢复持久事件。
+- **缓存有范围和生命周期**：SQL 语句、schema 编译和 token 估算使用固定集合、有界缓存或对象生命周期缓存，不缓存权限判定。
+- **让 SQLite 处理筛选与汇总**：常用查询使用定向 SQL 和索引，费用汇总在数据库中聚合，明细与消息分页读取，减少全量记录进入 JavaScript 堆。
+- **把附加能力留到需要时**：浏览器、桌面和办公库按需安装和装配；办公解析 worker 限制并发、时间与堆大小。可配置历史事件及缓存保留期限。
+
+本机最小核心与 HTTP 服务空闲实测为**百 MiB 级进程占用**：
+
+| 指标                     | 五个独立进程的中位数                    |
+| ------------------------ | --------------------------------------- |
+| 整进程 RSS               | **109.8 MiB**，五次范围 109.1–110.0 MiB |
+| JavaScript `heapUsed`    | **31.2 MiB**                            |
+| 动态导入内核至 HTTP 就绪 | **0.74 秒**                             |
+
+测量于 **2026-10-23**，Windows x64 10.0.26200、Intel i7-12700H、Node.js v22.22.0；五个进程串行启动，各用全新 SQLite，服务就绪后空闲 500ms 并显式 GC。启动时间不含 Node 进程创建和脚本静态导入；未创建项目、会话或调用工具与模型，可选宿主未启用。
+
+结果只描述这个空闲场景，不能外推到浏览器、Office、大数据或并发任务，也没有与竞品做同条件比较。构建后运行 `node scripts/benchmark-kernel-footprint.mjs` 可复现，见 [测量脚本](scripts/benchmark-kernel-footprint.mjs) 与 [原始报告](verification/kernel-footprint.json)。历史 [优化说明](docs/OPTIMIZATION.md) 中的 2026-10-18 模块增量堆数据是另一种口径；存储设计与复现入口见 [存储性能文档](docs/STORAGE-PERFORMANCE.md)。
+
+## 多账户用量与计费接入
+
+已有的 `Project.billingAccount` 与 `KernelOptions.billing` 可把不同项目的模型费用关联到宿主的业务账户。宿主实现 `BillingProvider`，按自己的余额、积分或套餐规则处理每次调用：
+
+1. **调用前授权**：`authorize(charge, signal)` 在文本、embedding 和媒体请求发出前执行。宿主可检查或预留额度；拒绝时内核返回 `billing_refused`。
+2. **调用后记录**：`record(charge, outcome)` 接收 `settled`、`void` 或 `unknown`，以及已确认的 token、媒体单位和可用的费用信息。内核另有 USD 费用账本与预算限制。
+3. **按同一笔费用幂等更新**：使用稳定的 `charge.id` 作为键；相同费用可能再次报告最新状态，记录失败后可在重启时重投，不能每收到一次回调就重复扣费。
+
+```typescript
+// 接入片段：config、workspace 与 billing 由你的宿主提供。
+const kernel = new Kernel(config, { billing });
+await kernel.init();
+const project = await kernel.createProject("客户项目", workspace, {
+  billingAccount: "customer-001",
+});
+// 已有项目也可通过 kernel.setProjectBillingAccount(...) 绑定账户。
+```
+
+无用量、请求中断或供应商原生搜索费用不明确时，需要保留待对账状态，再依据实际账单处理。供应商成本与向客户收取的价格可以不同，换算和最终扣款由宿主决定；回调契约见 [计费接口](src/runtime/billing.ts) 与 [架构说明](docs/ARCHITECTURE.md)。
+
+**内置 HTTP 服务仍使用统一的 host token。** 它是可信宿主入口；终端用户登录、充值、套餐管理，以及每个账户可以读取哪些项目和数据，由上层应用实现。多账户费用归属与回调已经具备，完整多租户身份和数据隔离需要在产品层继续建设。
+
+## 与现有 Agent 产品如何选择
+
+以下比较核查于 **2026-10-23**，产品与接口会继续变化。四类产品都有程序化接入或扩展方式；SDK、多模型、MCP 和用量追踪并非本工程独有。选择时应看接入方式与所需的具体组合。
+
+| 产品                                                    | 官方定位与已确认的接入方式                                                                                                                        | 选择本工程时侧重的需求                                                                                               | 官方资料                                                                                                                                                                                                              |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Claude Code / Claude Agent SDK**                      | 成品编码代理；Python / TypeScript SDK 可运行 Claude Code agent，支持工具、会话、权限、hooks 和 MCP；SDK 提供费用追踪，使用原生 Claude Code 运行时 | 希望在自己的 Node 进程内直接维护执行循环与三种文本协议，把 SQLite、业务审批和账户计费组合到同一宿主                  | [官网](https://code.claude.com/docs/en/overview) · [Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) · [运行与依赖](https://code.claude.com/docs/en/agent-sdk/quickstart)                               |
+| **Pi coding agent（原 pi-mono，现 earendil-works/pi）** | 可扩展 agent harness；有 TUI、print / JSON、RPC、进程内 TypeScript SDK、多提供方、扩展及内置 MCP；pi-ai 有 token 与费用追踪                       | 希望直接采用本工程统一的项目/会话 SQLite、HTTP/SSE、权限审批、账户计费与可选宿主接口，减少自行组合这些具体接口的工作 | [官网](https://pi.dev/) · [TypeScript SDK](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md) · [模型与费用接口](https://github.com/earendil-works/pi/blob/main/packages/ai/README.md) |
+| **Z.ai ZCode**                                          | 面向开发者的 Agent 工作区，提供桌面、Web、TUI/CLI；支持自定义兼容模型端点、插件、MCP，源码含 Agent client SDK 与服务接口                          | 希望独立设计产品界面、业务流程和数据模型，以本工程的 Node 库与客户端作为接入起点                                     | [官网与配置](https://zcode.z.ai/en/docs/configuration) · [源码与客户端结构](https://github.com/zai-org/ZCode/blob/main/README.en.md) · [插件](https://zcode.z.ai/en/docs/plugin)                                      |
+| **DeepSeek Harness 官方桌面版**                         | 官方开源插件化 Harness，提供桌面、Web 与 Python SDK；可接多提供方和兼容端点，Python SDK 通过内置 dsh 进程运行                                     | 希望使用直接导入的 Node 内核，围绕本工程的事件、持久化、审批与计费契约构建宿主                                       | [官网](https://www.deepseek.com/harness/) · [Python SDK](https://deepseek-harness.github.io/deepseek-harness/guide/python-sdk) · [模型配置](https://deepseek-harness.github.io/deepseek-harness/guide/providers)      |
+
+需要现成开发工作区时，可先评估这些产品入口；开发自己的应用时，本工程提供一组可以直接接入和修改的执行基础。表中列出的是本工程的组合与接入侧重，不代表其他项目无法满足这些需求，也不构成速度或内存排名。
+
+## 能力一览
+
+| 能力         | 当前实现                                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 模型与执行   | OpenAI Chat Completions、OpenAI Responses、Anthropic Messages；模型路由、回退与重试、图像输入、结构化输出、持续工具循环、并行调度、追加输入、取消与恢复 |
+| 工具与权限   | 文件、命令、持久进程、Git、网页抓取与可插拔搜索；宿主/项目/模式/路由/扩展策略共同约束，支持审批、预算和效果日志                                         |
+| 存储与上下文 | SQLite 项目、会话、费用与历史；附件资产、压缩、分叉、迁移、检查点与回滚                                                                                 |
+| 记忆与协作   | 中英文全文检索、可选向量检索、命名空间与待审记忆提案；角色配置、子 Agent、团队派工与只读讨论                                                            |
+| 扩展与宿主   | Skill、可信源码 Plugin、MCP stdio / Streamable HTTP；可选浏览器、Windows 桌面、办公文件、媒体适配器、SSH / SFTP                                         |
+
+Responses 原生联网搜索默认关闭，需路由与请求显式启用，并通过网络权限及审批。供应商执行搜索并返回搜索记录、URL 引用；其请求不经过本地网页工具的网络过滤，也可能产生独立工具费用。详见 [原生联网搜索](docs/NATIVE-WEB-SEARCH.md)。
 
 ## 从源码开始
 
-要求 Node.js `^22.19.0 || >=24.0.0`、npm 10 或以上，建议使用仍在维护的 Node.js LTS。内核使用 Node 内置 SQLite；不声明支持 Node 23。
+要求 Node.js `^22.19.0 || >=24.0.0`、npm 10+，建议使用仍在维护的 Node.js LTS。核心使用 `node:sqlite`，不声明支持 Node 23。
 
 ```powershell
 git clone https://github.com/youxiandechilun/agent-foundation.git
@@ -56,14 +111,13 @@ npm ci --omit=optional --ignore-scripts
 Copy-Item config.json config.local.json
 ```
 
-编辑 `config.local.json`，至少确认以下配置：
+编辑 `config.local.json`：
 
-- `routes.text-completions.model`：替换 `YOUR_MODEL_ID`，使用服务实际提供的模型。
-- `routes.text-completions.baseUrl` 和 `apiKeyEnv`：填写兼容服务地址与密钥环境变量名。默认使用 `OPENAI_API_KEY`，密钥值放在运行环境中。
-- `defaultRoutes`：让需要的工作模式指向已配置的文本路由；更换为 Responses 或 Anthropic 时，同时选择对应 `adapter`。
-- `workspaceRoots`：设置允许建立项目的工作区；`dataDir` 单独保存数据库、资产和运行状态。
+- 将 `routes.text-completions.model` 的 `YOUR_MODEL_ID` 换成服务提供的实际模型，配置 `baseUrl` 和密钥环境变量名 `apiKeyEnv`。
+- 让 `defaultRoutes` 指向已配置路由；使用 Responses 或 Anthropic 时选择对应 `adapter`。
+- 配置允许建立项目的 `workspaceRoots`，用 `dataDir` 单独保存数据库、资产与运行状态。
 
-配置好模型后，在同一个 PowerShell 终端启动：
+在同一 PowerShell 终端启动：
 
 ```powershell
 $env:OPENAI_API_KEY = "你的供应商密钥"
@@ -71,15 +125,15 @@ npm run build
 npm start -- --config config.local.json
 ```
 
-默认服务地址为 `http://127.0.0.1:4317`，`GET /health` 可检查服务状态。宿主令牌使用 `AGENT_API_TOKEN`，未设置时生成到 `dataDir/api-token`，启动日志会显示其位置。令牌由可信客户端持有；模型密钥和宿主令牌用途不同。
+默认地址 `http://127.0.0.1:4317`，健康检查为 `GET /health`。`AGENT_API_TOKEN` 可提供宿主令牌；未设置时生成到 `dataDir/api-token`，启动日志显示位置。模型密钥和宿主令牌用途不同。`config.local.json` 已被 Git 忽略，其他配置可参考 [config.example.json](config.example.json)。
 
-`config.local.json` 已被 Git 忽略。核心安装无需 Docker、Chromium 或办公库；启动服务不会自动打开界面，也不会替代真实模型服务。配置模板还可参考 [config.example.json](config.example.json)。
+核心启动无需 Docker、Chromium 或办公库，不会自动打开聊天界面；实际任务需要可用模型服务。
 
 ## 接入自己的应用
 
 ### HTTP / SSE 客户端
 
-先按上面的步骤启动服务，再将以下代码保存为仓库根目录的 `client-example.mjs`，在另一个终端执行 `node client-example.mjs`。示例从本地配置读取令牌文件；若服务使用环境变量令牌，客户端终端也需设置相同变量。
+服务启动后，把下面代码保存为仓库根目录的 `client-example.mjs`，执行 `node client-example.mjs`。如果服务使用环境变量令牌，客户端终端也要设置该变量。
 
 ```javascript
 import { readFile } from "node:fs/promises";
@@ -88,7 +142,8 @@ import { loadConfig } from "./dist/index.js";
 import { FoundationClient } from "./dist/client.js";
 
 const config = await loadConfig("config.local.json");
-const token = process.env[config.server.tokenEnv] ||
+const token =
+  process.env[config.server.tokenEnv] ||
   (await readFile(path.join(config.dataDir, "api-token"), "utf8")).trim();
 const client = new FoundationClient("http://127.0.0.1:4317", token);
 const project = await client.project("示例项目");
@@ -102,33 +157,36 @@ for await (const event of client.events(runId)) {
 }
 ```
 
-独立客户端只依赖 `fetch`、`Blob`、`ReadableStream` 等通用 API，可供网页和 Electron 渲染层使用。网页接入时，由宿主提供令牌，将网页来源加入 `server.allowedOrigins`，并处理 `approval.requested` 等事件；完整接口见 [API.md](docs/API.md)。
+客户端只依赖 `fetch`、`Blob`、`ReadableStream` 等通用 API，可用于网页及 Electron 渲染层。可信宿主应保管 host token；面向多用户的网页通过自己的后端鉴权和转发，避免把管理令牌直接交给终端用户。直连场景还需配置 `server.allowedOrigins` 并处理 `approval.requested`，见 [HTTP API](docs/API.md)。
 
 ### 进程内 SDK
 
-也可以在自己的 Node.js 进程中创建内核。以下源码接入示例替代 `npm start`，同一个数据目录同时只能有一个内核运行。
+也可以直接运行内核，无需先启动 HTTP 服务。以下示例在源码仓库根目录执行；同一数据目录同时只运行一个内核。
 
 ```javascript
-import { Kernel, loadConfig, serve } from "./dist/index.js";
+import { Kernel, loadConfig } from "./dist/index.js";
 
 const kernel = new Kernel(await loadConfig("config.local.json"));
-// 自定义工具、解析器与宿主集成在初始化前注册。
-const api = await serve(kernel);
-console.log(api.url);
-process.once("SIGINT", async () => { await api.close(); });
+try {
+  await kernel.init();
+  const project = await kernel.createProject("我的助手");
+  const session = kernel.createSession(project.id, "chat");
+  const { runId } = await kernel.submit(session.id, { text: "你好" });
+  console.log(await kernel.wait(runId));
+} finally {
+  await kernel.close();
+}
 ```
 
-本地 SDK 发行包提供三个公开入口：`@local/agent-foundation`（内核）、`@local/agent-foundation/client`（客户端）、`@local/agent-foundation/host`（可选宿主）。拿到实际 `.tgz` 后可在调用方项目安装；当前不要直接从 npm 安装同名包。角色配置、团队组合和完整示例见 [SDK.md](docs/SDK.md) 与 [examples/sdk](examples/sdk)。
+已有 Node 服务还可通过 `serve(kernel)` 暴露 HTTP API；自定义工具、解析器、集成和计费在初始化前注册。完整角色与团队示例见 [SDK 指南](docs/SDK.md)、[SDK 示例](examples/sdk)。
 
-## 可选应用集成
+SDK 发行包有三个入口：`@local/agent-foundation`、`@local/agent-foundation/client`、`@local/agent-foundation/host`。拿到实际 `.tgz` 后在调用方安装；npm 尚未公开发布同名包，不要直接从公共 npm 安装。
 
-浏览器、Windows 电脑控制和办公处理按需启用，复用同一套权限、会话、资产和事件接口。
+## 按需启用应用能力
 
-- **浏览器**：管理 Chromium、连接已配置的 CDP 端点，或通过扩展控制用户明确授权的标签页。
-- **Windows 桌面**：窗口和控件检查、截图、键盘鼠标输入；Linux/macOS 原生桌面适配器尚未实现。
-- **办公文件**：CSV、XLSX、DOCX、PPTX、PDF 的检查、生成及限定范围编辑。没有完整 Office 编辑器、Excel 公式计算引擎或 OCR。
-
-需要这些集成时，安装可选依赖并执行宿主构建：
+- **浏览器**：管理 Chromium、连接 CDP，或通过扩展控制用户明确授权的标签页。
+- **Windows 桌面**：窗口与控件检查、截图、键盘鼠标操作；其他系统的原生桌面适配器尚未实现。
+- **办公文件**：CSV、XLSX、DOCX、PPTX、PDF 的检查、生成及限定编辑。没有完整 Office 编辑器、Excel 公式计算引擎或 OCR。
 
 ```powershell
 npm ci --ignore-scripts
@@ -137,49 +195,25 @@ npm run build:host
 node dist/cli.js serve --config config.local.json --host desktop
 ```
 
-`desktop` 同时启用三个应用包；也可使用 `--host browser`、`--host computer`、`--host office`。浏览器运行和部分 PDF 生成功能需要 Chromium，已有浏览器可按文档配置路径。具体操作、依赖和限制见 [APPLICATIONS.md](docs/APPLICATIONS.md)。服务器集成与媒体适配分别见 [SERVERS.md](docs/SERVERS.md)、[MEDIA-ADAPTERS.md](docs/MEDIA-ADAPTERS.md)。
+`desktop` 启用上述三个应用包，也可选择 `--host browser`、`--host computer` 或 `--host office`。浏览器及部分 PDF 生成功能需要 Chromium；已有浏览器可按文档配置路径。安装与限制见 [应用集成](docs/APPLICATIONS.md)，其他可选能力见 [服务器](docs/SERVERS.md)、[媒体适配](docs/MEDIA-ADAPTERS.md)。
 
-## 项目结构
+## 验证与运行边界
 
-```text
-src/
-├─ core/           Kernel、配置、权限、上下文与 Agent 定义
-├─ runtime/        执行引擎、工具调度、钩子与费用管理
-├─ providers/      模型协议、路由与流式传输
-├─ storage/        SQLite、记忆与附件资产
-├─ extensions/     Skill、源码 Plugin 与 MCP
-├─ collaboration/  团队与任务协作
-├─ api/            HTTP / SSE 服务
-├─ host/           可选浏览器、桌面与办公集成
-└─ client.ts       独立 HTTP / SSE 客户端
-test/              回归与集成测试
-examples/sdk/      SDK 接入示例
-verification/      已执行检查的报告与日志
-docs/              接口、架构和范围说明
-```
-
-模块职责和源码阅读顺序见 [ARCHITECTURE.md](docs/ARCHITECTURE.md)。
-
-## 验证与使用边界
-
-仓库现有 **0.12.1** 报告记录：核心集成测试 517 项通过，宿主集成测试 33 项通过；两份报告状态均为 `passed`。具体执行时间、Node 版本、检查项及依赖审计结果以 [核心报告](verification/report.json) 和 [宿主报告](verification/application-report.json) 为准。这些是已保存的执行记录，不代表每次源码更新都会自动重新验证。
-
-本地维护可运行 `npm run verify` 验证核心，启用可选应用时运行 `npm run verify:host`。报告包含构建、集成测试、依赖审计和编译产物检查；验证范围见 [RELEASE.md](docs/RELEASE.md)。
-
-- 当前面向**单用户、可信宿主**。未提供多租户账户、业务登录、企业身份管理或分布式集群。
-- 默认 `native` 执行具有宿主用户权限。工具权限和路径规则不等于操作系统沙箱；可选 Windows AppContainer、Docker 的支持和验证范围见 [CORE-FOUNDATION.md](docs/CORE-FOUNDATION.md)。
-- 本地模型协议服务验证了请求、流式事件和工具交互；真实付费模型质量、第三方 MCP/OAuth、Docker 及跨系统运行仍需按实际环境验证。
-- 取消无法撤销已经发生的外部操作；恢复不会自动重放效果未知的写入、发送或计费操作。上下文压缩可能丢失细节，原始会话和效果日志保留供核查。
-- 源码可见不代表已授予商用或再分发许可。第三方依赖保留各自版权与许可，来源说明见 [SOURCE-BOUNDARY.md](docs/SOURCE-BOUNDARY.md)。
+- [核心报告](verification/report.json) 与 [宿主报告](verification/application-report.json) 保存实际检查结果，阅读时核对报告时间、环境与对应源码。维护入口为 `npm run verify`、`npm run verify:host`，验收范围见 [交付文档](docs/RELEASE.md)。
+- 默认 `native` 执行具有宿主用户权限，工具权限与路径规则不等于 OS 沙箱。可选 Windows AppContainer、Docker 的实际支持范围见 [权限与隔离](docs/CORE-FOUNDATION.md)。
+- 真实付费模型质量、供应商计费、第三方 MCP/OAuth、Docker 和跨系统运行，需要在部署环境验证；本地协议测试通过不能替代这些检查。
+- 取消不能撤销已经发生的外部操作；恢复不会自动重放效果未知的写入、发送或计费。压缩可能丢失细节，原始会话与效果记录供核查。
+- 授权条款尚未确定，包标记为 `private: true`、`UNLICENSED`；源码可见不等于已授予商用或再分发许可。第三方来源及许可见 [源码边界](docs/SOURCE-BOUNDARY.md)。
 
 ## 文档导航
 
-| 文档 | 内容 |
-| --- | --- |
-| [SDK 接入](docs/SDK.md) / [HTTP API](docs/API.md) | 安装、公开入口、请求与事件 |
-| [架构](docs/ARCHITECTURE.md) / [执行循环](docs/CORE-AGENT-LOOP.md) | 源码职责、工具执行、钩子与恢复 |
-| [扩展](docs/EXTENSIONS.md) / [MCP 互操作](docs/CORE-INTEROPERABILITY.md) | Skill、Plugin、MCP、会话迁移 |
-| [Agent 协作](docs/COLLABORATION.md) | 子 Agent、团队配置、任务与讨论 |
-| [应用集成](docs/APPLICATIONS.md) / [服务器](docs/SERVERS.md) / [媒体](docs/MEDIA-ADAPTERS.md) | 可选工具和运行要求 |
-| [权限与隔离](docs/CORE-FOUNDATION.md) / [安全审计](docs/SECURITY-AUDIT.md) | 单用户边界、隔离后端与可选审计 |
-| [版本与验收](docs/RELEASE.md) / [逐项能力清单](docs/CORE-ACCEPTANCE.json) | 当前范围、执行证据与未实现项 |
+| 文档                                                                                      | 内容                                  |
+| ----------------------------------------------------------------------------------------- | ------------------------------------- |
+| [SDK](docs/SDK.md) / [API](docs/API.md)                                                   | 安装、公开入口、请求与事件            |
+| [架构](docs/ARCHITECTURE.md) / [Agent 执行循环](docs/CORE-AGENT-LOOP.md)                  | 源码职责、工具执行、hooks、费用与恢复 |
+| [原生搜索](docs/NATIVE-WEB-SEARCH.md) / [联网工具](docs/CORE-WEB.md)                      | 供应商搜索、权限、引用及费用边界      |
+| [扩展](docs/EXTENSIONS.md) / [MCP 互操作](docs/CORE-INTEROPERABILITY.md)                  | Skill、Plugin、MCP、会话迁移          |
+| [Agent 协作](docs/COLLABORATION.md)                                                       | 角色、子 Agent、团队、任务与讨论      |
+| [应用](docs/APPLICATIONS.md) / [服务器](docs/SERVERS.md) / [媒体](docs/MEDIA-ADAPTERS.md) | 可选能力和依赖                        |
+| [权限](docs/CORE-FOUNDATION.md) / [安全审计](docs/SECURITY-AUDIT.md)                      | 可信宿主、执行隔离与可选内容审计      |
+| [验收](docs/RELEASE.md) / [能力清单](docs/CORE-ACCEPTANCE.json)                           | 范围、执行证据与待验证项              |

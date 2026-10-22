@@ -169,7 +169,7 @@ export const anthropicMessages: TextProtocol = {
       if (b.type === "text" && b.text) await response.text(b.text);
       if (b.type === "thinking") {
         response.providerState();
-        await response.thought(b.thinking || "");
+        await response.thought(b.thinking || "", event.index, b.signature);
       }
     }
     if (event.type === "content_block_delta") {
@@ -197,12 +197,10 @@ export const anthropicMessages: TextProtocol = {
           "Invalid Anthropic thinking delta",
           502,
         );
-        await response.thought(d.thinking);
+        await response.thought(d.thinking, event.index);
       }
       if (d.type === "signature_delta") {
-        const p = output.content.find((p) => p.type === "thinking");
-        if (p?.type === "thinking")
-          p.signature = (p.signature || "") + (d.signature || "");
+        response.appendSignature(event.index, d.signature || "");
       }
       if (d.type === "input_json_delta") {
         const c = calls.get(event.index);

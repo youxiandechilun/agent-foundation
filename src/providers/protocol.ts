@@ -1,6 +1,8 @@
 import type { Route } from "../core/config.js";
 import { invariant } from "../core/util.js";
 import { usagePayload, type NativeBlock } from "./protocols/wire.js";
+import { ResponsesWebSearch, responsesOutputText } from "./responses-search.js";
+import type { WireObject } from "../core/wire.js";
 import type { ReasoningEffort } from "../contracts.js";
 import {
   emptyUsage,
@@ -8,6 +10,7 @@ import {
   type JsonObject,
   type ModelDelta,
   type ModelRequest,
+  type ThinkingPart,
 } from "../runtime/types.js";
 
 export interface ProtocolRequest {
@@ -99,6 +102,9 @@ export class ResponseBuilder {
   readonly calls = new Map<number, PendingCall>();
   /** Protocol-native blocks retained for replay, keyed by stream index. */
   readonly nativeBlocks: Map<number, NativeBlock> = new Map();
+  readonly responseItems = new Map<number, WireObject & { type: string }>();
+  readonly webSearch = new ResponsesWebSearch();
+  private readonly thoughts = new Map<number, ThinkingPart>();
   started = false;
   finished = false;
   private inputUsageSeen = false;
@@ -108,6 +114,7 @@ export class ResponseBuilder {
     readonly routeId: string,
     model: string,
     private readonly delta?: (event: ModelDelta) => void | Promise<void>,
+    readonly nativeWebSearch = false,
   ) {
     this.output = {
       role: "assistant",
@@ -130,16 +137,22 @@ export class ResponseBuilder {
     part.text += value;
     await this.delta?.({ type: "text", text: value });
   }
-  async thought(value: string) {
-    if (!value) return;
-    this.started = true;
-    let part = this.output.content.find((p) => p.type === "thinking");
-    if (part?.type !== "thinking") {
+  async thought(value: string, index = -1, signature?: string) {
+    if (!value && index < 0) return;
+    this.started ||= Boolean(value);
+    let part = this.thoughts.get(index);
+    if (!part) {
       part = { type: "thinking", thinking: "" };
+      this.thoughts.set(index, part);
       this.output.content.push(part);
     }
     part.thinking += value;
-    await this.delta?.({ type: "thinking", text: value });
+    if (signature) part.signature = signature;
+    if (value) await this.delta?.({ type: "thinking", text: value });
+  }
+  appendSignature(index: number, signature: string) {
+    const part = this.thoughts.get(index);
+    if (part) part.signature = (part.signature || "") + signature;
   }
   async toolArguments(callId: string, text: string) {
     await this.delta?.({ type: "tool-arguments", callId, text });
@@ -185,6 +198,65 @@ export class ResponseBuilder {
       routeId: this.routeId,
       items: [],
     });
+  }
+  /** Preserve completed native items on success and interrupted Responses streams. */
+  retainResponsesState() {
+    const search = this.webSearch.result();
+    if (search) {
+      const breaks: number[] = [];
+      let length = 0;
+      for (const part of this.output.content) {
+        if (part.type !== "text") continue;
+        if (length) breaks.push(length);
+        length += part.text.length;
+      }
+      this.output.webSearch = {
+        ...search,
+        citations: search.citations
+          .filter((c) => c.endIndex <= length)
+          .map((c) => ({
+            ...c,
+            startIndex:
+              c.startIndex + breaks.filter((b) => b <= c.startIndex).length,
+            endIndex:
+              c.endIndex +
+              breaks.filter(
+                (b) =>
+                  b < c.endIndex ||
+                  (c.startIndex === c.endIndex && b === c.endIndex),
+              ).length,
+          })),
+      };
+    }
+    if (this.responseItems.size) {
+      const calls = new Set(
+        this.output.content
+          .filter((p) => p.type === "toolCall")
+          .map((p) => p.id),
+      );
+      const items = [...this.responseItems]
+        .sort(([a], [b]) => a - b)
+        .map(([, value]) => value);
+      const text = this.output.content
+        .filter((p) => p.type === "text")
+        .map((p) => p.text)
+        .join("");
+      // A completed message can precede text from an interrupted later item.
+      // Replay all semantic text once when native messages cover only a prefix.
+      const nativeTextComplete = (responsesOutputText(items) ?? "").startsWith(
+        text,
+      );
+      this.output.providerState = {
+        protocol: this.protocol,
+        routeId: this.routeId,
+        items: items.filter(
+          (value) =>
+            (value.type !== "message" || nativeTextComplete) &&
+            (value.type !== "function_call" ||
+              (typeof value.call_id === "string" && calls.has(value.call_id))),
+        ),
+      };
+    }
   }
   /** Append completed tool calls in stream order; rejects incomplete or duplicate calls. */
   finalizeCalls() {

@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-22T15:21:57.075Z",
+  "checkedAt": "2026-10-22T15:59:12.566Z",
   "node": "v22.22.0",
   "platform": "win32",
   "runtime": "foundation-owned",
@@ -10,7 +10,7 @@
       "name": "build",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 7027,
+      "durationMs": 9373,
       "stdoutLog": "build.log",
       "stderrLog": "build.stderr.log"
     },
@@ -18,7 +18,7 @@
       "name": "source-independence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 164,
+      "durationMs": 188,
       "stdoutLog": "source-independence.log",
       "stderrLog": "source-independence.stderr.log"
     },
@@ -26,11 +26,11 @@
       "name": "core-integration",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 299936,
+      "durationMs": 321983,
       "stdoutLog": "core-integration.log",
       "stderrLog": "core-integration.stderr.log",
       "tests": {
-        "passed": 517,
+        "passed": 598,
         "failed": 0
       }
     },
@@ -38,7 +38,7 @@
       "name": "production-dependency-audit",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 1942,
+      "durationMs": 1532,
       "stdoutLog": "production-dependency-audit.log",
       "stderrLog": "production-dependency-audit.stderr.log",
       "audit": {
@@ -57,7 +57,7 @@
       "name": "compiled-smoke",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 1298,
+      "durationMs": 1316,
       "stdoutLog": "compiled-smoke.log",
       "stderrLog": "compiled-smoke.stderr.log"
     },
@@ -65,13 +65,13 @@
       "name": "acceptance-evidence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 213,
+      "durationMs": 211,
       "stdoutLog": "acceptance-evidence.log",
       "stderrLog": "acceptance-evidence.stderr.log"
     }
   ],
   "tests": {
-    "passed": 517,
+    "passed": 598,
     "failed": 0
   },
   "dependencyAudit": {

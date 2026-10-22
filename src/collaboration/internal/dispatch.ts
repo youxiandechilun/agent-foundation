@@ -118,6 +118,7 @@ export class TeamDispatcher {
       );
       const previous = this.kernel.store
         .list<Session>("sessions", {
+          parentSessionId: root.id,
           teamRootSessionId: root.id,
           teamMemberId: member.id,
           "collaboration.teamId": team.id,

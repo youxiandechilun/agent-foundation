@@ -2,7 +2,12 @@ import { VERSION } from "../../version.js";
 import { invariant, errorText } from "../../core/util.js";
 import { MCPStdioTransport } from "./client/stdio.js";
 import { MCPHttpTransport } from "./client/http.js";
-import { MCPToolCatalog } from "./client/tool-catalog.js";
+import {
+  MCPToolCatalog,
+  type MCPToolOutputValidator,
+} from "./client/tool-catalog.js";
+import { collectCatalog } from "./catalog.js";
+import type { HeaderBinding } from "./headers.js";
 import { MCPClientInput } from "./client/input.js";
 import {
   modernTaskResult,
@@ -53,7 +58,13 @@ export {
   type MCPNotificationFilter,
   type MCPRequestContext,
   type MCPRequestOptions,
+  type MCPToolDeclaration as MCPTool,
 } from "./protocol.js";
+
+interface MCPCatalogOptions {
+  signal?: AbortSignal;
+  validate?: () => void;
+}
 
 export interface MCPClientOptions {
   transport: "stdio" | "http";
@@ -105,6 +116,7 @@ export class MCPClient {
   private requests: MCPClientRequests;
   private closeCompletion?: Promise<void>;
   private modern = false;
+  private catalogRevision = 0;
   private messages: { method: string; params: unknown; timestamp: string }[] =
     [];
   readonly limits: { message: number; stderr: number; timeout: number };
@@ -134,7 +146,6 @@ export class MCPClient {
         this.initialized = false;
         void this.fail(error);
       },
-      toolHeaders: (name) => this.catalog.headers(name),
       record: (method, params) => this.record(method, params),
     });
     invariant(
@@ -159,7 +170,9 @@ export class MCPClient {
       closed: () => this.closed,
       initialized: () => this.initialized,
       clientCapabilities: () => this.clientCapabilities(),
-      send: (message, signal) => this.send(message, signal),
+      toolHeaders: (name) => this.catalog.headers(name),
+      send: (message, signal, toolHeaders) =>
+        this.send(message, signal, toolHeaders),
       notify: (method, params) => this.notify(method, params),
       handleInput: (method, params, context) =>
         this.input.handleInput(method, params, context),
@@ -303,6 +316,7 @@ export class MCPClient {
     }
   }
   private record(method: string, params: unknown) {
+    if (method === "notifications/tools/list_changed") this.catalogRevision++;
     this.messages.push({ method, params, timestamp: new Date().toISOString() });
     if (this.messages.length > 100) this.messages.shift();
     this.onnotification?.(method, params);
@@ -472,7 +486,11 @@ export class MCPClient {
       ]),
     );
   }
-  private async send(message: RpcMessage, signal: AbortSignal): Promise<void> {
+  private async send(
+    message: RpcMessage,
+    signal: AbortSignal,
+    toolHeaders?: HeaderBinding[],
+  ): Promise<void> {
     signal.throwIfAborted();
     const data = JSON.stringify(message);
     invariant(
@@ -481,7 +499,7 @@ export class MCPClient {
       413,
     );
     if (this.options.transport === "stdio") await this.stdio.send(data);
-    else await this.http.send(message, data, signal);
+    else await this.http.send(message, data, signal, toolHeaders);
   }
   private async fail(error: unknown) {
     if (this.closed) return;
@@ -503,6 +521,7 @@ export class MCPClient {
     this.receiver?.close();
     this.modernTasks.close();
     this.taskContexts.close();
+    this.catalog.clear();
     this.requests.reject(
       new MCPProtocolError(
         "MCP connection closed; pending effects may be unknown",
@@ -528,19 +547,62 @@ export class MCPClient {
     })();
     return this.closeCompletion;
   }
-  listTools(params?: { cursor?: string }, options?: { signal?: AbortSignal }) {
-    return this.request("tools/list", params || {}, options).then((result) =>
-      this.catalog.accept(
-        result,
-        this.options.transport === "http" && this.modern,
-      ),
+  private async toolPage(
+    params?: { cursor?: string },
+    options?: { signal?: AbortSignal },
+  ) {
+    return this.catalog.prepare(
+      await this.request("tools/list", params || {}, options),
+      this.options.transport === "http" && this.modern,
     );
+  }
+  async listTools(
+    params?: { cursor?: string },
+    options?: { signal?: AbortSignal },
+  ) {
+    const revision = this.catalogRevision;
+    const { page, metadata } = await this.toolPage(params, options);
+    this.validateCatalog(revision, options);
+    // One-page lists replace stale entries; paged callers register each page.
+    if (!params?.cursor && !page.nextCursor) this.catalog.replace(metadata);
+    else this.catalog.append(metadata);
+    return page;
+  }
+  private validateCatalog(revision: number, options?: MCPCatalogOptions) {
+    options?.signal?.throwIfAborted();
+    invariant(
+      this.connected && revision === this.catalogRevision,
+      "MCP catalog changed during listing; resolve again",
+      409,
+    );
+    options?.validate?.();
+  }
+  /** Publish a complete catalog's schemas and headers together after validation. */
+  async toolCatalog(options?: MCPCatalogOptions) {
+    const revision = this.catalogRevision;
+    const metadata: ReturnType<MCPToolCatalog["prepare"]>["metadata"] =
+      new Map();
+    const tools = await collectCatalog(
+      async (cursor) => {
+        const current = await this.toolPage({ cursor }, options);
+        for (const [name, entry] of current.metadata) metadata.set(name, entry);
+        return {
+          items: current.page.tools,
+          nextCursor: current.page.nextCursor,
+        };
+      },
+      () => this.validateCatalog(revision, options),
+    );
+    this.validateCatalog(revision, options);
+    this.catalog.replace(metadata);
+    return { tools };
   }
   callTool(
     params: { name: string; arguments: unknown },
     options?: MCPRequestOptions,
   ) {
     this.catalog.validateInput(params.name, params.arguments);
+    const output = this.toolOutputValidator(params.name);
     const deadline = Date.now() + (options?.timeout || this.limits.timeout);
     return this.request("tools/call", params, {
       ...options,
@@ -566,17 +628,26 @@ export class MCPClient {
               handleInput: (method, params, context) =>
                 this.input.handleInput(method, params, context),
               validateResult: (name, value) =>
-                this.validateToolResult(name, value),
+                this.validateToolResult(name, value, output),
             },
             options,
           ),
+          output,
         );
       }
-      return this.validateToolResult(params.name, r);
+      return this.validateToolResult(params.name, r, output);
     });
   }
-  validateToolResult(name: string, value: unknown): MCPToolResult {
-    return this.catalog.validateResult(name, value);
+  /** Capture the output contract before starting immediate or deferred work. */
+  toolOutputValidator(name: string): MCPToolOutputValidator {
+    return this.catalog.outputValidator(name);
+  }
+  validateToolResult(
+    name: string,
+    value: unknown,
+    output: MCPToolOutputValidator = this.toolOutputValidator(name),
+  ): MCPToolResult {
+    return this.catalog.validateResult(name, value, output);
   }
   listResources(
     params?: { cursor?: string },

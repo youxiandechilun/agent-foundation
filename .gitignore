@@ -50,6 +50,7 @@ demo-output/
 !/verification/efficiency-sdk-consumer.json
 !/verification/efficiency-source-metrics.json
 !/verification/hotpath-fix/
+!/verification/kernel-footprint.json
 !/verification/optimization-report.json
 !/verification/optimization-runtime-benchmark.json
 !/verification/production-dependency-audit.log
@@ -64,3 +65,5 @@ demo-output/
 !/verification/source-independence.log
 !/verification/source-manifest.json
 !/verification/windows-sandbox-network.json
+!/verification/refactor-20261018/
+!/verification/native-web-search-20261018/

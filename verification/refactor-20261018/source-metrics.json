@@ -1,0 +1,86 @@
+{
+  "baselineCommit": "e096487441c93ca5b9d1bc69aafee01fe825ecf9",
+  "counting": "Git tracked files and nonignored new files under src/test/scripts/extensions/examples; .ts/.js/.mjs/.cjs/.py/.cs/.ps1/.sh; excludes dependencies, dist, caches, releases, docs, lockfiles; physical lines include comments. Tests are reported separately and retained.",
+  "baseline": {
+    "src": {
+      "files": 144,
+      "physicalLines": 34148,
+      "nonblankLines": 33870,
+      "utf8Bytes": 1151823
+    },
+    "test": {
+      "files": 99,
+      "physicalLines": 27528,
+      "nonblankLines": 27166,
+      "utf8Bytes": 908151
+    },
+    "scripts": {
+      "files": 35,
+      "physicalLines": 4787,
+      "nonblankLines": 4706,
+      "utf8Bytes": 165974
+    },
+    "extensions": {
+      "files": 2,
+      "physicalLines": 422,
+      "nonblankLines": 422,
+      "utf8Bytes": 15776
+    },
+    "examples": {
+      "files": 8,
+      "physicalLines": 512,
+      "nonblankLines": 503,
+      "utf8Bytes": 16396
+    }
+  },
+  "current": {
+    "src": {
+      "files": 147,
+      "physicalLines": 34270,
+      "nonblankLines": 33981,
+      "utf8Bytes": 1156234
+    },
+    "test": {
+      "files": 107,
+      "physicalLines": 29090,
+      "nonblankLines": 28686,
+      "utf8Bytes": 957542
+    },
+    "scripts": {
+      "files": 36,
+      "physicalLines": 4994,
+      "nonblankLines": 4912,
+      "utf8Bytes": 173201
+    },
+    "extensions": {
+      "files": 2,
+      "physicalLines": 422,
+      "nonblankLines": 422,
+      "utf8Bytes": 15776
+    },
+    "examples": {
+      "files": 8,
+      "physicalLines": 512,
+      "nonblankLines": 503,
+      "utf8Bytes": 16396
+    }
+  },
+  "totalCodeLines": {
+    "baseline": 67397,
+    "current": 69288
+  },
+  "productionModuleDeltas": {
+    "src/collaboration": 4,
+    "src/core": -8,
+    "src/execution": 15,
+    "src/extensions": 134,
+    "src/host": -61,
+    "src/runtime": 24,
+    "src/storage": 14
+  },
+  "target": {
+    "productionMaximumLines": 20000,
+    "achieved": false,
+    "remainingLines": 14270
+  }
+}

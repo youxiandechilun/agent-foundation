@@ -3,6 +3,10 @@ import { wireMember } from "../../core/wire.js";
 import { responseEvent, responseCall, responseJson } from "./wire.js";
 import { functionTools, responsesInput } from "../serialize.js";
 import type { TextProtocol } from "../protocol.js";
+import {
+  nativeWebSearchEnabled,
+  responsesOutputText,
+} from "../responses-search.js";
 
 const terminal = new Set([
   "response.completed",
@@ -14,6 +18,7 @@ export const openaiResponses: TextProtocol = {
   id: "openai-responses",
   url: (base) => base + "/responses",
   body({ request, route, routeId, budget }) {
+    const search = nativeWebSearchEnabled(route, request);
     const body: Record<string, unknown> = {
       ...route.requestDefaults,
       model: route.model,
@@ -21,13 +26,21 @@ export const openaiResponses: TextProtocol = {
       stream: true,
       store: false,
       max_output_tokens: budget,
-      include: ["reasoning.encrypted_content"],
+      include: [
+        "reasoning.encrypted_content",
+        ...(search ? ["web_search_call.action.sources"] : []),
+      ],
     };
-    if (request.tools.length)
-      body.tools = functionTools(request.tools).map((t) => ({
+    const tools: Record<string, unknown>[] = functionTools(request.tools).map(
+      (t) => ({
         type: t.type,
         ...t.function,
-      }));
+      }),
+    );
+    if (search) tools.push({ type: "web_search" });
+    if (tools.length) body.tools = tools;
+    else delete body.tools;
+    if (search) body.tool_choice ??= "auto";
     return body;
   },
   disableReasoning(body) {
@@ -48,6 +61,14 @@ export const openaiResponses: TextProtocol = {
     };
   },
   async event(value, response) {
+    if (response.webSearch.observe(value)) {
+      response.started = true;
+      invariant(
+        response.nativeWebSearch,
+        "Provider returned native web search without request authorization",
+        502,
+      );
+    }
     const type = wireMember(value, "type");
     if (
       typeof type !== "string" ||
@@ -124,8 +145,14 @@ export const openaiResponses: TextProtocol = {
           json: call.arguments,
         });
       }
-      if (["reasoning", "compaction"].includes(item.type))
-        response.providerState().items.push(item);
+      if (
+        response.nativeWebSearch ||
+        ["reasoning", "compaction", "web_search_call"].includes(item.type)
+      )
+        response.responseItems.set(
+          event.output_index ?? response.responseItems.size,
+          item,
+        );
     }
     if (terminal.has(event.type)) {
       const result = event.response;
@@ -142,43 +169,64 @@ export const openaiResponses: TextProtocol = {
         output.errorMessage = errorText(
           wireMember(result.error, "message") || result.error,
         );
-      // Some compatible endpoints send only the terminal response object.
-      if (!output.content.some((p) => p.type === "text"))
-        for (const item of result?.output || [])
-          if (item.type === "message")
-            for (const p of item.content || [])
-              if (p.type === "output_text") {
-                invariant(
-                  typeof p.text === "string",
-                  "Invalid Responses output text",
-                  502,
-                );
-                await response.text(p.text);
-              }
-      for (const item of result?.output || [])
+      const terminalText = responsesOutputText(result?.output);
+      if (terminalText !== undefined) {
+        const received = output.content
+          .filter((p) => p.type === "text")
+          .map((p) => p.text)
+          .join("");
+        invariant(
+          terminalText.startsWith(received),
+          "Responses terminal text differs from streamed text",
+          502,
+        );
+        await response.text(terminalText.slice(received.length));
+      }
+      const indices = new Map(
+        [...calls].map(([index, call]) => [call.id, index]),
+      );
+      for (const [index, item] of (result?.output || []).entries()) {
         if (
-          item.type === "function_call" &&
-          ![...calls.values()].some((c) => c.id === item.call_id)
-        ) {
-          const call = responseCall.parse(item);
-          calls.set(calls.size, {
+          response.nativeWebSearch ||
+          ["reasoning", "compaction", "web_search_call"].includes(item.type)
+        )
+          response.responseItems.set(index, item);
+        if (item.type === "function_call") {
+          const callIndex =
+            typeof item.call_id === "string"
+              ? (indices.get(item.call_id) ?? index)
+              : index;
+          const previous = calls.get(callIndex);
+          const call = responseCall.parse({
+            name: previous?.name ?? "",
+            arguments: previous?.json ?? "",
+            ...item,
+          });
+          invariant(
+            !previous || previous.id === call.call_id,
+            "Conflicting Responses tool call index",
+            502,
+          );
+          calls.set(callIndex, {
             id: call.call_id,
             name: call.name,
             json: call.arguments,
           });
+          indices.set(call.call_id, callIndex);
         }
+      }
     }
   },
   jsonEvents(input) {
     const value = responseJson.parse(input);
     return [
       {
-        type:
-          value.status === "incomplete"
-            ? "response.incomplete"
-            : "response.completed",
+        type: `response.${value.status || "completed"}`,
         response: value,
       },
     ];
+  },
+  finalize(response) {
+    response.retainResponsesState();
   },
 };

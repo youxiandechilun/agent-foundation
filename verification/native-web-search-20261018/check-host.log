@@ -1,0 +1,3 @@
+
+> @local/agent-foundation@0.12.1 check:host
+> tsc -p tsconfig.json --noEmit

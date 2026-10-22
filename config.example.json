@@ -28,6 +28,7 @@
     "responses": {
       "kind": "text",
       "adapter": "openai-responses",
+      "nativeWebSearch": false,
       "model": "YOUR_MODEL_ID",
       "baseUrl": "https://api.openai.com/v1",
       "apiKeyEnv": "OPENAI_API_KEY",

@@ -98,6 +98,7 @@ const indexed: Partial<Record<Table, readonly EntityField[]>> = {
     "sessionId",
     "teamId",
   ],
+  "server-facts": ["serverId"],
   inbox: ["runId"],
   effects: ["runId", "projectId"],
   processes: ["sessionId"],

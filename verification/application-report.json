@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-22T15:22:23.527Z",
+  "checkedAt": "2026-10-22T15:53:40.887Z",
   "node": "v22.22.0",
   "platform": "win32",
   "status": "passed",
@@ -9,7 +9,7 @@
       "name": "application-build",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 7592,
+      "durationMs": 7601,
       "stdoutLog": "application-build.log",
       "stderrLog": "application-build.stderr.log"
     },
@@ -17,19 +17,19 @@
       "name": "application-integration",
       "status": "passed",
       "exitCode": 0,
+      "durationMs": 62695,
       "stdoutLog": "application-integration.log",
+      "stderrLog": "application-integration.stderr.log",
       "tests": {
-        "passed": 33,
+        "passed": 36,
         "failed": 0
-      },
-      "evidenceCommand": "node scripts/run-core-tests.mjs --host",
-      "runnerDurationMs": 69702.0668
+      }
     },
     {
       "name": "application-dependency-audit",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 2722,
+      "durationMs": 1555,
       "stdoutLog": "application-dependency-audit.log",
       "stderrLog": "application-dependency-audit.stderr.log",
       "audit": {
@@ -42,23 +42,22 @@
           "critical": 0,
           "total": 0
         }
-      },
-      "evidenceCommand": "npm audit --omit=dev --json --fetch-retries=0 --fetch-timeout=15000 --proxy=http://127.0.0.1:7897"
+      }
     },
     {
       "name": "application-compiled-smoke",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 3989,
+      "durationMs": 3806,
       "stdoutLog": "application-compiled-smoke.log",
       "stderrLog": "application-compiled-smoke.stderr.log"
     }
   ],
   "tests": {
-    "passed": 33,
+    "passed": 36,
     "failed": 0,
     "skipped": 0,
-    "total": 33
+    "total": 36
   },
   "criteria": [
     {

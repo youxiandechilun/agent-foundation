@@ -46,6 +46,7 @@ import { RouteRouter, type RouteRouterOptions } from "../providers/text.js";
 import {
   textOf,
   type Message,
+  type JsonObject,
   type ToolDefinition,
   type UserMessage,
 } from "../runtime/types.js";
@@ -64,6 +65,7 @@ import {
   registerSecret,
   configureRedaction,
   abortable,
+  closeResources,
 } from "./util.js";
 
 import { McpHost } from "./kernel/mcp-host.js";
@@ -74,6 +76,7 @@ import {
   resolveToolPolicy,
 } from "./kernel/authorization.js";
 import { RunLifecycle, type LiveRun } from "./kernel/lifecycle.js";
+import { nativeWebSearchRequest } from "./kernel/native-web-search.js";
 import { startProcessAction } from "./kernel/process-action.js";
 import {
   loadRunHistory,
@@ -994,6 +997,43 @@ export class Kernel {
         };
       return extended.message;
     }
+    const authorize = async (
+      tool: ToolDefinition,
+      args: JsonObject,
+      callId: string,
+      signal: AbortSignal,
+      effectiveRoute: string,
+    ) => {
+      const current = this.store.session(session.id);
+      if (this.securityAudit.enabled)
+        await this.checkSecurityAudit(
+          {
+            stage: "tool",
+            projectId: current.projectId,
+            sessionId: current.id,
+            routeId: effectiveRoute,
+            runId,
+            toolCallId: callId,
+            toolName: tool.name,
+            arguments: args,
+          },
+          signal,
+        );
+      const policyTool = await resolveToolPolicy(
+        { kernel: this, runId, session: current, routeId: effectiveRoute },
+        tool,
+        args,
+        signal,
+      );
+      return this.permissions.check(
+        runId,
+        effectiveRoute,
+        policyTool,
+        args,
+        callId,
+        signal,
+      );
+    };
     return new ExecutionEngine({
       signal: setup.signal,
       runId,
@@ -1052,6 +1092,20 @@ export class Kernel {
           }),
           onRetry: (notice) =>
             this.store.emit(runId, "model.retry", { ...notice }),
+          beforeRequest: (request, signal) =>
+            nativeWebSearchRequest(
+              this.config,
+              this.permissions,
+              this.store.session(session.id),
+              request,
+              signal || setup.signal,
+              authorize,
+              (reason) =>
+                this.store.emit(runId, "model.native-web-search.disabled", {
+                  routeId: request.routeId,
+                  reason,
+                }),
+            ),
         },
       ),
       maxSteps: Math.min(
@@ -1107,36 +1161,7 @@ export class Kernel {
           tools,
         );
       },
-      authorize: async (tool, args, callId, signal, effectiveRoute) => {
-        if (this.securityAudit.enabled)
-          await this.checkSecurityAudit(
-            {
-              stage: "tool",
-              projectId: session.projectId,
-              sessionId: session.id,
-              routeId: effectiveRoute,
-              runId,
-              toolCallId: callId,
-              toolName: tool.name,
-              arguments: args,
-            },
-            signal,
-          );
-        const policyTool = await resolveToolPolicy(
-          { kernel: this, runId, session, routeId: effectiveRoute },
-          tool,
-          args,
-          signal,
-        );
-        return this.permissions.check(
-          runId,
-          effectiveRoute,
-          policyTool,
-          args,
-          callId,
-          signal,
-        );
-      },
+      authorize,
     });
   }
   /** Text provider whose model calls are charged to `scope` in the cost ledger. */
@@ -1293,48 +1318,27 @@ export class Kernel {
   private async closeOnce() {
     clearInterval(this.retentionTimer);
     await this.lifecycle.drain();
-    const errors: unknown[] = [];
-    for (const service of [
-      this.commands,
-      this.plugins,
-      this.processes,
-      this.media,
-    ]) {
-      try {
-        await service.close();
-      } catch (error) {
-        errors.push(error);
-      }
-    }
-    for (const integration of this.integrations) {
-      try {
-        if (integration.close)
-          await abortable(
-            Promise.resolve(integration.close()),
-            AbortSignal.timeout(this.config.extensions.timeoutMs),
-          );
-      } catch (error) {
-        errors.push(error);
-      }
-    }
-    try {
-      // Outcomes still in flight are persisted before the store closes.
-      await this.costs.drain();
-    } catch (error) {
-      errors.push(error);
-    }
-    for (const service of [this.mcp, this.store]) {
-      try {
-        await service.close();
-      } catch (error) {
-        errors.push(error);
-      }
-    }
-    if (errors.length)
-      throw new AggregateError(
-        errors,
-        "Kernel cleanup reported errors; remaining resources were still closed",
-      );
+    await closeResources(
+      [
+        this.commands,
+        this.plugins,
+        this.processes,
+        this.media,
+        ...this.integrations.map((integration) => ({
+          close: () =>
+            integration.close &&
+            abortable(
+              Promise.resolve(integration.close()),
+              AbortSignal.timeout(this.config.extensions.timeoutMs),
+            ),
+        })),
+        // Outcomes still in flight are persisted before the store closes.
+        { close: () => this.costs.drain() },
+        this.mcp,
+        this.store,
+      ],
+      "Kernel cleanup reported errors; remaining resources were still closed",
+    );
   }
   /** Client-originated process operations use the same tools, validators and approvals as model calls. */
   processAction(

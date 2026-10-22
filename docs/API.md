@@ -151,7 +151,9 @@ MediaRequest 的 operation/inputAssets/parameters 见 MEDIA-ADAPTERS.md。同项
 | GET        | /v1/approvals              | pending 审批                                        |
 | POST       | /v1/approvals/{id}/resolve | {allow:boolean}，只可结算一次                       |
 
-Route 的文本 adapter 为 openai-completions / openai-responses / anthropic-messages；可配置 baseUrl/model/apiKeyEnv/headersEnv/contextWindow/maxOutputTokens/acceptsImages/reasoning/tokenCounterId/requestDefaults/compat/fallbackRouteIds/toolAllowlist/mediaRouteAllowlist/capabilityPolicies。
+Route 的文本 adapter 为 openai-completions / openai-responses / anthropic-messages；可配置 baseUrl/model/apiKeyEnv/headersEnv/contextWindow/maxOutputTokens/acceptsImages/nativeWebSearch/reasoning/tokenCounterId/requestDefaults/compat/fallbackRouteIds/toolAllowlist/mediaRouteAllowlist/capabilityPolicies。
+
+`nativeWebSearch` 默认 false，仅用于 text + openai-responses。配置查询和路由列表返回该能力；Agent 每次请求仍需网络权限与工具白名单许可。搜索调用、引用、会话回放和费用约束见 [NATIVE-WEB-SEARCH.md](NATIVE-WEB-SEARCH.md)。
 
 运行时路由更新要求宿主空闲，结果写入 dataDir/runtime-routes.json，重启加载。PATCH defaultRoutes 可同时切换 chat/code/office/compact/image/video/embedding；可选槽位用 null 清空，必需槽位不可清空。校验失败保持内存和磁盘原状。requestDefaults 不得覆盖核心协议字段。
 
@@ -295,6 +297,7 @@ OAuth 声明增加 clientMetadata，包含 clientId（HTTPS URL）、clientName�
 ## 0.10.0 可选应用接口
 
 独立 browser/computer/office 应用包、HTTP/fetch 方法、模型工具、项目与会话归属、取消和紧急停止接口见 [APPLICATIONS.md](APPLICATIONS.md)。默认最小内核不安装这些路由。
+
 # 多 Agent 与服务器扩展
 
 团队、会话开关、职责检查和用户决定接口见 [COLLABORATION.md](COLLABORATION.md)。服务器档案、凭据和 SSH/SFTP 工具见 [SERVERS.md](SERVERS.md)。这些扩展继续使用现有 Bearer 鉴权和事件协议；服务器插件仅在宿主显式启用后提供接口。

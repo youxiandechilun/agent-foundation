@@ -14,6 +14,7 @@ import {
   type WireObject,
 } from "../protocol.js";
 import type { MCPClientOptions } from "../client.js";
+import type { HeaderBinding } from "../headers.js";
 
 export interface Pending {
   resolve: (value: unknown) => void;
@@ -43,7 +44,12 @@ interface RequestHost {
   closed: () => boolean;
   initialized: () => boolean;
   clientCapabilities: () => WireObject;
-  send: (message: RpcMessage, signal: AbortSignal) => Promise<void>;
+  toolHeaders: (name: string) => HeaderBinding[] | undefined;
+  send: (
+    message: RpcMessage,
+    signal: AbortSignal,
+    toolHeaders?: HeaderBinding[],
+  ) => Promise<void>;
   notify: (method: string, params: unknown) => Promise<void>;
   handleInput: (
     method: string,
@@ -83,6 +89,11 @@ export class MCPClientRequests {
   ): Promise<WireObject> {
     const deadline = Date.now() + (options?.timeout || this.limits.timeout),
       seen = new Set<string>();
+    // All rounds of this request use the bindings present when it started.
+    const toolHeaders =
+      method === "tools/call" && typeof params.name === "string"
+        ? this.host.toolHeaders(params.name)
+        : undefined;
     let current = params;
     for (let round = 0; round <= (this.options.maxInputRounds || 8); round++) {
       options?.signal?.throwIfAborted();
@@ -94,6 +105,7 @@ export class MCPClientRequests {
           current,
           { ...options, timeout: remaining },
           initializing,
+          toolHeaders,
         ),
       );
       // Every MCP result is a JSON object; anything else is a broken peer.
@@ -175,6 +187,7 @@ export class MCPClientRequests {
     params: WireObject = {},
     options?: MCPRequestOptions,
     initializing = false,
+    toolHeaders?: HeaderBinding[],
   ): Promise<unknown> {
     invariant(
       !this.host.closed() && (this.host.initialized() || initializing),
@@ -291,6 +304,7 @@ export class MCPClientRequests {
         .send(
           { jsonrpc: "2.0", id: requestId, method, params: enriched },
           controller.signal,
+          toolHeaders,
         )
         .catch((e) => {
           const error = e instanceof Error ? e : new Error(String(e));

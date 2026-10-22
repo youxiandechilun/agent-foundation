@@ -83,7 +83,11 @@ export class ServerManager {
   create(input: unknown): ServerProfile {
     const value = serverInputSchema.parse(input);
     this.checkProjects(value.projectIds);
-    invariant(this.list().length < 1000, "Server profile limit reached", 429);
+    invariant(
+      this.store.count("servers") < 1000,
+      "Server profile limit reached",
+      429,
+    );
     const timestamp = now();
     return this.store.put("servers", {
       ...value,
@@ -110,11 +114,10 @@ export class ServerManager {
       const server = this.profile(serverId);
       if (server.credentialRef) await this.vault.remove(server.credentialRef);
       this.store.transaction(() => {
-        for (const fact of this.store
-          .list<unknown>("server-facts")
-          .map((value) => serverFactSchema.parse(value)))
-          if (fact.serverId === serverId)
-            this.store.remove("server-facts", fact.id);
+        for (const value of this.store.list<unknown>("server-facts", {
+          serverId,
+        }))
+          this.store.remove("server-facts", serverFactSchema.parse(value).id);
         this.store.remove("servers", serverId);
       });
       return { removed: true };
@@ -188,14 +191,13 @@ export class ServerManager {
       ? this.owned(serverId, projectId)
       : this.profile(serverId);
     const facts = this.store
-      .list<unknown>("server-facts")
-      .map((value) => serverFactSchema.parse(value))
-      .filter(
-        (fact) =>
-          fact.serverId === serverId &&
-          (!projectId || fact.projectId === projectId),
+      .list<unknown>(
+        "server-facts",
+        { serverId, ...(projectId ? { projectId } : {}) },
+        { descending: true, limit: 100 },
       )
-      .slice(-100);
+      .reverse()
+      .map((value) => serverFactSchema.parse(value));
     return { server, facts };
   }
   probe(

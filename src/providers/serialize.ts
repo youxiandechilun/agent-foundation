@@ -135,15 +135,29 @@ export function responsesInput(messages: Message[], routeId: string) {
           : textOf(m),
       });
     else {
-      if (
+      const nativeItems =
         m.providerState?.protocol === "openai-responses" &&
         m.providerState.routeId === routeId
-      )
-        result.push(...m.providerState.items);
+          ? m.providerState.items
+          : [];
+      result.push(...nativeItems);
+      const nativeCalls = new Set<string>();
+      let nativeText = false;
+      for (const item of nativeItems) {
+        if (!item || typeof item !== "object" || !("type" in item)) continue;
+        if (item.type === "message") nativeText = true;
+        if (
+          item.type === "function_call" &&
+          "call_id" in item &&
+          typeof item.call_id === "string"
+        )
+          nativeCalls.add(item.call_id);
+      }
       const text = textOf(m);
-      if (text) result.push({ role: "assistant", content: text });
+      if (text && !nativeText)
+        result.push({ role: "assistant", content: text });
       for (const c of m.content)
-        if (c.type === "toolCall")
+        if (c.type === "toolCall" && !nativeCalls.has(c.id))
           result.push({
             type: "function_call",
             call_id: c.id,

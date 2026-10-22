@@ -1,0 +1,40 @@
+
+> @local/agent-foundation@0.12.1 test:host
+> node scripts/run-core-tests.mjs --host --filter=computer-app
+
+TAP version 13
+# (node:45196) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture
+ok 1 - native Windows application pack uses real UI Automation references for targeted values, invoke, toggle and window capture
+  ---
+  duration_ms: 11882.2061
+  type: 'test'
+  ...
+# Subtest: native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates
+ok 2 - native targeted SendInput keyboard and pointer actions operate on the dedicated fixture and reject out-of-window coordinates
+  ---
+  duration_ms: 8874.8249
+  type: 'test'
+  ...
+# Subtest: computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues
+ok 3 - computer leases bind project and run, denied/global input fails, cancellation stops native work and emergency stop blocks queues
+  ---
+  duration_ms: 794.3548
+  type: 'test'
+  ...
+# Subtest: active native processes recheck revoked permissions and timeouts without retaining their lease queue
+ok 4 - active native processes recheck revoked permissions and timeouts without retaining their lease queue
+  ---
+  duration_ms: 278.0267
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22612.1291

@@ -23,6 +23,7 @@ import { isOutputTool } from "../runtime/structured-output.js";
 import { applyReasoning } from "./reasoning.js";
 import { ResponseBuilder } from "./protocol.js";
 import { findTextProtocol, textProtocol } from "./registry.js";
+import { nativeWebSearchEnabled } from "./responses-search.js";
 import type {
   AssistantMessage,
   ModelRequest,
@@ -90,12 +91,15 @@ export class HttpTextProvider implements TextProvider {
       this.routeId,
       r.model,
       delta,
+      nativeWebSearchEnabled(r, request),
     );
     let requestSent = false;
     const body = protocol.body(input);
     if (request.toolChoice) {
       invariant(
-        request.toolChoice !== "required" || request.tools.length > 0,
+        request.toolChoice !== "required" ||
+          request.tools.length > 0 ||
+          response.nativeWebSearch,
         "Required tool choice needs an available tool",
         403,
       );
@@ -164,6 +168,7 @@ export class HttpTextProvider implements TextProvider {
       protocol.finalize?.(response);
       return response.output;
     } catch (error) {
+      if (protocol.id === "openai-responses") response.retainResponsesState();
       const failure =
         error instanceof ProviderError
           ? error
@@ -194,6 +199,10 @@ export interface RouteRouterOptions {
   ) => Promise<ModelRequest>;
   billing?: { ledger: CostLedger; scope: CostScope };
   onRetry?: (notice: RetryNotice) => void;
+  beforeRequest?: (
+    request: ModelRequest,
+    signal?: AbortSignal,
+  ) => Promise<ModelRequest>;
 }
 export class RouteRouter implements TextProvider {
   /** Prefer this to the positional constructor, which is kept for compatibility. */
@@ -205,6 +214,7 @@ export class RouteRouter implements TextProvider {
       options.repairContext,
       options.billing,
       options.onRetry,
+      options.beforeRequest,
     );
   }
   constructor(
@@ -220,6 +230,10 @@ export class RouteRouter implements TextProvider {
     ) => Promise<ModelRequest>,
     readonly billing?: { ledger: CostLedger; scope: CostScope },
     readonly onRetry?: (notice: RetryNotice) => void,
+    readonly beforeRequest?: (
+      request: ModelRequest,
+      signal?: AbortSignal,
+    ) => Promise<ModelRequest>,
   ) {}
   async complete(
     request: ModelRequest,
@@ -276,8 +290,12 @@ export class RouteRouter implements TextProvider {
           );
         }
         const provider = new HttpTextProvider(routeId, route);
-        const complete = (req: ModelRequest) =>
-          this.billing
+        const complete = async (request: ModelRequest) => {
+          const req = this.beforeRequest
+            ? await this.beforeRequest(request, signal)
+            : request;
+          signal?.throwIfAborted();
+          return this.billing
             ? this.billing.ledger.text(
                 routeId,
                 route,
@@ -287,6 +305,7 @@ export class RouteRouter implements TextProvider {
                 signal,
               )
             : provider.complete(req, delta, signal);
+        };
         const attempt = async () => {
           try {
             return await complete(effective);

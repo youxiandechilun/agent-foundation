@@ -3,42 +3,40 @@ import type { Capability, ToolDefinition } from "../runtime/types.js";
 import type { PolicyRule } from "../contracts.js";
 import { invariant } from "../core/util.js";
 
+type ApplicationTool = Pick<ToolDefinition, "name" | "capabilities">;
+
 export function browserCapabilities(
-  tool: ToolDefinition,
-  args: Record<string, unknown>,
-) {
-  const capabilities: Capability[] = [...(tool.capabilities || [])];
-  if (tool.name === "browser_open" || tool.name === "browser_action")
-    capabilities.push("network");
-  if (tool.name === "browser_action" && args.action === "upload")
-    capabilities.push("files.read");
-  if (
-    tool.name === "browser_action" &&
-    ["screenshot", "download"].includes(String(args.action))
-  )
-    capabilities.push("files.write");
-  return [...new Set(capabilities)];
-}
-/**
- * Capabilities an application tool call needs, from its declaration plus its arguments.
- * Shared by the desktop host and the individually enabled application packs.
- */
-export function applicationCapabilities(
-  tool: ToolDefinition,
+  tool: ApplicationTool,
   args: Record<string, unknown>,
 ): Capability[] {
-  const capabilities = browserCapabilities(tool, args);
-  if (tool.name === "browser_action" && args.nodeId) capabilities.push("node");
-  if (tool.name === "computer_action" && args.action === "screenshot")
-    capabilities.push("files.write");
-  if (tool.name === "node_call") {
-    const cap = String(args.capability || "");
-    if (cap.startsWith("browser.")) capabilities.push("browser");
-    if (cap.startsWith("computer.")) capabilities.push("computer");
-    if (cap.startsWith("exec.")) capabilities.push("exec");
+  const capabilities = new Set(tool.capabilities);
+  if (tool.name === "browser_open" || tool.name === "browser_action")
+    capabilities.add("network");
+  if (tool.name === "browser_action") {
+    if (args.action === "upload") capabilities.add("files.read");
+    if (args.action === "screenshot" || args.action === "download")
+      capabilities.add("files.write");
   }
-  return [...new Set(capabilities)];
+  return [...capabilities];
 }
+
+/** Both optional application integrations use the same action-dependent policy. */
+export function applicationCapabilities(
+  tool: ApplicationTool,
+  args: Record<string, unknown>,
+): Capability[] {
+  const capabilities = new Set(browserCapabilities(tool, args));
+  if (tool.name === "browser_action" && args.nodeId) capabilities.add("node");
+  if (tool.name === "computer_action" && args.action === "screenshot")
+    capabilities.add("files.write");
+  if (tool.name === "node_call" && typeof args.capability === "string") {
+    if (args.capability.startsWith("browser.")) capabilities.add("browser");
+    if (args.capability.startsWith("computer.")) capabilities.add("computer");
+    if (args.capability.startsWith("exec.")) capabilities.add("exec");
+  }
+  return [...capabilities];
+}
+
 /** The authenticated operator API still obeys host and project deny policies. */
 export function hostApplicationAccess(
   kernel: Kernel,

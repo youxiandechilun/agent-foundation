@@ -1,0 +1,146 @@
+{
+  "feature": "responses-native-web-search",
+  "status": "passed",
+  "generatedAt": "2026-10-18T09:20:22.5157714Z",
+  "workspace": "C:\\Users\\32761\\Desktop\\agent\\agent-foundation",
+  "baseCommit": "e096487441c93ca5b9d1bc69aafee01fe825ecf9",
+  "checks": {
+    "core": {
+      "tests": 556,
+      "exitCode": 0,
+      "failed": 0,
+      "passed": 556,
+      "skipped": 0,
+      "log": "core-tests.log",
+      "command": "npm test"
+    },
+    "focused": {
+      "tests": 42,
+      "exitCode": 0,
+      "failed": 0,
+      "passed": 42,
+      "skipped": 0,
+      "log": "native-tests.log",
+      "command": "node scripts/run-core-tests.mjs --filter=native-web-search --filter=provider-refactor"
+    },
+    "build": {
+      "log": "build.log",
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    "hostTypes": {
+      "log": "check-host.log",
+      "command": "npm run check:host",
+      "exitCode": 0
+    },
+    "source": {
+      "log": "source-check.log",
+      "command": "npm run verify:source",
+      "exitCode": 0
+    },
+    "diff": {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    "exampleConfig": {
+      "validated": true,
+      "routeCount": 6,
+      "responsesNativeWebSearch": false
+    }
+  },
+  "initialRun": {
+    "tests": 555,
+    "failed": 1,
+    "log": "core-tests-initial.log",
+    "passed": 554,
+    "error": "一项本地协议测试出现 fetch failed，原始网络原因未保留。测试服务现已复用工程 HTTP 监听器并显式关闭连接；最终全量复测通过。"
+  },
+  "limitations": [
+    "未调用真实付费模型或第三方 Responses 端点。",
+    "当前仓库没有模型设置前端；能力字段已通过配置 API 提供。",
+    "原生搜索费用需供应商账单对账；启用预算时要求 maxRequestUsd 预留上限，该值不是供应商强制扣费上限。",
+    "本次没有重新运行依赖审计和桌面集成测试。"
+  ],
+  "officialDocs": [
+    "https://developers.openai.com/api/docs/guides/tools-web-search",
+    "https://developers.openai.com/api/docs/guides/conversation-state"
+  ],
+  "sourceHashes": [
+    {
+      "path": "src/core/config.ts",
+      "sha256": "4dd2829f83a901e1947bd1433a03e8c6961d8ea3cf5c68e3cd85667960481eeb"
+    },
+    {
+      "path": "src/api/routes/configuration.ts",
+      "sha256": "02b9139599f6766db19e3d519f6a7b54bcfc90519bff46f0f75fb312d320718b"
+    },
+    {
+      "path": "src/core/kernel.ts",
+      "sha256": "aaa2fd7bf478481a23087e4d30cca92541ceb79a0642665eab8290d0878ce570"
+    },
+    {
+      "path": "src/core/kernel/native-web-search.ts",
+      "sha256": "6d7ec2e3f36cd4646ce4070fbe6340eacc32740cbfff1d4d8871b4b30058c9b8"
+    },
+    {
+      "path": "src/providers/text.ts",
+      "sha256": "222637219f59880c2867cf588ecd1204cf6ab7614ee473b35a4e2b65e6a090dd"
+    },
+    {
+      "path": "src/providers/serialize.ts",
+      "sha256": "b344ce4e539009119875b6f954d5096ca5a38d18c78e022450d4475226fcfc9f"
+    },
+    {
+      "path": "src/providers/responses-search.ts",
+      "sha256": "f1f4fbd2a8cedd03917fcbf4e8bce333029dc95a72d10d8f491b851ff108b322"
+    },
+    {
+      "path": "src/runtime/types.ts",
+      "sha256": "24a73b19c3f713fdaf1041f7be1ce77336b0e1e6b3f42f473afa0c716b3018b3"
+    },
+    {
+      "path": "src/runtime/cost.ts",
+      "sha256": "8ffd92f4e9c32c8e37b2156a60bd3e849f7b1184a5769b66ae5ca10ab8ae3ca5"
+    },
+    {
+      "path": "src/sessions/codec.ts",
+      "sha256": "4feb4a3df07e52f99d00f92286748fdfedb7a12eb2cd2262f6c8f13bb0d798e8"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "def9e429923356a86d65caffd10b479095827ba9f123e7b51bafa53e0a741fcf"
+    },
+    {
+      "path": "config.example.json",
+      "sha256": "1fdab3bb28d913a27802c130d748317cdfa9752eee227b204cff00d41d068cd1"
+    },
+    {
+      "path": "test/native-web-search.test.ts",
+      "sha256": "ae16ae98034505cc0229351c72ec9c22e8029660259374dc58b657a3dc1d54b8"
+    },
+    {
+      "path": "test/native-web-search-permissions.test.ts",
+      "sha256": "4cfadada203ae6ba9c184df405f9186233777348d7359084f9bf951e414b7cc4"
+    },
+    {
+      "path": "test/native-web-search-sessions.test.ts",
+      "sha256": "8d34e64adb11e842fc0c112f69967661b120dedfb61e776cbd1675927083af6d"
+    },
+    {
+      "path": "test/native-web-search-config.test.ts",
+      "sha256": "6d23b34a78d620b355b46c3b1a3a8af68421b128ac48d002e49b55d081c8d620"
+    },
+    {
+      "path": "docs/NATIVE-WEB-SEARCH.md",
+      "sha256": "4af5b558563afad1ffc224435b4f09887899d1e7ccc91e4ebbacac1aa28ef619"
+    },
+    {
+      "path": "docs/API.md",
+      "sha256": "1c13bff9c0700a18eb1bc7d3529ef8e919039268437cfd3e7f5cd10f9c72d7ea"
+    },
+    {
+      "path": "README.md",
+      "sha256": "176efd1b0739e0d1e339f157a25fd96cd6f6fa8f5d16ac35d7ed97f7f581271f"
+    }
+  ]
+}
