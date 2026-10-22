@@ -24,12 +24,16 @@ import {
   invariant,
   redactJson,
   redactJsonText,
+  createJsonRedactor,
 } from "../core/util.js";
 import {
   entitySchema,
+  ensureEntitySchema,
   entityTable,
   entityWhere,
+  effectWhere,
   entityPage,
+  committedCostExpression,
   tables,
   type EntityFilter,
   type EntityPage,
@@ -49,12 +53,28 @@ const redactedTables = new Set<Table>([
   "summaries",
   "work-plans",
 ]);
+type EntityStatement = "insert" | "find" | "remove" | "count";
+type JsonRow = string[] | { body: string };
+type JsonStatement = { statement: StatementSync; bodyColumn: number };
+type EntityWriter = (item: { id: string }) => string;
+const returnArrays = (statement: StatementSync) => {
+  const supported = statement as StatementSync & {
+    setReturnArrays?: (enabled: boolean) => void;
+  };
+  supported.setReturnArrays?.(true);
+};
 
 // Runtime records are kept apart from optional host integrations.
 export class Store {
   readonly db: DatabaseSync;
   readonly events = new EventEmitter();
   private readonly statements = new Map<string, StatementSync>();
+  private readonly jsonStatements = new Map<string, JsonStatement>();
+  private readonly entityStatements = new Map<
+    Table,
+    Partial<Record<EntityStatement, StatementSync>>
+  >();
+  private writers: Partial<Record<Table, EntityWriter>> = Object.create(null);
   private transactionDepth = 0;
   private leaseOwner?: string;
   private closed = false;
@@ -63,7 +83,7 @@ export class Store {
     this.db = new DatabaseSync(path.join(dataDir, "foundation.sqlite"));
     this.db
       .exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=3000;
-      PRAGMA temp_store=MEMORY;
+      PRAGMA temp_store=MEMORY; PRAGMA recursive_triggers=ON; PRAGMA cache_size=-8192;
       CREATE TABLE IF NOT EXISTS events (seq INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT NOT NULL, body TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS events_run ON events(run_id,seq);
       CREATE TABLE IF NOT EXISTS transcripts (session_id TEXT PRIMARY KEY, body TEXT NOT NULL);
@@ -79,7 +99,7 @@ export class Store {
     `);
     try {
       if (options.exclusiveKernel) this.acquireKernelLease();
-      this.db.exec(entitySchema);
+      const schema = this.transaction(() => ensureEntitySchema(this.db));
       this.splitEntities();
       if (!this.prepare("SELECT 1 FROM migrations WHERE version=3").get())
         this.transaction(() => {
@@ -92,6 +112,7 @@ export class Store {
             "INSERT INTO migrations VALUES(3,datetime('now'))",
           ).run();
         });
+      this.ensureTranscriptCounts(schema);
     } catch (error) {
       this.close();
       throw error;
@@ -101,24 +122,101 @@ export class Store {
   // Queries never retain entity values. Bound the cache as filters add query shapes.
   prepare(sql: string): StatementSync {
     let statement = this.statements.get(sql);
-    this.statements.delete(sql);
-    if (!statement) {
-      statement = this.db.prepare(sql);
-    }
+    if (statement) return statement;
+    statement = this.db.prepare(sql);
     this.statements.set(sql, statement);
     if (this.statements.size > 128)
       this.statements.delete(this.statements.keys().next().value!);
     return statement;
   }
+  // Fixed entity kinds bound this cache. Retain statements, never record values.
+  private entityStatement(
+    kind: Table,
+    operation: EntityStatement,
+  ): StatementSync {
+    let statements = this.entityStatements.get(kind);
+    if (!statements) {
+      entityTable(kind);
+      statements = {};
+      this.entityStatements.set(kind, statements);
+    }
+    const cached = statements[operation];
+    if (cached) return cached;
+    const table = entityTable(kind);
+    const sql = {
+      insert: `INSERT INTO ${table}(id,body) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body`,
+      find: `SELECT body FROM ${table} WHERE id=?`,
+      remove: `DELETE FROM ${table} WHERE id=?`,
+      count: `SELECT COUNT(*) AS count FROM ${table}`,
+    }[operation];
+    const statement = this.db.prepare(sql);
+    if (operation === "find") returnArrays(statement);
+    return (statements[operation] = statement);
+  }
+  private jsonStatement(sql: string): JsonStatement {
+    const cached = this.jsonStatements.get(sql);
+    if (cached) return cached;
+    const statement = this.db.prepare(sql);
+    // Callers of prepare(sql) retain named rows even when this SQL is also read here.
+    returnArrays(statement);
+    const prepared = {
+      statement,
+      bodyColumn: statement
+        .columns()
+        .findLastIndex((column) => column.name === "body"),
+    };
+    this.jsonStatements.set(sql, prepared);
+    if (this.jsonStatements.size > 128)
+      this.jsonStatements.delete(this.jsonStatements.keys().next().value!);
+    return prepared;
+  }
+  private ensureTranscriptCounts(schema: ReadonlySet<string>): void {
+    if (
+      [
+        "transcript_counts",
+        "messages_count_insert",
+        "messages_count_delete",
+        "messages_count_move",
+      ].every((name) => schema.has(name))
+    )
+      return;
+    this.transaction(() => {
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS transcript_counts(session_id TEXT PRIMARY KEY,total INTEGER NOT NULL CHECK(total>=0));
+        DELETE FROM transcript_counts;
+        INSERT INTO transcript_counts SELECT session_id,COUNT(*) FROM messages GROUP BY session_id;
+        CREATE TRIGGER IF NOT EXISTS messages_count_insert AFTER INSERT ON messages BEGIN
+          INSERT INTO transcript_counts VALUES(new.session_id,1) ON CONFLICT(session_id) DO UPDATE SET total=total+1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS messages_count_delete AFTER DELETE ON messages BEGIN
+          UPDATE transcript_counts SET total=total-1 WHERE session_id=old.session_id;
+        END;
+        CREATE TRIGGER IF NOT EXISTS messages_count_move AFTER UPDATE OF session_id ON messages WHEN new.session_id<>old.session_id BEGIN
+          UPDATE transcript_counts SET total=total-1 WHERE session_id=old.session_id;
+          INSERT INTO transcript_counts VALUES(new.session_id,1) ON CONFLICT(session_id) DO UPDATE SET total=total+1;
+        END;
+        INSERT OR IGNORE INTO migrations VALUES(5,datetime('now'));
+      `);
+    });
+  }
   selectJson<T>(sql: string, values: SQLInputValue[] = []): T[] {
-    return (this.prepare(sql).all(...values) as { body: string }[]).map(
-      (row) => JSON.parse(row.body) as T,
-    );
+    const { statement, bodyColumn } = this.jsonStatement(sql);
+    const rows = statement.all(...values) as unknown as JsonRow[];
+    const result = new Array<T>(rows.length);
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      result[i] = JSON.parse(
+        Array.isArray(row) ? row[bodyColumn] : row.body,
+      ) as T;
+    }
+    return result;
   }
   selectJsonOne<T>(sql: string, values: SQLInputValue[] = []): T | undefined {
-    const row = this.prepare(sql).get(...values) as
-      { body: string } | undefined;
-    return row ? (JSON.parse(row.body) as T) : undefined;
+    const { statement, bodyColumn } = this.jsonStatement(sql);
+    const row = statement.get(...values) as unknown as JsonRow | undefined;
+    return row
+      ? (JSON.parse(Array.isArray(row) ? row[bodyColumn] : row.body) as T)
+      : undefined;
   }
   private acquireKernelLease() {
     this.transaction(() => {
@@ -192,13 +290,22 @@ export class Store {
     });
   }
   private insert<T extends { id: string }>(kind: Table, item: T): string {
-    const body = redactedTables.has(kind)
-      ? redactJsonText(item)
-      : JSON.stringify(item);
-    this.prepare(
-      `INSERT INTO ${entityTable(kind)}(id,body) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body`,
-    ).run(item.id, body);
-    return body;
+    let writer = this.writers[kind];
+    if (!writer) {
+      const statement = this.entityStatement(kind, "insert");
+      writer = this.writers[kind] = redactedTables.has(kind)
+        ? (value) => {
+            const body = redactJsonText(value);
+            statement.run(value.id, body);
+            return body;
+          }
+        : (value) => {
+            const body = JSON.stringify(value);
+            statement.run(value.id, body);
+            return body;
+          };
+    }
+    return writer(item);
   }
   /** Persist when the caller does not need a redacted copy of the record. */
   write<T extends { id: string }>(kind: Table, item: T): void {
@@ -226,7 +333,10 @@ export class Store {
     return item;
   }
   list<T>(kind: Table, filter: EntityFilter = {}, page: EntityPage = {}): T[] {
-    const where = entityWhere(filter),
+    const where =
+        kind === "effects" && filter.status !== undefined
+          ? effectWhere(filter)
+          : entityWhere(filter),
       order = entityPage(page);
     return this.selectJson<T>(
       `SELECT body FROM ${entityTable(kind)}${where.sql}${order.sql}`,
@@ -234,7 +344,13 @@ export class Store {
     );
   }
   count(kind: Table, filter: EntityFilter = {}): number {
-    const where = entityWhere(filter);
+    if (!Object.keys(filter).length)
+      return (this.entityStatement(kind, "count").get() as { count: number })
+        .count;
+    const where =
+      kind === "effects" && filter.status !== undefined
+        ? effectWhere(filter)
+        : entityWhere(filter);
     const row = this.prepare(
       `SELECT COUNT(*) AS count FROM ${entityTable(kind)}${where.sql}`,
     ).get(...where.values) as { count: number };
@@ -250,9 +366,7 @@ export class Store {
         ? ""
         : `${where.sql ? " AND" : " WHERE"} substr(json_extract(body,'$.createdAt'),1,10)=?`;
     const row = this.prepare(
-      `SELECT TOTAL(CASE json_extract(body,'$.status')
-      WHEN 'void' THEN 0 WHEN 'settled' THEN COALESCE(json_extract(body,'$.chargedMicros'),0)
-      ELSE json_extract(body,'$.reservedMicros') END) AS total
+      `SELECT TOTAL(${committedCostExpression}) AS total
       FROM e_cost_ledger${where.sql}${dayClause}`,
     ).get(...where.values, ...(day === undefined ? [] : [day])) as {
       total: number;
@@ -267,13 +381,14 @@ export class Store {
     return row.total;
   }
   find<T>(kind: Table, entityId: string): T | undefined {
-    return this.selectJsonOne<T>(
-      `SELECT body FROM ${entityTable(kind)} WHERE id=?`,
-      [entityId],
-    );
+    const row = this.entityStatement(kind, "find").get(entityId) as unknown as
+      JsonRow | undefined;
+    return row
+      ? (JSON.parse(Array.isArray(row) ? row[0] : row.body) as T)
+      : undefined;
   }
   remove(kind: Table, entityId: string) {
-    this.prepare(`DELETE FROM ${entityTable(kind)} WHERE id=?`).run(entityId);
+    this.entityStatement(kind, "remove").run(entityId);
   }
   transaction<T>(operation: () => T): T {
     const depth = this.transactionDepth,
@@ -318,9 +433,12 @@ export class Store {
   }
   transcriptSlice(sessionId: string, offset: number, limit: number) {
     entityPage({ offset, limit });
-    const { total } = this.prepare(
-      "SELECT COUNT(*) AS total FROM messages WHERE session_id=?",
-    ).get(sessionId) as { total: number };
+    const total =
+      (
+        this.prepare(
+          "SELECT total FROM transcript_counts WHERE session_id=?",
+        ).get(sessionId) as { total: number } | undefined
+      )?.total || 0;
     const messages = this.selectJson<StoredMessage>(
       "SELECT body FROM messages WHERE session_id=? ORDER BY seq LIMIT ? OFFSET ?",
       [sessionId, limit, offset],
@@ -372,15 +490,33 @@ export class Store {
   /** Replace a transcript, rewriting only the suffix after the unchanged prefix. */
   saveTranscript(sessionId: string, messages: StoredMessage[]) {
     this.transaction(() => {
+      // A synchronous replacement is one redaction operation. Do not rebuild
+      // the credential snapshot for every message or serialize its suffix twice.
+      const encode = createJsonRedactor();
+      const identities = new Map<string, string>();
+      const incoming: { id: string; body: string }[] = [];
+      for (const message of messages) {
+        const body = encode(message),
+          previous = identities.get(message.id);
+        invariant(
+          previous === undefined || previous === body,
+          "Message ID reused with different content",
+          409,
+        );
+        if (previous === undefined) {
+          identities.set(message.id, body);
+          incoming.push({ id: message.id, body });
+        }
+      }
       const existing = this.prepare(
         "SELECT seq,message_id,body FROM messages WHERE session_id=? ORDER BY seq",
       ).all(sessionId) as { seq: number; message_id: string; body: string }[];
       let kept = 0;
       while (
         kept < existing.length &&
-        kept < messages.length &&
-        existing[kept].message_id === messages[kept].id &&
-        existing[kept].body === redactJsonText(messages[kept])
+        kept < incoming.length &&
+        existing[kept].message_id === incoming[kept].id &&
+        existing[kept].body === incoming[kept].body
       )
         kept++;
       if (kept < existing.length)
@@ -388,8 +524,13 @@ export class Store {
           sessionId,
           existing[kept].seq,
         );
-      for (const message of messages.slice(kept))
-        this.appendTranscript(sessionId, message);
+      // Incoming identities are unique, and every old suffix row was removed.
+      // The unchanged prefix cannot conflict, so no per-message SELECT is needed.
+      const insert = this.prepare(
+        "INSERT INTO messages(session_id,message_id,body) VALUES(?,?,?)",
+      );
+      for (let i = kept; i < incoming.length; i++)
+        insert.run(sessionId, incoming[i].id, incoming[i].body);
     });
   }
   emit(
@@ -518,6 +659,9 @@ export class Store {
       );
     this.db.close();
     this.statements.clear();
+    this.jsonStatements.clear();
+    this.entityStatements.clear();
+    this.writers = Object.create(null);
     this.closed = true;
   }
 }

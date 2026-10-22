@@ -142,15 +142,17 @@ export function errorText(error: unknown) {
   );
 }
 function secretRedactor(): (text: string) => string {
-  const secrets = [...activeSecrets()];
+  const secrets = new Set(activeSecrets());
   // Remove configured credential values even if an upstream SDK includes them in its error.
-  for (const [name, value] of Object.entries(process.env)) {
-    if (
-      value &&
-      value.length >= 8 &&
-      /(KEY|TOKEN|SECRET|PASSWORD|AUTH|CREDENTIAL)/i.test(name)
-    )
-      secrets.push(value, JSON.stringify(value).slice(1, -1));
+  // Reading every environment value is particularly costly on Windows. Enumerate
+  // names first, but still observe additions, rotation and removal on every call.
+  for (const name of Object.getOwnPropertyNames(process.env)) {
+    if (!/(KEY|TOKEN|SECRET|PASSWORD|AUTH|CREDENTIAL)/i.test(name)) continue;
+    const value = process.env[name];
+    if (value && value.length >= 8) {
+      secrets.add(value);
+      secrets.add(JSON.stringify(value).slice(1, -1));
+    }
   }
   return (text) => {
     for (const secret of secrets) text = text.replaceAll(secret, "[REDACTED]");
@@ -161,13 +163,17 @@ export function redactSecrets(text: string): string {
   return secretRedactor()(text);
 }
 /** Serialize with per-string and whole-payload redaction, without allocating a parsed copy. */
-export function redactJsonText(value: unknown): string {
+export function createJsonRedactor(): (value: unknown) => string {
   const redact = secretRedactor();
-  return redact(
-    JSON.stringify(value, (_key, item) =>
-      typeof item === "string" ? redact(item) : item,
-    ),
-  );
+  return (value) =>
+    redact(
+      JSON.stringify(value, (_key, item) =>
+        typeof item === "string" ? redact(item) : item,
+      ),
+    );
+}
+export function redactJsonText(value: unknown): string {
+  return createJsonRedactor()(value);
 }
 export function redactJson<T>(value: T): T {
   // One snapshot per operation, never across calls: env rotation and expiry stay visible.

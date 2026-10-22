@@ -47,6 +47,8 @@
     "build": "tsc -p tsconfig.core.json && node scripts/copy-runtime.mjs",
     "check": "tsc -p tsconfig.core.json --noEmit",
     "test": "node scripts/run-core-tests.mjs",
+    "test:storage": "node scripts/run-core-tests.mjs --filter=storage-performance --filter=query-execution --filter=foundation-cost",
+    "bench:storage": "node --expose-gc scripts/benchmark-storage-writes.mjs",
     "test:browser": "node scripts/run-core-tests.mjs --browser",
     "browser:install": "playwright install chromium",
     "demo": "npm run build && node scripts/demo.mjs",

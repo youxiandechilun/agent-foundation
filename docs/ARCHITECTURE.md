@@ -68,6 +68,7 @@ HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优
 - 权限规则通过工具声明的 `capabilities`、`roles`（`plan-state`）与按参数补充约束的 `constrain` 判断，不依赖工具名称。启动子 Agent 的工具声明 `agent` 能力（宿主默认 allow，可在 `permissions.agent` 改为 ask/deny），团队会话据此拒绝绕过派工的委托。`tools/index.ts` 汇总工具时拒绝扩展工具冒用 `builtin/foundation` 来源或与已有工具重名，因此声明可以被信任。
 - 提示词按句写在 `prompts/` 与各模块的 `sentences(...)` 中，拼接结果与原单行文本一致。
 - 实体按类型存放在 `e_<kind>` 表中，只为实际使用的过滤字段建立表达式索引；旧数据库打开时在一个事务内从 `entities` 迁移，未知类型的行保存在 `entities_legacy`。会话历史替换只重写变化之后的消息。
+- 存储热点进一步优化包括 `effects.projectId` 索引、同步历史替换内的脱敏上下文、数据库触发器维护的历史计数、内部数组行读取和按缺失对象修复 schema；设计与验证边界见 [STORAGE-PERFORMANCE.md](STORAGE-PERFORMANCE.md)。
 
 ## 维护边界
 

@@ -31,6 +31,14 @@ async function compile(directory) {
       await compile(relative);
       continue;
     }
+    // Focused runs compile their selected test files plus shared helpers.
+    if (
+      directory === "test" &&
+      entry.name.endsWith(".test.ts") &&
+      filters.length &&
+      !filters.some((filter) => entry.name.includes(filter))
+    )
+      continue;
     const target = path.join(output, relative.replace(/\.ts$/, ".js"));
     await mkdir(path.dirname(target), { recursive: true });
     if (entry.name.endsWith(".ts")) {
