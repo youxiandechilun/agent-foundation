@@ -5,6 +5,7 @@ import { hostApplicationAccess } from "../access.js";
 import { validateBrowserUrl } from "./network.js";
 import { browserInputFields } from "./input.js";
 import { invariant } from "../../core/util.js";
+import { wireMember, wireObject } from "../../core/wire.js";
 
 export const bridgeActionSchema = z
   .object({
@@ -47,7 +48,7 @@ export class BrowserBridge {
         "Paired node is not a browser bridge",
         403,
       );
-      const action = (args as any)?.action;
+      const action = wireMember(args, "action");
       hostApplicationAccess(
         kernel,
         node.projectId,
@@ -85,14 +86,18 @@ export class BrowserBridge {
     const args = bridgeActionSchema.parse(input);
     if (args.url) await validateBrowserUrl(args.url, this.kernel.config);
     if (args.action === "tabs") {
-      const tabs = (await this.nodes.call(
-        projectId,
-        nodeId,
-        "browser.control",
-        args,
-        this.kernel.config.browser.timeoutMs,
-        signal,
-      )) as any[];
+      const tabs = z
+        .array(z.object({ url: z.string() }).passthrough())
+        .parse(
+          await this.nodes.call(
+            projectId,
+            nodeId,
+            "browser.control",
+            args,
+            this.kernel.config.browser.timeoutMs,
+            signal,
+          ),
+        );
       const accepted = [];
       for (const tab of tabs) {
         try {
@@ -102,16 +107,21 @@ export class BrowserBridge {
       }
       return accepted;
     }
-    const context: any = await this.nodes.call(
-      projectId,
-      nodeId,
-      "browser.control",
-      { action: "context", tabId: args.tabId },
-      this.kernel.config.browser.timeoutMs,
-      signal,
+    const context = wireObject(
+      await this.nodes.call(
+        projectId,
+        nodeId,
+        "browser.control",
+        { action: "context", tabId: args.tabId },
+        this.kernel.config.browser.timeoutMs,
+        signal,
+      ),
     );
     invariant(
-      typeof context.url === "string" && Number.isSafeInteger(context.tabId),
+      context &&
+        typeof context.url === "string" &&
+        typeof context.tabId === "number" &&
+        Number.isSafeInteger(context.tabId),
       "Browser bridge returned invalid context",
       502,
     );

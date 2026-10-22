@@ -10,6 +10,7 @@ import {
   registerSecret,
   delay as wait,
 } from "../core/util.js";
+import { wireMember } from "../core/wire.js";
 import {
   sse,
   readJson,
@@ -119,19 +120,24 @@ export class HttpTextProvider implements TextProvider {
       });
       if (!reply.ok) {
         const error = await readJson(reply).catch(() => ({}));
-        const code = error.error?.code || error.error?.type;
+        const code =
+            wireMember(error, "error", "code") ||
+            wireMember(error, "error", "type"),
+          detail = wireMember(error, "error", "message");
         const contextOverflow =
-          [
-            "context_length_exceeded",
-            "max_context_length_exceeded",
-            "prompt_too_long",
-          ].includes(code) ||
+          (
+            [
+              "context_length_exceeded",
+              "max_context_length_exceeded",
+              "prompt_too_long",
+            ] as unknown[]
+          ).includes(code) ||
           (code === "invalid_request_error" &&
             /prompt is too long|input length exceeds|maximum context length/i.test(
-              error.error?.message || "",
+              String(detail || ""),
             ));
         throw new ProviderError(
-          `Provider HTTP ${reply.status}: ${errorText(error.error?.message || reply.statusText)}`,
+          `Provider HTTP ${reply.status}: ${errorText(detail || reply.statusText)}`,
           reply.status,
           false,
           contextOverflow,

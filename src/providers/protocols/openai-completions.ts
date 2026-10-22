@@ -1,12 +1,13 @@
 import { id, invariant } from "../../core/util.js";
 import { completionsMessages, functionTools } from "../serialize.js";
 import type { TextProtocol } from "../protocol.js";
+import { completionEvent } from "./wire.js";
 
 export const openaiCompletions: TextProtocol = {
   id: "openai-completions",
   url: (base) => base + "/chat/completions",
   body({ request, route, budget }) {
-    const body: Record<string, any> = {
+    const body: Record<string, unknown> = {
       ...route.requestDefaults,
       model: route.model,
       messages: completionsMessages(request.messages, route),
@@ -31,7 +32,8 @@ export const openaiCompletions: TextProtocol = {
     if (route.compat.supportsReasoningEffort !== false)
       body.reasoning_effort = effort ?? body.reasoning_effort ?? "medium";
   },
-  async event(event, response) {
+  async event(value, response) {
+    const event = completionEvent.parse(value);
     const choice = event.choices?.[0],
       d = choice?.delta || choice?.message;
     if (event.id) response.output.responseId = event.id;
@@ -40,7 +42,7 @@ export const openaiCompletions: TextProtocol = {
         typeof d.content === "string"
           ? d.content
           : Array.isArray(d.content)
-            ? d.content.map((p: any) => p.text || "").join("")
+            ? d.content.map((p) => p.text || "").join("")
             : "",
       );
       await response.thought(d.reasoning_content || d.reasoning || "");

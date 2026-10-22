@@ -6,6 +6,12 @@ import {
 import { rmSync } from "node:fs";
 import path from "node:path";
 import { hash, invariant, registerSecret } from "../../../core/util.js";
+import {
+  wireIncludes,
+  wireMember,
+  wireObject,
+  type WireObject,
+} from "../../../core/wire.js";
 import { readJson } from "../../../providers/sse.js";
 
 export const registrationSchema = z
@@ -40,6 +46,13 @@ type Target = {
     [k: string]: unknown;
   };
 };
+/** Registration endpoint and methods as discovered; both are checked before use. */
+export interface RegistrationServer {
+  issuer: string;
+  endpoint: unknown;
+  methods: unknown;
+  validateEndpoint: (url: string) => void;
+}
 export interface RegisteredClient {
   binding: string;
   issuer: string;
@@ -71,7 +84,7 @@ export class MCPRegistrations {
   private resetting = new Set<string>();
   private managing = new Map<
     string,
-    { method: string; promise: Promise<any> }
+    { method: string; promise: Promise<unknown> }
   >();
   constructor(
     private root: string,
@@ -195,15 +208,7 @@ export class MCPRegistrations {
         : undefined,
     };
   }
-  ensure(
-    target: Target,
-    metadata: {
-      issuer: string;
-      endpoint: string;
-      methods: string[];
-      validateEndpoint: (url: string) => void;
-    },
-  ) {
+  ensure(target: Target, metadata: RegistrationServer) {
     invariant(
       !this.resetting.has(target.id) && !this.managing.has(target.id),
       "OAuth registration reset is in progress",
@@ -229,30 +234,23 @@ export class MCPRegistrations {
       .catch(() => undefined);
     return promise;
   }
-  private async register(
-    target: Target,
-    metadata: {
-      issuer: string;
-      endpoint: string;
-      methods: string[];
-      validateEndpoint: (url: string) => void;
-    },
-  ) {
+  private async register(target: Target, metadata: RegistrationServer) {
     const existing = await this.credentials(target, metadata.issuer);
     if (existing) return existing;
     const config = target.oauth.registration;
     invariant(config, "Dynamic registration is not enabled", 403);
     invariant(
-      metadata.methods.includes(config.tokenEndpointAuthMethod),
+      wireIncludes(metadata.methods, config.tokenEndpointAuthMethod),
       "Configured dynamic client authentication unsupported",
       502,
     );
+    const endpoint = metadata.endpoint;
     invariant(
-      typeof metadata.endpoint === "string",
+      typeof endpoint === "string",
       "Authorization server has no registration endpoint",
       400,
     );
-    metadata.validateEndpoint(metadata.endpoint);
+    metadata.validateEndpoint(endpoint);
     const attempt = await this.load<Attempt>(target, "attempt");
     invariant(
       attempt?.state !== "pending",
@@ -264,7 +262,7 @@ export class MCPRegistrations {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: any = {
+      body: WireObject = {
         client_name: config.clientName,
         ...(target.oauth.redirectUri
           ? { redirect_uris: [target.oauth.redirectUri] }
@@ -315,7 +313,7 @@ export class MCPRegistrations {
       createdAt: new Date().toISOString(),
     };
     await this.save(target, "attempt", intent);
-    const response = await fetch(metadata.endpoint, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
@@ -329,15 +327,16 @@ export class MCPRegistrations {
     );
     const data = await readJson(response, 1024 * 1024);
     if (response.status !== 201) {
+      const rejection = wireMember(data, "error");
       if (
         [400, 401, 403].includes(response.status) &&
-        typeof data?.error === "string" &&
-        /^[a-z_]{1,80}$/.test(data.error)
+        typeof rejection === "string" &&
+        /^[a-z_]{1,80}$/.test(rejection)
       )
         await this.save(target, "attempt", {
           ...intent,
           state: "rejected",
-          error: data.error,
+          error: rejection,
         });
       invariant(
         false,
@@ -381,27 +380,28 @@ export class MCPRegistrations {
   }
   private parseClient(
     target: Target,
-    data: any,
+    document: unknown,
     intent: Attempt,
-    requested: any,
+    requested: WireObject,
     validateEndpoint: (url: string) => void,
     previous?: RegisteredClient,
-  ) {
+  ): RegisteredClient {
+    const data = wireObject(document);
     invariant(
-      data && typeof data === "object" && !Array.isArray(data),
+      data,
       "Invalid remote registration document; outcome unknown",
       502,
     );
     const config = target.oauth.registration!;
     const method = data.token_endpoint_auth_method ?? "client_secret_basic";
+    const clientId = data.client_id;
     invariant(
-      typeof data.client_id === "string" &&
-        /^[\x21-\x7e]{1,2048}$/.test(data.client_id),
+      typeof clientId === "string" && /^[\x21-\x7e]{1,2048}$/.test(clientId),
       "Invalid dynamically registered client ID; outcome unknown",
       502,
     );
     invariant(
-      !previous || previous.clientId === data.client_id,
+      !previous || previous.clientId === clientId,
       "Remote registration changed client ID; outcome unknown",
       502,
     );
@@ -410,63 +410,63 @@ export class MCPRegistrations {
       "Registration changed the configured client authentication; outcome unknown",
       502,
     );
+    const redirects = data.redirect_uris,
+      requestedRedirects = requested.redirect_uris;
     invariant(
       !target.oauth.redirectUri ||
-        (Array.isArray(data.redirect_uris) &&
-          data.redirect_uris.includes(target.oauth.redirectUri) &&
-          data.redirect_uris.length === requested.redirect_uris?.length &&
-          requested.redirect_uris.every((v: string) =>
-            data.redirect_uris.includes(v),
-          )),
+        (Array.isArray(redirects) &&
+          redirects.includes(target.oauth.redirectUri) &&
+          Array.isArray(requestedRedirects) &&
+          redirects.length === requestedRedirects.length &&
+          requestedRedirects.every((v) => redirects.includes(v))),
       "Registration redirect URI mismatch; outcome unknown",
       502,
     );
-    for (const [field, expected] of [
-      ["grant_types", requested.grant_types],
-      ["response_types", requested.response_types],
-    ] as const) {
-      const actual = data[field];
+    for (const field of ["grant_types", "response_types"] as const) {
+      const actual = data[field],
+        expected = requested[field];
       invariant(
         Array.isArray(actual) &&
+          Array.isArray(expected) &&
           actual.length === expected.length &&
-          expected.every((v: string) => actual.includes(v)),
+          expected.every((v) => actual.includes(v)),
         "Registration changed " + field + "; outcome unknown",
         502,
       );
     }
+    const secret = data.client_secret,
+      expiresAt = data.client_secret_expires_at;
     invariant(
       method === "none" ||
-        (typeof data.client_secret === "string" &&
-          /^[\x21-\x7e]{1,64000}$/.test(data.client_secret)),
+        (typeof secret === "string" && /^[\x21-\x7e]{1,64000}$/.test(secret)),
       "Missing registered OAuth client secret; outcome unknown",
       502,
     );
     invariant(
-      (data.client_secret === undefined &&
-        data.client_secret_expires_at === undefined) ||
-        (Number.isSafeInteger(data.client_secret_expires_at) &&
-          data.client_secret_expires_at >= 0 &&
-          data.client_secret_expires_at <= 253402300799),
+      (secret === undefined && expiresAt === undefined) ||
+        (typeof expiresAt === "number" &&
+          Number.isSafeInteger(expiresAt) &&
+          expiresAt >= 0 &&
+          expiresAt <= 253402300799),
       "Invalid registered secret expiration; outcome unknown",
       502,
     );
+    const accessToken = data.registration_access_token,
+      clientUri = data.registration_client_uri;
     // Register credentials before any validation error can be rendered by the host.
-    if (typeof data.registration_access_token === "string")
-      registerSecret(data.registration_access_token);
-    if (typeof data.client_secret === "string")
-      registerSecret(data.client_secret);
+    if (typeof accessToken === "string") registerSecret(accessToken);
+    if (typeof secret === "string") registerSecret(secret);
     invariant(
-      (data.registration_client_uri === undefined &&
-        data.registration_access_token === undefined &&
+      (clientUri === undefined &&
+        accessToken === undefined &&
         !previous?.registrationClientUri) ||
-        (typeof data.registration_client_uri === "string" &&
-          typeof data.registration_access_token === "string" &&
-          /^[\x21-\x7e]{1,64000}$/.test(data.registration_access_token)),
+        (typeof clientUri === "string" &&
+          typeof accessToken === "string" &&
+          /^[\x21-\x7e]{1,64000}$/.test(accessToken)),
       "Incomplete remote registration management credentials; outcome unknown",
       502,
     );
-    if (data.registration_client_uri)
-      validateEndpoint(data.registration_client_uri);
+    if (typeof clientUri === "string" && clientUri) validateEndpoint(clientUri);
     const excluded = new Set([
       "client_id",
       "client_secret",
@@ -475,18 +475,24 @@ export class MCPRegistrations {
       "registration_access_token",
       "registration_client_uri",
     ]);
+    // The checks above guarantee a string secret whenever the method needs one.
     const value: RegisteredClient = {
       binding: intent.binding,
       issuer: intent.issuer,
-      clientId: data.client_id,
-      ...(method !== "none" ? { clientSecret: data.client_secret } : {}),
-      ...(data.client_secret_expires_at
-        ? { secretExpiresAt: data.client_secret_expires_at * 1000 }
+      clientId,
+      ...(method !== "none" && typeof secret === "string"
+        ? { clientSecret: secret }
         : {}),
-      authMethod: method,
+      ...(typeof expiresAt === "number" && expiresAt
+        ? { secretExpiresAt: expiresAt * 1000 }
+        : {}),
+      // Equal to the configured method, checked above.
+      authMethod: String(method),
       registeredAt: previous?.registeredAt || new Date().toISOString(),
-      registrationAccessToken: data.registration_access_token,
-      registrationClientUri: data.registration_client_uri,
+      registrationAccessToken:
+        typeof accessToken === "string" ? accessToken : undefined,
+      registrationClientUri:
+        typeof clientUri === "string" ? clientUri : undefined,
       metadata: Object.fromEntries(
         Object.entries(data).filter(([k]) => !excluded.has(k)),
       ),
@@ -547,7 +553,7 @@ export class MCPRegistrations {
       "oauth_registration_unknown",
     );
     validateEndpoint(current.registrationClientUri);
-    const metadata: any = structuredClone(current.metadata || {});
+    const metadata: WireObject = structuredClone(current.metadata || {});
     if (method === "PUT") {
       invariant(
         changes &&
@@ -605,7 +611,7 @@ export class MCPRegistrations {
           state: "pending",
           createdAt: new Date().toISOString(),
         },
-        current.metadata,
+        current.metadata ?? {},
         validateEndpoint,
         current,
       );
@@ -666,7 +672,7 @@ export class MCPRegistrations {
       target,
       data,
       intent,
-      method === "PUT" ? metadata : current.metadata,
+      method === "PUT" ? metadata : (current.metadata ?? {}),
       validateEndpoint,
       current,
     );

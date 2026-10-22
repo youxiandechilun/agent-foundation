@@ -94,10 +94,11 @@ export interface ToolResult {
   isError?: boolean;
   artifacts?: string[];
 }
-export interface ToolDefinition<T = any> {
+export interface ToolDefinition<T = unknown> {
   name: string;
   description: string;
-  parameters: Record<string, any>;
+  /** JSON Schema of the arguments; validated before every execute. */
+  parameters: object;
   risk?: Risk;
   capabilities?: Capability[];
   /** Trusted host declaration of behaviours that permission rules recognise. */
@@ -106,7 +107,7 @@ export interface ToolDefinition<T = any> {
    * Trusted host declaration: capabilities a specific call needs beyond `capabilities`,
    * derived from its arguments before permission checks. Throw to deny the call.
    */
-  constrain?: (params: T, call: { routeId: string }) => Capability[] | void;
+  constrain?(params: T, call: { routeId: string }): Capability[] | void;
   source?: { kind: "builtin" | "mcp" | "plugin" | "device"; id: string };
   /** Trusted host declaration. Undeclared tools take an exclusive global lock. */
   scheduling?: {
@@ -116,15 +117,15 @@ export interface ToolDefinition<T = any> {
      * so the work it waits for can use the shared scheduler without deadlocking.
      */
     detached?: boolean;
-    resources?: (params: T) => { key: string; access: "read" | "write" }[];
+    resources?(params: T): { key: string; access: "read" | "write" }[];
   };
-  execute: (
+  execute(
     callId: string,
     params: T,
     signal?: AbortSignal,
     update?: (result: ToolResult) => void,
     execution?: { routeId: string },
-  ) => Promise<ToolResult>;
+  ): Promise<ToolResult>;
 }
 export interface ModelRequest {
   routeId: string;
@@ -158,7 +159,15 @@ export const textOf = (message: Message | { content: unknown }) =>
     ? message.content
     : Array.isArray(message.content)
       ? message.content
-          .filter((p: any) => p.type === "text")
-          .map((p: any) => p.text)
+          .filter(
+            (p: unknown): p is TextPart =>
+              typeof p === "object" &&
+              p !== null &&
+              "type" in p &&
+              p.type === "text" &&
+              "text" in p &&
+              typeof p.text === "string",
+          )
+          .map((p: TextPart) => p.text)
           .join("\n")
       : "";

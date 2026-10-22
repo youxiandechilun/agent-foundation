@@ -1,41 +1,58 @@
 import { invariant } from "../../../core/util.js";
-import type { MCPRequestContext } from "../protocol.js";
+import {
+  wireMember,
+  wireObject,
+  type MCPRequestContext,
+  type WireObject,
+} from "../protocol.js";
 
 export const RELATED_TASK = "io.modelcontextprotocol/related-task";
 const terminal = new Set(["completed", "failed", "cancelled"]);
-export function taskMetadata(params: any): string | undefined {
-  const meta = params?._meta;
-  if (!meta || !Object.hasOwn(meta, RELATED_TASK)) return;
-  const value = meta[RELATED_TASK];
+export const taskStatuses = [
+  "working",
+  "input_required",
+  "completed",
+  "failed",
+  "cancelled",
+] as const;
+const statuses: readonly unknown[] = taskStatuses;
+/** A legacy task status that passed {@link validateTask}. */
+export type MCPTask = WireObject & {
+  taskId: string;
+  status: "working" | "input_required" | "completed" | "failed" | "cancelled";
+  ttl?: number | null;
+};
+export function taskMetadata(params: unknown): string | undefined {
+  const meta = wireMember(params, "_meta");
+  if (!meta || typeof meta !== "object" || !Object.hasOwn(meta, RELATED_TASK))
+    return;
+  const taskId = wireObject(wireMember(meta, RELATED_TASK))?.taskId;
   invariant(
-    value &&
-      typeof value === "object" &&
-      !Array.isArray(value) &&
-      typeof value.taskId === "string" &&
-      value.taskId.length > 0 &&
-      value.taskId.length <= 512,
+    typeof taskId === "string" && taskId.length > 0 && taskId.length <= 512,
     "Invalid related-task metadata",
     400,
   );
-  return value.taskId;
+  return taskId;
 }
-export function validateTask(task: any, expected?: string) {
+export function validateTask(task: unknown, expected?: unknown): MCPTask {
+  const taskId = wireMember(task, "taskId");
   invariant(
-    task &&
-      typeof task.taskId === "string" &&
-      task.taskId.length > 0 &&
-      task.taskId.length <= 512 &&
-      (!expected || task.taskId === expected) &&
-      ["working", "input_required", ...terminal].includes(task.status),
+    typeof taskId === "string" &&
+      taskId.length > 0 &&
+      taskId.length <= 512 &&
+      (!expected || taskId === expected) &&
+      statuses.includes(wireMember(task, "status")),
     "Invalid MCP task status",
     502,
   );
+  const ttl = wireMember(task, "ttl");
   invariant(
-    task.ttl == null || (Number.isSafeInteger(task.ttl) && task.ttl >= 0),
+    ttl == null ||
+      (typeof ttl === "number" && Number.isSafeInteger(ttl) && ttl >= 0),
     "Invalid MCP task TTL",
     502,
   );
-  return task;
+  return task as MCPTask;
 }
 /** Connection-scoped origins, retained after CreateTaskResult and revoked independently of the RPC. */
 export class MCPTaskContexts {
@@ -45,7 +62,7 @@ export class MCPTaskContexts {
       context: MCPRequestContext;
       controller: AbortController;
       cleanup: () => void;
-      progress?: (v: any) => void;
+      progress?: (value: WireObject) => void;
       progressToken?: string;
     }
   >();
@@ -54,16 +71,16 @@ export class MCPTaskContexts {
     return this.entries.size;
   }
   create(
-    task: any,
+    value: unknown,
     context: MCPRequestContext,
     options: {
       signal?: AbortSignal;
       deadline: number;
-      progress?: (v: any) => void;
+      progress?: (value: WireObject) => void;
       progressToken?: string;
     },
   ) {
-    validateTask(task);
+    const task = validateTask(value);
     invariant(!this.used.has(task.taskId), "MCP server reused a task ID", 502);
     invariant(
       this.used.size < 4096 && this.entries.size < 128,
@@ -98,11 +115,11 @@ export class MCPTaskContexts {
   get(taskId: string) {
     return this.entries.get(taskId)?.context;
   }
-  observe(task: any) {
-    validateTask(task);
+  observe(value: unknown) {
+    const task = validateTask(value);
     if (terminal.has(task.status)) this.release(task.taskId);
   }
-  progress(taskId: string, params: any) {
+  progress(taskId: string, params: WireObject) {
     const entry = this.entries.get(taskId);
     if (entry && entry.progressToken === params.progressToken)
       entry.progress?.(params);

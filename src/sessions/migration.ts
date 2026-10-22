@@ -77,7 +77,7 @@ function canonical(value: unknown, depth = 0): string {
           (key) =>
             JSON.stringify(key) +
             ":" +
-            canonical((value as any)[key], depth + 1),
+            canonical((value as Record<string, unknown>)[key], depth + 1),
         )
         .join(",") +
       "}"

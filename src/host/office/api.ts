@@ -1,14 +1,22 @@
 import { z } from "zod";
 import type { IncomingMessage } from "node:http";
 import type { Kernel } from "../../core/kernel.js";
-import type { Office } from "./manager.js";
+import {
+  type Office,
+  officeAnalyzeSchema,
+  officeCreateSchema,
+  officePdfComposeSchema,
+  officeReplaceSchema,
+  officeSheetEditSchema,
+  officeTransformSchema,
+} from "./manager.js";
 import { hostApplicationAccess } from "../access.js";
 import { invariant } from "../../core/util.js";
 export async function officeManagement(
   kernel: Kernel & { office: Office },
   req: IncomingMessage,
   url: URL,
-  json: () => Promise<any>,
+  json: () => Promise<unknown>,
   signal?: AbortSignal,
 ) {
   if (!url.pathname.startsWith("/v1/office/") || req.method !== "POST") return;
@@ -66,7 +74,11 @@ export async function officeManagement(
     };
   if (operation === "create")
     return {
-      data: await office.create(projectId, args as any, signal),
+      data: await office.create(
+        projectId,
+        officeCreateSchema.parse(args),
+        signal,
+      ),
       status: 201,
     };
   if (operation === "table") {
@@ -94,25 +106,47 @@ export async function officeManagement(
     };
   }
   if (operation === "analyze")
-    return { data: await office.analyze(projectId, args as any, signal) };
+    return {
+      data: await office.analyze(
+        projectId,
+        officeAnalyzeSchema.parse(args),
+        signal,
+      ),
+    };
   if (operation === "transform")
     return {
-      data: await office.transform(projectId, args as any, signal),
+      data: await office.transform(
+        projectId,
+        officeTransformSchema.parse(args),
+        signal,
+      ),
       status: 201,
     };
   if (operation === "edit-sheet")
     return {
-      data: await office.editSpreadsheet(projectId, args as any, signal),
+      data: await office.editSpreadsheet(
+        projectId,
+        officeSheetEditSchema.parse(args),
+        signal,
+      ),
       status: 201,
     };
   if (operation === "replace-text")
     return {
-      data: await office.replaceText(projectId, args as any, signal),
+      data: await office.replaceText(
+        projectId,
+        officeReplaceSchema.parse(args),
+        signal,
+      ),
       status: 201,
     };
   if (operation === "compose-pdf")
     return {
-      data: await office.composePdf(projectId, args as any, signal),
+      data: await office.composePdf(
+        projectId,
+        officePdfComposeSchema.parse(args),
+        signal,
+      ),
       status: 201,
     };
   const v = z

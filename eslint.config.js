@@ -38,9 +38,9 @@ export default tseslint.config(
     },
   },
   {
-    // Wire payloads in src should be typed or `unknown`; remaining uses are tracked debt.
+    // External payloads must be decoded from unknown at their boundary.
     files: ["src/**/*.ts"],
-    rules: { "@typescript-eslint/no-explicit-any": "warn" },
+    rules: { "@typescript-eslint/no-explicit-any": "error" },
   },
   {
     // Tests poke at loosely shaped fixtures and responses.

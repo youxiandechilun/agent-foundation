@@ -1,48 +1,49 @@
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { VERSION } from "../../version.js";
-import { StringDecoder } from "node:string_decoder";
-import { randomUUID } from "node:crypto";
-import { invariant, errorText, delay, abortable } from "../../core/util.js";
-import { readJson } from "../../providers/sse.js";
-import { terminateProcessTree } from "../../execution/lifecycle.js";
+import { invariant, errorText } from "../../core/util.js";
+import { MCPStdioTransport } from "./client/stdio.js";
+import { MCPHttpTransport } from "./client/http.js";
+import { MCPToolCatalog } from "./client/tool-catalog.js";
+import { MCPClientInput } from "./client/input.js";
 import {
-  headerBindings,
-  parameterHeaders,
-  mcpHeaderValue,
-  type HeaderBinding,
-} from "./headers.js";
-import { compileSchema } from "../../runtime/json-schema.js";
+  modernTaskResult,
+  waitModernTask,
+} from "./client/modern-task-runner.js";
+import { MCPClientRequests } from "./client/requests.js";
+import {
+  listenNotifications,
+  receiveSubscription,
+  subscriptionMethods,
+} from "./client/subscriptions.js";
 import {
   MCPTaskContexts,
-  RELATED_TASK,
   taskMetadata,
   validateTask,
 } from "./tasks/context.js";
-import {
-  MCPTaskReceiver,
-  MCPTaskReceiverError,
-  type MCPReceiverOptions,
-} from "./tasks/receiver.js";
+import { MCPTaskReceiver, type MCPReceiverOptions } from "./tasks/receiver.js";
 import {
   ModernMCPTasks,
   TASKS_EXTENSION,
-  taskTerminal,
-  taskFingerprint,
+  type ModernTask,
   type ModernTaskEvent,
 } from "./tasks/modern.js";
 
 import {
-  frames,
-  rpc,
   MCP_MODERN_VERSION,
   MCP_PROTOCOL_VERSIONS,
   MCPProtocolError,
   type MCPNotificationFilter,
-  type MCPRequestContext,
   type MCPRequestOptions,
   type MCPInputHandler,
+  isProtocolVersion,
+  isProtocolVersionList,
+  isRpcId,
+  wireMember,
+  wireObject,
+  type MCPServerCapabilities,
+  type MCPToolResult,
   type RpcId,
   type RpcMessage,
+  type WireObject,
 } from "./protocol.js";
 export {
   MCP_MODERN_VERSION,
@@ -83,27 +84,6 @@ export interface MCPClientOptions {
   authorization?: () => Promise<string>;
   onAuthChallenge?: (header: string, status: number) => void;
 }
-interface Pending {
-  resolve: (value: any) => void;
-  reject: (error: Error) => void;
-  cleanup: () => void;
-  controller: AbortController;
-  progressToken?: string;
-  progress?: (value: any) => void;
-  context: MCPRequestContext;
-  taskOptions?: {
-    signal?: AbortSignal;
-    deadline: number;
-    progress?: (v: any) => void;
-    progressToken?: string;
-  };
-  modernTaskOptions?: { signal?: AbortSignal; deadline: number };
-  subscription?: {
-    filter: MCPNotificationFilter;
-    acknowledged?: MCPNotificationFilter;
-    onAck?: (filter: MCPNotificationFilter) => void;
-  };
-}
 /** Foundation-maintained MCP client. Node streams/fetch only; no MCP or agent SDK. */
 export class MCPClient {
   private receiver?: MCPTaskReceiver;
@@ -113,29 +93,18 @@ export class MCPClient {
   onnotification?: (method: string, params: unknown) => void;
   protocolVersion = "";
   serverInfo: Record<string, unknown> = {};
-  capabilities: Record<string, any> = {};
-  private child?: ChildProcessWithoutNullStreams;
-  private sessionId?: string;
-  private lastAuthorization?: string;
+  capabilities: MCPServerCapabilities = {};
+  private stdio: MCPStdioTransport;
+  private http: MCPHttpTransport;
+  private catalog: MCPToolCatalog;
+  private input: MCPClientInput;
   private initialized = false;
   private closed = false;
   private lifetime = new AbortController();
   private background?: AbortController;
-  private nextId = 0;
-  private pending = new Map<RpcId, Pending>();
-  private progressRequests = new Map<string, Pending>();
+  private requests: MCPClientRequests;
   private closeCompletion?: Promise<void>;
-  private seen = new Set<string>();
   private modern = false;
-  private incoming = new Map<RpcId, AbortController>();
-  private toolHeaders = new Map<string, HeaderBinding[]>();
-  private toolSchemas = new Map<
-    string,
-    {
-      input: ReturnType<typeof compileSchema>;
-      output?: ReturnType<typeof compileSchema>;
-    }
-  >();
   private messages: { method: string; params: unknown; timestamp: string }[] =
     [];
   readonly limits: { message: number; stderr: number; timeout: number };
@@ -146,6 +115,28 @@ export class MCPClient {
       timeout: options.timeoutMs || 30000,
     };
     this.modernTasks = new ModernMCPTasks(options.onTask);
+    this.catalog = new MCPToolCatalog((method, params) =>
+      this.record(method, params),
+    );
+    this.stdio = new MCPStdioTransport(options, this.limits, {
+      receive: (message) => this.receive(message),
+      fail: (error) => this.fail(error),
+      closed: () => this.closed,
+    });
+    this.http = new MCPHttpTransport(options, this.limits, {
+      signal: this.lifetime.signal,
+      closed: () => this.closed,
+      modern: () => this.modern,
+      protocolVersion: () => this.protocolVersion,
+      receive: (message, parentId) => this.receive(message, parentId),
+      hasPending: (id) => this.requests.pending.has(id),
+      sessionExpired: (error) => {
+        this.initialized = false;
+        void this.fail(error);
+      },
+      toolHeaders: (name) => this.catalog.headers(name),
+      record: (method, params) => this.record(method, params),
+    });
     invariant(
       !options.receiverTasks?.sampling ||
         options.handlers?.["sampling/createMessage"],
@@ -162,6 +153,29 @@ export class MCPClient {
         (method, params) => this.notify(method, params),
         this.limits.message,
       );
+    this.requests = new MCPClientRequests(options, this.limits, {
+      signal: this.lifetime.signal,
+      modern: () => this.modern,
+      closed: () => this.closed,
+      initialized: () => this.initialized,
+      clientCapabilities: () => this.clientCapabilities(),
+      send: (message, signal) => this.send(message, signal),
+      notify: (method, params) => this.notify(method, params),
+      handleInput: (method, params, context) =>
+        this.input.handleInput(method, params, context),
+    });
+    this.input = new MCPClientInput({
+      pending: this.requests.pending,
+      taskContexts: this.taskContexts,
+      signal: this.lifetime.signal,
+      timeout: this.limits.timeout,
+      receiver: this.receiver,
+      handlers: options.handlers,
+      protocolVersion: () => this.protocolVersion,
+      closed: () => this.closed,
+      fail: (error) => this.fail(error),
+      send: (message, signal) => this.send(message, signal),
+    });
   }
   get connected() {
     return this.initialized && !this.closed;
@@ -196,7 +210,7 @@ export class MCPClient {
       409,
     );
     try {
-      if (this.options.transport === "stdio") await this.startStdio();
+      if (this.options.transport === "stdio") await this.stdio.start();
       if (
         this.options.protocol === "modern" ||
         this.options.protocol === "auto"
@@ -204,23 +218,31 @@ export class MCPClient {
         this.modern = true;
         this.protocolVersion = MCP_MODERN_VERSION;
         try {
-          const discovered = await this.requestOnce(
+          const discovered = await this.requests.requestOnce(
             "server/discover",
             {},
             undefined,
             true,
           );
+          const versions = wireMember(discovered, "supportedVersions"),
+            capabilities = wireMember(discovered, "capabilities");
           invariant(
-            Array.isArray(discovered?.supportedVersions) &&
-              discovered.supportedVersions.includes(MCP_MODERN_VERSION) &&
-              discovered.capabilities &&
-              typeof discovered.capabilities === "object",
+            Array.isArray(versions) &&
+              versions.includes(MCP_MODERN_VERSION) &&
+              capabilities &&
+              typeof capabilities === "object",
             "Invalid MCP discovery",
             502,
           );
-          this.capabilities = discovered.capabilities;
+          this.capabilities = capabilities as MCPServerCapabilities;
           this.serverInfo =
-            discovered._meta?.["io.modelcontextprotocol/serverInfo"] || {};
+            wireObject(
+              wireMember(
+                discovered,
+                "_meta",
+                "io.modelcontextprotocol/serverInfo",
+              ),
+            ) || {};
           this.initialized = true;
           return;
         } catch (error) {
@@ -228,9 +250,8 @@ export class MCPClient {
             error instanceof MCPProtocolError &&
             (error.code === -32601 ||
               (error.code === -32022 &&
-                Array.isArray((error.data as any)?.supportedVersions) &&
-                (error.data as any).supportedVersions.some((v: any) =>
-                  MCP_PROTOCOL_VERSIONS.includes(v),
+                isProtocolVersionList(
+                  wireMember(error.data, "supportedVersions"),
                 )));
           if (this.options.protocol !== "auto" || !legacyFallback) throw error;
           this.modern = false;
@@ -247,29 +268,31 @@ export class MCPClient {
         undefined,
         true,
       );
+      const version = result.protocolVersion,
+        capabilities = result.capabilities,
+        serverInfo = result.serverInfo as WireObject | undefined;
       invariant(
-        result &&
-          MCP_PROTOCOL_VERSIONS.includes(result.protocolVersion) &&
-          result.capabilities &&
-          typeof result.capabilities === "object" &&
-          typeof result.serverInfo?.name === "string",
+        isProtocolVersion(version) &&
+          capabilities &&
+          typeof capabilities === "object" &&
+          typeof wireMember(serverInfo, "name") === "string",
         "Invalid or unsupported MCP initialization",
         502,
       );
       invariant(
-        this.options.transport !== "http" ||
-          result.protocolVersion !== "2024-11-05",
+        this.options.transport !== "http" || version !== "2024-11-05",
         "Legacy HTTP+SSE transport is not enabled",
         502,
       );
-      this.protocolVersion = result.protocolVersion;
-      this.capabilities = result.capabilities;
-      this.serverInfo = result.serverInfo;
+      this.protocolVersion = version;
+      this.capabilities = capabilities as MCPServerCapabilities;
+      // A non-null object with a string name, as checked above.
+      this.serverInfo = serverInfo!;
       await this.notify("notifications/initialized");
       this.initialized = true;
       if (this.options.transport === "http") {
         this.background = new AbortController();
-        void this.listen(this.background.signal).catch((e) => {
+        void this.http.listen(this.background.signal).catch((e) => {
           if (!this.closed && !this.background?.signal.aborted)
             this.record("transport/error", { message: errorText(e) });
         });
@@ -279,90 +302,15 @@ export class MCPClient {
       throw e;
     }
   }
-  private async startStdio() {
-    invariant(this.options.command, "MCP stdio command required");
-    const child = (this.child = spawn(
-      this.options.command,
-      this.options.args || [],
-      {
-        env: this.options.env,
-        cwd: this.options.cwd,
-        windowsHide: true,
-        shell: false,
-        detached:
-          process.platform !== "win32" || this.options.ownerMonitored === true,
-        stdio: ["pipe", "pipe", "pipe"],
-      },
-    ));
-    const decoder = new StringDecoder("utf8");
-    let buffer = "",
-      stderr = 0;
-    child.stdout.on("data", (chunk) => {
-      try {
-        buffer += decoder.write(chunk);
-        let end: number;
-        while ((end = buffer.indexOf("\n")) >= 0) {
-          const line = buffer.slice(0, end).replace(/\r$/, "");
-          buffer = buffer.slice(end + 1);
-          if (line.trim()) {
-            invariant(
-              Buffer.byteLength(line) <= this.limits.message,
-              "MCP message exceeds limit",
-              502,
-            );
-            this.receive(rpc(JSON.parse(line)));
-          }
-        }
-        invariant(
-          Buffer.byteLength(buffer) <= this.limits.message,
-          "MCP stdout frame exceeds limit",
-          502,
-        );
-      } catch (e) {
-        void this.fail(e);
-      }
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.length;
-      if (stderr > this.limits.stderr)
-        void this.fail(new MCPProtocolError("MCP stderr exceeds limit"));
-    });
-    child.on("error", (e) => void this.fail(e));
-    child.on("close", (code) => {
-      if (!this.closed)
-        void this.fail(
-          new MCPProtocolError(
-            `MCP child exited (${code}); pending effects may be unknown`,
-          ),
-        );
-    });
-    await new Promise<void>((resolve, reject) => {
-      child.once("spawn", resolve);
-      child.once("error", reject);
-    });
-  }
   private record(method: string, params: unknown) {
     this.messages.push({ method, params, timestamp: new Date().toISOString() });
     if (this.messages.length > 100) this.messages.shift();
     this.onnotification?.(method, params);
   }
-  private takePending(requestId: RpcId, reason?: Error): Pending | undefined {
-    const pending = this.pending.get(requestId);
-    if (!pending) return;
-    this.pending.delete(requestId);
-    if (pending.progressToken)
-      this.progressRequests.delete(pending.progressToken);
-    pending.cleanup();
-    pending.controller.abort(reason);
-    return pending;
-  }
-  private rejectPending(error: Error): void {
-    for (const requestId of this.pending.keys())
-      this.takePending(requestId, error)?.reject(error);
-  }
   private receive(message: RpcMessage, parentId?: RpcId) {
     if (this.closed) return;
     if (message.method) {
+      const params: WireObject = wireObject(message.params) ?? {};
       if (message.id !== undefined) {
         if (this.modern) {
           void this.fail(
@@ -372,15 +320,18 @@ export class MCPClient {
           );
           return;
         }
-        void this.handleIncoming(message, parentId).catch((error) =>
-          this.record("transport/error", { message: errorText(error) }),
-        );
+        void this.input
+          .receive(message, parentId)
+          .catch((error) =>
+            this.record("transport/error", { message: errorText(error) }),
+          );
         return;
       }
-      if (message.method === "notifications/cancelled")
-        this.incoming
-          .get(message.params?.requestId)
-          ?.abort(new Error("Server cancelled client input"));
+      if (
+        message.method === "notifications/cancelled" &&
+        isRpcId(params.requestId)
+      )
+        this.input.cancel(params.requestId);
       if (message.method === "notifications/tasks/status") {
         try {
           this.taskContexts.observe(message.params);
@@ -391,99 +342,15 @@ export class MCPClient {
           return;
         }
       }
-      if (
-        this.modern &&
-        [
-          "notifications/subscriptions/acknowledged",
-          "notifications/tools/list_changed",
-          "notifications/prompts/list_changed",
-          "notifications/resources/list_changed",
-          "notifications/resources/updated",
-          "notifications/tasks",
-        ].includes(message.method)
-      ) {
-        const key =
-            message.params?._meta?.["io.modelcontextprotocol/subscriptionId"],
-          sub = this.pending.get(key)?.subscription;
+      if (this.modern && subscriptionMethods.includes(message.method)) {
         try {
-          invariant(sub, "Unsolicited MCP subscription notification", 502);
-          if (message.method === "notifications/subscriptions/acknowledged") {
-            invariant(
-              !sub.acknowledged,
-              "Duplicate subscription acknowledgement",
-              502,
-            );
-            const actual = message.params?.notifications;
-            invariant(
-              actual && typeof actual === "object" && !Array.isArray(actual),
-              "Invalid subscription acknowledgement",
-              502,
-            );
-            for (const [name, value] of Object.entries(actual)) {
-              invariant(
-                [
-                  "toolsListChanged",
-                  "promptsListChanged",
-                  "resourcesListChanged",
-                  "resourceSubscriptions",
-                  "taskIds",
-                ].includes(name),
-                "Unknown acknowledged notification filter",
-                502,
-              );
-              if (name === "resourceSubscriptions" || name === "taskIds")
-                invariant(
-                  Array.isArray(value) &&
-                    value.every(
-                      (v) =>
-                        typeof v === "string" && sub.filter[name]?.includes(v),
-                    ),
-                  "Unrequested resource subscription",
-                  502,
-                );
-              else
-                invariant(
-                  value === true &&
-                    sub.filter[name as keyof MCPNotificationFilter] === true,
-                  "Unrequested notification type",
-                  502,
-                );
-            }
-            sub.acknowledged = actual;
-            sub.onAck?.(actual);
-          } else {
-            invariant(
-              sub.acknowledged,
-              "Notification arrived before acknowledgement",
-              502,
-            );
-            const expected: Record<string, string> = {
-              "notifications/tools/list_changed": "toolsListChanged",
-              "notifications/prompts/list_changed": "promptsListChanged",
-              "notifications/resources/list_changed": "resourcesListChanged",
-            };
-            invariant(
-              message.method === "notifications/tasks"
-                ? sub.acknowledged.taskIds?.includes(message.params?.taskId)
-                : message.method === "notifications/resources/updated"
-                  ? sub.acknowledged.resourceSubscriptions?.includes(
-                      message.params?.uri,
-                    )
-                  : (sub.acknowledged as any)[expected[message.method]] ===
-                    true,
-              "Notification was not subscribed",
-              502,
-            );
-            if (message.method === "notifications/tasks") {
-              invariant(
-                this.options.taskExtension &&
-                  this.capabilities.extensions?.[TASKS_EXTENSION],
-                "Task notification extension is not negotiated",
-                502,
-              );
-              this.modernTasks.update(message.params);
-            }
-          }
+          receiveSubscription(
+            message.method,
+            params,
+            this.requests.pending,
+            this.modernTasks,
+            this.tasksNegotiated(),
+          );
         } catch (error) {
           this.record("subscriptions/rejected", { message: errorText(error) });
           return;
@@ -491,25 +358,31 @@ export class MCPClient {
       }
       if (message.method === "notifications/progress") {
         try {
-          const taskId = taskMetadata(message.params);
-          if (taskId) this.taskContexts.progress(taskId, message.params);
+          const taskId = taskMetadata(params);
+          if (taskId) this.taskContexts.progress(taskId, params);
         } catch {
           return;
         }
-        this.progressRequests
-          .get(message.params?.progressToken)
-          ?.progress?.(message.params);
+        if (typeof params.progressToken === "string")
+          this.requests.progressRequests
+            .get(params.progressToken)
+            ?.progress?.(params);
       }
       this.record(message.method, message.params);
       return;
     }
-    const p = this.pending.get(message.id!);
+    const p = this.requests.pending.get(message.id!);
     if (!p) return;
+    // Task methods are only sent by this client, always with a string taskId.
+    const requestedTask =
+      typeof p.context.params.taskId === "string"
+        ? p.context.params.taskId
+        : undefined;
     if (!message.error) {
       try {
         if (p.taskOptions)
           this.taskContexts.create(
-            message.result?.task,
+            wireMember(message.result, "task"),
             p.context,
             p.taskOptions,
           );
@@ -517,18 +390,22 @@ export class MCPClient {
           !this.modern &&
           ["tasks/get", "tasks/cancel"].includes(p.context.method)
         ) {
-          validateTask(message.result, p.context.params.taskId);
+          validateTask(message.result, requestedTask);
           this.taskContexts.observe(message.result);
         }
         if (!this.modern && p.context.method === "tasks/result") {
           invariant(
-            taskMetadata(message.result) === p.context.params.taskId,
+            requestedTask !== undefined &&
+              taskMetadata(message.result) === requestedTask,
             "MCP task result has missing or mismatched related-task metadata",
             502,
           );
-          this.taskContexts.release(p.context.params.taskId);
+          this.taskContexts.release(requestedTask);
         }
-        if (this.modern && message.result?.resultType === "task") {
+        if (
+          this.modern &&
+          wireMember(message.result, "resultType") === "task"
+        ) {
           invariant(
             p.context.method === "tools/call" &&
               p.modernTaskOptions &&
@@ -546,25 +423,25 @@ export class MCPClient {
         }
         if (this.modern && p.context.method === "tasks/get") {
           invariant(
-            message.result?.resultType === "complete",
+            wireMember(message.result, "resultType") === "complete",
             "Modern tasks/get requires a complete result",
             502,
           );
           message.result = {
-            ...this.modernTasks.update(message.result, p.context.params.taskId),
+            ...this.modernTasks.update(message.result, requestedTask),
             resultType: "complete",
           };
         }
       } catch (error) {
-        if (p.context.method === "tasks/result")
-          this.taskContexts.release(p.context.params.taskId);
-        this.takePending(message.id!)?.reject(
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        if (p.context.method === "tasks/result" && requestedTask)
+          this.taskContexts.release(requestedTask);
+        this.requests
+          .take(message.id!)
+          ?.reject(error instanceof Error ? error : new Error(String(error)));
         return;
       }
     }
-    this.takePending(
+    this.requests.take(
       message.id!,
       new Error("Originating MCP request completed"),
     );
@@ -578,401 +455,13 @@ export class MCPClient {
       );
     else p.resolve(message.result);
   }
-  private async handleIncoming(message: RpcMessage, parentId?: RpcId) {
-    const requestId = message.id!;
-    if (this.incoming.has(requestId)) {
-      await this.fail(new MCPProtocolError("Duplicate server request ID"));
-      return;
-    }
-    const controller = new AbortController();
-    this.incoming.set(requestId, controller);
-    const parents = [...this.pending.values()].filter((p) =>
-      ["tools/call", "resources/read", "prompts/get"].includes(
-        p.context.method,
-      ),
-    );
-    const ordinaryParent =
-      parentId === undefined
-        ? parents.length === 1 && this.taskContexts.size === 0
-          ? parents[0]
-          : undefined
-        : this.pending.get(parentId);
-    const taskOperation = [
-      "tasks/get",
-      "tasks/result",
-      "tasks/cancel",
-      "tasks/list",
-    ].includes(message.method!);
-    let related: string | undefined;
-    let invalidRelated: unknown;
-    try {
-      related = taskOperation ? undefined : taskMetadata(message.params);
-    } catch (error) {
-      invalidRelated = error;
-    }
-    const parent = related ? undefined : ordinaryParent;
-    const context = related ? this.taskContexts.get(related) : parent?.context;
-    const signal = AbortSignal.any([
-      this.lifetime.signal,
-      controller.signal,
-      AbortSignal.timeout(this.limits.timeout),
-      ...(context ? [context.signal] : []),
-    ]);
-    try {
-      if (invalidRelated || (related && !context))
-        throw new MCPProtocolError(
-          "Unknown, expired or invalid related task",
-          -32602,
-        );
-      invariant(
-        this.incoming.size <= 16,
-        "Too many concurrent server input requests",
-        429,
-      );
-      let result: any;
-      if (taskOperation) {
-        if (!this.receiver || this.protocolVersion !== "2025-11-25")
-          throw new MCPProtocolError(
-            "Client task receiver is not enabled",
-            -32601,
-          );
-        if (
-          message.method === "tasks/result" &&
-          typeof message.params?.taskId === "string"
-        )
-          related = message.params.taskId;
-        result = await this.receiver.handle(
-          message.method!,
-          message.params || {},
-          signal,
-        );
-      } else if (message.params?.task !== undefined) {
-        if (!(
-          this.receiver &&
-          this.protocolVersion === "2025-11-25" &&
-          this.receiver.supports(message.method!) &&
-          this.options.handlers?.[
-            message.method! as keyof NonNullable<MCPClientOptions["handlers"]>
-          ]
-        ))
-          throw new MCPProtocolError(
-            "Client task capability not enabled",
-            -32601,
-          );
-        invariant(
-          context &&
-            ["tools/call", "resources/read", "prompts/get"].includes(
-              context.method,
-            ),
-          "Client task requires an originating host request",
-          403,
-        );
-        signal.throwIfAborted();
-        const { task: _, ...input } = message.params;
-        result = this.receiver.create(
-          message.method!,
-          message.params,
-          {
-            ...context,
-            signal: AbortSignal.any([this.lifetime.signal, context.signal]),
-          },
-          (taskContext) =>
-            this.handleInput(message.method!, input, taskContext),
-        );
-      } else
-        result =
-          message.method === "ping"
-            ? {}
-            : await this.handleInput(message.method!, message.params || {}, {
-                requestId: context?.requestId ?? requestId,
-                method: context?.method || "",
-                params: context?.params || {},
-                localContext: context?.localContext,
-                signal,
-              });
-      signal.throwIfAborted();
-      await this.send(
-        {
-          jsonrpc: "2.0",
-          id: requestId,
-          result: related
-            ? {
-                ...(result as any),
-                _meta: {
-                  ...(result as any)?._meta,
-                  [RELATED_TASK]: { taskId: related },
-                },
-              }
-            : result,
-        },
-        this.lifetime.signal,
-      );
-    } catch (error) {
-      if (!this.closed)
-        await this.send(
-          {
-            jsonrpc: "2.0",
-            id: requestId,
-            error: {
-              code:
-                error instanceof MCPProtocolError &&
-                typeof error.code === "number"
-                  ? error.code
-                  : error instanceof MCPTaskReceiverError
-                    ? error.code
-                    : -32603,
-              message: errorText(error),
-              ...(related
-                ? { data: { _meta: { [RELATED_TASK]: { taskId: related } } } }
-                : {}),
-            },
-          },
-          this.lifetime.signal,
-        );
-    } finally {
-      this.incoming.delete(requestId);
-    }
-  }
-  private async handleInput(
+  request(
     method: string,
-    params: any,
-    context: MCPRequestContext,
-  ) {
-    const handler =
-      ["roots/list", "sampling/createMessage", "elicitation/create"].includes(
-        method,
-      ) &&
-      this.options.handlers &&
-      Object.hasOwn(this.options.handlers, method)
-        ? this.options.handlers[
-            method as keyof NonNullable<MCPClientOptions["handlers"]>
-          ]
-        : undefined;
-    if (!handler)
-      throw new MCPProtocolError("Client capability not supported", -32601);
-    invariant(
-      method === "roots/list" ||
-        ["tools/call", "resources/read", "prompts/get"].includes(
-          context.method,
-        ),
-      "Client input has no unambiguous originating request",
-      403,
-    );
-    context.signal.throwIfAborted();
-    return await abortable(handler(params, context), context.signal);
-  }
-  async request(
-    method: string,
-    params: any = {},
+    params: WireObject = {},
     options?: MCPRequestOptions,
     initializing = false,
-  ): Promise<any> {
-    const deadline = Date.now() + (options?.timeout || this.limits.timeout),
-      seen = new Set<string>();
-    let current = params;
-    for (let round = 0; round <= (this.options.maxInputRounds || 8); round++) {
-      options?.signal?.throwIfAborted();
-      const remaining = deadline - Date.now();
-      invariant(remaining > 0, "MCP multi-round request timed out", 504);
-      const result = await this.requestOnce(
-        method,
-        current,
-        { ...options, timeout: remaining },
-        initializing,
-      );
-      if (!this.modern) return result;
-      invariant(
-        result &&
-          typeof result === "object" &&
-          !Array.isArray(result) &&
-          (!result.resultType ||
-            ["complete", "input_required", "task"].includes(result.resultType)),
-        "Unknown MCP result type",
-        502,
-      );
-      if (result.resultType !== "input_required") return result;
-      invariant(
-        ["tools/call", "resources/read", "prompts/get"].includes(method),
-        "InputRequiredResult on unsupported method",
-        502,
-      );
-      invariant(
-        round < (this.options.maxInputRounds || 8),
-        "MCP input round limit exceeded",
-        502,
-      );
-      invariant(
-        (result.inputRequests &&
-          typeof result.inputRequests === "object" &&
-          !Array.isArray(result.inputRequests)) ||
-          typeof result.requestState === "string",
-        "Invalid input-required result",
-        502,
-      );
-      invariant(
-        result.requestState === undefined ||
-          typeof result.requestState === "string",
-        "Invalid opaque request state",
-        502,
-      );
-      const inputResponses: Record<string, unknown> = Object.create(null);
-      const requests = Object.entries(result.inputRequests || {});
-      invariant(requests.length <= 16, "Too many input requests", 502);
-      const signal = AbortSignal.any([
-        this.lifetime.signal,
-        AbortSignal.timeout(Math.max(1, deadline - Date.now())),
-        ...(options?.signal ? [options.signal] : []),
-      ]);
-      for (const [key, value] of requests) {
-        invariant(key && !seen.has(key), "Duplicate MCP input request ID", 502);
-        seen.add(key);
-        const request = value as any;
-        invariant(
-          request && typeof request.method === "string",
-          "Invalid embedded input request",
-          502,
-        );
-        inputResponses[key] = await this.handleInput(
-          request.method,
-          request.params || {},
-          {
-            requestId: key,
-            method,
-            params,
-            localContext: options?.localContext,
-            signal,
-          },
-        );
-      }
-      current = {
-        ...params,
-        ...(requests.length ? { inputResponses } : {}),
-        ...(result.requestState === undefined
-          ? {}
-          : { requestState: result.requestState }),
-      };
-    }
-  }
-  private async requestOnce(
-    method: string,
-    params: unknown = {},
-    options?: MCPRequestOptions,
-    initializing = false,
-  ): Promise<any> {
-    invariant(
-      !this.closed && (this.initialized || initializing),
-      "MCP connection is not initialized",
-      503,
-    );
-    options?.signal?.throwIfAborted();
-    const requestId = ++this.nextId,
-      controller = new AbortController(),
-      progressToken = options?.progress ? randomUUID() : undefined;
-    return new Promise((resolve, reject) => {
-      const abort = (reason: Error) => {
-        const p = this.takePending(requestId, reason);
-        if (!p) return;
-        p.reject(reason);
-        if (
-          !initializing &&
-          (!this.modern || this.options.transport === "stdio")
-        )
-          void this.notify("notifications/cancelled", {
-            requestId,
-            reason: reason.message,
-          }).catch(() => undefined);
-      };
-      const onAbort = () =>
-        abort(new MCPProtocolError("MCP request cancelled", "cancelled"));
-      const timer = setTimeout(
-        () =>
-          abort(
-            new MCPProtocolError(
-              `MCP ${method} timed out; effect outcome may be unknown`,
-              "timeout",
-            ),
-          ),
-        options?.timeout || this.limits.timeout,
-      );
-      const pending: Pending = {
-        resolve,
-        reject,
-        controller,
-        progressToken,
-        progress: options?.progress,
-        context: {
-          requestId,
-          method,
-          params,
-          localContext: options?.localContext,
-          signal: controller.signal,
-        },
-        ...(method === "tools/call" && (params as any)?.task
-          ? {
-              taskOptions: {
-                signal: options?.signal,
-                deadline:
-                  options?.taskDeadline ??
-                  Date.now() + (options?.timeout || this.limits.timeout),
-                progress: options?.progress,
-                progressToken,
-              },
-            }
-          : {}),
-        ...(this.modern && method === "tools/call" && this.options.taskExtension
-          ? {
-              modernTaskOptions: {
-                signal: options?.signal,
-                deadline:
-                  options?.taskDeadline ??
-                  Date.now() + (options?.timeout || this.limits.timeout),
-              },
-            }
-          : {}),
-        ...(method === "subscriptions/listen"
-          ? {
-              subscription: {
-                filter: (params as any).notifications,
-                onAck: options?.onSubscriptionAcknowledged,
-              },
-            }
-          : {}),
-        cleanup: () => {
-          clearTimeout(timer);
-          options?.signal?.removeEventListener("abort", onAbort);
-        },
-      };
-      this.pending.set(requestId, pending);
-      if (progressToken) this.progressRequests.set(progressToken, pending);
-      options?.signal?.addEventListener("abort", onAbort, { once: true });
-      let enriched = progressToken
-        ? {
-            ...(params as any),
-            _meta: { ...(params as any)?._meta, progressToken },
-          }
-        : params;
-      if (this.modern)
-        enriched = {
-          ...(enriched as any),
-          _meta: {
-            ...(enriched as any)?._meta,
-            "io.modelcontextprotocol/protocolVersion": MCP_MODERN_VERSION,
-            "io.modelcontextprotocol/clientInfo": {
-              name: "agent-foundation",
-              version: VERSION,
-            },
-            "io.modelcontextprotocol/clientCapabilities":
-              this.clientCapabilities(),
-          },
-        };
-      void this.send(
-        { jsonrpc: "2.0", id: requestId, method, params: enriched },
-        controller.signal,
-      ).catch((e) => {
-        const error = e instanceof Error ? e : new Error(String(e));
-        this.takePending(requestId, error)?.reject(error);
-      });
-    });
+  ): Promise<WireObject> {
+    return this.requests.request(method, params, options, initializing);
   }
   async notify(method: string, params?: unknown) {
     await this.send(
@@ -983,24 +472,7 @@ export class MCPClient {
       ]),
     );
   }
-  private async headers(sse = false) {
-    // Shutdown must not initiate a fresh token exchange just to close a legacy session.
-    const authorization = this.closed
-      ? this.lastAuthorization
-      : await this.options.authorization?.();
-    if (!this.closed) this.lastAuthorization = authorization;
-    return {
-      ...this.options.headers,
-      ...(authorization ? { Authorization: authorization } : {}),
-      "Content-Type": "application/json",
-      Accept: sse ? "text/event-stream" : "application/json, text/event-stream",
-      ...(this.sessionId ? { "MCP-Session-Id": this.sessionId } : {}),
-      ...(this.protocolVersion
-        ? { "MCP-Protocol-Version": this.protocolVersion }
-        : {}),
-    };
-  }
-  private async send(message: RpcMessage, signal: AbortSignal) {
+  private async send(message: RpcMessage, signal: AbortSignal): Promise<void> {
     signal.throwIfAborted();
     const data = JSON.stringify(message);
     invariant(
@@ -1008,244 +480,12 @@ export class MCPClient {
       "MCP request exceeds limit",
       413,
     );
-    if (this.options.transport === "stdio") {
-      invariant(this.child?.stdin.writable, "MCP stdin closed", 503);
-      await new Promise<void>((resolve, reject) => {
-        this.child!.stdin.write(data + "\n", (error) =>
-          error ? reject(error) : resolve(),
-        );
-      });
-      return;
-    }
-    const response = await fetch(this.options.url!, {
-      method: "POST",
-      headers: {
-        ...(await this.headers()),
-        ...(this.modern && message.method
-          ? { "Mcp-Method": message.method }
-          : {}),
-        ...(this.modern &&
-        [
-          "tools/call",
-          "resources/read",
-          "prompts/get",
-          "tasks/get",
-          "tasks/update",
-          "tasks/cancel",
-        ].includes(message.method || "")
-          ? {
-              "Mcp-Name": mcpHeaderValue(
-                message.params?.taskId ??
-                  message.params?.name ??
-                  message.params?.uri,
-              ),
-            }
-          : {}),
-        ...(this.modern && message.method === "tools/call"
-          ? parameterHeaders(
-              this.toolHeaders.get(message.params?.name) || [],
-              message.params?.arguments,
-            )
-          : {}),
-      },
-      body: data,
-      signal: AbortSignal.any([signal, this.lifetime.signal]),
-      redirect: "error",
-    });
-    if (response.status === 404 && this.sessionId) {
-      this.initialized = false;
-      void this.fail(
-        new MCPProtocolError(
-          "MCP session expired. Reconnect before a new operation; never replay an uncertain tool automatically",
-          "session_expired",
-        ),
-      );
-      throw new MCPProtocolError("MCP session expired", "session_expired");
-    }
-    if (!response.ok) {
-      const challenge = response.headers.get("www-authenticate");
-      if ((response.status === 401 || response.status === 403) && challenge) {
-        this.options.onAuthChallenge?.(challenge, response.status);
-        await response.body?.cancel();
-        throw new MCPProtocolError(
-          response.status === 401
-            ? "MCP authorization required; authorize then issue a new request"
-            : "MCP scope upgrade required; authorize then issue a new request",
-          response.status === 401
-            ? "authorization_required"
-            : "insufficient_scope",
-        );
-      }
-      if (
-        (response.headers.get("content-type") || "").includes(
-          "application/json",
-        )
-      ) {
-        const value = await readJson(response, this.limits.message);
-        if (
-          value?.jsonrpc === "2.0" &&
-          value.id === message.id &&
-          value.error &&
-          Number.isInteger(value.error.code)
-        )
-          throw new MCPProtocolError(
-            String(value.error.message),
-            value.error.code,
-            value.error.data,
-          );
-      } else await response.body?.cancel();
-      throw new MCPProtocolError(`MCP HTTP ${response.status}`);
-    }
-    const returnedSession = response.headers.get("mcp-session-id");
-    if (returnedSession && !this.modern) {
-      invariant(
-        /^[\x21-\x7e]{1,512}$/.test(returnedSession),
-        "Invalid MCP session ID",
-        502,
-      );
-      invariant(
-        message.method === "initialize" || returnedSession === this.sessionId,
-        "MCP server changed session ID",
-        502,
-      );
-      this.sessionId = returnedSession;
-    }
-    const expects = message.method !== undefined && message.id !== undefined;
-    if (response.status === 202 || response.status === 204) {
-      await response.body?.cancel();
-      if (expects)
-        throw new MCPProtocolError(
-          "MCP request accepted without a JSON-RPC result",
-        );
-      return;
-    }
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("text/event-stream")) {
-      await this.consume(response, signal, message.id);
-      return;
-    }
-    invariant(
-      contentType.includes("application/json"),
-      "Unexpected MCP HTTP content type",
-      502,
-    );
-    const parsed = rpc(await readJson(response, this.limits.message));
-    if (expects)
-      invariant(
-        parsed.id === message.id && !parsed.method,
-        "MCP response ID mismatch",
-        502,
-      );
-    this.receive(parsed, message.id);
-    if (expects)
-      invariant(
-        parsed.id === message.id || this.pending.has(message.id!) === false,
-        "MCP response ID mismatch",
-        502,
-      );
-  }
-  private async consume(
-    response: Response,
-    signal: AbortSignal,
-    target?: RpcId,
-  ) {
-    let cursor: string | undefined,
-      retry = 1000,
-      attempts = 0,
-      current = response;
-    while (true) {
-      for await (const event of frames(
-        current,
-        this.limits.message,
-        AbortSignal.any([signal, this.lifetime.signal]),
-      )) {
-        if (event.id !== undefined) cursor = event.id;
-        if (event.retry !== undefined) retry = event.retry;
-        if (!event.data) continue;
-        if (!this.modern && event.id && this.seen.has(event.id)) continue;
-        const message = rpc(JSON.parse(event.data));
-        if (target !== undefined && !message.method)
-          invariant(message.id === target, "MCP response ID mismatch", 502);
-        if (event.id && !this.modern) {
-          this.seen.add(event.id);
-          if (this.seen.size > 2000)
-            this.seen.delete(this.seen.values().next().value!);
-        }
-        this.receive(message, target);
-        if (target !== undefined && message.id === target && !message.method)
-          return;
-      }
-      if (target === undefined || !this.pending.has(target)) return;
-      invariant(
-        !this.modern,
-        "MCP stream ended before its response; outcome may be unknown",
-        502,
-      );
-      invariant(
-        cursor && ++attempts <= 5,
-        "MCP SSE ended before its response; outcome may be unknown",
-        502,
-      );
-      await delay(retry, signal);
-      current = await fetch(this.options.url!, {
-        headers: { ...(await this.headers(true)), "Last-Event-ID": cursor },
-        signal: AbortSignal.any([signal, this.lifetime.signal]),
-        redirect: "error",
-      });
-      invariant(
-        current.ok &&
-          (current.headers.get("content-type") || "").includes(
-            "text/event-stream",
-          ),
-        "MCP stream resumption failed",
-        502,
-      );
-    }
-  }
-  private async listen(signal: AbortSignal) {
-    let cursor: string | undefined,
-      retry = 1000;
-    while (!signal.aborted && !this.closed) {
-      try {
-        const response = await fetch(this.options.url!, {
-          headers: {
-            ...(await this.headers(true)),
-            ...(cursor ? { "Last-Event-ID": cursor } : {}),
-          },
-          signal: AbortSignal.any([signal, this.lifetime.signal]),
-          redirect: "error",
-        });
-        if (response.status === 405) {
-          await response.body?.cancel();
-          return;
-        }
-        invariant(response.ok, "MCP notification stream failed", 502);
-        for await (const event of frames(
-          response,
-          this.limits.message,
-          signal,
-        )) {
-          if (event.id !== undefined) cursor = event.id;
-          if (event.retry !== undefined) retry = event.retry;
-          if (event.data && (!event.id || !this.seen.has(event.id))) {
-            if (event.id) {
-              this.seen.add(event.id);
-              if (this.seen.size > 2000)
-                this.seen.delete(this.seen.values().next().value!);
-            }
-            this.receive(rpc(JSON.parse(event.data)));
-          }
-        }
-      } catch (e) {
-        if (signal.aborted || this.closed) return;
-        this.record("transport/error", { message: errorText(e) });
-      }
-      await delay(Math.max(100, retry), signal);
-    }
+    if (this.options.transport === "stdio") await this.stdio.send(data);
+    else await this.http.send(message, data, signal);
   }
   private async fail(error: unknown) {
     if (this.closed) return;
-    this.rejectPending(
+    this.requests.reject(
       error instanceof Error ? error : new Error(String(error)),
     );
     // Transport event handlers have no awaiting caller. close() retains the
@@ -1263,28 +503,19 @@ export class MCPClient {
     this.receiver?.close();
     this.modernTasks.close();
     this.taskContexts.close();
-    this.rejectPending(
+    this.requests.reject(
       new MCPProtocolError(
         "MCP connection closed; pending effects may be unknown",
       ),
     );
     this.closeCompletion = (async () => {
       let cleanupFailure: unknown;
-      if (this.child) await terminateProcessTree(this.child);
+      await this.stdio.close();
       await this.options.cleanup?.().catch((error) => {
         cleanupFailure = error;
         this.record("transport/cleanup_error", { message: errorText(error) });
       });
-      if (this.options.transport === "http" && this.sessionId && !this.modern) {
-        await fetch(this.options.url!, {
-          method: "DELETE",
-          headers: await this.headers(),
-          signal: AbortSignal.timeout(1500),
-          redirect: "error",
-        })
-          .then((r) => r.body?.cancel())
-          .catch(() => undefined);
-      }
+      if (this.options.transport === "http") await this.http.close();
       const error = cleanupFailure
         ? new MCPProtocolError(
             "MCP execution cleanup unconfirmed: " + errorText(cleanupFailure),
@@ -1292,96 +523,60 @@ export class MCPClient {
           )
         : undefined;
       this.onclose?.(error);
-      this.lastAuthorization = undefined;
+      this.http.clearAuthorization();
       if (error) throw error;
     })();
     return this.closeCompletion;
   }
   listTools(params?: { cursor?: string }, options?: { signal?: AbortSignal }) {
-    return this.request("tools/list", params || {}, options).then((r) => {
-      invariant(
-        Array.isArray(r?.tools) &&
-          r.tools.every(
-            (t: any) =>
-              typeof t.name === "string" &&
-              t.inputSchema &&
-              typeof t.inputSchema === "object",
-          ),
-        "Invalid MCP tool list",
-        502,
-      );
-      r.tools = r.tools.filter((tool: any) => {
-        try {
-          if (!tool.inputSchema.$schema)
-            tool.inputSchema = {
-              ...tool.inputSchema,
-              $schema: "https://json-schema.org/draft/2020-12/schema",
-            };
-          const input = compileSchema(tool.inputSchema),
-            output = tool.outputSchema
-              ? compileSchema({
-                  ...tool.outputSchema,
-                  $schema:
-                    tool.outputSchema.$schema ||
-                    "https://json-schema.org/draft/2020-12/schema",
-                })
-              : undefined;
-          this.toolSchemas.set(tool.name, { input, output });
-          if (this.options.transport === "http" && this.modern)
-            this.toolHeaders.set(tool.name, headerBindings(tool.inputSchema));
-          return true;
-        } catch (error) {
-          this.record("tools/rejected", {
-            name: tool.name,
-            reason: errorText(error),
-          });
-          return false;
-        }
-      });
-      return r;
-    });
+    return this.request("tools/list", params || {}, options).then((result) =>
+      this.catalog.accept(
+        result,
+        this.options.transport === "http" && this.modern,
+      ),
+    );
   }
   callTool(
-    params: { name: string; arguments: any },
+    params: { name: string; arguments: unknown },
     options?: MCPRequestOptions,
   ) {
-    const schema = this.toolSchemas.get(params.name);
-    if (schema)
-      invariant(
-        schema.input(params.arguments),
-        "MCP tool input violates its catalog schema",
-      );
+    this.catalog.validateInput(params.name, params.arguments);
     const deadline = Date.now() + (options?.timeout || this.limits.timeout);
     return this.request("tools/call", params, {
       ...options,
       taskDeadline: deadline,
     }).then(async (r) => {
-      if (this.modern && r.resultType === "task")
-        r = await this.waitModernTask(r.taskId, options);
+      if (this.modern && r.resultType === "task") {
+        // receive() validated the task before resolving this request.
+        invariant(typeof r.taskId === "string", "Invalid MCP task", 502);
+        return this.validateToolResult(
+          params.name,
+          await waitModernTask(
+            r.taskId,
+            {
+              tasks: this.modernTasks,
+              signal: this.lifetime.signal,
+              maxInputRounds: this.options.maxInputRounds,
+              get: (taskId, signal, timeout) =>
+                this.modernTaskGet(taskId, signal, timeout),
+              update: (taskId, responses, signal, timeout) =>
+                this.taskUpdate(taskId, responses, signal, timeout),
+              cancel: (taskId, signal, timeout) =>
+                this.taskCancel(taskId, signal, timeout),
+              handleInput: (method, params, context) =>
+                this.input.handleInput(method, params, context),
+              validateResult: (name, value) =>
+                this.validateToolResult(name, value),
+            },
+            options,
+          ),
+        );
+      }
       return this.validateToolResult(params.name, r);
     });
   }
-  validateToolResult(name: string, r: any) {
-    const schema = this.toolSchemas.get(name);
-    invariant(
-      r &&
-        typeof r === "object" &&
-        (Array.isArray(r.content) || r.structuredContent !== undefined),
-      "Invalid MCP tool result",
-      502,
-    );
-    if (!r.isError && schema?.output)
-      invariant(
-        r.structuredContent !== undefined && schema.output(r.structuredContent),
-        "MCP tool structured output violates its catalog schema",
-        502,
-      );
-    return {
-      ...r,
-      content: r.content || [
-        { type: "text", text: JSON.stringify(r.structuredContent) },
-      ],
-    };
+  validateToolResult(name: string, value: unknown): MCPToolResult {
+    return this.catalog.validateResult(name, value);
   }
   listResources(
     params?: { cursor?: string },
@@ -1430,10 +625,11 @@ export class MCPClient {
     );
     return this.request("completion/complete", params, { signal }).then(
       (result) => {
+        const values = wireMember(result, "completion", "values");
         invariant(
-          Array.isArray(result?.completion?.values) &&
-            result.completion.values.length <= 100 &&
-            result.completion.values.every((v: any) => typeof v === "string"),
+          Array.isArray(values) &&
+            values.length <= 100 &&
+            values.every((v) => typeof v === "string"),
           "Invalid MCP completion result",
           502,
         );
@@ -1484,85 +680,29 @@ export class MCPClient {
     );
     return this.request("resources/unsubscribe", { uri }, { signal });
   }
+  private tasksNegotiated(): boolean {
+    return Boolean(
+      this.options.taskExtension &&
+      this.capabilities.extensions?.[TASKS_EXTENSION],
+    );
+  }
   listenNotifications(filter: MCPNotificationFilter, signal?: AbortSignal) {
-    invariant(this.modern, "Subscription streams require modern MCP", 400);
-    invariant(
-      Object.keys(filter).every((k) =>
-        [
-          "toolsListChanged",
-          "promptsListChanged",
-          "resourcesListChanged",
-          "resourceSubscriptions",
-          "taskIds",
-        ].includes(k),
-      ),
-      "Invalid subscription filter",
-    );
-    if (filter.taskIds)
-      invariant(
-        this.options.taskExtension &&
-          this.capabilities.extensions?.[TASKS_EXTENSION] &&
-          filter.taskIds.length <= 100 &&
-          filter.taskIds.every(
-            (v) => typeof v === "string" && v.length > 0 && v.length <= 512,
-          ),
-        "Invalid or unnegotiated task subscriptions",
-      );
-    invariant(
-      !filter.resourceSubscriptions ||
-        (filter.resourceSubscriptions.length <= 100 &&
-          filter.resourceSubscriptions.every(
-            (v) => typeof v === "string" && v.length <= 8192,
-          )),
-      "Invalid resource subscriptions",
-    );
-    const controller = new AbortController();
-    let readyResolve!: (filter: MCPNotificationFilter) => void,
-      readyReject!: (error: unknown) => void;
-    const ready = new Promise<MCPNotificationFilter>((resolve, reject) => {
-      readyResolve = resolve;
-      readyReject = reject;
-    });
-    const ackTimeout = setTimeout(() => {
-      readyReject(new Error("MCP subscription acknowledgement timed out"));
-      controller.abort();
-    }, this.limits.timeout);
-    const completion = this.request(
-      "subscriptions/listen",
-      { notifications: filter },
+    return listenNotifications(
+      filter,
       {
-        signal: AbortSignal.any([
-          controller.signal,
-          ...(signal ? [signal] : []),
-        ]),
-        timeout: 24 * 60 * 60 * 1000,
-        onSubscriptionAcknowledged: (actual) => {
-          clearTimeout(ackTimeout);
-          readyResolve(actual);
-        },
+        modern: this.modern,
+        taskNegotiated: this.tasksNegotiated(),
+        timeout: this.limits.timeout,
+        request: (method, params, options) =>
+          this.request(method, params, options),
       },
+      signal,
     );
-    completion.then(
-      () => {
-        clearTimeout(ackTimeout);
-        readyReject(
-          new Error("MCP subscription closed before acknowledgement"),
-        );
-      },
-      (error) => {
-        clearTimeout(ackTimeout);
-        readyReject(error);
-      },
-    );
-    // Keep a handled branch even when callers only await readiness.
-    void completion.catch(() => undefined);
-    void ready.catch(() => undefined);
-    return { ready, completion, close: () => controller.abort() };
   }
   createToolTask(
-    params: { name: string; arguments: any },
+    params: { name: string; arguments: unknown },
     options?: MCPRequestOptions & { ttl?: number },
-  ) {
+  ): Promise<WireObject & { taskId: string }> {
     invariant(
       !this.modern && this.capabilities.tasks?.requests?.tools?.call,
       "Server does not support legacy tool tasks",
@@ -1573,173 +713,25 @@ export class MCPClient {
       { ...params, task: { ttl: options?.ttl ?? 60000 } },
       options,
     ).then((result) => {
+      const task = wireObject(result.task);
       invariant(
-        typeof result?.task?.taskId === "string" &&
-          result.task.taskId.length > 0,
+        typeof task?.taskId === "string" && task.taskId.length > 0,
         "Invalid MCP task creation",
         502,
       );
-      return result.task;
+      return { ...task, taskId: task.taskId };
     });
   }
   releaseTaskContext(taskId: string) {
     this.taskContexts.release(taskId);
   }
-  private modernTaskResult(task: any) {
-    if (task.status === "failed")
-      throw new MCPProtocolError(
-        task.error.message,
-        task.error.code,
-        task.error.data,
-      );
-    if (task.status === "cancelled")
-      throw new MCPProtocolError(
-        "Remote modern task was cancelled",
-        "cancelled",
-      );
-    invariant(
-      task.status === "completed" && task.result,
-      "Modern task is not completed",
-      409,
-    );
-    return task.result;
-  }
-  private async waitModernTask(taskId: string, options?: MCPRequestOptions) {
-    const entry = this.modernTasks.get(taskId);
-    invariant(entry, "Modern task origin is missing", 403);
-    const deadline = () =>
-      entry.task.ttlMs === null
-        ? entry.deadline
-        : Math.min(
-            entry.deadline,
-            Date.parse(entry.task.createdAt) + entry.task.ttlMs,
-          );
-    const remaining = () => {
-      const time = deadline();
-      invariant(time > Date.now(), "Modern task deadline or TTL exceeded", 504);
-      return Math.max(1, time - Date.now());
-    };
-    try {
-      main: while (true) {
-        const signal = AbortSignal.any([
-          this.lifetime.signal,
-          entry.controller.signal,
-          AbortSignal.timeout(remaining()),
-          ...(options?.signal ? [options.signal] : []),
-        ]);
-        signal.throwIfAborted();
-        const task = await this.taskGet(taskId, signal, remaining());
-        if (taskTerminal(task.status)) {
-          const result = this.modernTaskResult(task);
-          try {
-            return this.validateToolResult(entry.context.params.name, result);
-          } catch (error) {
-            this.modernTasks.unknown(taskId, errorText(error));
-            throw error;
-          }
-        }
-        if (task.status === "input_required") {
-          const responses: Record<string, unknown> = Object.create(null),
-            inputController = new AbortController();
-          entry.inputController = inputController;
-          try {
-            for (const [key, request] of Object.entries(
-              task.inputRequests!,
-            ) as [string, any][]) {
-              invariant(
-                key.length > 0 &&
-                  key.length <= 512 &&
-                  request &&
-                  typeof request.method === "string" &&
-                  request.params &&
-                  typeof request.params === "object" &&
-                  !Array.isArray(request.params),
-                "Invalid modern task input request",
-                502,
-              );
-              invariant(
-                request.params.task === undefined,
-                "Modern extension does not support task-augmented client input",
-                502,
-              );
-              const fingerprint = taskFingerprint(request),
-                known = entry.inputs.get(key);
-              if (known) {
-                invariant(
-                  known.fingerprint === fingerprint,
-                  "Modern task reused an input key with different content",
-                  502,
-                );
-                continue;
-              }
-              if (!Object.keys(responses).length)
-                invariant(
-                  entry.rounds < (this.options.maxInputRounds || 8),
-                  "Modern task input round limit exceeded",
-                  502,
-                );
-              invariant(
-                entry.inputs.size < 128,
-                "Modern task input capacity exceeded",
-                429,
-              );
-              entry.inputs.set(key, { fingerprint, answered: false });
-              const value = await this.handleInput(
-                request.method,
-                request.params,
-                {
-                  ...entry.context,
-                  requestId: key,
-                  signal: AbortSignal.any([signal, inputController.signal]),
-                },
-              );
-              signal.throwIfAborted();
-              inputController.signal.throwIfAborted();
-              responses[key] = value;
-            }
-          } catch (e) {
-            if (
-              taskTerminal(entry.task.status) &&
-              !entry.controller.signal.aborted &&
-              !this.lifetime.signal.aborted
-            )
-              continue main;
-            throw e;
-          } finally {
-            entry.inputController = undefined;
-          }
-          if (Object.keys(responses).length) {
-            entry.rounds++;
-            await this.taskUpdate(taskId, responses, signal, remaining());
-            for (const key of Object.keys(responses))
-              entry.inputs.get(key)!.answered = true;
-          }
-        }
-        await delay(Math.min(task.pollIntervalMs ?? 100, remaining()), signal);
-      }
-    } catch (e) {
-      const expired = Date.now() >= deadline();
-      const failure =
-        expired && !options?.signal?.aborted
-          ? new MCPProtocolError(
-              "Modern task deadline or TTL exceeded",
-              "timeout",
-            )
-          : e;
-      if (!entry.finalValidated) {
-        const cancel =
-          expired ||
-          options?.signal?.aborted ||
-          entry.controller.signal.aborted ||
-          /deadline|TTL|timed out/i.test(errorText(e));
-        this.modernTasks.unknown(taskId, errorText(failure));
-        if (cancel)
-          await this.taskCancel(taskId, undefined, 1500).catch(() => undefined);
-      }
-      throw failure;
-    } finally {
-      this.modernTasks.release(taskId);
-    }
+  /** tasks/get in modern mode; receive() already replaced the result with the validated task. */
+  private async modernTaskGet(
+    taskId: string,
+    signal?: AbortSignal,
+    timeout?: number,
+  ) {
+    return (await this.taskGet(taskId, signal, timeout)) as ModernTask;
   }
   taskUpdate(
     taskId: string,
@@ -1787,8 +779,8 @@ export class MCPClient {
   }
   taskResult(taskId: string, signal?: AbortSignal, timeout?: number) {
     if (this.modern)
-      return this.taskGet(taskId, signal, timeout).then((task) =>
-        this.modernTaskResult(task),
+      return this.modernTaskGet(taskId, signal, timeout).then((task) =>
+        modernTaskResult(task),
       );
     return this.request("tasks/result", { taskId }, { signal, timeout });
   }

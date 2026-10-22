@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage } from "node:http";
+import type { Duplex } from "node:stream";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { Store } from "../storage/store.js";
@@ -266,7 +267,7 @@ export class NodeManager {
     const task = this.claim(nodeId);
     if (task) socket.send(JSON.stringify({ type: "task", task }));
   }
-  upgrade(req: IncomingMessage, socket: any, head: Buffer) {
+  upgrade(req: IncomingMessage, socket: Duplex, head: Buffer) {
     this.websocket.handleUpgrade(req, socket, head, (ws) => {
       ws.on("error", () => ws.terminate());
       let nodeId: string | undefined;

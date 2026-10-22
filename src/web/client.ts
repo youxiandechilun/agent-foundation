@@ -9,6 +9,7 @@ import { hostMatches, restrictedAddress } from "./network-policy.js";
 export { restrictedAddress } from "./network-policy.js";
 import type { Config } from "../core/config.js";
 import { AppError, invariant, registerSecret } from "../core/util.js";
+import { wireObject, wireMember } from "../core/wire.js";
 
 /**
  * Built-in web access for the core: a guarded HTTP(S) client (host allowlist, private-network
@@ -596,7 +597,23 @@ const json = (response: WebResponse) => {
     `Search provider HTTP ${response.status}: ${response.body.toString("utf8").slice(0, 300)}`,
     502,
   );
-  return JSON.parse(response.body.toString("utf8"));
+  const value: unknown = JSON.parse(response.body.toString("utf8"));
+  const record = wireObject(value);
+  invariant(record, "Search provider returned an invalid JSON object", 502);
+  return record;
+};
+const resultRows = (value: unknown) => {
+  if (value === undefined || value === null) return [];
+  invariant(
+    Array.isArray(value),
+    "Search provider results must be an array",
+    502,
+  );
+  return value.map((row: unknown) => {
+    const record = wireObject(row);
+    invariant(record, "Search provider returned an invalid result", 502);
+    return record;
+  });
 };
 const BUILTIN_PROVIDERS: WebSearchProvider[] = [
   {
@@ -617,11 +634,11 @@ const BUILTIN_PROVIDERS: WebSearchProvider[] = [
           }),
         }),
       );
-      return (value.results || []).map((r: any) => ({
+      return resultRows(value.results).map((r) => ({
         title: String(r.title || ""),
         url: String(r.url || ""),
         snippet: r.content ? String(r.content) : undefined,
-        publishedAt: r.published_date || undefined,
+        publishedAt: r.published_date ? String(r.published_date) : undefined,
       }));
     },
   },
@@ -642,13 +659,14 @@ const BUILTIN_PROVIDERS: WebSearchProvider[] = [
           },
         }),
       );
-      return (value.web?.results || []).map((r: any) => ({
+      return resultRows(wireMember(value.web, "results")).map((r) => ({
         title: String(r.title || ""),
         url: String(r.url || ""),
         snippet: r.description
           ? htmlToText(String(r.description)).text
           : undefined,
-        publishedAt: r.page_age || r.age || undefined,
+        publishedAt:
+          r.page_age || r.age ? String(r.page_age || r.age) : undefined,
       }));
     },
   },
@@ -662,12 +680,14 @@ const BUILTIN_PROVIDERS: WebSearchProvider[] = [
       const headers: Record<string, string> = { Accept: "application/json" };
       if (config.apiKeyEnv) headers.Authorization = `Bearer ${apiKey(config)}`;
       const value = json(await request(url.href, { signal, headers }));
-      return (value.results || []).slice(0, maxResults).map((r: any) => ({
-        title: String(r.title || ""),
-        url: String(r.url || ""),
-        snippet: r.content ? String(r.content) : undefined,
-        publishedAt: r.publishedDate || undefined,
-      }));
+      return resultRows(value.results)
+        .slice(0, maxResults)
+        .map((r) => ({
+          title: String(r.title || ""),
+          url: String(r.url || ""),
+          snippet: r.content ? String(r.content) : undefined,
+          publishedAt: r.publishedDate ? String(r.publishedDate) : undefined,
+        }));
     },
   },
 ];

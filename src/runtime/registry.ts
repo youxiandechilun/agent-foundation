@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "node:http";
+import type { Duplex } from "node:stream";
 import type { Kernel } from "../core/kernel.js";
 import type { Session } from "../contracts.js";
 import type { ToolDefinition } from "./types.js";
@@ -32,15 +33,15 @@ export interface KernelIntegration {
     kernel: Kernel,
     req: IncomingMessage,
     url: URL,
-    json: () => Promise<any>,
+    json: () => Promise<unknown>,
   ) => Promise<IntegrationResponse | undefined>;
   handlePublic?: (
     kernel: Kernel,
     req: IncomingMessage,
     url: URL,
-    json: () => Promise<any>,
+    json: () => Promise<unknown>,
   ) => Promise<IntegrationResponse | undefined>;
-  upgrade?: (req: IncomingMessage, socket: any, head: Buffer) => boolean;
+  upgrade?: (req: IncomingMessage, socket: Duplex, head: Buffer) => boolean;
   settled?: (runId: string, signal?: AbortSignal) => void | Promise<void>;
   /** Lifecycle hooks applied to every run, after config command hooks. */
   hooks?: RunHooks;

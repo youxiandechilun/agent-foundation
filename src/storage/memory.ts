@@ -3,6 +3,7 @@ import type { MemoryEntry, MemoryProposal } from "../contracts.js";
 import { Store } from "./store.js";
 import type { Config } from "../core/config.js";
 import { id, now, invariant, hash, redactSecrets } from "../core/util.js";
+import { wireMember, wireObject } from "../core/wire.js";
 import { routeHeaders } from "../providers/text.js";
 import { readJson } from "../providers/sse.js";
 import type { CostLedger } from "../runtime/cost.js";
@@ -389,7 +390,11 @@ export class MemoryStore {
       );
       invariant(response.ok, `Embedding provider HTTP ${response.status}`, 502);
       const data = await readJson(response),
-        vector = data.data?.[0]?.embedding;
+        first = wireMember(data, "data"),
+        vector = Array.isArray(first)
+          ? wireMember(first[0], "embedding")
+          : undefined,
+        usage = wireObject(wireMember(data, "usage"));
       invariant(
         Array.isArray(vector) &&
           vector.length > 0 &&
@@ -400,12 +405,12 @@ export class MemoryStore {
       );
       if (charge)
         this.costs!.settleUsage(charge.id, route, {
-          reported: Boolean(data.usage),
-          input: data.usage?.prompt_tokens ?? data.usage?.total_tokens ?? 0,
+          reported: Boolean(usage),
+          input: tokenCount(usage?.prompt_tokens ?? usage?.total_tokens),
           output: 0,
           cacheRead: 0,
           cacheWrite: 0,
-          totalTokens: data.usage?.total_tokens || 0,
+          totalTokens: tokenCount(usage?.total_tokens),
         });
       return vector;
     } catch (error) {
@@ -525,4 +530,9 @@ function decodeVector(stored: string | Uint8Array): ArrayLike<number> {
   // A view needs 8-byte alignment; copy the rare unaligned buffer.
   const bytes = stored.byteOffset % 8 ? stored.slice() : stored;
   return new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
+}
+
+/** A provider-reported token count; absent or malformed values count as 0. */
+function tokenCount(value: unknown): number {
+  return typeof value === "number" && value ? value : 0;
 }

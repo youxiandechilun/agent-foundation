@@ -2,6 +2,8 @@ import type { MediaRequest, MediaOutput } from "../contracts.js";
 import type { Route } from "../core/config.js";
 import { invariant } from "../core/util.js";
 import type { MediaUnits } from "../runtime/billing.js";
+import { wireMember, wireObject } from "../core/wire.js";
+import { z } from "zod";
 
 export interface AdapterResult {
   /** Optional trusted adapter report, translated from the vendor's billing response. */
@@ -13,11 +15,48 @@ export interface AdapterResult {
   error?: string;
   state?: Record<string, unknown>;
 }
+const adapterResultSchema = z.object({
+  status: z.enum(["queued", "running", "completed", "failed", "cancelled"]),
+  remoteId: z.string().optional(),
+  progress: z.number().optional(),
+  outputs: z
+    .array(
+      z.object({
+        type: z.enum(["image", "video", "text"]),
+        mime: z.string().optional(),
+        url: z.string().optional(),
+        base64: z.string().optional(),
+        text: z.string().optional(),
+        assetId: z.string().optional(),
+      }),
+    )
+    .optional(),
+  error: z.string().optional(),
+  state: z.record(z.string(), z.unknown()).optional(),
+  billing: z
+    .object({
+      actualUsd: z.number(),
+      reference: z.string(),
+      units: z
+        .object({
+          kind: z.enum(["image", "video"]),
+          count: z.number(),
+          width: z.number().optional(),
+          height: z.number().optional(),
+          durationSeconds: z.number().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
+export function parseAdapterResult(value: unknown): AdapterResult {
+  return adapterResultSchema.parse(value);
+}
 export interface MediaAdapterContext {
   route: Route;
   idempotencyKey: string;
   signal: AbortSignal;
-  request: (path: string, body?: unknown, method?: string) => Promise<any>;
+  request: (path: string, body?: unknown, method?: string) => Promise<unknown>;
   input: (
     assetId: string,
   ) => Promise<{ mime: string; base64: string; name: string }>;
@@ -80,20 +119,36 @@ export class MediaAdapterRegistry {
     }));
   }
 }
-const outputList = (value: any, kind: "image" | "video"): MediaOutput[] => {
+const outputList = (value: unknown, kind: "image" | "video"): MediaOutput[] => {
   if (!value) return [];
   const array = Array.isArray(value) ? value : [value];
-  return array.map((item) =>
-    typeof item === "string"
-      ? { type: kind, url: item }
-      : {
-          type: item.type || kind,
-          mime: item.mime || item.mime_type,
-          url: item.url,
-          base64: item.base64 || item.b64_json,
-          text: item.text,
-        },
-  );
+  return array.map((value: unknown) => {
+    if (typeof value === "string") return { type: kind, url: value };
+    const item = wireObject(value);
+    invariant(item, "Media provider returned an invalid output", 502);
+    const type = item.type || kind;
+    invariant(
+      type === "image" || type === "video" || type === "text",
+      "Media output type is unknown",
+      502,
+    );
+    const stringField = (value: unknown) => {
+      if (value === null) return undefined;
+      invariant(
+        value === undefined || typeof value === "string",
+        "Media output field must be a string",
+        502,
+      );
+      return value;
+    };
+    return {
+      type,
+      mime: stringField(item.mime || item.mime_type),
+      url: stringField(item.url),
+      base64: stringField(item.base64 || item.b64_json),
+      text: stringField(item.text),
+    };
+  });
 };
 export const imageJsonAdapter: MediaAdapter = {
   id: "image-json",
@@ -107,17 +162,20 @@ export const imageJsonAdapter: MediaAdapter = {
     const inputs = await Promise.all(
       request.inputAssets.map((id) => context.input(id)),
     );
-    const data = await context.request(context.route.submitPath, {
-      ...context.route.requestDefaults,
-      ...request.parameters,
-      model: context.route.model,
-      prompt: request.prompt,
-      ...(inputs.length
-        ? { images: inputs.map((i) => `data:${i.mime};base64,${i.base64}`) }
-        : {}),
-    });
+    const data = wireObject(
+      await context.request(context.route.submitPath, {
+        ...context.route.requestDefaults,
+        ...request.parameters,
+        model: context.route.model,
+        prompt: request.prompt,
+        ...(inputs.length
+          ? { images: inputs.map((i) => `data:${i.mime};base64,${i.base64}`) }
+          : {}),
+      }),
+    );
     invariant(
-      Array.isArray(data.data) &&
+      data &&
+        Array.isArray(data.data) &&
         data.data.length > 0 &&
         data.data.length <= 16,
       "Image adapter expected data[1..16]",
@@ -174,11 +232,16 @@ export const videoJobAdapter: MediaAdapter = {
     );
   },
 };
-function normalize(data: any, kind: "image" | "video"): AdapterResult {
+function normalize(value: unknown, kind: "image" | "video"): AdapterResult {
+  const data = wireObject(value);
+  invariant(data, "Media provider returned an invalid response", 502);
+  const status = data.status;
   invariant(
-    ["queued", "running", "completed", "failed", "cancelled"].includes(
-      data.status,
-    ),
+    status === "queued" ||
+      status === "running" ||
+      status === "completed" ||
+      status === "failed" ||
+      status === "cancelled",
     "Media provider status is unknown",
     502,
   );
@@ -189,19 +252,33 @@ function normalize(data: any, kind: "image" | "video"): AdapterResult {
     "Asynchronous media provider did not return an id",
     502,
   );
+  invariant(
+    data.id == null || typeof data.id === "string",
+    "Media provider id is invalid",
+    502,
+  );
+  invariant(
+    data.progress == null ||
+      (typeof data.progress === "number" && Number.isFinite(data.progress)),
+    "Media provider progress is invalid",
+    502,
+  );
+  const error = (wireMember(data.error, "message") || data.error) ?? undefined;
+  invariant(
+    error === undefined || typeof error === "string",
+    "Media provider error is invalid",
+    502,
+  );
   return {
-    remoteId: data.id,
-    status: data.status,
-    progress: data.progress,
+    remoteId: data.id ?? undefined,
+    status,
+    progress: data.progress ?? undefined,
     outputs: outputList(data.output || data.outputs, kind),
-    error: data.error?.message || data.error,
+    error,
   };
 }
-export const getPath = (object: any, pointer: string) =>
-  pointer
-    .split(".")
-    .filter(Boolean)
-    .reduce((value, key) => value?.[key], object);
+export const getPath = (object: unknown, pointer: string): unknown =>
+  wireMember(object, ...pointer.split(".").filter(Boolean));
 function template(
   value: unknown,
   request: MediaRequest,

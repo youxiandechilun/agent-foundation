@@ -2,15 +2,21 @@ import { Worker } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
 import type { Config } from "../../core/config.js";
 import { invariant } from "../../core/util.js";
+import {
+  officeWorkerMessageSchema,
+  parseOfficeResult,
+  type OfficeJobResults,
+  type OfficeOperation,
+} from "./worker-results.js";
 export class OfficeJobs {
   private active = new Set<Worker>();
   private closed = false;
   constructor(private config: Config) {}
-  async execute<T = any>(
-    operation: string,
+  async execute<Operation extends OfficeOperation>(
+    operation: Operation,
     args: Record<string, unknown>,
     signal?: AbortSignal,
-  ): Promise<T> {
+  ): Promise<OfficeJobResults[Operation]> {
     invariant(!this.closed, "Office plugin is closed", 503);
     signal?.throwIfAborted();
     invariant(
@@ -18,7 +24,7 @@ export class OfficeJobs {
       "Office processing capacity reached",
       429,
     );
-    return new Promise<T>((resolve, reject) => {
+    return new Promise<OfficeJobResults[Operation]>((resolve, reject) => {
       const worker = new Worker(
         new URL("./format-worker.cjs", import.meta.url),
         {
@@ -43,7 +49,7 @@ export class OfficeJobs {
       );
       this.active.add(worker);
       let settled = false;
-      const finish = (error?: Error, value?: T) => {
+      const finish = (error?: Error, value?: OfficeJobResults[Operation]) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
@@ -66,11 +72,15 @@ export class OfficeJobs {
       );
       signal?.addEventListener("abort", abort, { once: true });
       if (signal?.aborted) abort();
-      worker.once("message", (message) =>
-        message.error
-          ? finish(new Error(message.error))
-          : finish(undefined, message.result),
-      );
+      worker.once("message", (value: unknown) => {
+        try {
+          const message = officeWorkerMessageSchema.parse(value);
+          if ("error" in message) finish(new Error(message.error));
+          else finish(undefined, parseOfficeResult(operation, message.result));
+        } catch (error) {
+          finish(error instanceof Error ? error : new Error(String(error)));
+        }
+      });
       worker.once("error", (error) => finish(error));
       worker.once("exit", (code) => {
         if (!settled)

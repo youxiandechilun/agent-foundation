@@ -4,6 +4,7 @@ import {
   createPublicKey,
   sign,
   randomBytes,
+  type JsonWebKey,
   type KeyObject,
 } from "node:crypto";
 import { invariant, registerSecret } from "../../../core/util.js";
@@ -138,7 +139,10 @@ export const clientMetadataSchema = z
       ctx.addIssue({ code: "custom", message: "Duplicate client grant types" });
   });
 export type MCPClientMetadata = z.infer<typeof clientMetadataSchema>;
-function metadataKey(config: MCPClientMetadata): { key: KeyObject; jwk: any } {
+function metadataKey(config: MCPClientMetadata): {
+  key: KeyObject;
+  jwk: JsonWebKey;
+} {
   invariant(
     config.authentication.method === "private_key_jwt",
     "Asymmetric client authentication is not configured",
@@ -183,7 +187,7 @@ function metadataKey(config: MCPClientMetadata): { key: KeyObject; jwk: any } {
 export function clientMetadataDocument(
   config: MCPClientMetadata,
   redirectUri?: string,
-  publicKeys?: any[],
+  publicKeys?: JsonWebKey[],
 ) {
   clientMetadataURL(config.clientId);
   const grants = config.grantTypes || ["authorization_code", "refresh_token"],
@@ -206,7 +210,7 @@ export function clientMetadataDocument(
       "Client metadata callback requires HTTPS or loopback HTTP",
     );
   }
-  const document: any = {
+  const document: Record<string, unknown> = {
     client_id: config.clientId,
     client_name: config.clientName,
     ...(redirects.length ? { redirect_uris: redirects } : {}),

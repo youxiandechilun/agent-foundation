@@ -1,4 +1,5 @@
 import { hash, invariant, registerSecret, delay } from "../../../core/util.js";
+import { wireMember } from "../protocol.js";
 import { OAuthVault } from "./vault.js";
 import { randomBytes } from "node:crypto";
 
@@ -34,7 +35,7 @@ const binding = (t: Target) =>
   hash(JSON.stringify({ url: t.url, oauth: t.oauth }));
 /** One durable device grant per server, with a rate limiter shared by all callers. */
 export class MCPDeviceFlow {
-  private busy = new Map<string, Promise<any>>();
+  private busy = new Map<string, Promise<unknown>>();
   private controllers = new Map<string, AbortController>();
   private versions = new Map<string, number>();
   constructor(
@@ -100,7 +101,8 @@ export class MCPDeviceFlow {
     const previous = this.busy.get(target.id);
     if (previous) {
       invariant(join, "A device authorization operation is in progress", 409);
-      return previous;
+      // Only the same polling operation joins an in-flight one.
+      return previous as Promise<T>;
     }
     const version = this.versions.get(target.id) || 0,
       controller = new AbortController();
@@ -215,7 +217,7 @@ export class MCPDeviceFlow {
           this.finish(r, "authorized");
         } catch (e) {
           guard();
-          const code = (e as any).oauthError;
+          const code = wireMember(e, "oauthError");
           if (
             code === "authorization_pending" ||
             code === "slow_down" ||
@@ -234,7 +236,9 @@ export class MCPDeviceFlow {
                 : code === "expired_token"
                   ? "expired"
                   : "failed",
-              /^[a-z_]{1,80}$/.test(code || "") ? code : "invalid_response",
+              typeof code === "string" && /^[a-z_]{1,80}$/.test(code)
+                ? code
+                : "invalid_response",
             );
         }
         await persist();
@@ -243,7 +247,11 @@ export class MCPDeviceFlow {
       true,
     );
   }
-  async wait(_target: Target, poll: () => Promise<any>, signal?: AbortSignal) {
+  async wait<S extends { state: string; nextPollAt?: string }>(
+    _target: Target,
+    poll: () => Promise<S>,
+    signal?: AbortSignal,
+  ) {
     const stop = signal
       ? AbortSignal.any([signal, this.lifetime])
       : this.lifetime;
@@ -255,7 +263,7 @@ export class MCPDeviceFlow {
       await delay(
         Math.max(
           1,
-          Math.min(60000, Date.parse(status.nextPollAt) - this.clock()),
+          Math.min(60000, Date.parse(status.nextPollAt ?? "") - this.clock()),
         ),
         stop,
       );

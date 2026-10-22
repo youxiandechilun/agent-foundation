@@ -1,4 +1,11 @@
-import type { FoundationEvent, Input, Mode } from "./contracts.js";
+import type {
+  Asset,
+  FoundationEvent,
+  Input,
+  Mode,
+  Project,
+  Session,
+} from "./contracts.js";
 import type { SecurityAuditRecord } from "./security/types.js";
 import { decodeEventStream } from "./transport/sse.js";
 export class FoundationHttpError extends Error {
@@ -19,6 +26,37 @@ export interface EventStreamOptions {
   retryMs?: number;
   maxFrameChars?: number;
 }
+interface DeviceAuthOptionalFields {
+  userCode?: string;
+  verificationUri?: string;
+  verificationUriComplete?: string;
+  expiresAt?: string;
+  intervalSeconds?: number;
+  nextPollAt?: string;
+  error?: string;
+}
+interface DeviceAuthGrantStatus extends DeviceAuthOptionalFields {
+  verificationUri: string;
+  expiresAt: string;
+  intervalSeconds: number;
+}
+export interface DeviceAuthPendingStatus extends DeviceAuthGrantStatus {
+  state: "pending";
+  userCode: string;
+  nextPollAt: string;
+}
+export interface DeviceAuthTerminalStatus extends DeviceAuthGrantStatus {
+  state: "authorized" | "denied" | "expired" | "failed";
+  userCode?: undefined;
+  verificationUriComplete?: undefined;
+  nextPollAt?: undefined;
+}
+export interface DeviceAuthInactiveStatus extends DeviceAuthOptionalFields {
+  state: "idle" | "cancelled";
+}
+/** Public device authorization state; no device code or credentials are returned. */
+export type DeviceAuthStatus =
+  DeviceAuthPendingStatus | DeviceAuthTerminalStatus | DeviceAuthInactiveStatus;
 async function pause(ms: number, signal?: AbortSignal) {
   signal?.throwIfAborted();
   await new Promise<void>((resolve, reject) => {
@@ -41,6 +79,56 @@ function parseEvent(data: string): FoundationEvent {
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function isAsset(value: unknown): value is Asset {
+  return (
+    isRecord(value) &&
+    ["id", "projectId", "name", "mime", "sha256", "createdAt"].every(
+      (key) => typeof value[key] === "string",
+    ) &&
+    typeof value.size === "number" &&
+    (value.origin === "upload" ||
+      value.origin === "artifact" ||
+      value.origin === "model")
+  );
+}
+function isDeviceAuthStatus(value: unknown): value is DeviceAuthStatus {
+  if (!isRecord(value)) return false;
+  if (
+    ![
+      "userCode",
+      "verificationUri",
+      "verificationUriComplete",
+      "expiresAt",
+      "nextPollAt",
+      "error",
+    ].every((key) => value[key] === undefined || typeof value[key] === "string")
+  )
+    return false;
+  if (value.state === "idle" || value.state === "cancelled")
+    return (
+      value.intervalSeconds === undefined ||
+      typeof value.intervalSeconds === "number"
+    );
+  if (
+    typeof value.verificationUri !== "string" ||
+    typeof value.expiresAt !== "string" ||
+    typeof value.intervalSeconds !== "number"
+  )
+    return false;
+  if (value.state === "pending")
+    return (
+      typeof value.userCode === "string" && typeof value.nextPollAt === "string"
+    );
+  return (
+    (value.state === "authorized" ||
+      value.state === "denied" ||
+      value.state === "expired" ||
+      value.state === "failed") &&
+    value.userCode === undefined &&
+    value.verificationUriComplete === undefined &&
+    value.nextPollAt === undefined
+  );
 }
 function isFoundationEvent(event: unknown): event is FoundationEvent {
   return (
@@ -74,7 +162,7 @@ export class FoundationClient {
     };
   }
   private async jsonResult(response: Response) {
-    let result: any;
+    let result: unknown;
     try {
       result = await response.json();
     } catch {
@@ -84,28 +172,35 @@ export class FoundationClient {
         `HTTP ${response.status}: invalid JSON response`,
       );
     }
-    if (!response.ok)
+    if (!response.ok) {
+      const error =
+        isRecord(result) && isRecord(result.error) ? result.error : undefined;
       throw new FoundationHttpError(
         response.status,
-        result.error?.code || "http_error",
-        result.error?.message || `HTTP ${response.status}`,
+        typeof error?.code === "string" ? error.code : "http_error",
+        typeof error?.message === "string"
+          ? error.message
+          : `HTTP ${response.status}`,
       );
+    }
     return result;
   }
-  async request<T = any>(
+  async request<T = unknown>(
     method: string,
     route: string,
     data?: unknown,
     signal?: AbortSignal,
   ): Promise<T> {
-    return this.jsonResult(
+    // The optional type argument is the caller's declared server contract.
+    // Untyped requests retain unknown and require validation before use.
+    return (await this.jsonResult(
       await fetch(this.baseUrl + route, {
         method,
         headers: this.headers(),
         body: data === undefined ? undefined : JSON.stringify(data),
         signal,
       }),
-    );
+    )) as T;
   }
   applications() {
     return this.request("GET", "/v1/applications");
@@ -204,7 +299,7 @@ export class FoundationClient {
     directory?: string,
     options: { billingAccount?: string } = {},
   ) {
-    return this.request("POST", "/v1/projects", {
+    return this.request<Project>("POST", "/v1/projects", {
       name,
       directory,
       ...options,
@@ -221,7 +316,7 @@ export class FoundationClient {
       reasoningBudgetTokens?: number;
     } = {},
   ) {
-    return this.request("POST", "/v1/sessions", {
+    return this.request<Session>("POST", "/v1/sessions", {
       projectId,
       mode,
       routeId,
@@ -319,19 +414,19 @@ export class FoundationClient {
     );
   }
   beginMCPDeviceAuth(serverId: string) {
-    return this.request(
+    return this.deviceAuthRequest(
       "POST",
       `/v1/mcp/${encodeURIComponent(serverId)}/auth-device`,
     );
   }
   mcpDeviceAuth(serverId: string) {
-    return this.request(
+    return this.deviceAuthRequest(
       "GET",
       `/v1/mcp/${encodeURIComponent(serverId)}/auth-device`,
     );
   }
   pollMCPDeviceAuth(serverId: string) {
-    return this.request(
+    return this.deviceAuthRequest(
       "POST",
       `/v1/mcp/${encodeURIComponent(serverId)}/auth-device-poll`,
     );
@@ -339,10 +434,9 @@ export class FoundationClient {
   async waitMCPDeviceAuth(serverId: string, signal?: AbortSignal) {
     for (;;) {
       signal?.throwIfAborted();
-      const status = await this.request(
+      const status = await this.deviceAuthRequest(
         "POST",
         `/v1/mcp/${encodeURIComponent(serverId)}/auth-device-poll`,
-        undefined,
         signal,
       );
       if (status.state !== "pending") return status;
@@ -360,10 +454,24 @@ export class FoundationClient {
     }
   }
   cancelMCPDeviceAuth(serverId: string) {
-    return this.request(
+    return this.deviceAuthRequest(
       "DELETE",
       `/v1/mcp/${encodeURIComponent(serverId)}/auth-device`,
     );
+  }
+  private async deviceAuthRequest(
+    method: string,
+    route: string,
+    signal?: AbortSignal,
+  ): Promise<DeviceAuthStatus> {
+    const status = await this.request(method, route, undefined, signal);
+    if (!isDeviceAuthStatus(status))
+      throw new FoundationHttpError(
+        502,
+        "invalid_response",
+        "Device polling status is invalid",
+      );
+    return status;
   }
   readMCPRegistration(serverId: string, acknowledgeUnknown = false) {
     return this.request(
@@ -501,7 +609,15 @@ export class FoundationClient {
           signal,
         },
       ),
-    );
+    ).then((value) => {
+      if (!isAsset(value))
+        throw new FoundationHttpError(
+          502,
+          "invalid_response",
+          "Asset response is invalid",
+        );
+      return value;
+    });
   }
   async download(assetId: string, signal?: AbortSignal) {
     const response = await fetch(
@@ -541,11 +657,17 @@ export class FoundationClient {
           },
         );
         if (!response.ok) {
-          const error = await response.json().catch(() => ({}));
+          const payload: unknown = await response.json().catch(() => ({}));
+          const error =
+            isRecord(payload) && isRecord(payload.error)
+              ? payload.error
+              : undefined;
           throw new FoundationHttpError(
             response.status,
-            error.error?.code || "http_error",
-            error.error?.message || `SSE HTTP ${response.status}`,
+            typeof error?.code === "string" ? error.code : "http_error",
+            typeof error?.message === "string"
+              ? error.message
+              : `SSE HTTP ${response.status}`,
           );
         }
         if (

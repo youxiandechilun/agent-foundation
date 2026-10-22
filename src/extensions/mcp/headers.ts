@@ -1,10 +1,12 @@
 import { invariant } from "../../core/util.js";
+import type { WireObject } from "./protocol.js";
 export type HeaderBinding = {
   name: string;
   path: string[];
   type: "string" | "integer" | "boolean";
 };
-export function mcpHeaderValue(value: string | number | boolean) {
+/** Header-safe text of a routing value; non-ASCII or padded text is base64-wrapped. */
+export function mcpHeaderValue(value: unknown) {
   const text = String(value);
   return /^[\x20-\x7e\t]*$/.test(text) &&
     text.trim() === text &&
@@ -12,12 +14,18 @@ export function mcpHeaderValue(value: string | number | boolean) {
     ? text
     : "=?base64?" + Buffer.from(text).toString("base64") + "?=";
 }
-export function headerBindings(schema: any): HeaderBinding[] {
+export function headerBindings(schema: unknown): HeaderBinding[] {
   const bindings: HeaderBinding[] = [],
     names = new Set<string>();
-  function visit(node: any, path: string[], reachable: boolean, depth: number) {
+  function visit(
+    value: unknown,
+    path: string[],
+    reachable: boolean,
+    depth: number,
+  ) {
     invariant(depth < 80, "MCP header schema nesting limit");
-    if (!node || typeof node !== "object") return;
+    if (!value || typeof value !== "object") return;
+    const node = value as WireObject;
     if (Object.hasOwn(node, "x-mcp-header")) {
       const name = node["x-mcp-header"];
       invariant(
@@ -26,7 +34,9 @@ export function headerBindings(schema: any): HeaderBinding[] {
           typeof name === "string" &&
           /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(name) &&
           !names.has(name.toLowerCase()) &&
-          ["integer", "string", "boolean"].includes(node.type),
+          (node.type === "integer" ||
+            node.type === "string" ||
+            node.type === "boolean"),
         "Invalid x-mcp-header annotation",
       );
       names.add(name.toLowerCase());
@@ -74,14 +84,14 @@ export function headerBindings(schema: any): HeaderBinding[] {
   visit(schema, [], true, 0);
   return bindings;
 }
-export function parameterHeaders(bindings: HeaderBinding[], args: any) {
+export function parameterHeaders(bindings: HeaderBinding[], args: unknown) {
   const headers: Record<string, string> = {};
   for (const binding of bindings) {
     let value = args;
     for (const key of binding.path) {
       value =
         value && typeof value === "object" && Object.hasOwn(value, key)
-          ? value[key]
+          ? (value as WireObject)[key]
           : undefined;
       if (value === undefined) break;
     }

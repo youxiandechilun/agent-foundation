@@ -7,7 +7,7 @@ export async function desktopManagement(
   k: DesktopKernel,
   req: IncomingMessage,
   url: URL,
-  json: () => Promise<any>,
+  json: () => Promise<unknown>,
   signal?: AbortSignal,
 ) {
   const p = url.pathname.split("/").filter(Boolean),
@@ -67,7 +67,7 @@ export async function desktopManagement(
       };
     }
     if (entity && !op && method === "DELETE") {
-      const v = await json();
+      const v = z.object({ projectId: z.string() }).parse(await json());
       return { data: await k.browser.closeSession(entity, v.projectId) };
     }
   }
@@ -110,7 +110,9 @@ export async function desktopManagement(
       }
     }
     if (entity === "release" && method === "POST") {
-      const v = await json();
+      const v = z
+        .object({ runId: z.string(), projectId: z.string() })
+        .parse(await json());
       k.computer.release(
         z.string().parse(v.runId),
         z.string().parse(v.projectId),
@@ -132,7 +134,14 @@ export async function desktopManagement(
     if (entity === "pair" && !op && method === "POST")
       return { data: k.nodes.pair(await json()), status: 201 };
     if (entity && op === "call" && method === "POST") {
-      const v = await json();
+      const v = z
+        .object({
+          projectId: z.string(),
+          capability: z.string(),
+          args: z.unknown(),
+          timeoutMs: z.number().optional(),
+        })
+        .parse(await json());
       invariant(k.config.permissions.node !== "deny", "Node disabled", 403);
       return {
         data: await k.nodes.call(

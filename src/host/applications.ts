@@ -14,6 +14,7 @@ import {
   officeAccess,
 } from "./access.js";
 import { requestSignal } from "./request-signal.js";
+import { wireObject } from "../core/wire.js";
 export { browserCapabilities, hostApplicationAccess } from "./access.js";
 
 export interface ApplicationOptions {
@@ -148,22 +149,23 @@ export function applicationIntegration(
             };
           if (isAction) {
             const { projectId, ...args } = input;
-            const result: any = await bridge.action(
+            const result = await bridge.action(
               projectId,
               p[3],
               args,
               request.signal,
             );
-            if (result?.base64) {
+            const image = wireObject(result);
+            if (typeof image?.base64 === "string" && image.base64) {
               const asset = await kernel.assets.create(
                 projectId,
                 "user-browser.png",
-                Buffer.from(result.base64, "base64"),
+                Buffer.from(image.base64, "base64"),
                 "artifact",
                 "image/png",
                 request.signal,
               );
-              return { data: { tabId: result.tabId, asset } };
+              return { data: { tabId: image.tabId, asset } };
             }
             return { data: result };
           }
@@ -177,11 +179,14 @@ export function applicationIntegration(
             json,
             request.signal,
           );
-        const input = req.method === "GET" ? {} : await json();
+        const input =
+          req.method === "GET"
+            ? {}
+            : z.record(z.string(), z.unknown()).parse(await json());
         if (
           req.method !== "GET" &&
           req.method !== "DELETE" &&
-          input?.projectId
+          typeof input.projectId === "string"
         ) {
           const caps: Capability[] =
             key === "browser"
@@ -189,7 +194,7 @@ export function applicationIntegration(
                   "browser",
                   "network",
                   ...(input.action === "upload" ? ["files.read" as const] : []),
-                  ...(["download", "screenshot"].includes(input.action)
+                  ...(["download", "screenshot"].includes(String(input.action))
                     ? ["files.write" as const]
                     : []),
                 ]

@@ -3,6 +3,9 @@ import type {
   Message,
   ToolDefinition,
   AssistantMessage,
+  TextPart,
+  ImagePart,
+  JsonObject,
 } from "../../runtime/types.js";
 import { emptyUsage } from "../../runtime/types.js";
 import { compileSchema } from "../../runtime/json-schema.js";
@@ -233,7 +236,7 @@ export function decodeSamplingRequest(
       );
       messages.push({
         role: "user",
-        content: content as any,
+        content,
         timestamp: Date.now(),
       });
     }
@@ -251,7 +254,11 @@ export function samplingResult(
     "MCP sampling provider did not complete",
     502,
   );
-  const content: any[] = [],
+  const content: (
+      | TextPart
+      | ImagePart
+      | { type: "tool_use"; id: string; name: string; input: JsonObject }
+    )[] = [],
     ids = new Set<string>(),
     byName = new Map(allowedTools.map((t) => [t.name, t]));
   for (const part of reply.content) {

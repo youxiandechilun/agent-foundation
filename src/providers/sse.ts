@@ -19,7 +19,7 @@ export async function* sse(
 export async function readJson(
   response: Response,
   max = 8 * 1024 * 1024,
-): Promise<any> {
+): Promise<unknown> {
   invariant(response.body, "Response body is missing", 502);
   const reader = response.body.getReader();
   let size = 0;

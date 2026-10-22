@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import { z } from "zod";
 import type { AddressInfo } from "node:net";
 import { parseConfig } from "../src/core/config.js";
 import { HttpTextProvider } from "../src/providers/text.js";
@@ -45,7 +46,17 @@ test("registered text protocols are routable without changing the provider", asy
       prompt: request.messages.map((m) => m.role).join(","),
       limit: budget,
     }),
-    async event(event, response) {
+    async event(value, response) {
+      const event = z
+        .object({
+          reply: z.string(),
+          call: z.object({
+            id: z.string(),
+            name: z.string(),
+            args: z.string(),
+          }),
+        })
+        .parse(value);
       await response.text(event.reply);
       response.calls.set(0, {
         id: event.call.id,

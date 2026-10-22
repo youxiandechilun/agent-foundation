@@ -5,6 +5,7 @@ import { Assets } from "../../storage/assets.js";
 import type { Config } from "../../core/config.js";
 import { invariant } from "../../core/util.js";
 import { OfficeJobs } from "./jobs.js";
+import type { OfficeTable, OfficeTableCell } from "./worker-results.js";
 export type Cell = string | number | boolean | null;
 const cell = z.union([
   z.string().max(10000),
@@ -242,11 +243,11 @@ export class Office {
   ) {
     this.allowed(false, projectId, "office_extract");
     const source = await this.source(projectId, assetId, signal);
-    const result = await this.jobs.execute<{
-      text: string;
-      supported: boolean;
-      truncated: boolean;
-    }>("extract", { ...source, limit }, this.stop(signal));
+    const result = await this.jobs.execute(
+      "extract",
+      { ...source, limit },
+      this.stop(signal),
+    );
     this.allowed(false, projectId, "office_extract");
     return result;
   }
@@ -255,9 +256,7 @@ export class Office {
     assetId: string,
     sheet?: string,
     signal?: AbortSignal,
-  ): Promise<
-    { name: string; rows: Cell[][]; formulas?: any[]; calculation?: string }[]
-  > {
+  ): Promise<OfficeTable[]> {
     this.allowed(false, projectId, "office_table");
     const source = await this.source(projectId, assetId, signal);
     invariant(
@@ -433,7 +432,7 @@ export class Office {
             : String(a[index] ?? "").localeCompare(String(b[index] ?? ""))),
       );
     }
-    let result: Cell[][] = [headers, ...body];
+    let result: OfficeTableCell[][] = [headers, ...body];
     if (args.select) {
       const indexes = args.select.map((c) => {
         const index = headers.indexOf(c);
@@ -444,12 +443,12 @@ export class Office {
     }
     return this.create(
       projectId,
-      {
+      officeCreateSchema.parse({
         format: args.format,
         name: args.name,
         title: tables[0].name,
         rows: result,
-      },
+      }),
       signal,
       true,
     );

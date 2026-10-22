@@ -1,9 +1,11 @@
 import type { Route } from "../core/config.js";
 import { invariant } from "../core/util.js";
+import { usagePayload, type NativeBlock } from "./protocols/wire.js";
 import type { ReasoningEffort } from "../contracts.js";
 import {
   emptyUsage,
   type AssistantMessage,
+  type JsonObject,
   type ModelDelta,
   type ModelRequest,
 } from "../runtime/types.js";
@@ -40,7 +42,7 @@ export interface TextProtocol {
   inputIncludesCache?: boolean;
   /** Fixed protocol headers such as an API version. */
   headers?: Readonly<Record<string, string>>;
-  body(input: ProtocolRequest): Record<string, any>;
+  body(input: ProtocolRequest): Record<string, unknown>;
   /** Wire form of an explicit tool choice. Defaults to the choice itself. */
   toolChoice?(
     choice: NonNullable<ModelRequest["toolChoice"]>,
@@ -54,9 +56,9 @@ export interface TextProtocol {
     settings: ReasoningSettings,
   ): void;
   /** Apply one streamed event (or one synthesized from a JSON response). */
-  event(event: any, response: ResponseBuilder): Promise<void>;
+  event(event: unknown, response: ResponseBuilder): Promise<void>;
   /** Events equivalent to a non-streaming JSON response. Defaults to `[value]`. */
-  jsonEvents?(value: any): any[];
+  jsonEvents?(value: unknown): unknown[];
   /** Runs after tool calls are appended to the message. */
   finalize?(response: ResponseBuilder): void;
 }
@@ -74,14 +76,15 @@ export function wantsReasoning(route: Route, request: ModelRequest): boolean {
   );
 }
 
-export const parseArgs = (raw: string): Record<string, any> => {
-  const args = JSON.parse(raw || "{}");
+/** Parsed JSON text is always JSON; the guard rejects non-object arguments. */
+export const parseArgs = (raw: string): JsonObject => {
+  const args: unknown = JSON.parse(raw || "{}");
   invariant(
     args && typeof args === "object" && !Array.isArray(args),
     "Tool arguments must be a JSON object",
     502,
   );
-  return args;
+  return args as JsonObject;
 };
 
 export interface PendingCall {
@@ -95,7 +98,7 @@ export class ResponseBuilder {
   readonly output: AssistantMessage;
   readonly calls = new Map<number, PendingCall>();
   /** Protocol-native blocks retained for replay, keyed by stream index. */
-  readonly nativeBlocks = new Map<number, any>();
+  readonly nativeBlocks: Map<number, NativeBlock> = new Map();
   started = false;
   finished = false;
   private inputUsageSeen = false;
@@ -145,15 +148,16 @@ export class ResponseBuilder {
    * Record provider usage. `cacheSeparate` counts cache tokens outside input (Anthropic);
    * `terminal` is false for usage that a later event will complete.
    */
-  usage(u: any, cacheSeparate = false, terminal = true) {
-    if (!u) return;
+  usage(value: unknown, cacheSeparate = false, terminal = true) {
+    if (value == null) return;
+    const u = usagePayload.parse(value);
     const usage = this.output.usage;
     const input = u.input_tokens ?? u.prompt_tokens,
       out = u.output_tokens ?? u.completion_tokens;
     if (input !== undefined) usage.input = input;
     if (out !== undefined) usage.output = out;
-    this.inputUsageSeen ||= Number.isSafeInteger(input) && input >= 0;
-    this.outputUsageSeen ||= Number.isSafeInteger(out) && out >= 0;
+    this.inputUsageSeen ||= input !== undefined;
+    this.outputUsageSeen ||= out !== undefined;
     usage.reported =
       this.inputUsageSeen &&
       this.outputUsageSeen &&

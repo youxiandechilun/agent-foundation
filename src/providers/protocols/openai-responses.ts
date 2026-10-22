@@ -1,4 +1,6 @@
 import { errorText, invariant } from "../../core/util.js";
+import { wireMember } from "../../core/wire.js";
+import { responseEvent, responseCall, responseJson } from "./wire.js";
 import { functionTools, responsesInput } from "../serialize.js";
 import type { TextProtocol } from "../protocol.js";
 
@@ -12,7 +14,7 @@ export const openaiResponses: TextProtocol = {
   id: "openai-responses",
   url: (base) => base + "/responses",
   body({ request, route, routeId, budget }) {
-    const body: Record<string, any> = {
+    const body: Record<string, unknown> = {
       ...route.requestDefaults,
       model: route.model,
       input: responsesInput(request.messages, routeId),
@@ -45,27 +47,62 @@ export const openaiResponses: TextProtocol = {
       ...(effort ? { effort } : {}),
     };
   },
-  async event(event, response) {
+  async event(value, response) {
+    const type = wireMember(value, "type");
+    if (
+      typeof type !== "string" ||
+      ![
+        "response.created",
+        "response.output_text.delta",
+        "response.reasoning_summary_text.delta",
+        "response.output_item.added",
+        "response.function_call_arguments.delta",
+        "response.output_item.done",
+        ...terminal,
+      ].includes(type)
+    )
+      return;
+    const event = responseEvent.parse(value);
     const { output, calls } = response;
     if (event.type === "response.created")
       output.responseId = event.response?.id;
-    if (event.type === "response.output_text.delta")
+    if (event.type === "response.output_text.delta") {
+      invariant(
+        typeof event.delta === "string",
+        "Invalid Responses text delta",
+        502,
+      );
       await response.text(event.delta);
-    if (event.type === "response.reasoning_summary_text.delta")
+    }
+    if (event.type === "response.reasoning_summary_text.delta") {
+      invariant(
+        typeof event.delta === "string",
+        "Invalid Responses reasoning delta",
+        502,
+      );
       await response.thought(event.delta);
+    }
     if (
       event.type === "response.output_item.added" &&
       event.item?.type === "function_call"
     ) {
       response.started = true;
+      const item = responseCall.parse({
+        name: "",
+        arguments: "",
+        ...event.item,
+      });
       calls.set(event.output_index ?? calls.size, {
-        id: event.item.call_id,
-        name: event.item.name || "",
-        json: event.item.arguments || "",
+        id: item.call_id,
+        name: item.name,
+        json: item.arguments,
       });
     }
     if (event.type === "response.function_call_arguments.delta") {
-      const call = calls.get(event.output_index);
+      const call =
+        event.output_index === undefined
+          ? undefined
+          : calls.get(event.output_index);
       invariant(
         call && typeof event.delta === "string",
         "Responses argument delta has no declared call",
@@ -77,12 +114,14 @@ export const openaiResponses: TextProtocol = {
     }
     if (event.type === "response.output_item.done") {
       const item = event.item;
+      invariant(item, "Responses output item is missing", 502);
       if (item.type === "function_call") {
+        const call = responseCall.parse(item);
         response.started = true;
         calls.set(event.output_index ?? calls.size, {
-          id: item.call_id,
-          name: item.name,
-          json: item.arguments,
+          id: call.call_id,
+          name: call.name,
+          json: call.arguments,
         });
       }
       if (["reasoning", "compaction"].includes(item.type))
@@ -100,32 +139,46 @@ export const openaiResponses: TextProtocol = {
             : "error",
       );
       if (result?.error)
-        output.errorMessage = errorText(result.error.message || result.error);
+        output.errorMessage = errorText(
+          wireMember(result.error, "message") || result.error,
+        );
       // Some compatible endpoints send only the terminal response object.
       if (!output.content.some((p) => p.type === "text"))
         for (const item of result?.output || [])
           if (item.type === "message")
             for (const p of item.content || [])
-              if (p.type === "output_text") await response.text(p.text);
+              if (p.type === "output_text") {
+                invariant(
+                  typeof p.text === "string",
+                  "Invalid Responses output text",
+                  502,
+                );
+                await response.text(p.text);
+              }
       for (const item of result?.output || [])
         if (
           item.type === "function_call" &&
           ![...calls.values()].some((c) => c.id === item.call_id)
-        )
+        ) {
+          const call = responseCall.parse(item);
           calls.set(calls.size, {
-            id: item.call_id,
-            name: item.name,
-            json: item.arguments,
+            id: call.call_id,
+            name: call.name,
+            json: call.arguments,
           });
+        }
     }
   },
-  jsonEvents: (value) => [
-    {
-      type:
-        value.status === "incomplete"
-          ? "response.incomplete"
-          : "response.completed",
-      response: value,
-    },
-  ],
+  jsonEvents(input) {
+    const value = responseJson.parse(input);
+    return [
+      {
+        type:
+          value.status === "incomplete"
+            ? "response.incomplete"
+            : "response.completed",
+        response: value,
+      },
+    ];
+  },
 };

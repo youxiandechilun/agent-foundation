@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Store } from "../../storage/store.js";
 import type { Config } from "../../core/config.js";
+import { wireObject } from "../../core/wire.js";
 import { CAPABILITIES, type ToolDefinition } from "../../runtime/types.js";
 import {
   now,
@@ -42,7 +43,7 @@ export const pluginManifestSchema = z
         z.object({
           name: z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/),
           description: z.string(),
-          parameters: z.record(z.string(), z.any()),
+          parameters: z.record(z.string(), z.unknown()),
           risk: z
             .enum(["read", "write", "execute", "network", "control"])
             .default("execute"),
@@ -85,7 +86,7 @@ export interface InstalledPlugin {
 }
 export class PluginManager {
   private closing = false;
-  private pending = new Map<AbortController, Promise<any>>();
+  private pending = new Map<AbortController, Promise<unknown>>();
   constructor(
     readonly store: Store,
     readonly config: Config,
@@ -205,9 +206,9 @@ export class PluginManager {
   private async invoke(
     plugin: InstalledPlugin,
     operation: "tool" | "media",
-    payload: unknown,
+    payload: Record<string, unknown>,
     signal?: AbortSignal,
-  ): Promise<any> {
+  ): Promise<unknown> {
     invariant(!this.closing, "Plugin manager is closed", 503);
     signal?.throwIfAborted();
     const controller = new AbortController();
@@ -241,9 +242,9 @@ export class PluginManager {
   private async invokeOnce(
     plugin: InstalledPlugin,
     operation: "tool" | "media",
-    payload: unknown,
+    payload: Record<string, unknown>,
     signal?: AbortSignal,
-  ): Promise<any> {
+  ): Promise<unknown> {
     invariant(
       !this.config.execution.requireIsolation ||
         this.config.extensions.executionBoundary !== "native",
@@ -325,7 +326,7 @@ export class PluginManager {
   private async invokeContainer(
     plugin: InstalledPlugin,
     operation: "tool" | "media",
-    payload: any,
+    payload: Record<string, unknown>,
     snapshot: string,
     files: Record<string, string>,
     env: Record<string, string>,
@@ -364,13 +365,16 @@ export class PluginManager {
         { source: runtime, target: "/runtime", readOnly: true },
       ];
       const safePayload = structuredClone(payload);
+      const context = wireObject(payload.context);
+      const safeContext = wireObject(safePayload.context);
       if (
-        payload.context?.projectRoot &&
+        typeof context?.projectRoot === "string" &&
+        safeContext &&
         caps.some((c) => c === "files.read" || c === "files.write")
       ) {
         const source = await reviewedWorkspace(
           this.config,
-          payload.context.projectRoot,
+          context.projectRoot,
         );
         mounts.push({
           source,
@@ -379,11 +383,11 @@ export class PluginManager {
             this.config.execution.workspaceReadOnly ||
             !caps.includes("files.write"),
         });
-        safePayload.context.projectRoot =
+        safeContext.projectRoot =
           this.config.extensions.executionBoundary === "windows-appcontainer"
             ? source
             : "/workspace";
-      } else if (safePayload.context) delete safePayload.context.projectRoot;
+      } else if (safeContext) delete safeContext.projectRoot;
       const host = await prepareExtensionHost(
         this.config,
         {
@@ -523,7 +527,11 @@ export class PluginManager {
             ]),
           ],
           source: { kind: "plugin" as const, id: plugin.id },
-          execute: async (_callId: string, args: any, signal?: AbortSignal) => {
+          execute: async (
+            _callId: string,
+            args: Record<string, unknown>,
+            signal?: AbortSignal,
+          ) => {
             const value = await this.invoke(
               plugin,
               "tool",
@@ -534,8 +542,25 @@ export class PluginManager {
               },
               signal,
             );
-            return value && Array.isArray(value.content)
-              ? value
+            return Array.isArray(wireObject(value)?.content)
+              ? z
+                  .object({
+                    content: z.array(
+                      z.union([
+                        z.object({ type: z.literal("text"), text: z.string() }),
+                        z.object({
+                          type: z.literal("image"),
+                          mimeType: z.string(),
+                          data: z.string(),
+                        }),
+                      ]),
+                    ),
+                    details: z.unknown().optional(),
+                    isError: z.boolean().optional(),
+                    artifacts: z.array(z.string()).optional(),
+                  })
+                  .passthrough()
+                  .parse(value)
               : {
                   content: [{ type: "text", text: JSON.stringify(value) }],
                   details: value,

@@ -13,6 +13,29 @@ import {
 import { MCPOAuth, oauthSchema } from "./auth/oauth.js";
 import { decodeSamplingRequest } from "./sampling.js";
 import {
+  wireMember,
+  wireObject,
+  type MCPToolDeclaration,
+  type WireObject,
+} from "./protocol.js";
+import { taskStatuses, validateTask } from "./tasks/context.js";
+import type { MCPReceivedTask } from "./tasks/receiver.js";
+
+/** Persisted record of a remote MCP task this host started or observed. */
+interface MCPTaskRecord extends WireObject {
+  id: string;
+  serverId: string;
+  remoteId: string;
+  status?: unknown;
+  protocol?: unknown;
+  serverBinding?: unknown;
+}
+/** Persisted client-side task the host ran for a server. */
+type MCPClientTaskRecord = MCPReceivedTask & {
+  serverId?: string;
+  serverBinding?: string;
+};
+import {
   clientMetadataDocument,
   clientMetadataURL,
 } from "./auth/client-metadata.js";
@@ -137,9 +160,9 @@ export class MCPManager {
       serverId: string,
       origin: MCPOrigin,
       routeId: string,
-      params: any,
+      params: unknown,
       signal: AbortSignal,
-    ) => Promise<any>;
+    ) => Promise<unknown>;
   };
   private subscriptions = new Map<
     string,
@@ -171,7 +194,7 @@ export class MCPManager {
     readonly config?: Config,
   ) {
     this.interactions = new MCPInteractions(store);
-    for (const task of store.list<any>("mcp-client-tasks"))
+    for (const task of store.list<MCPClientTaskRecord>("mcp-client-tasks"))
       if (["working", "input_required"].includes(task.status))
         store.put("mcp-client-tasks", {
           ...task,
@@ -183,8 +206,8 @@ export class MCPManager {
           },
           lastUpdatedAt: now(),
         });
-    for (const task of store.list<any>("mcp-tasks"))
-      if (["working", "input_required"].includes(task.status))
+    for (const task of store.list<MCPTaskRecord>("mcp-tasks"))
+      if (task.status === "working" || task.status === "input_required")
         store.put("mcp-tasks", {
           ...task,
           status: "unknown",
@@ -306,7 +329,7 @@ export class MCPManager {
   receivedTasks(serverId: string) {
     this.store.get("mcps", serverId);
     return this.store
-      .list<any>("mcp-client-tasks")
+      .list<MCPClientTaskRecord>("mcp-client-tasks")
       .filter((t) => t.serverId === serverId);
   }
   private taskOptions(
@@ -336,7 +359,7 @@ export class MCPManager {
             : localIds.get(event.task.taskId);
         if (!key) return;
         if (event.kind === "created") localIds.set(event.task.taskId, key);
-        const previous = this.store.find<any>("mcp-tasks", key);
+        const previous = this.store.find<MCPTaskRecord>("mcp-tasks", key);
         this.store.put("mcp-tasks", {
           ...previous,
           id: key,
@@ -445,10 +468,12 @@ export class MCPManager {
           "Sampling requires an authorized originating Agent tool call",
           403,
         );
+        const maxTokens = wireMember(params, "maxTokens");
         invariant(
-          Number.isSafeInteger(params.maxTokens) &&
-            params.maxTokens > 0 &&
-            params.maxTokens <= limits.maxTokens,
+          typeof maxTokens === "number" &&
+            Number.isSafeInteger(maxTokens) &&
+            maxTokens > 0 &&
+            maxTokens <= limits.maxTokens,
           "Sampling token limit exceeded",
           403,
         );
@@ -969,7 +994,8 @@ export class MCPManager {
         "MCP catalog changed during listing; resolve again",
         409,
       );
-      return structuredClone(result.tools);
+      // listTools validated every entry of each page it returned.
+      return structuredClone(result.tools) as MCPToolDeclaration[];
     } finally {
       if (--pending.callers === 0) {
         if (this.catalogs.get(serverId) === pending)
@@ -1058,15 +1084,16 @@ export class MCPManager {
                         { name: item.name, arguments: args },
                         options,
                       );
-                const content: ToolResult["content"] = (
-                  (value.content as any[]) || []
-                ).map((p) =>
-                  p.type === "text"
+                // Part fields pass through unchanged; normalizeToolResult validates
+                // every part before it reaches context or storage.
+                const content = value.content.map((item) => {
+                  const p = wireObject(item) ?? {};
+                  return p.type === "text"
                     ? { type: "text", text: p.text }
                     : p.type === "image"
                       ? { type: "image", data: p.data, mimeType: p.mimeType }
-                      : { type: "text", text: JSON.stringify(p) },
-                );
+                      : { type: "text", text: JSON.stringify(item) };
+                }) as ToolResult["content"];
                 return {
                   content,
                   details: value.structuredContent,
@@ -1091,11 +1118,14 @@ export class MCPManager {
   ) {
     const connection = this.client(serverId),
       version = this.catalogVersions.get(serverId);
-    const output: any[] = [],
+    const output: unknown[] = [],
       seen = new Set<string>();
     let cursor: string | undefined;
     for (let page = 0; page < 100; page++) {
-      const result = await connection[method]({ cursor }, { signal });
+      const result: WireObject = await connection[method](
+        { cursor },
+        { signal },
+      );
       invariant(
         this.client(serverId) === connection &&
           (method !== "listTools" ||
@@ -1103,17 +1133,19 @@ export class MCPManager {
         "MCP catalog changed during listing; resolve again",
         409,
       );
-      invariant(Array.isArray(result?.[field]), "Invalid MCP catalog", 502);
-      output.push(...result[field]);
+      const items = result[field];
+      invariant(Array.isArray(items), "Invalid MCP catalog", 502);
+      output.push(...items);
       invariant(output.length <= 2000, "MCP catalog exceeds limit");
-      cursor = result.nextCursor;
-      if (!cursor) return { [field]: output };
+      const next = result.nextCursor;
+      if (!next) return { [field]: output };
       invariant(
-        typeof cursor === "string" && !seen.has(cursor),
+        typeof next === "string" && !seen.has(next),
         "MCP repeated or invalid pagination cursor",
         502,
       );
-      seen.add(cursor);
+      seen.add(next);
+      cursor = next;
     }
     throw new Error("MCP catalog pagination exceeds limit");
   }
@@ -1208,7 +1240,7 @@ export class MCPManager {
   private async callTask(
     serverId: string,
     connection: MCPClient,
-    params: { name: string; arguments: any },
+    params: { name: string; arguments: unknown },
     options: MCPRequestOptions,
   ) {
     const deadline = Date.now() + (options.timeout || 30000);
@@ -1220,7 +1252,7 @@ export class MCPManager {
       ...options,
       taskDeadline: deadline,
     });
-    let record = {
+    let record: MCPTaskRecord = {
       id: id("mcp-task"),
       serverId,
       remoteId: created.taskId,
@@ -1240,22 +1272,10 @@ export class MCPManager {
           "MCP task connection changed",
           409,
         );
-        const task = await connection.taskGet(
+        // Same checks as before: matching ID and a known status.
+        const task = validateTask(
+          await connection.taskGet(created.taskId, options.signal, remaining()),
           created.taskId,
-          options.signal,
-          remaining(),
-        );
-        invariant(
-          task.taskId === created.taskId &&
-            [
-              "working",
-              "input_required",
-              "completed",
-              "failed",
-              "cancelled",
-            ].includes(task.status),
-          "Invalid MCP task status",
-          502,
         );
         record = { ...record, status: task.status, updatedAt: now() };
         this.store.put("mcp-tasks", record);
@@ -1273,10 +1293,13 @@ export class MCPManager {
             ),
           );
           if (task.status === "input_required") {
-            const final = await connection.taskGet(
+            const final = validateTask(
+              await connection.taskGet(
+                created.taskId,
+                options.signal,
+                remaining(),
+              ),
               created.taskId,
-              options.signal,
-              remaining(),
             );
             invariant(
               ["completed", "failed", "cancelled"].includes(final.status),
@@ -1291,7 +1314,12 @@ export class MCPManager {
         invariant(Date.now() < deadline, "MCP task polling timed out", 504);
         await delay(
           Math.min(
-            Math.max(25, task.pollInterval || 100),
+            Math.max(
+              25,
+              typeof task.pollInterval === "number" && task.pollInterval
+                ? task.pollInterval
+                : 100,
+            ),
             1000,
             Math.max(1, deadline - Date.now()),
           ),
@@ -1318,7 +1346,7 @@ export class MCPManager {
   tasks(serverId: string) {
     this.store.get("mcps", serverId);
     return this.store
-      .list<any>("mcp-tasks")
+      .list<MCPTaskRecord>("mcp-tasks")
       .filter((t) => t.serverId === serverId);
   }
   async task(
@@ -1326,7 +1354,7 @@ export class MCPManager {
     key: string,
     action: "get" | "result" | "cancel",
   ) {
-    const record = this.store.get<any>("mcp-tasks", key);
+    const record = this.store.get<MCPTaskRecord>("mcp-tasks", key);
     invariant(record.serverId === serverId, "MCP task server mismatch", 403);
     invariant(
       !record.serverBinding ||
@@ -1371,13 +1399,7 @@ export class MCPManager {
     } else if (action !== "result") {
       invariant(
         result.taskId === record.remoteId &&
-          [
-            "working",
-            "input_required",
-            "completed",
-            "failed",
-            "cancelled",
-          ].includes(result.status),
+          (taskStatuses as readonly unknown[]).includes(result.status),
         "Invalid remote task inspection",
         502,
       );

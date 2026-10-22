@@ -20,7 +20,7 @@
 
 ## SDK 交付与接入
 
-普通 SDK 包提供编译后的 ESM JavaScript、类型声明、运行辅助文件和接入示例。调用方安装本地 `.tgz` 后，通过公开入口组合 Agent，不需要拷贝或修改底座 TypeScript 实现；JavaScript 保持可读，不使用字节码或混淆。授权条款暂未确定，本次没有发布到 npm 或 GitHub。
+普通 SDK 包提供编译后的 ESM JavaScript、类型声明、运行辅助文件和接入示例。调用方安装本地 `.tgz` 后，通过公开入口组合 Agent，不需要拷贝或修改底座 TypeScript 实现；JavaScript 保持可读，不使用字节码或混淆。授权条款暂未确定，未发布到 npm；源码维护在 [GitHub 仓库](https://github.com/youxiandechilun/agent-foundation)。
 
 ```powershell
 npm install --omit=optional C:\delivery\local-agent-foundation-0.12.1.tgz

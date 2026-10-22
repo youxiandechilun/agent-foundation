@@ -1,4 +1,5 @@
 import path from "node:path";
+import { z } from "zod";
 import net from "node:net";
 import { StringDecoder } from "node:string_decoder";
 import { hostname } from "node:os";
@@ -24,6 +25,55 @@ import {
   processSecretSnapshot,
   abortable,
 } from "../core/util.js";
+
+const processJournalSchema = z
+  .object({
+    id: z.string(),
+    status: z.enum([
+      "starting",
+      "running",
+      "exited",
+      "stopped",
+      "failed",
+      "unknown",
+    ]),
+    updatedAt: z.string(),
+    port: z.number().int().min(1).max(65535).optional(),
+    pid: z.number().int().optional(),
+    brokerPid: z.number().int().optional(),
+    osSandbox: z.boolean().optional(),
+    exitCode: z.number().int().nullable().optional(),
+    error: z.string().optional(),
+  })
+  .passthrough();
+const outputJournalSchema = z.object({
+  frames: z.array(
+    z.object({
+      seq: z.number().int().nonnegative(),
+      stream: z.enum(["stdout", "stderr"]),
+      text: z.string(),
+    }),
+  ),
+  cursor: z.number().int().nonnegative(),
+  firstCursor: z.number().int().positive(),
+});
+const processReadSchema = outputJournalSchema
+  .omit({ firstCursor: true })
+  .extend({
+    state: processJournalSchema,
+    truncated: z.boolean(),
+  });
+const processEnvelopeSchema = z.object({
+  payload: z.string(),
+  proof: z.string().regex(/^[a-fA-F0-9]{64}$/),
+});
+function processEnvelope(text: string) {
+  try {
+    return processEnvelopeSchema.parse(JSON.parse(text));
+  } catch {
+    invariant(false, "Process peer authentication failed", 403);
+  }
+}
 
 export interface ProcessRecord {
   id: string;
@@ -374,10 +424,12 @@ export class ProcessManager {
   async status(processId: string, sessionId: string): Promise<ProcessRecord> {
     const entry = this.owned(processId, sessionId);
     try {
-      const state = JSON.parse(
-        await readFile(
-          path.join(this.directory(processId), "state.json"),
-          "utf8",
+      const state = processJournalSchema.parse(
+        JSON.parse(
+          await readFile(
+            path.join(this.directory(processId), "state.json"),
+            "utf8",
+          ),
         ),
       );
       const { port, ...publicState } = state;
@@ -385,6 +437,7 @@ export class ProcessManager {
       const updated: ProcessRecord = {
         ...entry,
         ...publicState,
+        exitCode: publicState.exitCode ?? undefined,
         projectId: entry.projectId,
         sessionId: entry.sessionId,
       };
@@ -416,18 +469,19 @@ export class ProcessManager {
     request: Record<string, unknown>,
     signal?: AbortSignal,
     timeoutMs = 35000,
-  ): Promise<any> {
+  ): Promise<unknown> {
     signal?.throwIfAborted();
     const directory = this.directory(processId);
     const [{ token }, state] = await Promise.all([
-      readFile(path.join(directory, "auth.json"), "utf8").then(JSON.parse),
-      readFile(path.join(directory, "state.json"), "utf8").then(JSON.parse),
+      readFile(path.join(directory, "auth.json"), "utf8").then((text) =>
+        z.object({ token: z.string() }).parse(JSON.parse(text)),
+      ),
+      readFile(path.join(directory, "state.json"), "utf8").then((text) =>
+        processJournalSchema.parse(JSON.parse(text)),
+      ),
     ]);
-    invariant(
-      Number.isInteger(state.port) && state.port > 0 && state.port <= 65535,
-      "Invalid broker endpoint",
-      409,
-    );
+    invariant(typeof state.port === "number", "Invalid broker endpoint", 409);
+    const port = state.port;
     const payload = {
       ...request,
       nonce: randomBytes(16).toString("hex"),
@@ -436,7 +490,7 @@ export class ProcessManager {
     const mac = (value: string) =>
       createHmac("sha256", token).update(value).digest("hex");
     return new Promise((resolve, reject) => {
-      const socket = net.connect(state.port, "127.0.0.1");
+      const socket = net.connect(port, "127.0.0.1");
       const decoder = new StringDecoder("utf8");
       let content = "",
         settled = false;
@@ -469,13 +523,8 @@ export class ProcessManager {
           return done(Error("Process response too large"));
         if (content.includes("\n"))
           try {
-            const envelope = JSON.parse(
+            const envelope = processEnvelope(
               content.slice(0, content.indexOf("\n")),
-            );
-            invariant(
-              typeof envelope.payload === "string",
-              "Process peer authentication failed",
-              403,
             );
             const expected = Buffer.from(mac(envelope.payload), "hex"),
               given = Buffer.from(String(envelope.proof || ""), "hex");
@@ -485,7 +534,14 @@ export class ProcessManager {
               "Process peer authentication failed",
               403,
             );
-            const response = JSON.parse(envelope.payload);
+            const response = z
+              .object({
+                nonce: z.string(),
+                ok: z.boolean(),
+                result: z.unknown().optional(),
+                error: z.string().optional(),
+              })
+              .parse(JSON.parse(envelope.payload));
             invariant(
               response.nonce === payload.nonce,
               "Process response nonce mismatch",
@@ -493,7 +549,7 @@ export class ProcessManager {
             );
             response.ok
               ? done(undefined, response.result)
-              : done(Error(response.error));
+              : done(Error(response.error || "Process RPC failed"));
           } catch (e) {
             done(e);
           }
@@ -522,21 +578,25 @@ export class ProcessManager {
     );
     try {
       return redactJson(
-        await this.rpc(processId, { op: "read", cursor, waitMs }, signal),
+        processReadSchema.parse(
+          await this.rpc(processId, { op: "read", cursor, waitMs }, signal),
+        ),
       );
     } catch (error) {
       signal?.throwIfAborted();
       const state = await this.status(processId, sessionId);
       if (["running", "starting"].includes(state.status)) throw error;
-      const journal = JSON.parse(
-        await readFile(
-          path.join(this.directory(processId), "output.json"),
-          "utf8",
+      const journal = outputJournalSchema.parse(
+        JSON.parse(
+          await readFile(
+            path.join(this.directory(processId), "output.json"),
+            "utf8",
+          ),
         ),
       );
       return redactJson({
         state,
-        frames: journal.frames.filter((f: any) => f.seq > cursor),
+        frames: journal.frames.filter((f) => f.seq > cursor),
         cursor: journal.cursor,
         truncated: cursor < journal.firstCursor - 1,
       });

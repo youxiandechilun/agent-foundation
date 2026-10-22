@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-17T17:42:37.082Z",
+  "checkedAt": "2026-10-22T15:21:57.075Z",
   "node": "v22.22.0",
   "platform": "win32",
   "runtime": "foundation-owned",
@@ -10,7 +10,7 @@
       "name": "build",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 6891,
+      "durationMs": 7027,
       "stdoutLog": "build.log",
       "stderrLog": "build.stderr.log"
     },
@@ -18,7 +18,7 @@
       "name": "source-independence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 163,
+      "durationMs": 164,
       "stdoutLog": "source-independence.log",
       "stderrLog": "source-independence.stderr.log"
     },
@@ -26,11 +26,11 @@
       "name": "core-integration",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 295676,
+      "durationMs": 299936,
       "stdoutLog": "core-integration.log",
       "stderrLog": "core-integration.stderr.log",
       "tests": {
-        "passed": 411,
+        "passed": 517,
         "failed": 0
       }
     },
@@ -38,7 +38,7 @@
       "name": "production-dependency-audit",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 1308,
+      "durationMs": 1942,
       "stdoutLog": "production-dependency-audit.log",
       "stderrLog": "production-dependency-audit.stderr.log",
       "audit": {
@@ -57,7 +57,7 @@
       "name": "compiled-smoke",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 1658,
+      "durationMs": 1298,
       "stdoutLog": "compiled-smoke.log",
       "stderrLog": "compiled-smoke.stderr.log"
     },
@@ -65,13 +65,13 @@
       "name": "acceptance-evidence",
       "status": "passed",
       "exitCode": 0,
-      "durationMs": 250,
+      "durationMs": 213,
       "stdoutLog": "acceptance-evidence.log",
       "stderrLog": "acceptance-evidence.stderr.log"
     }
   ],
   "tests": {
-    "passed": 411,
+    "passed": 517,
     "failed": 0
   },
   "dependencyAudit": {
@@ -99,5 +99,5 @@
     "deployment": "Single-user embedded kernel; no application account login or multi-tenant target. OAuth is optional external MCP authorization and is not instantiated without an explicit server declaration.",
     "financials": "Configured USD prices, real protocol usage, reservations and operator reconciliation; live vendor invoices not reconciled"
   },
-  "lockfileSha256": "98a83e851b1ecb63de25c16113091b6ff3e4f1c5423900ade188599d91fa551f"
+  "lockfileSha256": "fa2f1505fa2d2c03bb2e75ab5e7ae11f538e8f8d2e8caa7a95bee94041c96fa7"
 }

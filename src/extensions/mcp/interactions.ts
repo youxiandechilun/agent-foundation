@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Store } from "../../storage/store.js";
 import { id, now, invariant, redactJson } from "../../core/util.js";
 import { compileSchema } from "../../runtime/json-schema.js";
+import { wireObject, type WireObject } from "./protocol.js";
 export interface MCPOrigin {
   sessionId: string;
   runId: string;
@@ -13,13 +14,14 @@ export interface MCPInteraction {
   id: string;
   serverId: string;
   kind: "elicitation" | "sampling";
-  request: any;
+  request: WireObject;
   origin?: MCPOrigin;
   status: "pending" | "completed" | "declined" | "cancelled" | "expired";
   createdAt: string;
   expiresAt: string;
 }
-export function validateElicitation(params: any) {
+export function validateElicitation(value: unknown) {
+  const params = wireObject(value);
   invariant(
     params &&
       typeof params.message === "string" &&
@@ -33,7 +35,7 @@ export function validateElicitation(params: any) {
         params.elicitationId.length <= 200,
       "URL elicitation requires an ID",
     );
-    const url = new URL(params.url);
+    const url = new URL(String(params.url));
     invariant(
       url.protocol === "https:" ||
         (url.protocol === "http:" &&
@@ -47,21 +49,24 @@ export function validateElicitation(params: any) {
     return;
   }
   invariant(mode === "form", "Unsupported elicitation mode");
-  const schema = params.requestedSchema;
+  const schema = wireObject(params.requestedSchema),
+    properties = wireObject(schema?.properties);
   invariant(
     schema?.type === "object" &&
-      schema.properties &&
-      Object.keys(schema.properties).length <= 100,
+      properties &&
+      Object.keys(properties).length <= 100,
     "Invalid elicitation form schema",
   );
-  for (const entry of Object.values(schema.properties) as any[]) {
-    const scalar = ["string", "number", "integer", "boolean"].includes(
-      entry?.type,
-    );
+  for (const value of Object.values(properties)) {
+    const entry = wireObject(value) ?? {},
+      items = wireObject(entry.items);
+    const scalar = (
+      ["string", "number", "integer", "boolean"] as unknown[]
+    ).includes(entry.type);
     const enumArray =
-      entry?.type === "array" &&
-      entry.items?.type === "string" &&
-      (Array.isArray(entry.items.enum) || Array.isArray(entry.items.oneOf));
+      entry.type === "array" &&
+      items?.type === "string" &&
+      (Array.isArray(items.enum) || Array.isArray(items.oneOf));
     invariant(
       scalar || enumArray,
       "Elicitation accepts flat primitive fields or string enum arrays",
@@ -73,10 +78,18 @@ export function validateElicitation(params: any) {
   }
   compileSchema(schema);
 }
+/** The host's answer to an elicitation or sampling consent request. */
+export interface MCPInteractionReply {
+  action: "accept" | "decline" | "cancel";
+  content?: Record<string, z.core.util.JSONType>;
+}
 export class MCPInteractions {
   private waiting = new Map<
     string,
-    { resolve: (value: any) => void; reject: (error: Error) => void }
+    {
+      resolve: (value: MCPInteractionReply) => void;
+      reject: (error: Error) => void;
+    }
   >();
   constructor(readonly store: Store) {
     for (const r of store.list<MCPInteraction>("mcp-interactions", {
@@ -92,17 +105,17 @@ export class MCPInteractions {
   async ask(
     serverId: string,
     kind: MCPInteraction["kind"],
-    request: any,
+    request: unknown,
     signal: AbortSignal,
     origin?: MCPOrigin,
-  ) {
+  ): Promise<MCPInteractionReply> {
     signal.throwIfAborted();
     invariant(this.waiting.size < 64, "Too many pending MCP interactions", 429);
     const entry: MCPInteraction = {
       id: id("mcp-input"),
       serverId,
       kind,
-      request: redactJson(structuredClone(request)),
+      request: wireObject(redactJson(structuredClone(request))) ?? {},
       origin: origin ? { ...origin, samplingRemaining: undefined } : undefined,
       status: "pending",
       createdAt: now(),
@@ -123,7 +136,7 @@ export class MCPInteractions {
           : new Error("MCP interaction cancelled"),
       );
     try {
-      return await new Promise<any>((resolve, reject) => {
+      return await new Promise<MCPInteractionReply>((resolve, reject) => {
         this.waiting.set(entry.id, { resolve, reject });
         signal.addEventListener("abort", abort, { once: true });
         timer = setTimeout(
@@ -169,7 +182,7 @@ export class MCPInteractions {
       reply.action === "accept"
     ) {
       const validate = compileSchema({
-        ...entry.request.requestedSchema,
+        ...wireObject(entry.request.requestedSchema),
         additionalProperties: false,
       });
       invariant(

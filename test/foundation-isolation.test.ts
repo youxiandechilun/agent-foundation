@@ -11,7 +11,7 @@ import {
   CommandRunner,
 } from "../src/execution/process.js";
 import { parseConfig } from "../src/core/config.js";
-import { registerSecret } from "../src/core/util.js";
+import { AppError, registerSecret } from "../src/core/util.js";
 
 test("container commands use non-root bounded isolation and cannot inject Docker flags or escape the workspace", async () => {
   const x = await setup(undefined, {
@@ -259,10 +259,11 @@ test("an unavailable Docker backend fails closed without running the command on 
 test("process RPC authenticates replies, hides its control secret and rejects replayed requests", async () => {
   const x = await setup();
   let request: any;
+  let reply = '{"ok":true,"result":{"acceptedBytes":999}}\n';
   const fake = net.createServer((socket) => {
     socket.once("data", (data) => {
       request = JSON.parse(data.toString().trim());
-      socket.end('{"ok":true,"result":{"acceptedBytes":999}}\n');
+      socket.end(reply);
     });
   });
   await new Promise<void>((r) => fake.listen(0, "127.0.0.1", r));
@@ -285,10 +286,22 @@ test("process RPC authenticates replies, hides its control secret and rejects re
         port: (fake.address() as any).port,
       }),
     );
-    await assert.rejects(
-      () => x.kernel.processes.write(p.id, s.id, "must reject"),
-      /peer authentication/,
-    );
+    for (const forged of [
+      '{"ok":true,"result":{"acceptedBytes":999}}',
+      '{"payload":"{}"}',
+      '{"payload":false,"proof":"invalid"}',
+      JSON.stringify({ payload: "{}", proof: "0".repeat(64) }),
+      "{invalid-json",
+    ]) {
+      reply = forged + "\n";
+      await assert.rejects(
+        () => x.kernel.processes.write(p.id, s.id, "must reject"),
+        (error: unknown) =>
+          error instanceof AppError &&
+          error.status === 403 &&
+          error.message === "Process peer authentication failed",
+      );
+    }
     const auth = JSON.parse(
       await readFile(
         path.join(x.config.dataDir, "processes", p.id, "auth.json"),

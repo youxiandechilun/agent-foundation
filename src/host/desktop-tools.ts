@@ -15,6 +15,7 @@ import type { ToolDefinition } from "../runtime/types.js";
 import { invariant } from "../core/util.js";
 import { createBuiltinTools } from "../tools/builtin.js";
 import { sentences } from "../prompts/sentences.js";
+import { wireObject } from "../core/wire.js";
 
 export type ToolContext = RuntimeToolContext & { kernel: Kernel };
 export async function desktopTools(
@@ -216,7 +217,7 @@ export async function desktopTools(
     async (args, signal) => {
       if (args.nodeId) {
         const { nodeId, browserId, ...bridgeArgs } = args;
-        const value: any = k.browserBridge
+        const value = k.browserBridge
           ? await k.browserBridge.action(
               session.projectId,
               nodeId,
@@ -231,13 +232,14 @@ export async function desktopTools(
               30000,
               signal,
             );
-        if (value?.base64) {
+        const image = wireObject(value);
+        if (typeof image?.base64 === "string" && image.base64) {
           const a = await k.assets.create(
             session.projectId,
             "user-browser.png",
-            Buffer.from(value.base64, "base64"),
+            Buffer.from(image.base64, "base64"),
             "artifact",
-            value.mime || "image/png",
+            typeof image.mime === "string" ? image.mime : "image/png",
             signal,
           );
           return artifact(a);
@@ -253,7 +255,7 @@ export async function desktopTools(
         signal,
         session.id,
       );
-      if (value.asset) artifact(value.asset);
+      if ("asset" in value && value.asset) artifact(value.asset);
       return value;
     },
   );

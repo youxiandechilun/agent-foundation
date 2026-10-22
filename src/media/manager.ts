@@ -8,6 +8,7 @@ import {
   imageJsonAdapter,
   videoJobAdapter,
   mappedHttpAdapter,
+  parseAdapterResult,
   type MediaAdapter,
   type AdapterResult,
   type MediaAdapterContext,
@@ -154,28 +155,30 @@ export class Media {
       request: unknown,
       ctx: MediaAdapterContext,
     ) =>
-      plugins.media(
-        adapterId,
-        method,
-        request,
-        {
-          baseUrl: ctx.route.baseUrl,
-          model: ctx.route.model,
-          idempotencyKey: ctx.idempotencyKey,
-          parameters: ctx.route.requestDefaults,
-          inputs:
-            method === "submit"
-              ? await Promise.all(
-                  ((request as MediaRequest).inputAssets || []).map(
-                    async (assetId) => ({
-                      assetId,
-                      ...(await ctx.input(assetId)),
-                    }),
-                  ),
-                )
-              : [],
-        },
-        ctx.signal,
+      parseAdapterResult(
+        await plugins.media(
+          adapterId,
+          method,
+          request,
+          {
+            baseUrl: ctx.route.baseUrl,
+            model: ctx.route.model,
+            idempotencyKey: ctx.idempotencyKey,
+            parameters: ctx.route.requestDefaults,
+            inputs:
+              method === "submit"
+                ? await Promise.all(
+                    ((request as MediaRequest).inputAssets || []).map(
+                      async (assetId) => ({
+                        assetId,
+                        ...(await ctx.input(assetId)),
+                      }),
+                    ),
+                  )
+                : [],
+          },
+          ctx.signal,
+        ),
       );
     return {
       id: adapterId,

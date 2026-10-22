@@ -1,5 +1,6 @@
 import { compileSchema } from "./json-schema.js";
 import { invariant } from "../core/util.js";
+import { wireObject } from "../core/wire.js";
 import type { ToolDefinition } from "./types.js";
 
 /** Name of the run-scoped tool through which a model submits a structured final result. */
@@ -16,12 +17,9 @@ export const isOutputTool = (tool: Pick<ToolDefinition, "name" | "source">) =>
   tool.source.id === SOURCE.id;
 
 /** Tool parameters must be an object; other schemas are wrapped as { result } with $defs hoisted. */
-export function outputParameters(schema: Record<string, any>) {
-  invariant(
-    schema && typeof schema === "object" && !Array.isArray(schema),
-    "outputSchema must be a JSON Schema object",
-    400,
-  );
+export function outputParameters(value: object) {
+  const schema = wireObject(value);
+  invariant(schema, "outputSchema must be a JSON Schema object", 400);
   compileSchema(schema);
   if (schema.type === "object") return { parameters: schema, wrapped: false };
   const { $defs, definitions, $schema: _ignored, ...inner } = schema;
@@ -38,7 +36,7 @@ export function outputParameters(schema: Record<string, any>) {
 }
 
 export function structuredOutputTool(
-  schema: Record<string, any>,
+  schema: object,
   record: (output: unknown) => void,
 ): ToolDefinition {
   const { parameters, wrapped } = outputParameters(schema);

@@ -39,7 +39,7 @@ export interface ModernTaskEvent {
 }
 export function modernTask(
   value: unknown,
-  expected?: string,
+  expected?: unknown,
   seed = false,
 ): ModernTask {
   const task = taskSchema.parse(value);
@@ -169,7 +169,7 @@ export class ModernMCPTasks {
   get(taskId: string) {
     return this.entries.get(taskId);
   }
-  update(value: unknown, expected?: string) {
+  update(value: unknown, expected?: unknown) {
     const task = modernTask(value, expected),
       entry = this.entries.get(task.taskId);
     if (!entry) return task;

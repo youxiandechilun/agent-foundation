@@ -9,6 +9,7 @@ import { desktopTools } from "./desktop-tools.js";
 import { desktopManagement } from "./desktop-api.js";
 import { officeExtractor } from "./office/extractor.js";
 import { applicationCapabilities, hostApplicationAccess } from "./access.js";
+import { z } from "zod";
 
 export interface DesktopServices {
   browser: BrowserManager;
@@ -114,7 +115,14 @@ export function desktopIntegration(): KernelIntegration {
       if (p[3] === "heartbeat" && req.method === "POST")
         return { data: services!.nodes.heartbeat(nodeId) };
       if (p[3] === "result" && req.method === "POST") {
-        const v = await json();
+        const v = z
+          .object({
+            taskId: z.string(),
+            ok: z.boolean(),
+            result: z.unknown().optional(),
+            error: z.string().optional(),
+          })
+          .parse(await json());
         return {
           data: services!.nodes.complete(nodeId, v.taskId, {
             ok: v.ok,

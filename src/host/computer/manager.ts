@@ -6,6 +6,11 @@ import { z } from "zod";
 import { Assets } from "../../storage/assets.js";
 import type { Config } from "../../core/config.js";
 import { invariant, id } from "../../core/util.js";
+import {
+  computerResultSchema,
+  type ComputerResult,
+  type ComputerActionResult,
+} from "./results.js";
 
 export const computerActionSchema = z
   .object({
@@ -172,7 +177,7 @@ export class ComputerController {
     projectId: string,
     input: Record<string, unknown>,
     signal?: AbortSignal,
-  ): Promise<any> {
+  ): Promise<ComputerActionResult> {
     invariant(
       process.platform === "win32",
       "Native computer adapter currently supports Windows",
@@ -313,7 +318,7 @@ export class ComputerController {
     action: Action,
     lease: Lease,
     signal: AbortSignal,
-  ): Promise<any> {
+  ): Promise<ComputerResult> {
     signal.throwIfAborted();
     return new Promise((resolve, reject) => {
       const powershell = path.join(
@@ -414,10 +419,12 @@ export class ComputerController {
             ),
           );
         try {
-          const result = JSON.parse(
-            Buffer.concat(stdout)
-              .toString("utf8")
-              .replace(/^\uFEFF/, ""),
+          const result = computerResultSchema.parse(
+            JSON.parse(
+              Buffer.concat(stdout)
+                .toString("utf8")
+                .replace(/^\uFEFF/, ""),
+            ),
           );
           invariant(
             result.ok === true,

@@ -33,6 +33,7 @@ src/
 │  ├─ skills.ts               Skill 安装、启用和资源
 │  ├─ plugins/                Plugin 管理、源码包和 Worker
 │  └─ mcp/                    MCP 连接、协议管理和交互（protocol.ts 为 JSON-RPC 帧与共享类型）
+│     ├─ client/              stdio、HTTP/SSE、请求管理、输入关联、订阅、工具目录与现代任务轮询
 │     ├─ auth/                OAuth、设备授权、注册、密钥和凭据
 │     └─ tasks/               MCP 异步任务
 ├─ servers/                   服务器档案、凭据、SSH/SFTP 和服务器事实
@@ -64,7 +65,8 @@ HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优
 ## 运行装配、协议与存储
 
 - `Kernel.startRun` 只负责生命周期：`prepareEngine` 读取历史、筛选工具、检索记忆并生成提示词，`createEngine` 构造执行引擎，`settleRun` 通知集成并结算。历史加载、工具筛选与记忆上下文位于 `core/kernel/run-setup.ts`。
-- 文本模型协议实现 `providers/protocol.ts` 的 `TextProtocol`，由 `providers/registry.ts` 按 `route.adapter` 查找。宿主在加载配置前调用 `registerTextProtocol` 即可接入新协议，`HttpTextProvider` 只负责传输、错误和部分结果。
+- 文本模型协议实现 `providers/protocol.ts` 的 `TextProtocol`，由 `providers/registry.ts` 按 `route.adapter` 查找。宿主在加载配置前调用 `registerTextProtocol` 即可接入新协议，`HttpTextProvider` 只负责传输、错误和部分结果。协议事件与 JSON 响应从 `unknown` 解析，内置协议的字段校验集中在 `providers/protocols/wire.ts`；不透明的厂商回放字段继续保留。自定义协议须先校验输入，再调用 `ResponseBuilder`。
+- `MCPClient` 保留连接协商、公开调用与关闭编排；`extensions/mcp/client/` 按传输、请求生命周期、输入来源、订阅、工具 schema 和现代任务轮询拆分。跨模块 JSON 使用 `core/wire.ts` 读取未知字段，经过校验的工具声明、结果和 JSON-RPC 帧使用具体类型。
 - 权限规则通过工具声明的 `capabilities`、`roles`（`plan-state`）与按参数补充约束的 `constrain` 判断，不依赖工具名称。启动子 Agent 的工具声明 `agent` 能力（宿主默认 allow，可在 `permissions.agent` 改为 ask/deny），团队会话据此拒绝绕过派工的委托。`tools/index.ts` 汇总工具时拒绝扩展工具冒用 `builtin/foundation` 来源或与已有工具重名，因此声明可以被信任。
 - 提示词按句写在 `prompts/` 与各模块的 `sentences(...)` 中，拼接结果与原单行文本一致。
 - 宿主计费通过 `KernelOptions.billing`（`runtime/billing.ts` 的 `BillingProvider`）接入：每次模型、embedding 和媒体调用发出前调用 `authorize`，宿主可抛错拒绝（如积分不足），内核作废预留并以 `billing_refused` 失败；最终结果经 `record` 报告不含缓存的输入、输出、缓存读写 token 或媒体计费单位，按 `charge.id` 幂等，未确认的结果在重启后重新投递。项目的 `billingAccount` 随每笔费用传给宿主；媒体单位按标准化请求估算，适配器或插件可在 `billing.units` 中报告实际值。内核的 USD 账本和预算保持原样。
@@ -83,7 +85,7 @@ HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优
 - 查询：团队、路由、模式相关的会话检查改为带过滤的 SQL 查询，并为 `collaboration.teamId`、`teamRootSessionId`、`team-tasks.teamId` 建表达式索引；费用汇总在 SQLite 中聚合，明细分页返回。导出迁移用 `transcriptVersion`（条数与序号）判断会话是否变化，不再整段解析与哈希。
 - 记忆向量新写入为 float64 BLOB，检索时一次遍历同时求点积与范数；旧 JSON 文本行仍可读取，重新嵌入时转换。
 - 保留：`retention.eventDays` / `cacheDays` 默认 0（不删除）；开启后按批删除已结束运行的事件日志、未被引用的压缩摘要和运行上下文记录，并执行 `PRAGMA optimize`。
-- 规范：`npm run lint`（ESLint + typescript-eslint）与 `npm run format:check`；src 中的 `any` 以警告形式保留为待清理项。`RouteRouter.create(config, options)` 与 `Kernel.routerFor(scope)` 取代内部的位置参数构造。
+- 规范：`npm run lint`（ESLint + typescript-eslint）与 `npm run format:check`；src 中的显式 `any` 为错误，外部输入在适配边界校验后使用，测试和示例保留原有 lint 配置。`ToolDefinition` 默认参数类型为 `unknown`，具体工具使用与其参数 schema 一致的泛型；执行入口仍逐次校验 schema。`RouteRouter.create(config, options)` 与 `Kernel.routerFor(scope)` 取代内部的位置参数构造。
 
 ## 维护边界
 

@@ -3,6 +3,8 @@ import {
   createPublicKey,
   generateKeyPair,
   randomBytes,
+  type JsonWebKey,
+  type KeyObject,
 } from "node:crypto";
 import {
   clientAssertion,
@@ -14,7 +16,7 @@ import { hash, invariant, registerSecret } from "../../../core/util.js";
 
 type SigningKey = {
   kid: string;
-  jwk: any;
+  jwk: JsonWebKey;
   pem: string;
   createdAt: number;
   activatedAt?: number;
@@ -25,7 +27,7 @@ type Ring = {
   alg: string;
   active: SigningKey;
   pending?: SigningKey;
-  retired: { kid: string; jwk: any; removeAfter: number }[];
+  retired: { kid: string; jwk: JsonWebKey; removeAfter: number }[];
 };
 /** Host-owned private keys never leave the encrypted vault. Only a served JWKS starts the overlap clock. */
 export class MCPKeyring {
@@ -98,17 +100,21 @@ export class MCPKeyring {
     }
   }
   private async generate(alg: string): Promise<SigningKey> {
-    const keys = await new Promise<{ privateKey: any; publicKey: any }>(
-      (resolve, reject) => {
-        const done = (error: Error | null, publicKey: any, privateKey: any) =>
-          error ? reject(error) : resolve({ publicKey, privateKey });
-        if (alg === "RS256")
-          generateKeyPair("rsa", { modulusLength: 2048 }, done);
-        else if (alg === "ES256")
-          generateKeyPair("ec", { namedCurve: "prime256v1" }, done);
-        else generateKeyPair("ed25519", {}, done);
-      },
-    );
+    const keys = await new Promise<{
+      privateKey: KeyObject;
+      publicKey: KeyObject;
+    }>((resolve, reject) => {
+      const done = (
+        error: Error | null,
+        publicKey: KeyObject,
+        privateKey: KeyObject,
+      ) => (error ? reject(error) : resolve({ publicKey, privateKey }));
+      if (alg === "RS256")
+        generateKeyPair("rsa", { modulusLength: 2048 }, done);
+      else if (alg === "ES256")
+        generateKeyPair("ec", { namedCurve: "prime256v1" }, done);
+      else generateKeyPair("ed25519", {}, done);
+    });
     const kid = randomBytes(20).toString("base64url"),
       pem = keys.privateKey.export({ type: "pkcs8", format: "pem" }).toString();
     registerSecret(pem);

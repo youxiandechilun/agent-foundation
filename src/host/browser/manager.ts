@@ -11,6 +11,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import type { Config } from "../../core/config.js";
+import type { Session } from "../../contracts.js";
 import { Assets } from "../../storage/assets.js";
 import { Store } from "../../storage/store.js";
 import { id, invariant, hash, abortable } from "../../core/util.js";
@@ -69,6 +70,16 @@ interface Tab {
   lastDialog?: { type: string; message: string; accepted: boolean };
   closeListener: () => void;
   dialogListener: (dialog: Dialog) => void;
+}
+interface BrowserElement {
+  ref: string;
+  tag: string;
+  id: string;
+  name: string | null;
+  role: string | null;
+  type: string | null;
+  label: string | null;
+  text: string;
 }
 interface BrowserSession {
   id: string;
@@ -141,7 +152,7 @@ export class BrowserManager {
       429,
     );
     if (owner !== "direct-user") {
-      const source = this.store.find<any>("sessions", owner);
+      const source = this.store.find<Session>("sessions", owner);
       if (source)
         invariant(
           source.projectId === projectId,
@@ -376,7 +387,7 @@ export class BrowserManager {
         tab.frames.set(id("frame"), frame);
     for (const [key, frame] of tab.frames)
       if (frame.isDetached()) tab.frames.delete(key);
-    const elements: any[] = [],
+    const elements: BrowserElement[] = [],
       query = frame.locator(
         'a,button,input,textarea,select,[role="button"],[role="checkbox"],[contenteditable="true"]',
       );
@@ -429,7 +440,7 @@ export class BrowserManager {
     input: BrowserAction | Record<string, unknown>,
     signal?: AbortSignal,
     owner?: string,
-  ): Promise<any> {
+  ) {
     this.enabled();
     const args = browserActionSchema.parse(input);
     this.authorize?.(projectId, args);
@@ -481,9 +492,14 @@ export class BrowserManager {
     session: BrowserSession,
     args: BrowserAction,
     stop: AbortSignal,
-  ): Promise<any> {
-    if (args.action === "tabs")
-      return this.list(session.projectId).find((s) => s.id === session.id);
+  ) {
+    if (args.action === "tabs") {
+      const listed = this.list(session.projectId).find(
+        (s) => s.id === session.id,
+      );
+      invariant(listed, "Browser session not found", 404);
+      return listed;
+    }
     if (args.action === "new_tab") {
       invariant(
         session.tabs.size < this.config.browser.maxTabs,

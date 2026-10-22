@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { terminateProcessTree } from "../execution/lifecycle.js";
 import { abortable, errorText, redactSecrets } from "../core/util.js";
+import { wireMember, wireObject } from "../core/wire.js";
 import { textOf } from "./types.js";
 import type {
   JsonObject,
@@ -236,7 +237,7 @@ interface CommandOutcome {
   code: number | null;
   stdout: string;
   stderr: string;
-  json?: Record<string, any>;
+  json?: Record<string, unknown>;
 }
 const MAX_HOOK_OUTPUT = 64 * 1024;
 /**
@@ -273,7 +274,7 @@ export function runHookCommand(
         void terminateProcessTree(child);
         return reject(error);
       }
-      let json: Record<string, any> | undefined;
+      let json: Record<string, unknown> | undefined;
       const trimmed = stdout.trim();
       if (code === 0 && trimmed.startsWith("{"))
         try {
@@ -369,8 +370,11 @@ export function commandHooks(config: CommandHookConfig): RunHooks | undefined {
         if (outcome.json?.decision === "block")
           return { block: String(outcome.json.reason || "Blocked by hook") };
         const extra = outcome.json
-          ? (outcome.json.hookSpecificOutput?.additionalContext ??
-            outcome.json.additionalContext)
+          ? (wireMember(
+              outcome.json,
+              "hookSpecificOutput",
+              "additionalContext",
+            ) ?? outcome.json.additionalContext)
           : outcome.stdout;
         if (extra) notes.push(String(extra));
       }
@@ -394,7 +398,7 @@ export function commandHooks(config: CommandHookConfig): RunHooks | undefined {
         );
         if (outcome.code === 2)
           return { deny: blockReason(outcome, "Denied by hook") };
-        const specific = outcome.json?.hookSpecificOutput || {};
+        const specific = wireObject(outcome.json?.hookSpecificOutput) ?? {};
         if (
           specific.permissionDecision === "deny" ||
           outcome.json?.decision === "block"
@@ -406,9 +410,12 @@ export function commandHooks(config: CommandHookConfig): RunHooks | undefined {
                 "Denied by hook",
             ),
           };
-        const next = specific.updatedInput ?? outcome.json?.updatedInput;
-        if (next && typeof next === "object" && !Array.isArray(next)) {
-          args = next;
+        const next = wireObject(
+          specific.updatedInput ?? outcome.json?.updatedInput,
+        );
+        if (next) {
+          // Hook output is parsed JSON, so every member is a JSON value.
+          args = next as typeof args;
           updated = true;
         }
       }
@@ -438,8 +445,11 @@ export function commandHooks(config: CommandHookConfig): RunHooks | undefined {
             ? blockReason(outcome, "")
             : outcome.json?.decision === "block"
               ? outcome.json.reason
-              : (outcome.json?.hookSpecificOutput?.additionalContext ??
-                outcome.json?.additionalContext);
+              : (wireMember(
+                  outcome.json,
+                  "hookSpecificOutput",
+                  "additionalContext",
+                ) ?? outcome.json?.additionalContext);
         if (note) notes.push(String(note));
       }
       return notes.length ? { additionalContext: notes.join("\n") } : {};

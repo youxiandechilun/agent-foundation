@@ -6,6 +6,11 @@ import { rmSync } from "node:fs";
 import type { Config } from "../../../core/config.js";
 import { readJson } from "../../../providers/sse.js";
 import { invariant, hash, registerSecret } from "../../../core/util.js";
+import {
+  wireIncludes,
+  wireObject,
+  type WireObject,
+} from "../../../core/wire.js";
 import { MCPRegistrations, registrationSchema } from "./registration.js";
 import {
   clientMetadataSchema,
@@ -289,7 +294,7 @@ export class MCPOAuth {
       "OAuth metadata must be JSON",
       502,
     );
-    return await readJson(response, 1024 * 1024);
+    return wireObject(await readJson(response, 1024 * 1024));
   }
   private async discover(
     target: Target,
@@ -330,19 +335,20 @@ export class MCPOAuth {
             resource.pathname.replace(/\/$/, ""),
           resource.origin + "/.well-known/oauth-protected-resource",
         ];
-    let protectedMetadata: any;
+    let protectedMetadata: WireObject | undefined;
     for (const url of [...new Set(candidates)]) {
       protectedMetadata = await this.metadata(url, oauth);
       if (protectedMetadata) break;
     }
+    const servers = protectedMetadata?.authorization_servers;
     invariant(
-      protectedMetadata?.resource === target.url &&
-        Array.isArray(protectedMetadata.authorization_servers),
+      protectedMetadata?.resource === target.url && Array.isArray(servers),
       "OAuth protected resource metadata does not match the MCP resource",
       502,
     );
-    const issuer = protectedMetadata.authorization_servers.find((value: any) =>
-      oauth.allowedIssuers.includes(value),
+    const issuer = (servers as unknown[]).find(
+      (value): value is string =>
+        typeof value === "string" && oauth.allowedIssuers.includes(value),
     );
     invariant(issuer, "Authorization issuer is not in the host allowlist", 403);
     const issuerUrl = this.safeUrl(issuer, oauth);
@@ -352,7 +358,7 @@ export class MCPOAuth {
       issuer.replace(/\/$/, "") + "/.well-known/openid-configuration",
       issuerUrl.origin + "/.well-known/openid-configuration" + issuerPath,
     ];
-    let metadata: any;
+    let metadata: WireObject | undefined;
     for (const url of [...new Set(discovery)]) {
       metadata = await this.metadata(url, oauth);
       if (metadata) break;
@@ -360,16 +366,16 @@ export class MCPOAuth {
     invariant(
       metadata?.issuer === issuer &&
         (grant !== "code" ||
-          metadata.code_challenge_methods_supported?.includes("S256")),
+          wireIncludes(metadata.code_challenge_methods_supported, "S256")),
       "OAuth issuer mismatch or S256 PKCE unsupported",
       502,
     );
     invariant(
       grant === "management" ||
         (grant === "device"
-          ? metadata.grant_types_supported?.includes(DEVICE_GRANT)
+          ? wireIncludes(metadata.grant_types_supported, DEVICE_GRANT)
           : !metadata.grant_types_supported ||
-            metadata.grant_types_supported.includes("authorization_code")),
+            wireIncludes(metadata.grant_types_supported, "authorization_code")),
       "Authorization-code grant unsupported",
       502,
     );
@@ -379,23 +385,29 @@ export class MCPOAuth {
         (url) => this.safeUrl(url, oauth).origin,
       ),
     ]);
-    for (const endpoint of [
-      ...(grant === "code"
-        ? [metadata.authorization_endpoint]
-        : grant === "device"
-          ? [metadata.device_authorization_endpoint]
-          : []),
-      metadata.token_endpoint,
-    ])
+    const reviewed: (endpoint: unknown) => asserts endpoint is string = (
+      endpoint,
+    ) =>
       invariant(
         typeof endpoint === "string" &&
           endpointOrigins.has(this.safeUrl(endpoint, oauth).origin),
         "OAuth endpoint outside reviewed origins",
         403,
       );
+    // The authorization or device endpoint of this grant, then the token endpoint.
+    const grantEndpoint =
+        grant === "code"
+          ? metadata.authorization_endpoint
+          : grant === "device"
+            ? metadata.device_authorization_endpoint
+            : undefined,
+      tokenEndpoint = metadata.token_endpoint;
+    if (grant !== "management") reviewed(grantEndpoint);
+    reviewed(tokenEndpoint);
     const methods = metadata.token_endpoint_auth_methods_supported || [
       "client_secret_basic",
     ];
+    const supportsMethod = (method: string) => wireIncludes(methods, method);
     const clientMode =
       oauth.clientMetadata &&
       metadata.client_id_metadata_document_supported === true
@@ -413,7 +425,7 @@ export class MCPOAuth {
         ? oauth.clientMetadata!.authentication.method
         : oauth.registration?.tokenEndpointAuthMethod) ??
       (oauth.clientSecretEnv
-        ? methods.includes("client_secret_basic")
+        ? supportsMethod("client_secret_basic")
           ? "client_secret_basic"
           : "client_secret_post"
         : "none");
@@ -422,7 +434,8 @@ export class MCPOAuth {
       invariant(
         authentication.method === "private_key_jwt" &&
           (!metadata.token_endpoint_auth_signing_alg_values_supported ||
-            metadata.token_endpoint_auth_signing_alg_values_supported.includes(
+            wireIncludes(
+              metadata.token_endpoint_auth_signing_alg_values_supported,
               authentication.alg,
             )),
         "Authorization server does not support the configured client assertion signing algorithm",
@@ -430,13 +443,16 @@ export class MCPOAuth {
       );
     }
     invariant(
-      methods.includes(authMethod),
+      supportsMethod(authMethod),
       "Configured OAuth client authentication method unsupported",
       502,
     );
     return {
       metadata,
       issuer,
+      tokenEndpoint,
+      /** Authorization (code) or device authorization endpoint; absent for management. */
+      grantEndpoint: grantEndpoint as string | undefined,
       endpointOrigins,
       hinted,
       protectedMetadata,
@@ -653,7 +669,7 @@ export class MCPOAuth {
         signal.throwIfAborted();
         const context: DeviceContext = {
           issuer: discovery.issuer,
-          tokenEndpoint: discovery.metadata.token_endpoint,
+          tokenEndpoint: discovery.tokenEndpoint,
           authMethod: discovery.authMethod,
           clientId: client.clientId,
           clientMode: discovery.clientMode as DeviceContext["clientMode"],
@@ -662,7 +678,8 @@ export class MCPOAuth {
             ? { clientSecret: client.clientSecret }
             : {}),
         };
-        const endpoint = discovery.metadata.device_authorization_endpoint;
+        const endpoint = discovery.grantEndpoint;
+        invariant(endpoint, "OAuth endpoint outside reviewed origins", 403);
         const { body, headers } = await this.form(
           target,
           context,
@@ -684,29 +701,42 @@ export class MCPOAuth {
           "Device authorization request failed",
           502,
         );
-        const data = await readJson(response, 1024 * 1024),
-          interval = data.interval ?? 5;
-        if (typeof data.device_code === "string")
-          registerSecret(data.device_code);
+        const data = wireObject(await readJson(response, 1024 * 1024)) ?? {},
+          interval = data.interval ?? 5,
+          deviceCode = data.device_code,
+          userCode = data.user_code,
+          expiresIn = data.expires_in,
+          verificationUri = data.verification_uri,
+          verificationUriComplete = data.verification_uri_complete;
+        if (typeof deviceCode === "string") registerSecret(deviceCode);
         invariant(
-          typeof data.device_code === "string" &&
-            /^[\x21-\x7e]{1,64000}$/.test(data.device_code) &&
-            typeof data.user_code === "string" &&
-            /^[\x20-\x7e]{1,200}$/.test(data.user_code) &&
-            Number.isSafeInteger(data.expires_in) &&
-            data.expires_in > 0 &&
-            data.expires_in <= 2592000 &&
+          typeof deviceCode === "string" &&
+            /^[\x21-\x7e]{1,64000}$/.test(deviceCode) &&
+            typeof userCode === "string" &&
+            /^[\x20-\x7e]{1,200}$/.test(userCode) &&
+            typeof expiresIn === "number" &&
+            Number.isSafeInteger(expiresIn) &&
+            expiresIn > 0 &&
+            expiresIn <= 2592000 &&
+            typeof interval === "number" &&
             Number.isSafeInteger(interval) &&
             interval >= 1 &&
             interval <= 86400,
           "Invalid device authorization response",
           502,
         );
+        invariant(
+          typeof verificationUri === "string" &&
+            (verificationUriComplete === undefined ||
+              typeof verificationUriComplete === "string"),
+          "Device verification URI outside reviewed origins",
+          403,
+        );
         for (const uri of [
-          data.verification_uri,
-          ...(data.verification_uri_complete === undefined
+          verificationUri,
+          ...(verificationUriComplete === undefined
             ? []
-            : [data.verification_uri_complete]),
+            : [verificationUriComplete]),
         ])
           invariant(
             typeof uri === "string" &&
@@ -718,11 +748,11 @@ export class MCPOAuth {
             403,
           );
         return {
-          deviceCode: data.device_code,
-          userCode: data.user_code,
-          verificationUri: data.verification_uri,
-          verificationUriComplete: data.verification_uri_complete,
-          expiresAt: Date.now() + data.expires_in * 1000,
+          deviceCode,
+          userCode,
+          verificationUri,
+          verificationUriComplete,
+          expiresAt: Date.now() + expiresIn * 1000,
           interval,
           context,
         };
@@ -799,7 +829,7 @@ export class MCPOAuth {
       binding: binding(target),
       verifier,
       issuer,
-      tokenEndpoint: metadata.token_endpoint,
+      tokenEndpoint: discovery.tokenEndpoint,
       authMethod,
       clientId: client.clientId,
       clientMode: discovery.clientMode as Flow["clientMode"],
@@ -814,7 +844,7 @@ export class MCPOAuth {
     };
     this.checkGeneration(target, generation);
     this.flows.set(state, flow);
-    const authorization = new URL(metadata.authorization_endpoint);
+    const authorization = new URL(discovery.grantEndpoint!);
     for (const [key, value] of Object.entries({
       response_type: "code",
       client_id: client.clientId,
@@ -997,31 +1027,35 @@ export class MCPOAuth {
       "OAuth token response must be JSON",
       502,
     );
-    const result = await readJson(response, 1024 * 1024);
+    const result = wireObject(await readJson(response, 1024 * 1024)) ?? {},
+      failure = result.error;
     if (!response.ok) {
       if (options.device)
         throw Object.assign(new Error("Device token request failed"), {
           oauthError:
-            typeof result?.error === "string"
-              ? result.error
-              : "invalid_response",
+            typeof failure === "string" ? failure : "invalid_response",
         });
-      if (result?.error === "invalid_grant") await this.clear(target.id);
+      if (failure === "invalid_grant") await this.clear(target.id);
       invariant(
         false,
         "OAuth token exchange failed: " +
-          (typeof result?.error === "string"
-            ? result.error.slice(0, 100)
+          (typeof failure === "string"
+            ? failure.slice(0, 100)
             : response.status),
         401,
         "oauth_token_failed",
       );
     }
-    const lifetime = result?.expires_in ?? 300;
+    const lifetime = result.expires_in ?? 300,
+      accessToken = result.access_token,
+      tokenType = result.token_type,
+      refreshToken = result.refresh_token;
     invariant(
-      typeof result?.access_token === "string" &&
-        /^[\x21-\x7e]{1,64000}$/.test(result.access_token) &&
-        result.token_type?.toLowerCase() === "bearer" &&
+      typeof accessToken === "string" &&
+        /^[\x21-\x7e]{1,64000}$/.test(accessToken) &&
+        typeof tokenType === "string" &&
+        tokenType.toLowerCase() === "bearer" &&
+        typeof lifetime === "number" &&
         Number.isFinite(lifetime) &&
         lifetime > 0 &&
         lifetime <= 365 * 24 * 3600,
@@ -1029,18 +1063,17 @@ export class MCPOAuth {
       502,
     );
     invariant(
-      result.refresh_token === undefined ||
-        (typeof result.refresh_token === "string" &&
-          result.refresh_token.length <= 64000),
+      refreshToken === undefined ||
+        (typeof refreshToken === "string" && refreshToken.length <= 64000),
       "Invalid OAuth refresh token",
       502,
     );
-    registerSecret(result.access_token);
-    if (result.refresh_token) registerSecret(result.refresh_token);
+    registerSecret(accessToken);
+    if (refreshToken) registerSecret(refreshToken);
     return {
       deviceGrantId: previous?.deviceGrantId,
-      access: result.access_token,
-      refresh: result.refresh_token || previous?.refresh,
+      access: accessToken,
+      refresh: refreshToken || previous?.refresh,
       expiresAt: Date.now() + lifetime * 1000,
       scope: typeof result.scope === "string" ? result.scope : flow.scope,
       binding: binding(target),

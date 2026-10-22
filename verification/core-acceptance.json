@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "version": "0.12.1",
-  "checkedAt": "2026-10-17T17:42:37.066Z",
+  "checkedAt": "2026-10-22T15:21:57.057Z",
   "coreCriteriaPassed": 323,
   "optionalCriteriaPassed": 9,
   "criteriaPassed": 332,
   "criteriaNotTested": 0,
-  "testsPassed": 411,
+  "testsPassed": 517,
   "testsSkipped": 0,
   "criteria": [
     {
@@ -2036,7 +2036,7 @@
       "source": [
         "src/execution/extension-host.ts",
         "src/extensions/plugins/manager.ts",
-        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/plugins/worker.mjs",
         "src/extensions/mcp/manager.ts",
         "src/core/permissions.ts"
       ],
@@ -2053,7 +2053,7 @@
       "source": [
         "src/execution/extension-host.ts",
         "src/extensions/plugins/manager.ts",
-        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/plugins/worker.mjs",
         "src/extensions/mcp/manager.ts",
         "src/core/permissions.ts"
       ],
@@ -2070,7 +2070,7 @@
       "source": [
         "src/execution/extension-host.ts",
         "src/extensions/plugins/manager.ts",
-        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/plugins/worker.mjs",
         "src/extensions/mcp/manager.ts",
         "src/core/permissions.ts"
       ],
@@ -2087,7 +2087,7 @@
       "source": [
         "src/execution/extension-host.ts",
         "src/extensions/plugins/manager.ts",
-        "src/extensions/plugins/container-worker.mjs",
+        "src/extensions/plugins/worker.mjs",
         "src/extensions/mcp/manager.ts",
         "src/core/permissions.ts"
       ],

@@ -5,7 +5,12 @@ import {
   abortable,
   redactJson,
 } from "../../../core/util.js";
-import type { MCPRequestContext } from "../protocol.js";
+import {
+  wireMember,
+  wireObject,
+  type MCPRequestContext,
+  type WireObject,
+} from "../protocol.js";
 import { RELATED_TASK } from "./context.js";
 
 export interface MCPReceiverOptions {
@@ -29,7 +34,7 @@ export interface MCPReceivedTask {
   ttl: number;
   pollInterval: number;
   statusMessage?: string;
-  result?: any;
+  result?: unknown;
   error?: { code: number; message: string };
 }
 export class MCPTaskReceiverError extends Error {
@@ -61,7 +66,7 @@ export class MCPTaskReceiver {
   private closed = false;
   constructor(
     readonly options: MCPReceiverOptions,
-    private notify: (method: string, params: any) => Promise<void>,
+    private notify: (method: string, params: unknown) => Promise<void>,
     private maxBytes: number,
   ) {}
   supports(method: string) {
@@ -153,9 +158,9 @@ export class MCPTaskReceiver {
   }
   create(
     method: string,
-    params: any,
+    params: WireObject,
     context: MCPRequestContext,
-    execute: (context: MCPRequestContext) => Promise<any>,
+    execute: (context: MCPRequestContext) => Promise<unknown>,
   ) {
     if (this.closed)
       throw new MCPTaskReceiverError("Client task receiver closed", -32603);
@@ -164,13 +169,14 @@ export class MCPTaskReceiver {
         "Task augmentation is not supported for this client method",
         -32601,
       );
+    const requested = wireObject(params.task)?.ttl;
     if (!(
-      params.task &&
-      typeof params.task === "object" &&
-      !Array.isArray(params.task) &&
-      (params.task.ttl === undefined ||
-        params.task.ttl === null ||
-        (Number.isSafeInteger(params.task.ttl) && params.task.ttl > 0))
+      wireObject(params.task) &&
+      (requested === undefined ||
+        requested === null ||
+        (typeof requested === "number" &&
+          Number.isSafeInteger(requested) &&
+          requested > 0))
     ))
       throw new MCPTaskReceiverError("Invalid requested client task TTL");
     context.signal.throwIfAborted();
@@ -181,7 +187,7 @@ export class MCPTaskReceiver {
       429,
     );
     const ttl = Math.min(
-        params.task.ttl ?? this.options.maxTtlMs ?? 300000,
+        requested ?? this.options.maxTtlMs ?? 300000,
         this.options.maxTtlMs || 300000,
       ),
       createdAt = new Date().toISOString(),
@@ -244,17 +250,26 @@ export class MCPTaskReceiver {
             controller.signal,
           );
           controller.signal.throwIfAborted();
+          if (!wireObject(result))
+            throw new MCPTaskReceiverError(
+              "Invalid client task result",
+              -32603,
+            );
           invariant(
             Buffer.byteLength(JSON.stringify(result)) <= this.maxBytes,
             "Client task result exceeds limit",
             413,
           );
-          this.end(task, result?.isError ? "failed" : "completed", result);
+          this.end(
+            task,
+            wireMember(result, "isError") ? "failed" : "completed",
+            result,
+          );
         } catch (e) {
+          const code = wireMember(e, "code");
           if (!terminal(task.record.status))
             this.end(task, "failed", undefined, {
-              code:
-                typeof (e as any)?.code === "number" ? (e as any).code : -32603,
+              code: typeof code === "number" ? code : -32603,
               message: errorText(e),
             });
         }
@@ -284,7 +299,8 @@ export class MCPTaskReceiver {
       throw new MCPTaskReceiverError("Client task not found or expired");
     return this.tasks.get(taskId)!;
   }
-  async handle(method: string, params: any, signal: AbortSignal) {
+  async handle(method: string, value: unknown, signal: AbortSignal) {
+    const params: WireObject = wireObject(value) ?? {};
     if (this.closed)
       throw new MCPTaskReceiverError("Client task receiver closed", -32603);
     if (method === "tasks/list") {
@@ -347,10 +363,13 @@ export class MCPTaskReceiver {
       );
     if (task.record.result === undefined)
       throw new MCPTaskReceiverError("Client task has no result", -32603);
+    const result = wireObject(task.record.result);
+    if (!result)
+      throw new MCPTaskReceiverError("Invalid client task result", -32603);
     return {
-      ...task.record.result,
+      ...result,
       _meta: {
-        ...task.record.result._meta,
+        ...wireObject(result._meta),
         [RELATED_TASK]: { taskId: task.record.taskId },
       },
     };
