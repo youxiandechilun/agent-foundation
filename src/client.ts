@@ -199,8 +199,16 @@ export class FoundationClient {
       signal,
     );
   }
-  project(name: string, directory?: string) {
-    return this.request("POST", "/v1/projects", { name, directory });
+  project(
+    name: string,
+    directory?: string,
+    options: { billingAccount?: string } = {},
+  ) {
+    return this.request("POST", "/v1/projects", {
+      name,
+      directory,
+      ...options,
+    });
   }
   session(
     projectId: string,

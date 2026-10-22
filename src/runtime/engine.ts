@@ -7,7 +7,7 @@ import {
   now,
   abortable,
   deepFreeze,
-  redactJson,
+  redactJsonText,
 } from "../core/util.js";
 import type { EngineHooks } from "./hooks.js";
 import type { ToolEffect, InboxEntry } from "../contracts.js";
@@ -58,12 +58,19 @@ export interface EngineOptions {
   /** Structured output: a successful call to this tool ends the run; finishing without it is retried, then fails. */
   finishTool?: string;
   store: Store;
+  /** `redactedText`, when given, is the redacted JSON of `data`, which is already redacted. */
   publish: (
     type: string,
     data: Record<string, unknown>,
     durable?: boolean,
+    redactedText?: string,
   ) => void;
-  checkpoint: (message: Message, messageId: string) => void;
+  /** `messageText` is the redacted JSON of `message`, which is already redacted. */
+  checkpoint: (
+    message: Message,
+    messageId: string,
+    messageText: string,
+  ) => void;
   prepare: (messages: Message[], signal: AbortSignal) => Promise<Message[]>;
   authorize?: (
     tool: ToolDefinition,
@@ -155,9 +162,11 @@ export class ExecutionEngine {
       "Session message budget exhausted",
       413,
     );
-    message = redactJson(message);
+    // Serialize and redact once; the transcript row and the event reuse this text.
+    const messageText = redactJsonText(message);
+    message = JSON.parse(messageText) as Message;
     this.options.store.transaction(() => {
-      this.options.checkpoint(message, messageId);
+      this.options.checkpoint(message, messageId, messageText);
       if (message.role === "user") {
         if (message.inputId) {
           const inbox = this.options.store.find<InboxEntry>(
@@ -178,12 +187,15 @@ export class ExecutionEngine {
         messageId,
         inputId: message.inputId,
       });
-    } else if (message.role === "assistant")
-      this.options.publish("assistant.message.committed", {
-        messageId,
-        message,
-        step: this.steps,
-      });
+    } else if (message.role === "assistant") {
+      const step = this.steps;
+      this.options.publish(
+        "assistant.message.committed",
+        { messageId, message, step },
+        true,
+        `{"messageId":${JSON.stringify(messageId)},"message":${messageText},"step":${step}}`,
+      );
+    }
   }
   async run(input: UserMessage): Promise<{
     status: "completed" | "failed" | "cancelled";
@@ -208,6 +220,12 @@ export class ExecutionEngine {
       let stopContinuations = 0,
         outputContinuations = 0,
         finishReminders = 0;
+      // One object for the whole run, so its token weight is computed once.
+      const system: Message = {
+        role: "system",
+        content: this.options.instructions,
+        timestamp: Date.now(),
+      };
       while (this.steps < this.options.maxSteps) {
         signal.throwIfAborted();
         invariant(
@@ -223,15 +241,7 @@ export class ExecutionEngine {
         });
         const context = await abortable(
           this.options.prepare(
-            [
-              {
-                role: "system",
-                content: this.options.instructions,
-                timestamp: Date.now(),
-              },
-              ...(this.options.contextMessages || []),
-              ...this.history,
-            ],
+            [system, ...(this.options.contextMessages || []), ...this.history],
             signal,
           ),
           signal,
@@ -242,6 +252,9 @@ export class ExecutionEngine {
           step: this.steps,
         });
         let assistant: AssistantMessage;
+        const deltas = new DeltaBuffer((type, data) =>
+          this.options.publish(type, data, false),
+        );
         try {
           assistant = await abortable(
             this.options.provider.complete(
@@ -252,20 +265,15 @@ export class ExecutionEngine {
                 tools: this.toolList.slice(),
               },
               async (event) => {
-                this.options.publish(
+                deltas.push(
                   event.type === "text"
                     ? "assistant.message.delta"
                     : event.type === "thinking"
                       ? "assistant.reasoning.delta"
                       : "tool.arguments.delta",
-                  {
-                    messageId,
-                    ...(event.type === "tool-arguments"
-                      ? { toolCallId: event.callId }
-                      : {}),
-                    text: event.text,
-                  },
-                  false,
+                  messageId,
+                  event.type === "tool-arguments" ? event.callId : undefined,
+                  event.text,
                 );
               },
               signal,
@@ -273,10 +281,12 @@ export class ExecutionEngine {
             signal,
           );
         } catch (error) {
+          deltas.flush();
           const partial = (error as { partial?: AssistantMessage }).partial;
           if (partial) this.commit(partial, messageId);
           throw error;
         }
+        deltas.flush();
         const calls = assistant.content.filter(
           (part): part is ToolCall => part.type === "toolCall",
         );
@@ -603,6 +613,56 @@ ${feedback}
       name: call.name,
       result,
       isError: true,
+    });
+  }
+}
+
+/**
+ * Coalesce consecutive streamed deltas of one kind into a single event per interval.
+ * Order is preserved: a delta of another kind or tool call flushes the pending text.
+ */
+class DeltaBuffer {
+  private type = "";
+  private messageId = "";
+  private toolCallId?: string;
+  private text = "";
+  private timer?: ReturnType<typeof setTimeout>;
+  constructor(
+    private readonly emit: (
+      type: string,
+      data: Record<string, unknown>,
+    ) => void,
+    private readonly intervalMs = 32,
+  ) {}
+  push(
+    type: string,
+    messageId: string,
+    toolCallId: string | undefined,
+    text: string,
+  ) {
+    if (
+      this.text &&
+      (type !== this.type ||
+        messageId !== this.messageId ||
+        toolCallId !== this.toolCallId)
+    )
+      this.flush();
+    this.type = type;
+    this.messageId = messageId;
+    this.toolCallId = toolCallId;
+    this.text += text;
+    this.timer ??= setTimeout(() => this.flush(), this.intervalMs);
+  }
+  flush() {
+    clearTimeout(this.timer);
+    this.timer = undefined;
+    if (!this.text) return;
+    const text = this.text;
+    this.text = "";
+    this.emit(this.type, {
+      messageId: this.messageId,
+      ...(this.toolCallId === undefined ? {} : { toolCallId: this.toolCallId }),
+      text,
     });
   }
 }

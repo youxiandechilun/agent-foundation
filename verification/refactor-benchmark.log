@@ -1,9 +1,0 @@
-(node:45732) ExperimentalWarning: SQLite is an experimental feature and might change at any time
-(Use `node --trace-warnings ...` to show where the warning was created)
-redaction: 1716.99 -> 10.59 ms
-scopedReads: 2997.92 -> 5.13 ms
-transcriptWindows: 2033.07 -> 25.02 ms
-lastAssistant: 2022.03 -> 0.45 ms
-permissions: 248.48 -> 48.15 ms
-reservations: 873.38 -> 28.36 ms
-mcpFrames: 301.28 -> 7.84 ms

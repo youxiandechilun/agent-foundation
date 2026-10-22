@@ -56,7 +56,15 @@ export type { Config, Route } from "./core/config.js";
 export type * from "./contracts.js";
 export { ExecutionEngine } from "./runtime/engine.js";
 export { ToolScheduler } from "./runtime/scheduler.js";
-export { CostLedger } from "./runtime/cost.js";
+export { CostLedger, billingTokens } from "./runtime/cost.js";
+export { requestUnits, checkUnits } from "./runtime/billing.js";
+export type {
+  BillingProvider,
+  BillingCharge,
+  BillingOutcome,
+  BillingTokens,
+  MediaUnits,
+} from "./runtime/billing.js";
 export type { CostEntry, CostScope } from "./runtime/cost.js";
 export { ProcessManager } from "./execution/sessions.js";
 export type { ProcessRecord, StartProcess } from "./execution/sessions.js";

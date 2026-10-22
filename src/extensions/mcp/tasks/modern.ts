@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { invariant, hash } from "../../../core/util.js";
-import type { MCPRequestContext } from "../client.js";
+import type { MCPRequestContext } from "../protocol.js";
 export const TASKS_EXTENSION = "io.modelcontextprotocol/tasks";
 const jsonObject = z.record(z.string(), z.json());
 const taskSchema = z

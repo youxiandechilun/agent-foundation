@@ -170,7 +170,7 @@ export async function registrationPeer() {
         });
       }
       json(404, {});
-    } catch (e) {
+    } catch {
       if (!res.destroyed) {
         res.writeHead(500, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "fixture_failure" }));

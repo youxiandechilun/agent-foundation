@@ -46,6 +46,9 @@
     "start": "node dist/cli.js serve",
     "build": "tsc -p tsconfig.core.json && node scripts/copy-runtime.mjs",
     "check": "tsc -p tsconfig.core.json --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" \"examples/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.mjs\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "node scripts/run-core-tests.mjs",
     "test:storage": "node scripts/run-core-tests.mjs --filter=storage-performance --filter=query-execution --filter=foundation-cost",
     "bench:storage": "node --expose-gc scripts/benchmark-storage-writes.mjs",
@@ -78,11 +81,14 @@
     }
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/node": "22.18.10",
     "@types/ssh2": "1.15.6",
     "@types/ws": "8.18.2",
+    "eslint": "10.13.0",
     "prettier": "3.9.10",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.0"
   },
   "optionalDependencies": {
     "@napi-rs/canvas": "1.0.11",

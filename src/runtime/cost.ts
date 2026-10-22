@@ -1,8 +1,18 @@
 import type { Config, Route } from "../core/config.js";
 import type { AssistantMessage, ModelRequest, Usage } from "./types.js";
+import type { Project } from "../contracts.js";
 import { Store } from "../storage/store.js";
-import { id, invariant, now } from "../core/util.js";
+import type { EntityPage } from "../storage/entity-query.js";
+import { AppError, errorText, id, invariant, now } from "../core/util.js";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { findTextProtocol } from "../providers/registry.js";
+import type {
+  BillingCharge,
+  BillingOutcome,
+  BillingProvider,
+  BillingTokens,
+  MediaUnits,
+} from "./billing.js";
 
 export interface CostScope {
   projectId?: string;
@@ -16,6 +26,12 @@ export interface CostEntry extends CostScope {
   model: string;
   pricing?: Route["pricing"];
   adapter: Route["adapter"];
+  kind?: Route["kind"];
+  /** Host account of the project when the charge was reserved. */
+  account?: string;
+  units?: MediaUnits;
+  /** Delivery to the host billing provider; absent when none is installed. */
+  billing?: { state: "authorized" | "recorded" | "failed"; error?: string };
   endpoint: string;
   responseId?: string;
   reference?: string;
@@ -35,11 +51,25 @@ const micros = (usd: number) => {
   );
   return Math.ceil(usd * 1e6);
 };
+/** Provider usage with input excluding cache tokens, per the route's wire protocol. */
+export function billingTokens(adapter: string, u: Usage): BillingTokens {
+  return {
+    input:
+      findTextProtocol(adapter)?.inputIncludesCache === false
+        ? u.input
+        : Math.max(0, u.input - u.cacheRead - u.cacheWrite),
+    output: u.output,
+    cacheRead: u.cacheRead,
+    cacheWrite: u.cacheWrite,
+  };
+}
 export class CostLedger {
   private scopes = new AsyncLocalStorage<CostScope>();
+  private deliveries = new Set<Promise<void>>();
   constructor(
     readonly store: Store,
     readonly config: Config,
+    readonly billing?: BillingProvider,
   ) {}
   withScope<T>(scope: CostScope, operation: () => T): T {
     return this.scopes.run(scope, operation);
@@ -52,6 +82,16 @@ export class CostLedger {
         status: "unknown",
         error: "Interrupted request; charge requires reconciliation",
       });
+    if (!this.billing) return;
+    // Outcomes the host has not acknowledged are delivered again after a restart.
+    for (const entry of this.store.selectJson<CostEntry>(
+      "SELECT body FROM e_cost_ledger WHERE json_extract(body,'$.billing.state') IN ('authorized','failed') AND json_extract(body,'$.status')<>'reserved' ORDER BY seq",
+    ))
+      this.deliver(entry);
+  }
+  /** Wait for in-flight outcome deliveries before the store closes. */
+  async drain() {
+    while (this.deliveries.size) await Promise.all([...this.deliveries]);
   }
   private update(key: string, patch: Partial<CostEntry>) {
     return this.store.put("cost-ledger", {
@@ -63,29 +103,24 @@ export class CostLedger {
   entries(filter: Partial<CostScope> = {}) {
     return this.store.list<CostEntry>("cost-ledger", filter);
   }
-  summary(filter: Partial<CostScope> = {}) {
-    const entries = this.entries(filter);
-    let chargedMicros = 0,
-      heldMicros = 0,
-      committedMicros = 0,
-      unpriced = 0;
-    for (const entry of entries) {
-      const charged = entry.chargedMicros || 0;
-      chargedMicros += charged;
-      if (entry.status === "reserved" || entry.status === "unknown")
-        heldMicros += entry.reservedMicros;
-      if (entry.status !== "void")
-        committedMicros +=
-          entry.status === "settled" ? charged : entry.reservedMicros;
-      if (entry.basis === "unpriced") unpriced++;
-    }
+  /**
+   * Totals are aggregated in SQLite over every matching entry; only one page of
+   * entries (oldest first, 1000 by default) is materialized.
+   */
+  summary(filter: Partial<CostScope> = {}, page: EntityPage = {}) {
+    const totals = this.store.costTotals(filter);
+    const entries = this.store.list<CostEntry>("cost-ledger", filter, {
+      limit: 1000,
+      ...page,
+    });
     return {
       currency: "USD",
-      committedMicros,
-      committedUsd: committedMicros / 1e6,
-      chargedMicros,
-      heldMicros,
-      unpriced,
+      committedMicros: totals.committedMicros,
+      committedUsd: totals.committedMicros / 1e6,
+      chargedMicros: totals.chargedMicros,
+      heldMicros: totals.heldMicros,
+      unpriced: totals.unpriced,
+      entryCount: totals.count,
       entries,
     };
   }
@@ -94,6 +129,7 @@ export class CostLedger {
     route: Route,
     scope: CostScope,
     amountMicros: number,
+    units?: MediaUnits,
   ) {
     const inherited = this.scopes.getStore();
     invariant(
@@ -172,7 +208,15 @@ export class CostLedger {
         model: route.model,
         adapter: route.adapter,
         endpoint: route.baseUrl,
+        kind: route.kind,
         ...scope,
+        ...(scope.projectId
+          ? {
+              account: this.store.find<Project>("projects", scope.projectId)
+                ?.billingAccount,
+            }
+          : {}),
+        ...(units ? { units } : {}),
         pricing: route.pricing ? structuredClone(route.pricing) : undefined,
         status: "reserved",
         reservedMicros: amountMicros,
@@ -191,6 +235,7 @@ export class CostLedger {
     request: ModelRequest,
     scope: CostScope,
     operation: () => Promise<AssistantMessage>,
+    signal?: AbortSignal,
   ) {
     const p = route.pricing,
       output = Math.min(
@@ -207,34 +252,45 @@ export class CostLedger {
       Math.ceil(
         route.contextWindow * inputRate + output * (p?.outputPerMillion || 0),
       ) + micros(p?.requestUsd || 0);
-    const entry = this.reserve(routeId, route, scope, bound);
+    const entry = await this.authorize(
+      this.reserve(routeId, route, scope, bound),
+      signal,
+    );
     try {
       const result = await operation();
-      if (result.responseId)
-        this.update(entry.id, { responseId: result.responseId });
-      this.settleUsage(entry.id, route, result.usage);
+      this.settleUsage(entry.id, route, result.usage, result.responseId);
       return result;
     } catch (error) {
       const current = this.store.get<CostEntry>("cost-ledger", entry.id);
       if (current.status !== "settled")
-        this.update(entry.id, {
-          status:
-            error &&
-            typeof error === "object" &&
-            "requestSent" in error &&
-            error.requestSent === false
-              ? "void"
-              : "unknown",
-          error: "No conclusive terminal usage received",
-        });
+        this.deliver(
+          this.update(entry.id, {
+            status:
+              error &&
+              typeof error === "object" &&
+              "requestSent" in error &&
+              error.requestSent === false
+                ? "void"
+                : "unknown",
+            error: "No conclusive terminal usage received",
+          }),
+        );
       throw error;
     }
   }
-  settleUsage(key: string, route: Route, u: Usage) {
+  settleUsage(key: string, route: Route, u: Usage, responseId?: string) {
     const entry = this.store.get<CostEntry>("cost-ledger", key),
-      p = entry.pricing;
-    if (!u.reported || !p)
-      return this.update(key, { status: "unknown", usage: u });
+      p = entry.pricing,
+      response = responseId ? { responseId } : {};
+    if (!u.reported || !p) {
+      const marked = this.update(key, {
+        status: "unknown",
+        usage: u,
+        ...response,
+      });
+      this.deliver(marked);
+      return marked;
+    }
     invariant(
       [u.input, u.output, u.cacheRead, u.cacheWrite].every(
         (x) => Number.isSafeInteger(x) && x >= 0,
@@ -242,10 +298,7 @@ export class CostLedger {
       "Invalid provider usage",
       502,
     );
-    const uncached =
-      route.adapter === "anthropic-messages"
-        ? u.input
-        : Math.max(0, u.input - u.cacheRead - u.cacheWrite);
+    const uncached = billingTokens(route.adapter, u).input;
     const chargedMicros =
       Math.ceil(
         uncached * p.inputPerMillion +
@@ -255,13 +308,15 @@ export class CostLedger {
       ) + micros(p.requestUsd);
     return this.settle(
       entry,
-      { chargedMicros, usage: u },
+      { chargedMicros, usage: u, ...response },
       "Provider charge exceeded the configured reservation; no further tools were dispatched",
     );
   }
   private settle(
     entry: CostEntry,
-    charge: Pick<CostEntry, "usage" | "reference"> & { chargedMicros: number },
+    charge: Pick<CostEntry, "usage" | "reference" | "units" | "responseId"> & {
+      chargedMicros: number;
+    },
     exceededMessage: string,
   ) {
     const settled = this.update(entry.id, {
@@ -269,6 +324,7 @@ export class CostLedger {
       status: "settled",
       basis: "provider-usage",
     });
+    this.deliver(settled);
     if (entry.runId)
       this.store.emit(entry.runId, "cost.settled", {
         entry: settled,
@@ -286,7 +342,12 @@ export class CostLedger {
     );
     return settled;
   }
-  reserveMedia(routeId: string, route: Route, scope: CostScope) {
+  reserveMedia(
+    routeId: string,
+    route: Route,
+    scope: CostScope,
+    units?: MediaUnits,
+  ) {
     invariant(
       !this.config.budgets.enabled ||
         route.pricing?.maxRequestUsd !== undefined,
@@ -299,15 +360,108 @@ export class CostLedger {
       route,
       scope,
       micros(route.pricing?.maxRequestUsd ?? route.pricing?.requestUsd ?? 0),
+      units,
     );
   }
   unknown(key: string) {
     const entry = this.store.get<CostEntry>("cost-ledger", key);
-    return entry.status === "settled"
-      ? entry
-      : this.update(key, { status: "unknown" });
+    // Settled and refused (void) charges keep their conclusive outcome.
+    if (entry.status === "settled" || entry.status === "void") return entry;
+    const marked = this.update(key, { status: "unknown" });
+    this.deliver(marked);
+    return marked;
   }
-  settleMedia(key: string, actualUsd: number, reference: string) {
+  /**
+   * Ask the host billing provider before the call is sent. A refusal voids the
+   * reservation and surfaces as `billing_refused`.
+   */
+  async authorize(
+    charge: CostEntry | string,
+    signal?: AbortSignal,
+  ): Promise<CostEntry> {
+    const entry =
+      typeof charge === "string"
+        ? this.store.get<CostEntry>("cost-ledger", charge)
+        : charge;
+    if (!this.billing) return entry;
+    try {
+      await this.billing.authorize(this.charge(entry), signal);
+    } catch (error) {
+      this.update(entry.id, {
+        status: "void",
+        error: `Billing refused: ${errorText(error)}`,
+      });
+      if (signal?.aborted) throw error;
+      throw new AppError(
+        402,
+        "billing_refused",
+        `Billing refused: ${errorText(error)}`,
+      );
+    }
+    return this.update(entry.id, { billing: { state: "authorized" } });
+  }
+  private charge(entry: CostEntry): BillingCharge {
+    return {
+      id: entry.id,
+      ...(entry.account === undefined ? {} : { account: entry.account }),
+      purpose: entry.purpose,
+      ...(entry.projectId === undefined ? {} : { projectId: entry.projectId }),
+      ...(entry.sessionId === undefined ? {} : { sessionId: entry.sessionId }),
+      ...(entry.runId === undefined ? {} : { runId: entry.runId }),
+      routeId: entry.routeId,
+      kind: entry.kind ?? "text",
+      model: entry.model,
+      adapter: entry.adapter,
+      reservedMicros: entry.reservedMicros,
+      ...(entry.units ? { units: entry.units } : {}),
+    };
+  }
+  /** Report a final outcome to the host; failures stay marked for redelivery on restart. */
+  private deliver(entry: CostEntry) {
+    const billing = this.billing;
+    if (!billing || !entry.billing || entry.status === "reserved") return;
+    const outcome: BillingOutcome = {
+      // Reported usage on an unpriced route is conclusive for the host even though
+      // the kernel's own USD ledger still needs reconciliation.
+      status:
+        entry.status === "unknown" && entry.usage?.reported
+          ? "settled"
+          : entry.status,
+      ...(entry.usage?.reported
+        ? { tokens: billingTokens(entry.adapter, entry.usage) }
+        : {}),
+      ...(entry.units ? { units: entry.units } : {}),
+      ...(entry.chargedMicros === undefined
+        ? {}
+        : { chargedMicros: entry.chargedMicros }),
+      ...(entry.reference === undefined ? {} : { reference: entry.reference }),
+    };
+    const delivery = (async () => {
+      try {
+        await billing.record(this.charge(entry), outcome);
+        this.update(entry.id, { billing: { state: "recorded" } });
+      } catch (error) {
+        this.update(entry.id, {
+          billing: { state: "failed", error: errorText(error) },
+        });
+        if (entry.runId)
+          this.store.emit(entry.runId, "billing.record.failed", {
+            chargeId: entry.id,
+            error: errorText(error),
+          });
+      }
+    })()
+      // The store may already be closed; redelivery happens on the next start.
+      .catch(() => undefined)
+      .finally(() => this.deliveries.delete(delivery));
+    this.deliveries.add(delivery);
+  }
+  settleMedia(
+    key: string,
+    actualUsd: number,
+    reference: string,
+    units?: MediaUnits,
+  ) {
     const entry = this.store.get<CostEntry>("cost-ledger", key);
     if (entry.basis === "operator") return entry;
     invariant(
@@ -318,7 +472,11 @@ export class CostLedger {
     );
     return this.settle(
       entry,
-      { chargedMicros: micros(actualUsd), reference },
+      {
+        chargedMicros: micros(actualUsd),
+        reference,
+        ...(units ? { units } : {}),
+      },
       "Media charge exceeded the configured maximum",
     );
   }

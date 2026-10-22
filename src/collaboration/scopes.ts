@@ -11,7 +11,7 @@ export function normalizeScopes(scopes: string[]): string[] {
           source.length > 0 &&
             !path.posix.isAbsolute(source) &&
             !/^[a-zA-Z]:/.test(source) &&
-            !/[\x00-\x1f*?\[\]{}]/.test(source) &&
+            !/[\x00-\x1f*?[\]{}]/.test(source) &&
             !source.split("/").includes(".."),
           "Write scope must be a relative file or directory without wildcards or traversal",
         );

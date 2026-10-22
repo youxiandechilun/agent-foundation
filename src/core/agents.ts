@@ -10,6 +10,8 @@ export const agentDefinitionSchema = z
     id: z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/),
     name: z.string().min(1).max(120),
     instructions: z.string().max(40000),
+    /** Replaces the kernel's default persona and work rules; safety rules remain. */
+    systemPrompt: z.string().min(1).max(40000).optional(),
     mode: modeIdSchema,
     routeId: z.string().optional(),
     reasoningEffort: reasoningEffortSchema.optional(),

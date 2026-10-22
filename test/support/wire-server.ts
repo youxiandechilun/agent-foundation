@@ -190,6 +190,7 @@ export async function setup(
   host: {
     desktop?: boolean;
     integrations?: import("../../src/runtime/registry.js").KernelIntegration[];
+    billing?: import("../../src/runtime/billing.js").BillingProvider;
   } = {},
 ) {
   const wire = await wireServer(respond);
@@ -251,8 +252,10 @@ export async function setup(
         : []),
     ];
     stage = "kernel";
-    kernel = new Kernel(config, { integrations }) as Kernel &
-      import("../../src/host/desktop.js").DesktopServices;
+    kernel = new Kernel(config, {
+      integrations,
+      billing: host.billing,
+    }) as Kernel & import("../../src/host/desktop.js").DesktopServices;
     stage = "api-listen";
     api = await serve(kernel, token);
     stage = "project-create";
@@ -292,6 +295,8 @@ export async function setup(
       throw new AggregateError(
         [error, cleanupError],
         "Test setup failed and resource cleanup failed",
+        // Both failures are in the aggregate; the setup failure is the cause.
+        // eslint-disable-next-line preserve-caught-error
         { cause: error },
       );
     }

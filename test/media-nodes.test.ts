@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { setup, until, token } from "./support/wire-server.js";
+import { setup, until } from "./support/wire-server.js";
 
 test("canonical media requests support image bytes, async video, mapped fields, cancellation and unknown-job recovery without resubmission", async () => {
   const submissions: any[] = [];

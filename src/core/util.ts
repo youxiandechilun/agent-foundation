@@ -23,7 +23,7 @@ function activeSecrets() {
 }
 /** Internal host handoff for durable process-output redaction; never expose through HTTP. */
 export function processSecretSnapshot() {
-  return [...activeSecrets()];
+  return redaction.mode === "off" ? [] : [...activeSecrets()];
 }
 export function registerSecret(value: string, ttlMs?: number) {
   const expiresAt =
@@ -141,23 +141,78 @@ export function errorText(error: unknown) {
     2000,
   );
 }
-function secretRedactor(): (text: string) => string {
+interface Redactor {
+  (text: string): string;
+  /** Length of the shortest secret; shorter text cannot contain one. */
+  readonly shortest: number;
+}
+/**
+ * full: registered secrets plus every credential-named environment variable, re-read
+ * on each operation. registered: registered secrets plus the listed variables, without
+ * enumerating the environment. off: no credential redaction.
+ */
+export type RedactionMode = "full" | "registered" | "off";
+let redaction: { mode: RedactionMode; environment: readonly string[] } = {
+  mode: "full",
+  environment: [],
+};
+/** Process-wide; the kernel applies its configuration when constructed. */
+export function configureRedaction(next: {
+  mode: RedactionMode;
+  environment?: readonly string[];
+}) {
+  redaction = {
+    mode: next.mode,
+    environment: Object.freeze([...(next.environment || [])]),
+  };
+}
+const unredacted: Redactor = Object.assign((text: string) => text, {
+  shortest: Infinity,
+});
+const credentialName = /(KEY|TOKEN|SECRET|PASSWORD|AUTH|CREDENTIAL)/i;
+// JSON-escaped forms of environment values; a pure function of the value, so
+// caching it never hides rotation. Bounded because values may rotate repeatedly.
+const escapedValues = new Map<string, string>();
+const escaped = (value: string) => {
+  let form = escapedValues.get(value);
+  if (form === undefined) {
+    form = JSON.stringify(value).slice(1, -1);
+    if (escapedValues.size >= 256) escapedValues.clear();
+    escapedValues.set(value, form);
+  }
+  return form;
+};
+function secretRedactor(): Redactor {
+  if (redaction.mode === "off") return unredacted;
   const secrets = new Set(activeSecrets());
   // Remove configured credential values even if an upstream SDK includes them in its error.
   // Reading every environment value is particularly costly on Windows. Enumerate
   // names first, but still observe additions, rotation and removal on every call.
-  for (const name of Object.getOwnPropertyNames(process.env)) {
-    if (!/(KEY|TOKEN|SECRET|PASSWORD|AUTH|CREDENTIAL)/i.test(name)) continue;
+  const names =
+    redaction.mode === "full"
+      ? Object.getOwnPropertyNames(process.env).filter((name) =>
+          credentialName.test(name),
+        )
+      : redaction.environment;
+  for (const name of names) {
     const value = process.env[name];
     if (value && value.length >= 8) {
       secrets.add(value);
-      secrets.add(JSON.stringify(value).slice(1, -1));
+      secrets.add(escaped(value));
     }
   }
-  return (text) => {
-    for (const secret of secrets) text = text.replaceAll(secret, "[REDACTED]");
-    return text;
-  };
+  let shortest = Infinity;
+  for (const secret of secrets) shortest = Math.min(shortest, secret.length);
+  return Object.assign(
+    (text: string) => {
+      if (text.length < shortest) return text;
+      for (const secret of secrets)
+        if (text.length >= secret.length)
+          text = text.replaceAll(secret, "[REDACTED]");
+      return text;
+    },
+    { shortest },
+  );
 }
 export function redactSecrets(text: string): string {
   return secretRedactor()(text);
@@ -165,12 +220,13 @@ export function redactSecrets(text: string): string {
 /** Serialize with per-string and whole-payload redaction, without allocating a parsed copy. */
 export function createJsonRedactor(): (value: unknown) => string {
   const redact = secretRedactor();
-  return (value) =>
-    redact(
-      JSON.stringify(value, (_key, item) =>
-        typeof item === "string" ? redact(item) : item,
-      ),
-    );
+  // Without secrets both passes are identities; skip the per-value callback.
+  if (redact.shortest === Infinity) return (value) => JSON.stringify(value);
+  const replacer = (_key: string, item: unknown) =>
+    typeof item === "string" && item.length >= redact.shortest
+      ? redact(item)
+      : item;
+  return (value) => redact(JSON.stringify(value, replacer));
 }
 export function redactJsonText(value: unknown): string {
   return createJsonRedactor()(value);

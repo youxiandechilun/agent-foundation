@@ -204,6 +204,7 @@ test("media requests reserve their configured maximum and idempotent replay does
 test("embedding work inside a run inherits its financial scope and settles actual input usage", async () => {
   const server = http.createServer(async (req, res) => {
     for await (const _ of req) {
+      // Drain the request body.
     }
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(

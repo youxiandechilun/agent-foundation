@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { writeFile, readFile, readdir } from "node:fs/promises";
+import { writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { setup, until } from "./support/wire-server.js";
 

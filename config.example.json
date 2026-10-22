@@ -167,6 +167,15 @@
     "maxTextChars": 2000000,
     "maxPages": 1000
   },
+  "redaction": {
+    "mode": "full",
+    "environment": []
+  },
+  "retention": {
+    "eventDays": 0,
+    "cacheDays": 0,
+    "intervalMs": 3600000
+  },
   "securityAudit": {
     "mode": "off",
     "timeoutMs": 1000,

@@ -1,10 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { writeFile, readFile, mkdir } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { setup, collect, until, wireServer } from "./support/wire-server.js";
-import { makeTools } from "../src/tools/index.js";
+import { setup, collect } from "./support/wire-server.js";
 import { safePath } from "../src/core/util.js";
 
 test("persistent CJK/English memory search, updates, namespaces, deletion and project isolation", async () => {

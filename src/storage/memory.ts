@@ -348,7 +348,7 @@ export class MemoryStore {
       .prepare(
         "INSERT INTO memory_vectors VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET model=excluded.model,vector=excluded.vector",
       )
-      .run(m.id, key, JSON.stringify(vector));
+      .run(m.id, key, encodeVector(vector));
     return { id: m.id, dimensions: vector.length, embeddingVersion: key };
   }
   private async vector(
@@ -368,6 +368,7 @@ export class MemoryStore {
           (route.pricing?.requestUsd || 0) * 1e6,
       ),
     );
+    if (charge) await this.costs!.authorize(charge, signal);
     try {
       const response = await fetch(
         route.baseUrl.replace(/\/$/, "") + "/embeddings",
@@ -428,8 +429,7 @@ export class MemoryStore {
       "Embedding route changed during search",
       409,
     );
-    const norm = (v: number[]) => Math.sqrt(v.reduce((s, x) => s + x * x, 0)),
-      qNorm = norm(q),
+    const qNorm = Math.sqrt(q.reduce((s, x) => s + x * x, 0)),
       best: { body: string; score: number }[] = [];
     const statement = this.store.db.prepare(
       "SELECT e.body,v.vector FROM memory_vectors v JOIN e_memories e ON e.id=v.id WHERE v.model=? AND json_extract(e.body,'$.projectId')=? AND (? IS NULL OR json_extract(e.body,'$.namespace')=?) AND (json_extract(e.body,'$.expiresAt') IS NULL OR json_extract(e.body,'$.expiresAt')>?)",
@@ -441,15 +441,20 @@ export class MemoryStore {
       namespace ?? null,
       namespace ?? null,
       now(),
-    ) as Iterable<{ body: string; vector: string }>) {
+    ) as Iterable<{ body: string; vector: string | Uint8Array }>) {
       if (++scanned % 256 === 0)
         await new Promise<void>((r) => setImmediate(r));
       signal?.throwIfAborted();
-      const v: number[] = JSON.parse(row.vector);
+      const v = decodeVector(row.vector);
       if (v.length !== q.length) continue;
-      const score =
-        v.reduce((s, x, i) => s + x * q[i], 0) /
-        Math.max(norm(v) * qNorm, 1e-10);
+      // Dot product and norm in one pass, summed in the same order as before.
+      let dot = 0,
+        squares = 0;
+      for (let i = 0; i < v.length; i++) {
+        dot += v[i] * q[i];
+        squares += v[i] * v[i];
+      }
+      const score = dot / Math.max(Math.sqrt(squares) * qNorm, 1e-10);
       // Decode only the retained results; equal scores preserve database order.
       if (best.length < limit || score > best[best.length - 1].score) {
         best.push({ body: row.body, score });
@@ -506,4 +511,18 @@ export class MemoryStore {
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
   }
+}
+
+/**
+ * Embeddings are stored as float64 BLOBs (platform byte order): exact values, about
+ * half the size of JSON text and no parsing during search. Older rows hold JSON text.
+ */
+function encodeVector(vector: readonly number[]): Uint8Array {
+  return new Uint8Array(Float64Array.from(vector).buffer);
+}
+function decodeVector(stored: string | Uint8Array): ArrayLike<number> {
+  if (typeof stored === "string") return JSON.parse(stored) as number[];
+  // A view needs 8-byte alignment; copy the rare unaligned buffer.
+  const bytes = stored.byteOffset % 8 ? stored.slice() : stored;
+  return new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
 }

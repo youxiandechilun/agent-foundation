@@ -221,7 +221,7 @@ AgentDefinition 包含 id/name/instructions/mode/routeId/skillIds/toolAllowlist/
 | 方法 | 路径                              | 行为                                                                                                         |
 | ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | POST | /v1/sessions/{id}/process-actions | {action:start/read/write/resize/stop/list, arguments:{…}}；返回 202 和独立 runId，复用审批/SSE/run.completed |
-| GET  | /v1/costs                         | 可筛选 projectId/sessionId/runId，包含已结算、预留、未知、未定价和明细                                       |
+| GET  | /v1/costs                         | 可筛选 projectId/sessionId/runId，包含已结算、预留、未知、未定价合计；明细按 limit/offset 分页（默认 1000 条），entryCount 为总条数 |
 | POST | /v1/costs/{id}/reconcile          | {actualUsd,reference}，保存核对历史；在途请求不可人工改账                                                    |
 | POST | /v1/execution/probe               | 查询当前原生/可选 Docker 执行环境，不安装引擎、不下载镜像                                                    |
 

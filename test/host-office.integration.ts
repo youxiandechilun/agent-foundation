@@ -1,17 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { writeFile, readFile, mkdir } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import {
-  setupDesktop as setup,
-  collect,
-  until,
-  wireServer,
-} from "./support/wire-server.js";
-import { makeTools } from "../src/tools/index.js";
+import { setupDesktop as setup } from "./support/wire-server.js";
 import { parseCsv } from "../src/host/office/manager.js";
-import { safePath } from "../src/core/util.js";
 
 test("office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX", async () => {
   const x = await setup();

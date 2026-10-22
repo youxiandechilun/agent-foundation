@@ -20,6 +20,8 @@ export interface Project {
   name: string;
   root: string;
   createdAt: string;
+  /** Host account charged for this project's model, embedding and media calls. */
+  billingAccount?: string;
 }
 export type Autonomy = "plan" | "assist" | "autonomous";
 export interface Session {
@@ -209,6 +211,8 @@ export interface AgentDefinition {
   id: string;
   name: string;
   instructions: string;
+  /** Replaces the kernel's default persona and work rules; safety rules remain. */
+  systemPrompt?: string;
   mode: Mode;
   routeId?: string;
   reasoningEffort?: ReasoningEffort;
@@ -240,6 +244,12 @@ export interface ToolEffect {
   createdAt: string;
   updatedAt: string;
 }
+/** Statuses of a run that has not finished; the complement of terminalStatuses. */
+export const activeRunStatuses: readonly RunStatus[] = [
+  "queued",
+  "running",
+  "waiting_approval",
+];
 export const terminalStatuses = new Set<RunStatus>([
   "completed",
   "failed",

@@ -1,19 +1,25 @@
-import { mkdir, realpath, readFile } from "node:fs/promises";
+import { mkdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import { parseConfig, type Config, type Route } from "./config.js";
+import type { Config } from "./config.js";
+import {
+  changeRoutes,
+  loadPersistedRoutes,
+  type RouteChange,
+} from "./kernel/routes.js";
 import type {
   Input,
   Mode,
   Project,
   Run,
   Session,
+  StoredMessage,
   InboxEntry,
   AgentDefinition,
   Autonomy,
   ReasoningEffort,
 } from "../contracts.js";
-import { terminalStatuses } from "../contracts.js";
+import { activeRunStatuses, terminalStatuses } from "../contracts.js";
 import { Store } from "../storage/store.js";
 import { Assets } from "../storage/assets.js";
 import { Media } from "../media/manager.js";
@@ -31,13 +37,12 @@ import { SessionMigration } from "../sessions/migration.js";
 import { normalizeToolResult } from "../runtime/tool-result.js";
 import { ExecutionEngine } from "../runtime/engine.js";
 import { ToolScheduler } from "../runtime/scheduler.js";
-import { CostLedger } from "../runtime/cost.js";
+import { CostLedger, type CostScope } from "../runtime/cost.js";
+import type { BillingProvider } from "../runtime/billing.js";
 import { ProcessManager } from "../execution/sessions.js";
 import { CommandRunner } from "../execution/process.js";
 import { recoverWindowsSandboxes } from "../execution/windows-sandbox.js";
-import { processTools } from "../execution/tools.js";
-import { compileSchema } from "../runtime/json-schema.js";
-import { RouteRouter } from "../providers/text.js";
+import { RouteRouter, type RouteRouterOptions } from "../providers/text.js";
 import {
   textOf,
   type Message,
@@ -56,10 +61,9 @@ import {
   hash,
   errorText,
   within,
-  atomicWrite,
   registerSecret,
+  configureRedaction,
   abortable,
-  deepFreeze,
 } from "./util.js";
 
 import { McpHost } from "./kernel/mcp-host.js";
@@ -70,6 +74,7 @@ import {
   resolveToolPolicy,
 } from "./kernel/authorization.js";
 import { RunLifecycle, type LiveRun } from "./kernel/lifecycle.js";
+import { startProcessAction } from "./kernel/process-action.js";
 import {
   loadRunHistory,
   memoryContext,
@@ -91,6 +96,8 @@ export interface KernelOptions {
   integrations?: KernelIntegration[];
   /** Trusted, in-process audit extensions. Inactive while securityAudit.mode is off. */
   securityAuditRules?: readonly SecurityAuditRule[];
+  /** Host billing (for example prepaid credits) consulted before every provider call. */
+  billing?: BillingProvider;
 }
 export class Kernel {
   readonly modes = new ModeRegistry();
@@ -123,6 +130,7 @@ export class Kernel {
   private readonly lifecycle = new RunLifecycle();
   private closeCompletion?: Promise<void>;
   private changingRoutes = false;
+  private retentionTimer?: ReturnType<typeof setInterval>;
   /** Register lifecycle hooks for subsequent runs; returns an unregister function. */
   addHooks(hooks: RunHooks) {
     const entry = { ...hooks };
@@ -156,6 +164,7 @@ export class Kernel {
     readonly config: Config,
     options: KernelOptions = {},
   ) {
+    configureRedaction(config.redaction);
     this.registerRouteSecrets();
     this.integrations = Object.freeze([...(options.integrations || [])]);
     for (const integration of this.integrations)
@@ -173,7 +182,7 @@ export class Kernel {
       throw error;
     }
     this.store.recover();
-    this.costs = new CostLedger(this.store, config);
+    this.costs = new CostLedger(this.store, config, options.billing);
     this.web = new WebClient(config.web);
     this.checkpoints = new Checkpoints(this.store, config.dataDir);
     this.costs.recover();
@@ -202,15 +211,20 @@ export class Kernel {
     this.processes = new ProcessManager(this.store, config);
     this.commands = new CommandRunner(config);
   }
+  // Route credentials never expire once registered; skip values already known.
+  private readonly routeSecrets = new Set<string>();
+  /** Re-read on each submit so rotated environment values are redacted too. */
   private registerRouteSecrets() {
+    const register = (value: string | undefined) => {
+      if (!value || this.routeSecrets.has(value)) return;
+      registerSecret(value);
+      this.routeSecrets.add(value);
+    };
     for (const route of Object.values(this.config.routes)) {
-      const apiKey = route.apiKeyEnv && process.env[route.apiKeyEnv];
-      if (apiKey) registerSecret(apiKey);
-      for (const [name, ref] of Object.entries(route.headersEnv)) {
-        const value = process.env[ref];
-        if (/authorization|cookie|key|token|secret/i.test(name) && value)
-          registerSecret(value);
-      }
+      if (route.apiKeyEnv) register(process.env[route.apiKeyEnv]);
+      for (const [name, ref] of Object.entries(route.headersEnv))
+        if (/authorization|cookie|key|token|secret/i.test(name))
+          register(process.env[ref]);
     }
   }
   async init() {
@@ -231,31 +245,7 @@ export class Kernel {
       503,
       "isolation_cleanup_failed",
     );
-    try {
-      const overrides: unknown = JSON.parse(
-        await readFile(
-          path.join(this.config.dataDir, "runtime-routes.json"),
-          "utf8",
-        ),
-      );
-      const persisted = z
-        .object({ routes: z.unknown(), defaultRoutes: z.unknown() })
-        .parse(overrides);
-      const updated = parseConfig({
-        ...this.config,
-        routes: persisted.routes,
-        defaultRoutes: persisted.defaultRoutes,
-      });
-      this.config.routes = updated.routes;
-      this.config.defaultRoutes = updated.defaultRoutes;
-    } catch (error) {
-      if (!(
-        error instanceof Error &&
-        "code" in error &&
-        error.code === "ENOENT"
-      ))
-        throw error;
-    }
+    await loadPersistedRoutes(this.config);
     for (const root of [
       ...this.config.workspaceRoots,
       ...this.config.extensions.allowedRoots,
@@ -266,9 +256,37 @@ export class Kernel {
     await this.mcp.init();
     for (const definition of this.store.list<unknown>("mode-profiles"))
       this.modes.put(definition);
+    const { eventDays, cacheDays, intervalMs } = this.config.retention;
+    if (eventDays || cacheDays) {
+      this.prune();
+      this.retentionTimer = setInterval(() => {
+        try {
+          this.prune();
+        } catch {
+          // A busy database retries on the next interval.
+        }
+      }, intervalMs).unref();
+    }
   }
-  async createProject(name: string, directory?: string): Promise<Project> {
+  /** Apply config.retention now; categories configured as 0 days are kept. */
+  prune() {
+    const { eventDays, cacheDays } = this.config.retention,
+      before = (days: number) =>
+        days
+          ? new Date(Date.now() - days * 86_400_000).toISOString()
+          : undefined;
+    return this.store.prune({
+      events: before(eventDays),
+      caches: before(cacheDays),
+    });
+  }
+  async createProject(
+    name: string,
+    directory?: string,
+    options: { billingAccount?: string } = {},
+  ): Promise<Project> {
     invariant(name.trim() && name.length <= 200, "Project name required");
+    checkBillingAccount(options.billingAccount);
     const root = await realpath(
       directory ? path.resolve(directory) : this.config.workspaceRoots[0],
     );
@@ -285,18 +303,29 @@ export class Kernel {
       name,
       root,
       createdAt: now(),
+      ...(options.billingAccount
+        ? { billingAccount: options.billingAccount }
+        : {}),
     });
   }
-  async updateRoutes(change: {
-    set?: Record<string, Route>;
-    remove?: string[];
-    defaultRoutes?: Record<string, string | null>;
-  }) {
+  /** Assign the host account charged for later calls in this project; undefined clears it. */
+  setProjectBillingAccount(projectId: string, billingAccount?: string) {
+    checkBillingAccount(billingAccount);
+    return this.store.transaction(() => {
+      const { billingAccount: _previous, ...project } =
+        this.store.project(projectId);
+      return this.store.put<Project>("projects", {
+        ...project,
+        ...(billingAccount ? { billingAccount } : {}),
+      });
+    });
+  }
+  async updateRoutes(change: RouteChange) {
     invariant(
       !this.changingRoutes &&
         !this.lifecycle.occupiedRunCount &&
         !this.store.count("runs", {
-          status: ["running", "queued", "waiting_approval"],
+          status: activeRunStatuses,
         }) &&
         !this.store.count("jobs", { status: ["running", "queued"] }),
       "Update routes while host is idle",
@@ -304,62 +333,16 @@ export class Kernel {
     );
     this.changingRoutes = true;
     try {
-      const routes = { ...this.config.routes, ...change.set },
-        defaultRoutes: Record<string, string | undefined> = {
-          ...this.config.defaultRoutes,
-        };
-      for (const name of change.remove || []) {
-        invariant(
-          !this.agents.list().some((agent) => agent.routeId === name) &&
-            !this.modes.list().some((mode) => mode.defaultRouteId === name),
-          "Route is referenced by an agent or mode profile",
-          409,
-        );
-        invariant(
-          !this.store
-            .list<Session>("sessions")
-            .some((s) => !s.archived && s.routeId === name),
-          "Route is used by a session; change its route or archive it first",
-          409,
-        );
-        delete routes[name];
-      }
-      for (const [slot, value] of Object.entries(change.defaultRoutes || {})) {
-        invariant(
-          [
-            "chat",
-            "code",
-            "office",
-            "compact",
-            "image",
-            "video",
-            "embedding",
-          ].includes(slot),
-          "Unknown default route slot",
-        );
-        if (value === null) {
-          invariant(
-            !["chat", "code", "office"].includes(slot),
-            "Required default route cannot be removed",
-          );
-          delete defaultRoutes[slot];
-        } else defaultRoutes[slot] = value;
-      }
-      const validated = parseConfig({ ...this.config, routes, defaultRoutes });
-      await atomicWrite(
-        path.join(this.config.dataDir, "runtime-routes.json"),
-        JSON.stringify(
-          { routes: validated.routes, defaultRoutes: validated.defaultRoutes },
-          null,
-          2,
-        ),
+      return await changeRoutes(this.config, change, (name) =>
+        this.agents.list().some((agent) => agent.routeId === name) ||
+        this.modes.list().some((mode) => mode.defaultRouteId === name)
+          ? "Route is referenced by an agent or mode profile"
+          : this.store
+                .list<Session>("sessions", { routeId: name })
+                .some((s) => !s.archived)
+            ? "Route is used by a session; change its route or archive it first"
+            : undefined,
       );
-      this.config.routes = validated.routes;
-      this.config.defaultRoutes = validated.defaultRoutes;
-      return {
-        routeIds: Object.keys(validated.routes),
-        defaultRoutes: validated.defaultRoutes,
-      };
     } finally {
       this.changingRoutes = false;
     }
@@ -449,7 +432,7 @@ export class Kernel {
       end = history.findIndex((m) => m.id === throughMessageId) + 1;
       invariant(end > 0, "Message not found", 404);
     }
-    return this.forkAt(sessionId, end);
+    return this.forkAt(sessionId, end, history);
   }
   /**
    * Rewind a session to a point in its transcript. Files changed by file_write/file_patch after
@@ -507,14 +490,18 @@ export class Kernel {
       options.conversation === false ? undefined : this.forkAt(sessionId, end);
     return { files, session: fork, rewoundMessages: history.length - end };
   }
-  private forkAt(sessionId: string, end: number) {
+  /** `history`, when the caller read it synchronously, spares a second transcript read. */
+  private forkAt(sessionId: string, end: number, history?: StoredMessage[]) {
     const source = this.store.session(sessionId);
     invariant(
       !this.lifecycle.isBusy(sessionId),
       "Fork requires an idle session",
       409,
     );
-    const history = this.store.transcript(sessionId);
+    // Only the retained prefix is read; the rewound suffix never leaves the database.
+    history ??= end
+      ? this.store.transcriptSlice(sessionId, 0, end).messages
+      : [];
     return this.store.transaction(() => {
       const fork = this.createSession(
         source.projectId,
@@ -547,11 +534,11 @@ export class Kernel {
       "Migration requires an idle session",
       409,
     );
-    const before = hash(JSON.stringify(this.store.transcript(sessionId)));
+    const before = this.store.transcriptVersion(sessionId);
     const result = await this.migrations.export(sessionId);
     invariant(
       !this.lifecycle.isBusy(sessionId) &&
-        before === hash(JSON.stringify(this.store.transcript(sessionId))),
+        before === this.store.transcriptVersion(sessionId),
       "Session changed during migration export; retry when idle",
       409,
     );
@@ -931,6 +918,7 @@ export class Kernel {
       boundary: this.config.execution.boundary,
       modePrompt: await mode.prepare(root, session),
       agentInstructions: definition?.instructions || "",
+      systemPrompt: definition?.systemPrompt,
       skillCatalog: this.skills.catalog(),
       skillInstructions: this.skills.instructions(selectedSkills),
       outputTool: outputSchema ? OUTPUT_TOOL : undefined,
@@ -965,6 +953,8 @@ export class Kernel {
     finishTool?: string;
   }) {
     const { runId, session, definition, tools } = setup;
+    let extended:
+      { source: Message; team: string; message: Message } | undefined;
     const filter = (
         routeId: string,
         messages: Message[],
@@ -993,6 +983,17 @@ export class Kernel {
           toolList,
           scale,
         );
+    // Reuse the extended system message while its inputs are unchanged, so the
+    // token estimate cached on that object stays valid across model steps.
+    function withTeamInstructions(entry: Message, team: string): Message {
+      if (extended?.source !== entry || extended.team !== team)
+        extended = {
+          source: entry,
+          team,
+          message: { ...entry, content: entry.content + team } as Message,
+        };
+      return extended.message;
+    }
     return new ExecutionEngine({
       signal: setup.signal,
       runId,
@@ -1007,52 +1008,51 @@ export class Kernel {
       history: setup.history,
       recoveredInputs: setup.recoveredInputs,
       tools,
-      provider: new RouteRouter(
-        this.config,
-        (routeId, fallback) =>
-          this.store.emit(runId, "model.route.selected", {
-            routeId,
-            fallback,
-          }),
-        async (request, signal) =>
-          request.routeId === session.routeId
-            ? {
-                ...request,
-                messages: filter(
-                  request.routeId,
-                  request.messages,
-                  request.tools,
-                ),
-              }
-            : {
-                ...request,
-                messages: await prepareFor(
-                  request.routeId,
-                  request.messages,
-                  request.tools,
-                  signal,
-                ),
-              },
-        async (request, signal) => ({
-          ...request,
-          messages: await prepareFor(
-            request.routeId,
-            request.messages,
-            request.tools,
-            signal,
-            0.5,
-          ),
-        }),
+      provider: this.routerFor(
         {
-          ledger: this.costs,
-          scope: {
-            projectId: session.projectId,
-            sessionId: session.id,
-            runId,
-            purpose: "agent",
-          },
+          projectId: session.projectId,
+          sessionId: session.id,
+          runId,
+          purpose: "agent",
         },
-        (notice) => this.store.emit(runId, "model.retry", { ...notice }),
+        {
+          onRoute: (routeId, fallback) =>
+            this.store.emit(runId, "model.route.selected", {
+              routeId,
+              fallback,
+            }),
+          prepareRoute: async (request, signal) =>
+            request.routeId === session.routeId
+              ? {
+                  ...request,
+                  messages: filter(
+                    request.routeId,
+                    request.messages,
+                    request.tools,
+                  ),
+                }
+              : {
+                  ...request,
+                  messages: await prepareFor(
+                    request.routeId,
+                    request.messages,
+                    request.tools,
+                    signal,
+                  ),
+                },
+          repairContext: async (request, signal) => ({
+            ...request,
+            messages: await prepareFor(
+              request.routeId,
+              request.messages,
+              request.tools,
+              signal,
+              0.5,
+            ),
+          }),
+          onRetry: (notice) =>
+            this.store.emit(runId, "model.retry", { ...notice }),
+        },
       ),
       maxSteps: Math.min(
         definition?.maxSteps || this.config.limits.maxSteps,
@@ -1076,17 +1076,17 @@ export class Kernel {
         ),
       timeoutMs: Math.max(1, setup.deadline - Date.now()),
       store: this.store,
-      publish: (type, data, durable = true) => {
+      publish: (type, data, durable = true, redactedText) => {
         durable
-          ? this.store.emit(runId, type, data, true)
+          ? this.store.emit(runId, type, data, true, redactedText)
           : this.store.emitEphemeral(runId, type, data);
       },
-      checkpoint: (item, messageId) => {
-        this.store.appendTranscript(session.id, {
-          id: messageId,
-          runId,
-          message: item,
-        });
+      checkpoint: (item, messageId, messageText) => {
+        this.store.appendTranscript(
+          session.id,
+          { id: messageId, runId, message: item },
+          messageText,
+        );
       },
       prepare: (messages, signal) => {
         const current = this.store.session(session.id);
@@ -1097,10 +1097,7 @@ export class Kernel {
             session.routeId,
             messages.map((entry, index) =>
               index === 0 && entry.role === "system"
-                ? {
-                    ...entry,
-                    content: entry.content + this.teams.instructions(current),
-                  }
+                ? withTeamInstructions(entry, this.teams.instructions(current))
                 : entry,
             ),
             tools,
@@ -1140,6 +1137,16 @@ export class Kernel {
           signal,
         );
       },
+    });
+  }
+  /** Text provider whose model calls are charged to `scope` in the cost ledger. */
+  routerFor(
+    scope: CostScope,
+    options: Omit<RouteRouterOptions, "billing"> = {},
+  ): RouteRouter {
+    return RouteRouter.create(this.config, {
+      ...options,
+      billing: { ledger: this.costs, scope },
     });
   }
   private autoExtractsMemory(session: Session) {
@@ -1188,21 +1195,12 @@ export class Kernel {
       .map((m) => `${m.role}: ${textOf(m)}`)
       .join("\n")
       .slice(0, 20000);
-    const response = await new RouteRouter(
-      this.config,
-      undefined,
-      undefined,
-      undefined,
-      {
-        ledger: this.costs,
-        scope: {
-          projectId: session.projectId,
-          sessionId: session.id,
-          runId,
-          purpose: "memory-extraction",
-        },
-      },
-    ).complete(
+    const response = await this.routerFor({
+      projectId: session.projectId,
+      sessionId: session.id,
+      runId,
+      purpose: "memory-extraction",
+    }).complete(
       {
         routeId: this.config.defaultRoutes.compact || session.routeId,
         tools: [],
@@ -1293,6 +1291,7 @@ export class Kernel {
     return this.closeCompletion;
   }
   private async closeOnce() {
+    clearInterval(this.retentionTimer);
     await this.lifecycle.drain();
     const errors: unknown[] = [];
     for (const service of [
@@ -1318,6 +1317,12 @@ export class Kernel {
         errors.push(error);
       }
     }
+    try {
+      // Outcomes still in flight are persisted before the store closes.
+      await this.costs.drain();
+    } catch (error) {
+      errors.push(error);
+    }
     for (const service of [this.mcp, this.store]) {
       try {
         await service.close();
@@ -1337,109 +1342,23 @@ export class Kernel {
     action: string,
     args: Record<string, unknown>,
   ) {
-    invariant(!this.lifecycle.closing, "Kernel is closing", 503);
-    invariant(
-      this.lifecycle.controlCount < this.config.limits.maxConcurrentRuns,
-      "Control run capacity exhausted",
-      429,
-    );
-    const session = this.store.session(sessionId);
-    invariant(!session.archived, "Session is archived", 409);
-    const runId = id("run"),
-      tool = processTools({
-        kernel: this,
-        session,
-        runId,
-        routeId: session.routeId,
-      }).find((t) => t.name === `exec_${action}`);
-    invariant(tool, "Unknown process action");
-    const validate = compileSchema(tool.parameters);
-    invariant(
-      validate(args),
-      "Invalid process arguments: " + JSON.stringify(validate.errors),
-    );
-    args = deepFreeze(structuredClone(args));
-    this.store.write("runs", {
-      id: runId,
+    return startProcessAction(
+      this,
+      this.lifecycle,
+      (request, signal) => this.checkSecurityAudit(request, signal),
       sessionId,
-      status: "queued",
-      createdAt: now(),
-      updatedAt: now(),
-    } satisfies Run);
-    const controller = new AbortController(),
-      signal = AbortSignal.any([
-        controller.signal,
-        AbortSignal.timeout(this.config.limits.maxRunMs),
-      ]);
-    const done = Promise.resolve().then(async () => {
-      this.store.status(runId, "running");
-      try {
-        if (this.securityAudit.enabled)
-          await this.checkSecurityAudit(
-            {
-              stage: "tool",
-              projectId: session.projectId,
-              sessionId,
-              routeId: session.routeId,
-              runId,
-              toolCallId: "control",
-              toolName: tool.name,
-              arguments: z.record(z.string(), z.json()).parse(args),
-            },
-            signal,
-          );
-        const policyTool = await resolveToolPolicy(
-          { kernel: this, session, runId, routeId: session.routeId },
-          tool,
-          args,
-          signal,
-          "control",
-        );
-        const release = await this.scheduler.acquire(tool, args, signal);
-        let normalized;
-        try {
-          await this.permissions.check(
-            runId,
-            session.routeId,
-            policyTool,
-            args,
-            "control",
-            signal,
-          );
-          signal.throwIfAborted();
-          const result = await abortable(
-            tool.execute("control", args, signal),
-            signal,
-          );
-          normalized = await normalizeToolResult(
-            result,
-            this.assets,
-            session.projectId,
-            this.config.limits.maxOutputBytes,
-            signal,
-          );
-        } finally {
-          release();
-        }
-        this.store.emit(runId, "process.action.completed", {
-          action,
-          result: normalized,
-        });
-        this.store.status(runId, "completed");
-      } catch (error) {
-        this.store.status(
-          runId,
-          controller.signal.aborted ? "cancelled" : "failed",
-          errorText(error),
-        );
-      } finally {
-        this.store.emit(runId, "run.completed", {
-          status: this.store.run(runId).status,
-        });
-        this.lifecycle.finishControl(runId);
-      }
-    });
-    this.lifecycle.trackControl(runId, { controller, done });
-    return { runId, events: `/v1/runs/${runId}/events` };
+      action,
+      args,
+    );
   }
+}
+
+function checkBillingAccount(account: unknown) {
+  invariant(
+    account === undefined ||
+      (typeof account === "string" &&
+        account.trim().length > 0 &&
+        account.length <= 200),
+    "Invalid billing account",
+  );
 }

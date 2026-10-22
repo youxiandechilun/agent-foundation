@@ -112,6 +112,7 @@ test("structured HTTP errors preserve status and code, and permanent auth failur
     await assert.rejects(
       async () => {
         for await (const _event of client.events("x")) {
+          // Drain until the stream fails.
         }
       },
       (error: any) =>

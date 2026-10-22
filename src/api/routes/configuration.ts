@@ -8,17 +8,23 @@ import { routeSchema } from "../../core/config.js";
 import { invariant } from "../../core/util.js";
 import { modeDefinitionSchema, modeIdSchema } from "../../modes/registry.js";
 import { CAPABILITIES } from "../../runtime/types.js";
-import type { Session } from "../../contracts.js";
+import { activeRunStatuses, type Session } from "../../contracts.js";
 import { apiRoutes, input, status } from "../route-table.js";
 
 export const configurationRoutes = apiRoutes({
   "GET costs": ({ k, url }) => ({
     budgets: k.config.budgets,
-    ...k.costs.summary({
-      projectId: url.searchParams.get("projectId") || undefined,
-      sessionId: url.searchParams.get("sessionId") || undefined,
-      runId: url.searchParams.get("runId") || undefined,
-    }),
+    ...k.costs.summary(
+      {
+        projectId: url.searchParams.get("projectId") || undefined,
+        sessionId: url.searchParams.get("sessionId") || undefined,
+        runId: url.searchParams.get("runId") || undefined,
+      },
+      {
+        limit: Number(url.searchParams.get("limit") || 1000),
+        offset: Number(url.searchParams.get("offset") || 0),
+      },
+    ),
   }),
   "POST costs/:id/reconcile": input(
     z
@@ -141,7 +147,7 @@ export const configurationRoutes = apiRoutes({
   "POST modes": status(201, async ({ k, json }) => {
     invariant(
       !k.store.count("runs", {
-        status: ["running", "queued", "waiting_approval"],
+        status: activeRunStatuses,
       }),
       "Change modes while host is idle",
       409,
@@ -158,9 +164,7 @@ export const configurationRoutes = apiRoutes({
   }),
   "DELETE modes/:id": ({ k, id }) => {
     invariant(
-      !k.store
-        .list<Session>("sessions")
-        .some((s) => !s.archived && s.mode === id),
+      !k.store.list<Session>("sessions", { mode: id }).some((s) => !s.archived),
       "Mode is used by a session",
       409,
     );

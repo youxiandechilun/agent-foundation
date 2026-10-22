@@ -257,6 +257,8 @@ async function context(options = { maxOutputBytes: 1024, timeoutMs: 3000 }) {
       throw new AggregateError(
         [error, cleanupError],
         "Server fixture initialization and cleanup failed",
+        // Both failures are in the aggregate; the setup failure is the cause.
+        // eslint-disable-next-line preserve-caught-error
         { cause: error },
       );
     }

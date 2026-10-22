@@ -53,7 +53,7 @@ test("provider context overflow triggers one model compaction retry and preserve
 
 test("repeated identical tool results stop the loop with durable results and a failed run", async () => {
   let calls = 0;
-  const x = await setup((_body, index) => ({
+  const x = await setup(() => ({
     calls: [{ name: "unchanged_read", args: { value: "same" } }],
   }));
   try {

@@ -97,8 +97,7 @@ test(
           .trim()
           .split("\n")
           .map((line) => JSON.parse(line)),
-        value = values.find((row) => row.read),
-        childValue = values.find((row) => row.child);
+        value = values.find((row) => row.read);
       assert.equal(value.read, "project input");
       assert.match(value.outsideRead, /EPERM|EACCES/);
       assert.match(value.outsideWrite, /EPERM|EACCES/);

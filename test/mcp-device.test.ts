@@ -225,7 +225,7 @@ test("OAuth device concurrent polls share one request and cancellation prevents 
     peer = await lifecyclePeer();
   try {
     const target = install(x, peer);
-    let status = await x.client.beginMCPDeviceAuth("device");
+    const status = await x.client.beginMCPDeviceAuth("device");
     await fetch(status.verificationUriComplete);
     await due(status);
     peer.controls.pollDelay = 200;

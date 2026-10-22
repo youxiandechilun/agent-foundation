@@ -50,6 +50,7 @@ export const anthropicMessages: TextProtocol = {
   url: (base) => base + (base.endsWith("/v1") ? "/messages" : "/v1/messages"),
   credentials: (key) => ({ "x-api-key": key }),
   headers: { "anthropic-version": "2023-06-01" },
+  inputIncludesCache: false,
   body({ request, route, routeId, budget }) {
     const body: Record<string, any> = {
       ...route.requestDefaults,

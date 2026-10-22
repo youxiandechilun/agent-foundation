@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { setup, collect, until, token } from "./support/wire-server.js";
+import { setup, collect, until } from "./support/wire-server.js";
 import type { Approval } from "../src/contracts.js";
 
 test("own runtime commits replies before actual tools and continues; durable effects and input IDs", async () => {

@@ -117,14 +117,12 @@ export class TeamDispatcher {
         409,
       );
       const previous = this.kernel.store
-        .list<Session>("sessions")
-        .find(
-          (session) =>
-            session.teamRootSessionId === root.id &&
-            session.teamMemberId === member.id &&
-            session.collaboration?.teamId === team.id &&
-            !session.archived,
-        );
+        .list<Session>("sessions", {
+          teamRootSessionId: root.id,
+          teamMemberId: member.id,
+          "collaboration.teamId": team.id,
+        })
+        .find((session) => !session.archived);
       const created = previous
         ? this.kernel.updateSession(previous.id, {
             agentId: member.id,

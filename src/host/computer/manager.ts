@@ -345,9 +345,9 @@ export class ComputerController {
           },
         },
       );
-      let stdout: Buffer[] = [],
-        stderr: Buffer[] = [],
-        size = 0,
+      const stdout: Buffer[] = [],
+        stderr: Buffer[] = [];
+      let size = 0,
         error: Error | undefined,
         settled = false;
       const abort = (reason: Error) => {

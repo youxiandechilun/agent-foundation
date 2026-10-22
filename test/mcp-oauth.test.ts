@@ -167,7 +167,7 @@ async function authorizationPeer() {
 }
 async function grant(
   x: Awaited<ReturnType<typeof setup>>,
-  peer: Awaited<ReturnType<typeof authorizationPeer>>,
+  _peer: Awaited<ReturnType<typeof authorizationPeer>>,
 ) {
   const begin = await x.client.request("POST", "/v1/mcp/authpeer/auth-begin");
   const response = await fetch(begin.authorizationUrl, { redirect: "manual" });

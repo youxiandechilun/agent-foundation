@@ -705,8 +705,7 @@ test("modern task records preserve remote IDs across disconnect and reject a cha
 test("modern HTTP task requests mirror the task ID in routing headers without legacy task methods", async () => {
   const seen: any[] = [],
     createdAt = new Date().toISOString();
-  let origin = "",
-    polls = 0;
+  let polls = 0;
   const server = http.createServer(async (req, res) => {
     const parts = [];
     for await (const p of req) parts.push(p);
@@ -745,7 +744,7 @@ test("modern HTTP task requests mirror the task ID in routing headers without le
     res.end(JSON.stringify({ jsonrpc: "2.0", id: m.id, result }));
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-  origin = `http://127.0.0.1:${(server.address() as any).port}`;
+  const origin = `http://127.0.0.1:${(server.address() as any).port}`;
   const client = new MCPClient({
     transport: "http",
     url: origin,

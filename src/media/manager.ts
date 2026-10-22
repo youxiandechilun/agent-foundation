@@ -13,6 +13,7 @@ import {
   type MediaAdapterContext,
 } from "./adapters.js";
 import { routeHeaders } from "../providers/text.js";
+import { checkUnits, requestUnits } from "../runtime/billing.js";
 import { readJson } from "../providers/sse.js";
 import type { CostLedger } from "../runtime/cost.js";
 import {
@@ -119,12 +120,17 @@ export class Media {
       updatedAt: now(),
     };
     this.store.transaction(() => {
-      job.costEntryId = this.costs?.reserveMedia(routeId, route, {
-        projectId: input.projectId,
-        sessionId: input.sessionId,
-        runId: input.runId,
-        purpose: input.kind,
-      }).id;
+      job.costEntryId = this.costs?.reserveMedia(
+        routeId,
+        route,
+        {
+          projectId: input.projectId,
+          sessionId: input.sessionId,
+          runId: input.runId,
+          purpose: input.kind,
+        },
+        requestUnits(request),
+      ).id;
       this.store.put("media-route-versions", { id: job.routeVersion!, route });
       this.store.put("jobs", job);
     });
@@ -282,6 +288,8 @@ export class Media {
           signal,
         );
       } else {
+        if (job.costEntryId && this.costs)
+          await this.costs.authorize(job.costEntryId, signal);
         submitted = true;
         result = await abortable(adapter.submit(job.request!, context), signal);
       }
@@ -292,6 +300,7 @@ export class Media {
             job.costEntryId,
             result.billing.actualUsd,
             result.billing.reference,
+            reportedUnits(result.billing.units, job.kind),
           );
         invariant(
           ["queued", "running", "completed", "failed", "cancelled"].includes(
@@ -497,6 +506,7 @@ export class Media {
             job.costEntryId,
             response.billing.actualUsd,
             response.billing.reference,
+            reportedUnits(response.billing.units, job.kind),
           );
         return this.update(job, {
           status: response.status === "cancelled" ? "cancelled" : "unknown",
@@ -592,3 +602,6 @@ export async function readBounded(response: Response, max: number) {
   }
   return Buffer.concat(chunks);
 }
+
+const reportedUnits = (units: unknown, kind: "image" | "video") =>
+  units === undefined ? undefined : checkUnits(units, kind);

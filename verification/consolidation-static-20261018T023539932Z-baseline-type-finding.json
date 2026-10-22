@@ -1,8 +1,0 @@
-{
-  "Path": "test/mcp-client.test.ts",
-  "StartLine": 19,
-  "EndLine": 25,
-  "BaselineIdentical": true,
-  "CurrentSnippet": "    env: {\n      ...Object.fromEntries(\n        Object.entries(process.env).filter(([name]) =>\n          /^(PATH|Path|SystemRoot|TEMP|TMP|WINDIR|PATHEXT)$/.test(name),\n        ),\n      ),\n    },",
-  "BaselineSnippet": "    env: {\n      ...Object.fromEntries(\n        Object.entries(process.env).filter(([name]) =>\n          /^(PATH|Path|SystemRoot|TEMP|TMP|WINDIR|PATHEXT)$/.test(name),\n        ),\n      ),\n    },"
-}

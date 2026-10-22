@@ -1,10 +1,11 @@
 import type { MediaRequest, MediaOutput } from "../contracts.js";
 import type { Route } from "../core/config.js";
 import { invariant } from "../core/util.js";
+import type { MediaUnits } from "../runtime/billing.js";
 
 export interface AdapterResult {
   /** Optional trusted adapter report, translated from the vendor's billing response. */
-  billing?: { actualUsd: number; reference: string };
+  billing?: { actualUsd: number; reference: string; units?: MediaUnits };
   remoteId?: string;
   status: "queued" | "running" | "completed" | "failed" | "cancelled";
   progress?: number;

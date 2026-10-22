@@ -7,6 +7,7 @@ import {
   copyFile,
   mkdtemp,
   cp,
+  rm,
 } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -97,10 +98,20 @@ if (filters.length) {
   tests.splice(0, tests.length, ...matching);
 }
 if (!tests.length) throw Error("No matching test files");
+// Files run one at a time by default; --concurrency=N runs N test files in parallel.
+const concurrency =
+  process.argv
+    .find((arg) => arg.startsWith("--concurrency="))
+    ?.slice("--concurrency=".length) || "1";
+if (!/^[1-9]\d*$/.test(concurrency)) throw Error("Invalid --concurrency");
 const result = spawnSync(
   process.execPath,
-  ["--test", "--test-concurrency=1", ...tests],
+  ["--test", `--test-concurrency=${concurrency}`, ...tests],
   { cwd: root, stdio: "inherit" },
 );
+// Compiled copies are only needed while tests run; --keep retains them for debugging.
+if (!process.argv.includes("--keep"))
+  await rm(output, { recursive: true, force: true, maxRetries: 3 });
+else console.log(`Compiled tests kept at ${output}`);
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

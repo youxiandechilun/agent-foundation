@@ -33,6 +33,11 @@ export interface TextProtocol {
   url(baseUrl: string): string;
   /** Credential headers for the route key. Defaults to `Authorization: Bearer`. */
   credentials?(key: string): Record<string, string>;
+  /**
+   * Whether reported input tokens include cache reads and writes. Defaults to true;
+   * protocols that report them separately (Anthropic) set false.
+   */
+  inputIncludesCache?: boolean;
   /** Fixed protocol headers such as an API version. */
   headers?: Readonly<Record<string, string>>;
   body(input: ProtocolRequest): Record<string, any>;

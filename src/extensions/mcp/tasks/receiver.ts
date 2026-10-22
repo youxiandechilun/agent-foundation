@@ -1,6 +1,11 @@
 import { randomUUID, randomBytes } from "node:crypto";
-import { invariant, errorText, abortable, redactJson } from "../../../core/util.js";
-import type { MCPRequestContext } from "../client.js";
+import {
+  invariant,
+  errorText,
+  abortable,
+  redactJson,
+} from "../../../core/util.js";
+import type { MCPRequestContext } from "../protocol.js";
 import { RELATED_TASK } from "./context.js";
 
 export interface MCPReceiverOptions {

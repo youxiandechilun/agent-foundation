@@ -175,7 +175,32 @@ export class HttpTextProvider implements TextProvider {
     }
   }
 }
+/** Named form of the RouteRouter constructor arguments, for RouteRouter.create. */
+export interface RouteRouterOptions {
+  onRoute?: (routeId: string, fallback: boolean) => void;
+  prepareRoute?: (
+    request: ModelRequest,
+    signal?: AbortSignal,
+  ) => Promise<ModelRequest>;
+  repairContext?: (
+    request: ModelRequest,
+    signal?: AbortSignal,
+  ) => Promise<ModelRequest>;
+  billing?: { ledger: CostLedger; scope: CostScope };
+  onRetry?: (notice: RetryNotice) => void;
+}
 export class RouteRouter implements TextProvider {
+  /** Prefer this to the positional constructor, which is kept for compatibility. */
+  static create(config: Config, options: RouteRouterOptions = {}) {
+    return new RouteRouter(
+      config,
+      options.onRoute,
+      options.prepareRoute,
+      options.repairContext,
+      options.billing,
+      options.onRetry,
+    );
+  }
   constructor(
     readonly config: Config,
     readonly onRoute?: (routeId: string, fallback: boolean) => void,
@@ -253,6 +278,7 @@ export class RouteRouter implements TextProvider {
                 req,
                 this.billing.scope,
                 () => provider.complete(req, delta, signal),
+                signal,
               )
             : provider.complete(req, delta, signal);
         const attempt = async () => {

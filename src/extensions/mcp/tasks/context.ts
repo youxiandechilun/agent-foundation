@@ -1,5 +1,5 @@
 import { invariant } from "../../../core/util.js";
-import type { MCPRequestContext } from "../client.js";
+import type { MCPRequestContext } from "../protocol.js";
 
 export const RELATED_TASK = "io.modelcontextprotocol/related-task";
 const terminal = new Set(["completed", "failed", "cancelled"]);

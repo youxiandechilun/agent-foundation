@@ -18,11 +18,11 @@ import type {
   StoredMessage,
   ToolEffect,
 } from "../contracts.js";
+import { activeRunStatuses, terminalStatuses } from "../contracts.js";
 import {
   id,
   now,
   invariant,
-  redactJson,
   redactJsonText,
   createJsonRedactor,
 } from "../core/util.js";
@@ -67,8 +67,10 @@ const returnArrays = (statement: StatementSync) => {
 // Runtime records are kept apart from optional host integrations.
 export class Store {
   readonly db: DatabaseSync;
-  readonly events = new EventEmitter();
+  readonly events = new EventEmitter().setMaxListeners(0);
   private readonly statements = new Map<string, StatementSync>();
+  // Wire text of emitted events, so each subscriber reuses one serialization.
+  private readonly eventText = new WeakMap<FoundationEvent, string>();
   private readonly jsonStatements = new Map<string, JsonStatement>();
   private readonly entityStatements = new Map<
     Table,
@@ -122,7 +124,12 @@ export class Store {
   // Queries never retain entity values. Bound the cache as filters add query shapes.
   prepare(sql: string): StatementSync {
     let statement = this.statements.get(sql);
-    if (statement) return statement;
+    if (statement) {
+      // Refresh recency so hot statements survive bursts of new filter shapes.
+      this.statements.delete(sql);
+      this.statements.set(sql, statement);
+      return statement;
+    }
     statement = this.db.prepare(sql);
     this.statements.set(sql, statement);
     if (this.statements.size > 128)
@@ -155,7 +162,11 @@ export class Store {
   }
   private jsonStatement(sql: string): JsonStatement {
     const cached = this.jsonStatements.get(sql);
-    if (cached) return cached;
+    if (cached) {
+      this.jsonStatements.delete(sql);
+      this.jsonStatements.set(sql, cached);
+      return cached;
+    }
     const statement = this.db.prepare(sql);
     // Callers of prepare(sql) retain named rows even when this SQL is also read here.
     returnArrays(statement);
@@ -380,6 +391,25 @@ export class Store {
     );
     return row.total;
   }
+  /** Ledger totals as CostLedger.summary reports them, without loading the entries. */
+  costTotals(filter: EntityFilter = {}) {
+    const where = entityWhere(filter);
+    return this.prepare(
+      `SELECT COUNT(*) AS count,
+        TOTAL(COALESCE(json_extract(body,'$.chargedMicros'),0)) AS chargedMicros,
+        TOTAL(CASE WHEN json_extract(body,'$.status') IN ('reserved','unknown')
+          THEN json_extract(body,'$.reservedMicros') ELSE 0 END) AS heldMicros,
+        TOTAL(${committedCostExpression}) AS committedMicros,
+        TOTAL(json_extract(body,'$.basis')='unpriced') AS unpriced
+      FROM e_cost_ledger${where.sql}`,
+    ).get(...where.values) as {
+      count: number;
+      chargedMicros: number;
+      heldMicros: number;
+      committedMicros: number;
+      unpriced: number;
+    };
+  }
   find<T>(kind: Table, entityId: string): T | undefined {
     const row = this.entityStatement(kind, "find").get(entityId) as unknown as
       JsonRow | undefined;
@@ -445,6 +475,16 @@ export class Store {
     );
     return { total, offset, messages, hasMore: total > offset + limit };
   }
+  /**
+   * Changes whenever the transcript does: messages are only inserted or deleted, and
+   * sequence numbers are never reused, so count and sequence sums identify a version.
+   */
+  transcriptVersion(sessionId: string): string {
+    const row = this.prepare(
+      "SELECT COUNT(*) AS count,MAX(seq) AS last,TOTAL(seq) AS total FROM messages WHERE session_id=?",
+    ).get(sessionId) as { count: number; last: number | null; total: number };
+    return `${row.count}:${row.last ?? 0}:${row.total}`;
+  }
   lastAssistant(sessionId: string, runId: string): StoredMessage | undefined {
     return this.selectJsonOne<StoredMessage>(
       "SELECT body FROM messages WHERE session_id=? AND json_extract(body,'$.runId')=? AND json_extract(body,'$.message.role')='assistant' ORDER BY seq DESC LIMIT 1",
@@ -470,8 +510,19 @@ export class Store {
       hasMore: rows.length > limit,
     };
   }
-  appendTranscript(sessionId: string, message: StoredMessage) {
-    const body = redactJsonText(message);
+  /**
+   * `messageText` is the already redacted JSON of `message.message`; supplying it
+   * avoids serializing and redacting the same message a second time.
+   */
+  appendTranscript(
+    sessionId: string,
+    message: StoredMessage,
+    messageText?: string,
+  ) {
+    const body =
+      messageText === undefined
+        ? redactJsonText(message)
+        : spliceJson(message, "message", messageText);
     // A conflicting INSERT is dramatically slower in Node's SQLite binding, so
     // check the unique key first and write only fresh messages.
     const previous = this.prepare(
@@ -533,31 +584,49 @@ export class Store {
         insert.run(sessionId, incoming[i].id, incoming[i].body);
     });
   }
+  /**
+   * `redactedText`, when given, is the already redacted JSON of `data`, and `data`
+   * itself must already be redacted; the payload is then neither serialized nor
+   * parsed again.
+   */
   emit(
     runId: string,
     type: string,
     data: Record<string, unknown>,
     durable = true,
+    redactedText?: string,
   ): FoundationEvent {
-    const safeData = redactJson(data);
-    const event: FoundationEvent = {
-      schemaVersion: 1,
+    // Serialize the redacted payload once: the stored body and the wire text splice
+    // that text into the envelope, equal to JSON.stringify of the whole event.
+    const dataText = redactedText ?? redactJsonText(data);
+    const envelope = {
+      schemaVersion: 1 as const,
       id: id("ev"),
       runId,
       sessionId: this.runSession(runId),
       type,
       timestamp: now(),
-      seq: null,
-      data: safeData,
+      seq: null as number | null,
+    };
+    const event: FoundationEvent = {
+      ...envelope,
+      data: redactedText === undefined ? JSON.parse(dataText) : data,
     };
     if (durable) {
       const result = this.prepare(
         "INSERT INTO events(run_id,body) VALUES(?,?)",
-      ).run(runId, JSON.stringify(event));
-      event.seq = Number(result.lastInsertRowid);
+      ).run(runId, spliceJson(envelope, "data", dataText));
+      event.seq = envelope.seq = Number(result.lastInsertRowid);
     }
-    this.events.emit(runId, event);
+    if (this.events.listenerCount(runId)) {
+      this.eventText.set(event, spliceJson(envelope, "data", dataText));
+      this.events.emit(runId, event);
+    }
     return event;
+  }
+  /** JSON text of an event, reusing the serialization made when it was emitted. */
+  eventJson(event: FoundationEvent): string {
+    return this.eventText.get(event) ?? JSON.stringify(event);
   }
   eventCursor(runId: string) {
     const row = this.prepare(
@@ -621,7 +690,7 @@ export class Store {
   }
   recover() {
     for (const run of this.list<Run>("runs", {
-      status: ["running", "queued", "waiting_approval"],
+      status: activeRunStatuses,
     })) {
       this.status(
         run.id,
@@ -651,12 +720,62 @@ export class Store {
     for (const node of this.list<{ id: string; connected: boolean }>("nodes"))
       this.write("nodes", { ...node, connected: false });
   }
+  /**
+   * Delete data that only long-finished runs reference, in bounded batches so a
+   * large backlog never holds the write lock for long. Runs, transcripts, effects
+   * and the cost ledger are kept. A cutoff of undefined skips that category.
+   */
+  prune(cutoffs: { events?: string; caches?: string }, batch = 2000) {
+    const deleted = { events: 0, summaries: 0, workContexts: 0 };
+    const repeat = (sql: string, ...values: SQLInputValue[]) => {
+      let total = 0;
+      for (;;) {
+        const changes = Number(
+          this.transaction(() => this.prepare(sql).run(...values, batch))
+            .changes,
+        );
+        total += changes;
+        if (changes < batch) return total;
+      }
+    };
+    const terminal = [...terminalStatuses].map(() => "?").join(",");
+    if (cutoffs.events !== undefined)
+      deleted.events = repeat(
+        `DELETE FROM events WHERE seq IN (SELECT e.seq FROM events e JOIN e_runs r ON r.id=e.run_id
+          WHERE json_extract(r.body,'$.status') IN (${terminal}) AND json_extract(r.body,'$.updatedAt')<? LIMIT ?)`,
+        ...terminalStatuses,
+        cutoffs.events,
+      );
+    if (cutoffs.caches !== undefined) {
+      // Pointers name the summary each session extends; those stay until replaced.
+      deleted.summaries = repeat(
+        `DELETE FROM e_summaries WHERE id IN (SELECT id FROM e_summaries
+          WHERE json_extract(body,'$.createdAt')<? AND id NOT IN (
+            SELECT json_extract(body,'$.summaryId') FROM e_summaries WHERE json_extract(body,'$.summaryId') IS NOT NULL)
+          LIMIT ?)`,
+        cutoffs.caches,
+      );
+      deleted.workContexts = repeat(
+        `DELETE FROM e_work_contexts WHERE id IN (SELECT id FROM e_work_contexts
+          WHERE json_extract(body,'$.updatedAt')<? LIMIT ?)`,
+        cutoffs.caches,
+      );
+    }
+    // Refresh planner statistics after large deletions; cheap when nothing changed.
+    this.db.exec("PRAGMA optimize");
+    return deleted;
+  }
   close() {
     if (this.closed) return;
     if (this.leaseOwner)
       this.prepare("DELETE FROM kernel_owner WHERE owner=?").run(
         this.leaseOwner,
       );
+    try {
+      this.db.exec("PRAGMA optimize");
+    } catch {
+      // Statistics are an optimization; closing must not fail because of them.
+    }
     this.db.close();
     this.statements.clear();
     this.jsonStatements.clear();
@@ -664,4 +783,11 @@ export class Store {
     this.writers = Object.create(null);
     this.closed = true;
   }
+}
+
+/** JSON.stringify of `value` with `key` moved last and set to the JSON text `raw`. */
+function spliceJson(value: object, key: string, raw: string): string {
+  const { [key]: _omitted, ...rest } = value as Record<string, unknown>;
+  const head = JSON.stringify(rest);
+  return `${head.slice(0, -1)}${head.length > 2 ? "," : ""}${JSON.stringify(key)}:${raw}}`;
 }

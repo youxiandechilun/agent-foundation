@@ -33,9 +33,13 @@ const routes = apiRoutes({
         .object({
           name: z.string().min(1).max(200),
           directory: z.string().optional(),
+          billingAccount: z.string().min(1).max(200).optional(),
         })
         .strict(),
-      ({ k }, value) => k.createProject(value.name, value.directory),
+      ({ k }, value) =>
+        k.createProject(value.name, value.directory, {
+          billingAccount: value.billingAccount,
+        }),
     ),
   ),
   "GET sessions": ({ k, url }) => ({

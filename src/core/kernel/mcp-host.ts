@@ -8,8 +8,10 @@ import {
   decodeSamplingRequest,
   samplingResult,
 } from "../../extensions/mcp/sampling.js";
-import { estimateTokens } from "../../runtime/token-counter.js";
-import { estimateTextTokens } from "../context.js";
+import {
+  estimateTokens,
+  estimateToolTokens,
+} from "../../runtime/token-counter.js";
 import { RouteRouter } from "../../providers/text.js";
 import type { ToolDefinition } from "../../runtime/types.js";
 import { invariant } from "../util.js";
@@ -91,10 +93,8 @@ export class McpHost {
     );
     const { messages, data, tools } = decoded;
     const session = this.store.session(origin.sessionId);
-    const provider = new RouteRouter(
-      this.config,
-      undefined,
-      async (request) => {
+    const provider = RouteRouter.create(this.config, {
+      prepareRoute: async (request) => {
         this.authorize(serverId, origin, "sampling", request.routeId);
         const route = this.config.routes[request.routeId];
         invariant(
@@ -108,15 +108,7 @@ export class McpHost {
         );
         invariant(
           estimateTokens(request.messages) +
-            estimateTextTokens(
-              JSON.stringify(
-                request.tools.map((t) => ({
-                  name: t.name,
-                  description: t.description,
-                  parameters: t.parameters,
-                })),
-              ),
-            ) +
+            estimateToolTokens(request.tools) +
             (request.maxOutputTokens || 0) <=
             route.contextWindow,
           "Sampling context exceeds model window",
@@ -135,8 +127,7 @@ export class McpHost {
           })),
         };
       },
-      undefined,
-      {
+      billing: {
         ledger: this.costs,
         scope: {
           projectId: session.projectId,
@@ -145,7 +136,7 @@ export class McpHost {
           purpose: "mcp-sampling",
         },
       },
-    );
+    });
     const result = await provider.complete(
       {
         routeId,

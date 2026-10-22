@@ -113,6 +113,24 @@ export const routeSchema = z
       r.pricing.requestUsd <= r.pricing.maxRequestUsd,
     "Request fee cannot exceed maxRequestUsd",
   );
+/** Default route per purpose; chat, code and office are required text routes. */
+const defaultRoutesSchema = z.object({
+  chat: z.string().min(1),
+  code: z.string().min(1),
+  office: z.string().min(1),
+  compact: z.string().optional(),
+  image: z.string().optional(),
+  video: z.string().optional(),
+  embedding: z.string().optional(),
+});
+export type DefaultRouteSlot = keyof z.infer<typeof defaultRoutesSchema>;
+export const DEFAULT_ROUTE_SLOTS = Object.keys(
+  defaultRoutesSchema.shape,
+) as readonly DefaultRouteSlot[];
+/** Slots that must always name a route, so they cannot be cleared at runtime. */
+export const REQUIRED_ROUTE_SLOTS = DEFAULT_ROUTE_SLOTS.filter(
+  (slot) => !defaultRoutesSchema.shape[slot].isOptional(),
+);
 export const configSchema = z
   .object({
     server: z
@@ -125,15 +143,7 @@ export const configSchema = z
       .prefault({}),
     dataDir: z.string().default(".agent-data"),
     workspaceRoots: z.array(z.string()).min(1).default(["workspace"]),
-    defaultRoutes: z.object({
-      chat: z.string().min(1),
-      code: z.string().min(1),
-      office: z.string().min(1),
-      compact: z.string().optional(),
-      image: z.string().optional(),
-      video: z.string().optional(),
-      embedding: z.string().optional(),
-    }),
+    defaultRoutes: defaultRoutesSchema,
     routes: z.record(z.string(), routeSchema),
     permissions: z
       .object({
@@ -337,6 +347,37 @@ export const configSchema = z
       .strict()
       .prefault({}),
     securityAudit: securityAuditSchema.prefault({}),
+    /** Credential redaction before storage, events and model requests; see RedactionMode. */
+    redaction: z
+      .object({
+        mode: z.enum(["full", "registered", "off"]).default("full"),
+        /** Environment variables treated as credentials in "registered" mode. */
+        environment: z
+          .array(z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/))
+          .max(200)
+          .default([]),
+      })
+      .strict()
+      .prefault({}),
+    /**
+     * Pruning of data that only finished runs reference. 0 keeps it forever (default),
+     * so event replay and compaction caches behave exactly as without retention.
+     */
+    retention: z
+      .object({
+        /** Delete the event log of runs that finished more than this many days ago. */
+        eventDays: z.number().int().min(0).max(36_500).default(0),
+        /** Delete unreferenced compaction summaries and run context records older than this. */
+        cacheDays: z.number().int().min(0).max(36_500).default(0),
+        intervalMs: z
+          .number()
+          .int()
+          .min(60_000)
+          .max(7 * 86_400_000)
+          .default(3_600_000),
+      })
+      .strict()
+      .prefault({}),
     /** Host-trusted lifecycle hook commands (Claude Code compatible stdin/exit-code protocol). */
     hooks: z
       .object({
@@ -506,6 +547,8 @@ export function publicConfig(config: Config) {
     })),
     modes: ["chat", "code", "office"],
     permissions: config.permissions,
+    redaction: { mode: config.redaction.mode },
+    retention: config.retention,
     securityAudit: {
       mode: config.securityAudit.mode,
       timeoutMs: config.securityAudit.timeoutMs,

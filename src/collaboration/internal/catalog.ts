@@ -1,6 +1,6 @@
 import type { Kernel } from "../../core/kernel.js";
-import type { Run, Session } from "../../contracts.js";
-import { terminalStatuses } from "../../contracts.js";
+import type { Session } from "../../contracts.js";
+import { activeRunStatuses } from "../../contracts.js";
 import { invariant } from "../../core/util.js";
 import {
   teamBindingInputSchema,
@@ -35,11 +35,8 @@ export class TeamCatalog {
     this.assertTeamIdle(teamId);
     invariant(
       !this.kernel.store
-        .list<Session>("sessions")
-        .some(
-          (session) =>
-            !session.teamMemberId && session.collaboration?.teamId === teamId,
-        ),
+        .list<Session>("sessions", { "collaboration.teamId": teamId })
+        .some((session) => !session.teamMemberId),
       "Unbind coordinator sessions before removing their team",
       409,
     );
@@ -124,22 +121,22 @@ export class TeamCatalog {
   }
 
   private assertTeamIdle(teamId: string): void {
-    const sessions = this.kernel.store
-      .list<Session>("sessions")
-      .filter((session) => session.collaboration?.teamId === teamId);
-    const ids = new Set(sessions.map((session) => session.id));
+    const ids = this.kernel.store
+      .list<Session>("sessions", { "collaboration.teamId": teamId })
+      .map((session) => session.id);
+    // Entity filters accept at most 100 alternatives per field.
+    for (let i = 0; i < ids.length; i += 100)
+      invariant(
+        !this.kernel.store.count("runs", {
+          sessionId: ids.slice(i, i + 100),
+          status: activeRunStatuses,
+        }),
+        "Wait for active team runs before editing the team",
+        409,
+      );
     invariant(
       !this.kernel.store
-        .list<Run>("runs")
-        .some(
-          (run) => ids.has(run.sessionId) && !terminalStatuses.has(run.status),
-        ),
-      "Wait for active team runs before editing the team",
-      409,
-    );
-    invariant(
-      !this.kernel.store
-        .list<TeamTask>("team-tasks")
+        .list<TeamTask>("team-tasks", { teamId })
         .map((task) => this.tasks.refresh(task))
         .some((task) => task.teamId === teamId && activeTask(task)),
       "Wait for active team tasks before editing the team",

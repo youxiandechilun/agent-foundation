@@ -28,7 +28,7 @@ export async function streamRunEvents(
     { event: FoundationEvent; payload: string; bytes: number } | undefined
   )[] = [];
   const payload = (event: FoundationEvent) =>
-    `${event.seq !== null ? `id: ${event.seq}\n` : ""}event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
+    `${event.seq !== null ? `id: ${event.seq}\n` : ""}event: ${event.type}\ndata: ${store.eventJson(event)}\n\n`;
   const write = async (event: FoundationEvent, data = payload(event)) => {
     if (closed || res.destroyed || res.writableEnded) return;
     if (event.seq !== null && event.seq <= last) return;

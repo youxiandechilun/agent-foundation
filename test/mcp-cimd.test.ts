@@ -46,7 +46,7 @@ async function tlsFlow(algorithm: string, scenario = "normal") {
       if (code !== 0) return reject(Error("CIMD TLS worker failed: " + stderr));
       try {
         resolve(JSON.parse(stdout.trim()));
-      } catch (e) {
+      } catch {
         reject(Error("Invalid TLS worker output: " + stdout + stderr));
       }
     });

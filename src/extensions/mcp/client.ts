@@ -2,14 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { VERSION } from "../../version.js";
 import { StringDecoder } from "node:string_decoder";
 import { randomUUID } from "node:crypto";
-import {
-  AppError,
-  invariant,
-  errorText,
-  delay,
-  abortable,
-} from "../../core/util.js";
-import { decodeEventStream } from "../../transport/sse.js";
+import { invariant, errorText, delay, abortable } from "../../core/util.js";
 import { readJson } from "../../providers/sse.js";
 import { terminateProcessTree } from "../../execution/lifecycle.js";
 import {
@@ -38,51 +31,29 @@ import {
   type ModernTaskEvent,
 } from "./tasks/modern.js";
 
-export const MCP_MODERN_VERSION = "2026-07-28";
-export interface MCPRequestContext {
-  requestId: RpcId;
-  method: string;
-  params: any;
-  localContext?: unknown;
-  signal: AbortSignal;
-  setTaskStatus?: (status: "working" | "input_required") => void;
-}
-export type MCPInputHandler = (
-  params: any,
-  context: MCPRequestContext,
-) => Promise<unknown>;
-export interface MCPRequestOptions {
-  /** Host-only absolute callback deadline; never serialized to the peer. */
-  taskDeadline?: number;
-  signal?: AbortSignal;
-  timeout?: number;
-  progress?: (value: any) => void;
-  localContext?: unknown;
-  onSubscriptionAcknowledged?: (filter: MCPNotificationFilter) => void;
-}
-export interface MCPNotificationFilter {
-  toolsListChanged?: boolean;
-  promptsListChanged?: boolean;
-  resourcesListChanged?: boolean;
-  resourceSubscriptions?: string[];
-  taskIds?: string[];
-}
+import {
+  frames,
+  rpc,
+  MCP_MODERN_VERSION,
+  MCP_PROTOCOL_VERSIONS,
+  MCPProtocolError,
+  type MCPNotificationFilter,
+  type MCPRequestContext,
+  type MCPRequestOptions,
+  type MCPInputHandler,
+  type RpcId,
+  type RpcMessage,
+} from "./protocol.js";
+export {
+  MCP_MODERN_VERSION,
+  MCP_PROTOCOL_VERSIONS,
+  MCPProtocolError,
+  type MCPInputHandler,
+  type MCPNotificationFilter,
+  type MCPRequestContext,
+  type MCPRequestOptions,
+} from "./protocol.js";
 
-export const MCP_PROTOCOL_VERSIONS = [
-  "2025-11-25",
-  "2025-06-18",
-  "2025-03-26",
-  "2024-11-05",
-] as const;
-type RpcId = number | string;
-type RpcMessage = {
-  jsonrpc: "2.0";
-  id?: RpcId;
-  method?: string;
-  params?: any;
-  result?: any;
-  error?: { code: number; message: string; data?: unknown };
-};
 export interface MCPClientOptions {
   transport: "stdio" | "http";
   command?: string;
@@ -133,64 +104,6 @@ interface Pending {
     onAck?: (filter: MCPNotificationFilter) => void;
   };
 }
-export class MCPProtocolError extends Error {
-  constructor(
-    message: string,
-    readonly code: number | string = "mcp_protocol_error",
-    readonly data?: unknown,
-  ) {
-    super(message);
-  }
-}
-function rpc(value: any): RpcMessage {
-  invariant(
-    value &&
-      typeof value === "object" &&
-      !Array.isArray(value) &&
-      value.jsonrpc === "2.0",
-    "Invalid MCP JSON-RPC message",
-    502,
-  );
-  invariant(
-    value.id === undefined ||
-      typeof value.id === "string" ||
-      Number.isSafeInteger(value.id),
-    "Invalid MCP request ID",
-    502,
-  );
-  if (value.method !== undefined)
-    invariant(
-      typeof value.method === "string" && value.method.length > 0,
-      "Invalid MCP method",
-      502,
-    );
-  else
-    invariant(
-      value.id !== undefined && "result" in value !== "error" in value,
-      "Invalid MCP response",
-      502,
-    );
-  if (value.error)
-    invariant(
-      Number.isInteger(value.error.code) &&
-        typeof value.error.message === "string",
-      "Invalid MCP error",
-      502,
-    );
-  return value;
-}
-/** Empty frames carry MCP resume cursors; the shared decoder also enforces UTF-8 bytes. */
-function frames(response: Response, max: number, signal: AbortSignal) {
-  invariant(response.body, "MCP response has no body", 502);
-  return decodeEventStream(response.body, {
-    signal,
-    maxFrameChars: max,
-    maxFrameBytes: max,
-    emitEmptyFrames: true,
-    error: (message) => new AppError(502, "invalid_request", "MCP " + message),
-  });
-}
-
 /** Foundation-maintained MCP client. Node streams/fetch only; no MCP or agent SDK. */
 export class MCPClient {
   private receiver?: MCPTaskReceiver;

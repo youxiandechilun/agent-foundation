@@ -1,8 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import http from "node:http";
 import { WebSocket } from "ws";
-import { setupDesktop as setup, until, token } from "./support/wire-server.js";
+import { setupDesktop as setup, until } from "./support/wire-server.js";
 
 test("paired node HTTP transport uses scoped auth, actual queued tasks and explicit results", async () => {
   const x = await setup();

@@ -14,6 +14,12 @@ const fields = [
   "status",
   "purpose",
   "key",
+  "routeId",
+  "mode",
+  "teamId",
+  "teamRootSessionId",
+  "teamMemberId",
+  "collaboration.teamId",
 ] as const;
 export type EntityField = (typeof fields)[number];
 export type EntityFilter = Partial<
@@ -79,13 +85,19 @@ export const entityTable = (kind: Table): string => {
 // Only filters the repository issues are indexed, so writes to other kinds stay cheap.
 // An unindexed filter still answers correctly by scanning that kind's own table.
 const indexed: Partial<Record<Table, readonly EntityField[]>> = {
-  sessions: ["projectId"],
+  sessions: ["projectId", "collaboration.teamId", "teamRootSessionId"],
   runs: ["sessionId", "status"],
   assets: ["projectId"],
   jobs: ["projectId", "status"],
   approvals: ["runId", "status"],
   "security-audits": ["sessionId"],
-  "team-tasks": ["rootSessionId", "rootRunId", "workspaceRoot", "sessionId"],
+  "team-tasks": [
+    "rootSessionId",
+    "rootRunId",
+    "workspaceRoot",
+    "sessionId",
+    "teamId",
+  ],
   inbox: ["runId"],
   effects: ["runId", "projectId"],
   processes: ["sessionId"],
@@ -132,7 +144,7 @@ const schemaStatements = tables.flatMap((kind) => {
       : `CREATE TABLE IF NOT EXISTS ${table}(id TEXT PRIMARY KEY,body TEXT NOT NULL)`,
     ...(indexed[kind] || []).map(
       (field) =>
-        `CREATE INDEX IF NOT EXISTS ${table}_${field} ON ${table}(json_extract(body,'$.${field}'))`,
+        `CREATE INDEX IF NOT EXISTS ${table}_${field.replaceAll(".", "_")} ON ${table}(json_extract(body,'$.${field}'))`,
     ),
     ...(special[kind] || []),
   ];
