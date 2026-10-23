@@ -106,7 +106,13 @@ const concurrency =
 if (!/^[1-9]\d*$/.test(concurrency)) throw Error("Invalid --concurrency");
 const result = spawnSync(
   process.execPath,
-  ["--test", `--test-concurrency=${concurrency}`, ...tests],
+  [
+    "--test",
+    "--test-reporter=tap",
+    "--test-timeout=180000",
+    `--test-concurrency=${concurrency}`,
+    ...tests,
+  ],
   { cwd: root, stdio: "inherit" },
 );
 // Compiled copies are only needed while tests run; --keep retains them for debugging.

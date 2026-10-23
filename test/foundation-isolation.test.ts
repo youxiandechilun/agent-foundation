@@ -1,6 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile, access, writeFile } from "node:fs/promises";
+import {
+  readFile,
+  access,
+  writeFile,
+  symlink,
+  mkdir,
+  realpath,
+} from "node:fs/promises";
 import net from "node:net";
 import { createHmac, randomBytes } from "node:crypto";
 import path from "node:path";
@@ -220,38 +227,75 @@ test("managed output redacts known secrets split across writes before durable jo
   }
 });
 
+test("command preparation resolves configured root aliases and still rejects nested junction escapes", async () => {
+  const x = await setup();
+  try {
+    const alias = path.join(x.root, "project-alias");
+    await symlink(x.project.root, alias, "junction");
+    const request = {
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('alias-ready')"],
+      cwd: alias,
+      timeoutMs: 5000,
+    };
+    const prepared = await prepareCommand(x.config, request, alias);
+    assert.equal(prepared.cwd, await realpath(x.project.root));
+    const result = await new CommandRunner(x.config).run(request, alias);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "alias-ready");
+    const outside = path.join(x.root, "outside-alias-root");
+    await mkdir(outside);
+    await symlink(
+      outside,
+      path.join(x.project.root, "nested-link"),
+      "junction",
+    );
+    await assert.rejects(
+      prepareCommand(
+        x.config,
+        { ...request, cwd: path.join(alias, "nested-link") },
+        alias,
+      ),
+      /Symlinks and junctions/,
+    );
+  } finally {
+    await x.close();
+  }
+});
+
 test("an unavailable Docker backend fails closed without running the command on the host", async () => {
   const x = await setup(undefined, {
     execution: { boundary: "docker", requireIsolation: true },
   });
+  const previousPath = process.env.PATH;
+  const previousMixedPath = process.env.Path;
   try {
-    // This test is meaningful on a machine with no Docker; a real engine is tested by the explicit integration command.
+    // Make the missing-CLI case deterministic even when the host has Docker installed.
+    process.env.PATH = x.project.root;
+    if (process.platform === "win32") process.env.Path = x.project.root;
     const runner = new CommandRunner(x.config);
-    let available = false;
-    try {
-      await runner.probe(x.project.root);
-      available = true;
-    } catch {}
-    if (!available) {
-      const marker = "must-not-exist.txt";
-      await assert.rejects(() =>
-        runner.run(
-          {
-            command: process.execPath,
-            args: [
-              "-e",
-              `require('node:fs').writeFileSync('${marker}','escaped')`,
-            ],
-            cwd: x.project.root,
-            timeoutMs: 2000,
-          },
-          x.project.root,
-        ),
-      );
-      await assert.rejects(() => access(path.join(x.project.root, marker)));
-    } else
-      assert.equal((await runner.probe(x.project.root)).boundary, "docker");
+    await assert.rejects(() => runner.probe(x.project.root), /ENOENT/);
+    const marker = "must-not-exist.txt";
+    await assert.rejects(() =>
+      runner.run(
+        {
+          command: process.execPath,
+          args: [
+            "-e",
+            `require('node:fs').writeFileSync('${marker}','escaped')`,
+          ],
+          cwd: x.project.root,
+          timeoutMs: 2000,
+        },
+        x.project.root,
+      ),
+    );
+    await assert.rejects(() => access(path.join(x.project.root, marker)));
   } finally {
+    if (previousPath === undefined) delete process.env.PATH;
+    else process.env.PATH = previousPath;
+    if (previousMixedPath === undefined) delete process.env.Path;
+    else process.env.Path = previousMixedPath;
     await x.close();
   }
 });

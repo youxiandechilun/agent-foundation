@@ -264,7 +264,8 @@ export class PluginManager {
     const invocationRoot = path.join(this.config.dataDir, "plugin-invocations");
     const snapshot = await sourceSnapshot(invocationRoot, files);
     try {
-      const entry = await safePath(snapshot, plugin.manifest.entry);
+      const snapshotRoot = await realpath(snapshot);
+      const entry = await safePath(snapshotRoot, plugin.manifest.entry);
       const env: NodeJS.ProcessEnv = {};
       for (const key of [
         "PATH",
@@ -300,7 +301,7 @@ export class PluginManager {
       const options: import("node:child_process").ForkOptions & {
         windowsHide: boolean;
       } = {
-        cwd: snapshot,
+        cwd: snapshotRoot,
         env,
         execArgv: [`--max-old-space-size=${this.config.extensions.maxHeapMb}`],
         windowsHide: true,

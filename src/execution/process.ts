@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { StringDecoder } from "node:string_decoder";
 import type { Config } from "../core/config.js";
-import { invariant } from "../core/util.js";
+import { invariant, within } from "../core/util.js";
 import { realpath } from "node:fs/promises";
 import { safePath } from "../core/util.js";
 import { terminateProcessTree } from "./lifecycle.js";
@@ -68,7 +68,10 @@ export async function prepareCommand(
     "Invalid process command",
   );
   const actualRoot = await realpath(root),
-    cwd = await safePath(actualRoot, path.relative(actualRoot, request.cwd));
+    workspaceRelative = within(root, request.cwd)
+      ? path.relative(root, request.cwd)
+      : path.relative(actualRoot, request.cwd),
+    cwd = await safePath(actualRoot, workspaceRelative);
   if (config.execution.boundary === "windows-appcontainer") {
     invariant(
       !tty,

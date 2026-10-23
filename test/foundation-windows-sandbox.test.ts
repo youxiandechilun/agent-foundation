@@ -42,7 +42,9 @@ function gone(pid: number) {
 }
 async function sddl(file: string) {
   const expression =
-    "(Get-Acl -LiteralPath '" + file.replaceAll("'", "''") + "').Sddl";
+    "[System.IO.Directory]::GetAccessControl('" +
+    file.replaceAll("'", "''") +
+    "').GetSecurityDescriptorSddlForm([System.Security.AccessControl.AccessControlSections]::All)";
   const r = await nativeProcess({
     command: path.join(
       process.env.SystemRoot!,
@@ -978,6 +980,7 @@ test(
         childValue = values.find((row) => row.child);
       assert.equal(value.read, "source");
       assert.match(value.write, /EPERM|EACCES/);
+      assert.ok(childValue, JSON.stringify({ values, result }));
       assert.match(childValue.child, /EPERM|EACCES/, result.stderr);
     } finally {
       await x.close();

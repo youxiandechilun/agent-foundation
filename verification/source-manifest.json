@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T00:39:36.572Z",
+  "checkedAt": "2026-10-23T01:07:29.550Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -289,8 +289,8 @@
     },
     {
       "path": "src/execution/process.ts",
-      "bytes": 13797,
-      "sha256": "040445870559822e88c0bdadb2a77ac1932aeaa2025e1770cea56307414868fd"
+      "bytes": 13923,
+      "sha256": "600d59711d06e8fb001411ef758b12afdbf95762ad3ebc90eb31829acf3438b5"
     },
     {
       "path": "src/execution/sessions.ts",
@@ -434,8 +434,8 @@
     },
     {
       "path": "src/extensions/plugins/manager.ts",
-      "bytes": 19005,
-      "sha256": "5110fa315839089a464acbf997cae66e95e0c5a0ddcdac7a00dfde55fc8f7fc2"
+      "bytes": 19066,
+      "sha256": "8dc0d260d5b3efa17ba8b66ba1b5f22f03409ce281098333ed2bb8458bb3ad76"
     },
     {
       "path": "src/extensions/plugins/source-bundle.ts",
@@ -1139,8 +1139,8 @@
     },
     {
       "path": "scripts/run-core-tests.mjs",
-      "bytes": 4104,
-      "sha256": "bd7bf3381b95844ee22cf1ec524c48de1df06925b07339275c6ccc1b6b20b7bf"
+      "bytes": 4177,
+      "sha256": "b38c4fa33b2f59bc3ae157892cf880251a3ec0e327d17464c6c24941a7427077"
     },
     {
       "path": "scripts/runtime-files.mjs",
@@ -1509,8 +1509,8 @@
     },
     {
       "path": "test/extension-isolation.test.ts",
-      "bytes": 11054,
-      "sha256": "32eaa71e4f4b2d553977817543bd058f85486215a034fcc637768e98f782428e"
+      "bytes": 12279,
+      "sha256": "2e0ed36056cebbbe1c69d267afd0e3ad0b2bd49647c99dad9eb8135c6db1dfe5"
     },
     {
       "path": "test/fixture-cleanup.test.ts",
@@ -1524,8 +1524,8 @@
     },
     {
       "path": "test/foundation-isolation.test.ts",
-      "bytes": 11575,
-      "sha256": "c4a9508cc9d3cec3a9762cb7e897a38d064aefb9efa89d319cd3c09d7a7db786"
+      "bytes": 12952,
+      "sha256": "3b2b0e9212bff8f210deb57c691e3c481d9232faf0b0d424a056166b1909fe0f"
     },
     {
       "path": "test/foundation-process.test.ts",
@@ -1539,8 +1539,8 @@
     },
     {
       "path": "test/foundation-windows-sandbox.test.ts",
-      "bytes": 35266,
-      "sha256": "1740a46d0ff680cc1b2b2658965cf8b6a86d17a21f54163566bcb6e15d4a2bfb"
+      "bytes": 35442,
+      "sha256": "9935242c7980f9c1908d95b9566a9e0093300ba41ea99bbe944cc15f9c31e3a0"
     },
     {
       "path": "test/hook-cancellation.test.ts",

@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile, access, readdir, writeFile } from "node:fs/promises";
+import {
+  readFile,
+  access,
+  readdir,
+  writeFile,
+  symlink,
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { setup } from "./support/wire-server.js";
@@ -139,6 +145,46 @@ test("Docker remains optional for actual native plugin and stdio MCP execution",
     await x.close();
   }
 });
+test("native plugin snapshots accept a configured data directory alias", async () => {
+  const x = await setup();
+  try {
+    const alias = path.join(x.root, "data-alias");
+    await symlink(x.config.dataDir, alias, "junction");
+    x.config.dataDir = alias;
+    const plugin = await x.kernel.plugins.install(
+      {
+        schemaVersion: 1,
+        id: "alias",
+        name: "alias",
+        version: "1.0.0",
+        entry: "index.mjs",
+        tools: [
+          {
+            name: "read",
+            description: "alias snapshot",
+            parameters: { type: "object" },
+            capabilities: ["files.read"],
+          },
+        ],
+      },
+      {
+        "index.mjs":
+          "export function execute(){ return { value: 'verified-alias' }; }",
+      },
+    );
+    x.kernel.plugins.enable(plugin.id, true, plugin.hash);
+    const result = await x.kernel.plugins
+      .tools(x.project.id, x.project.root)[0]
+      .execute("alias", {});
+    assert.deepEqual(result.content, [
+      { type: "text", text: JSON.stringify({ value: "verified-alias" }) },
+    ]);
+    assert.deepEqual(await readdir(path.join(alias, "plugin-invocations")), []);
+  } finally {
+    await x.close();
+  }
+});
+
 test("extension host generates restrictive mounts and container limits without placing credentials in argv", async () => {
   const x = await setup(undefined, {
     extensions: { executionBoundary: "docker" },
