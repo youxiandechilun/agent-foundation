@@ -86,6 +86,13 @@ class AppContainerHost {
   try{var entry=new PROCESS_ENTRY();entry.size=(uint)Marshal.SizeOf(typeof(PROCESS_ENTRY));Check(Process32FirstW(snapshot,ref entry),"Read sandbox owner");do{if(entry.pid==(uint)Process.GetCurrentProcess().Id){var owner=Process.GetProcessById((int)entry.parent);if(owner.StartTime>Process.GetCurrentProcess().StartTime || WaitForSingleObject(owner.Handle,0)!=258){owner.Dispose();throw new Exception("Sandbox owner exited before launch");}return owner;}}while(Process32NextW(snapshot,ref entry));throw new Exception("Sandbox owner identity unavailable");}finally{CloseHandle(snapshot);}
  }
  static void Validate(Dictionary<string,object> m){string profile=Text(m,"profile");if(!System.Text.RegularExpressions.Regex.IsMatch(profile,"^foundation\\.agent\\.[a-f0-9]{32}$"))throw new Exception("Invalid sandbox profile");if(Text(m,"job")!="Local\\Foundation.Agent."+profile)throw new Exception("Invalid sandbox job identity");}
+ static void RemoveStaged(string file){
+  var deadline=DateTime.UtcNow.AddSeconds(8);
+  while(true){
+   try{if(File.Exists(file))File.Delete(file);else if(Directory.Exists(file)){NoLink(file);Directory.Delete(file,true);}return;}
+   catch(IOException error){int code=error.HResult&0xffff;if((code!=32&&code!=33)||DateTime.UtcNow>=deadline)throw;Thread.Sleep(50);}
+  }
+ }
  static bool Cleanup(string manifest,bool orphan){
   var m=Load(manifest);Validate(m);string stateFile=StatePath(manifest);var state=File.Exists(stateFile)?Load(stateFile):new Dictionary<string,object>();
   if(state.ContainsKey("cleanupConfirmed") && Convert.ToBoolean(state["cleanupConfirmed"]))return true;
@@ -104,7 +111,7 @@ class AppContainerHost {
   IntPtr sid;int hr=DeriveAppContainerSidFromAppContainerName(Text(m,"profile"),out sid);if(hr!=0)throw new Exception("Cannot derive cleanup package SID");
   try{var identity=new SecurityIdentifier(sid);foreach(Dictionary<string,object> root in (IEnumerable)m["grants"])Grant(root,identity,true);}finally{FreeSid(sid);}
   hr=DeleteAppContainerProfile(Text(m,"profile"));if(hr!=0 && hr!=unchecked((int)0x80070002) && hr!=unchecked((int)0x80070003))throw new Exception("AppContainer profile cleanup failed: "+hr);
-  foreach(string name in new[]{"request.json","runtime"}) {string file=Path.Combine(Path.GetDirectoryName(manifest),name);if(File.Exists(file))File.Delete(file);else if(Directory.Exists(file)){NoLink(file);Directory.Delete(file,true);}}
+  foreach(string name in new[]{"request.json","runtime"})RemoveStaged(Path.Combine(Path.GetDirectoryName(manifest),name));
   state["phase"]="closed";state["cleanupConfirmed"]=true;state["closedAt"]=DateTime.UtcNow.ToString("o");Save(stateFile,state);return true;
  }
  static int Launch(string manifest,string request){

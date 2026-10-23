@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T01:07:29.550Z",
+  "checkedAt": "2026-10-23T01:15:45.780Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -264,8 +264,8 @@
     },
     {
       "path": "src/execution/native/AppContainerHost.cs",
-      "bytes": 20351,
-      "sha256": "3d5cc9c7949e91f79090924eb22af3f863ca0dffe292bc837f9a612842a2415b"
+      "bytes": 20608,
+      "sha256": "9f386af026fb71bc01268e7ce21f83de9363549153f8658214927e732b0baac0"
     },
     {
       "path": "src/execution/native/ConPtyHost.cs",
@@ -1539,8 +1539,8 @@
     },
     {
       "path": "test/foundation-windows-sandbox.test.ts",
-      "bytes": 35442,
-      "sha256": "9935242c7980f9c1908d95b9566a9e0093300ba41ea99bbe944cc15f9c31e3a0"
+      "bytes": 38314,
+      "sha256": "08bde7327152a9d4b649ad3aec6a081ffdc0e27168b3c95df32def7898c7d762"
     },
     {
       "path": "test/hook-cancellation.test.ts",

@@ -41,10 +41,15 @@ function gone(pid: number) {
   }
 }
 async function sddl(file: string) {
+  // Windows may set the auto-inherited marker when writing an otherwise identical ACL.
+  // Compare ownership, ACEs and all protection flags; omit only that OS status bit.
+  // https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.controlflags
   const expression =
-    "[System.IO.Directory]::GetAccessControl('" +
+    "$descriptor=[System.Security.AccessControl.RawSecurityDescriptor]::new([System.IO.Directory]::GetAccessControl('" +
     file.replaceAll("'", "''") +
-    "').GetSecurityDescriptorSddlForm([System.Security.AccessControl.AccessControlSections]::All)";
+    "').GetSecurityDescriptorSddlForm([System.Security.AccessControl.AccessControlSections]::All));" +
+    "$descriptor.SetFlags([System.Security.AccessControl.ControlFlags]([int]$descriptor.ControlFlags -band (-bnot 0x400)));" +
+    "$descriptor.GetSddlForm([System.Security.AccessControl.AccessControlSections]::All)";
   const r = await nativeProcess({
     command: path.join(
       process.env.SystemRoot!,
@@ -947,6 +952,68 @@ test(
 );
 
 test(
+  "Windows sandbox cleanup waits for actual transient file-sharing locks before confirming removal",
+  { skip: process.platform !== "win32" },
+  async () => {
+    const x = await setup(undefined, {
+      execution: { boundary: "windows-appcontainer", requireIsolation: true },
+    });
+    let holder: Promise<unknown> | undefined;
+    try {
+      const prepared = await prepareWindowsSandbox(x.config, {
+        command: process.execPath,
+        args: ["-e", "process.stdout.write('lock-cleanup')"],
+        cwd: x.project.root,
+        timeoutMs: 15000,
+        grants: [{ path: x.project.root, readOnly: false }],
+      });
+      const runtime = path.join(
+        path.dirname(prepared.sandbox!.manifest),
+        "runtime",
+      );
+      const locked = path.join(runtime, "held.txt");
+      const ready = path.join(x.root, "sharing-lock.ready");
+      await writeFile(locked, "owned cleanup fixture");
+      const literal = (value: string) =>
+        "'" + value.replaceAll("'", "''") + "'";
+      const expression = `$lock=[System.IO.File]::Open(${literal(locked)},[System.IO.FileMode]::Open,[System.IO.FileAccess]::Read,[System.IO.FileShare]::Read);try{[System.IO.File]::WriteAllText(${literal(ready)},'ready');[System.Threading.Thread]::Sleep(5000)}finally{$lock.Dispose()}`;
+      holder = nativeProcess({
+        command: path.join(
+          process.env.SystemRoot!,
+          "System32",
+          "WindowsPowerShell",
+          "v1.0",
+          "powershell.exe",
+        ),
+        args: [
+          "-NoProfile",
+          "-NonInteractive",
+          "-EncodedCommand",
+          Buffer.from(expression, "utf16le").toString("base64"),
+        ],
+        cwd: x.root,
+        timeoutMs: 15000,
+      });
+      void holder.catch(() => undefined);
+      await until(() => readFile(ready, "utf8").catch(() => undefined));
+      const result = await nativeProcess(prepared);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "lock-cleanup");
+      await holder;
+      assert.equal(
+        JSON.parse(await readFile(prepared.sandbox!.state, "utf8"))
+          .cleanupConfirmed,
+        true,
+      );
+      await assert.rejects(access(runtime), /ENOENT/);
+    } finally {
+      await holder?.catch(() => undefined);
+      await x.close();
+    }
+  },
+);
+
+test(
   "Windows sandbox read-only policy is enforced by the OS and child processes retain the same file isolation",
   { skip: process.platform !== "win32" },
   async () => {
@@ -962,7 +1029,7 @@ test(
       await writeFile(outside, "private");
       await writeFile(path.join(x.project.root, "input.txt"), "source");
       const child = `try{require('node:fs').readFileSync(${JSON.stringify(outside)});process.stdout.write(JSON.stringify({child:'escaped'})+'\\n')}catch(e){process.stdout.write(JSON.stringify({child:e.code})+'\\n')}`;
-      const script = `const fs=require('node:fs');let write;try{fs.writeFileSync('blocked.txt','denied');write=false}catch(e){write=e.code}const child=require('node:child_process').spawnSync(process.execPath,['-e',${JSON.stringify(child)}],{stdio:['ignore','inherit','inherit'],timeout:3000});console.log(JSON.stringify({read:fs.readFileSync('input.txt','utf8'),write,child:child.stdout,childError:child.stderr,spawnError:child.error?.code,status:child.status}));`;
+      const script = `const fs=require('node:fs');let write;try{fs.writeFileSync('blocked.txt','denied');write=false}catch(e){write=e.code}const child=require('node:child_process').spawn(process.execPath,['-e',${JSON.stringify(child)}],{stdio:['ignore','inherit','inherit']});child.once('error',e=>{process.stderr.write(String(e));process.exitCode=1});child.once('close',status=>console.log(JSON.stringify({read:fs.readFileSync('input.txt','utf8'),write,status})));`;
       const result = await new CommandRunner(x.config).run(
           {
             command: process.execPath,
