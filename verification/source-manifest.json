@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T03:53:48.961Z",
+  "checkedAt": "2026-10-23T04:16:12.529Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -34,8 +34,8 @@
     },
     {
       "path": "src/api/events.ts",
-      "bytes": 6505,
-      "sha256": "034be130a6fe2f5d52c50a1f9a698304112ab4b8be710356b0dba45610733af0"
+      "bytes": 7210,
+      "sha256": "fb1b85a4c298c339e0adca76e13d9947c730c9c8ca9985bbf125ae83083abefd"
     },
     {
       "path": "src/api/management.ts",
@@ -584,8 +584,8 @@
     },
     {
       "path": "src/media/manager.ts",
-      "bytes": 27102,
-      "sha256": "a7db4de05ea08f93bee3d0f7cbc56607f746710ac23f4edeb5a64c4098a031b2"
+      "bytes": 27108,
+      "sha256": "732b3d5637507cfe26e9f3243eb3d2702b1a5083fd343e9b3b084a176ad77ec0"
     },
     {
       "path": "src/modes/index.ts",
@@ -1334,8 +1334,8 @@
     },
     {
       "path": "docs/OPTIMIZATION-20261023.md",
-      "bytes": 14768,
-      "sha256": "90e0fed4ebf3aa8d8f721896734b24b730febdb5f1dbe2d2f83d5f4450c30062"
+      "bytes": 15764,
+      "sha256": "2930c2253af061ce388e90c578dcb920021b54f252075872170a5bacc545f776"
     },
     {
       "path": "docs/OPTIMIZATION.md",
@@ -1539,8 +1539,8 @@
     },
     {
       "path": "test/event-stream-backpressure.test.ts",
-      "bytes": 7283,
-      "sha256": "030eed132b5956884ef2652d208c8734a02a5aec78c3a792d5475e95757a242d"
+      "bytes": 10608,
+      "sha256": "bfbcc657ac9aef282c438bfd7791f1622a96a615f24954dd257c84ad37c9144b"
     },
     {
       "path": "test/extension-isolation.test.ts",
@@ -1749,8 +1749,8 @@
     },
     {
       "path": "test/optimization-media-migration.test.ts",
-      "bytes": 8388,
-      "sha256": "020926a167d24a3d7c95c79315f44d2aabce46f63e0e239c0fa7da75481b50dd"
+      "bytes": 8540,
+      "sha256": "70cb0085ba54b0f6414444a6ecb1c8e26d9b515d663fa1356e93e85c22ca8d7d"
     },
     {
       "path": "test/optimization-migration-cancellation.test.ts",

@@ -685,7 +685,7 @@ export class Media {
         await response.body?.cancel().catch(() => undefined);
     }
   }
-  cancel(jobId: string): Promise<Job> {
+  async cancel(jobId: string): Promise<Job> {
     invariant(!this.closed, "Media service is closed", 503);
     const current = this.cancellations.get(jobId);
     if (current) return current;

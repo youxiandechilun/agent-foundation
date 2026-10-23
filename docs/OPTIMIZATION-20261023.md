@@ -73,6 +73,8 @@ HTTP 导出以背压发送 JSON 片段，客户端仍读取普通 `foundation-mi
 
 ### CI 与回归范围
 
+SSE 发送保留容量限制和 30 秒背压超时，同时兼容 HTTP 写入已完成但未发出 `drain` 的情况：仅在本次写入回调完成且缓冲为空时恢复发送。Node 24.22.1 下真实低水位 HTTP 响应曾在该状态误等到超时；新增确定性回归检查等待期间不提前发送、写入完成后继续、顺序与监听器清理，并保留大规模真实 HTTP 背压验证。媒体 `cancel()` 的关闭拒绝继续通过 Promise 返回，保持公开异步接口约定。
+
 宿主 CI 使用能力排除：`npm run test:host -- --exclude-capability=interactive-desktop`。新增普通 `.integration.ts` 文件默认参与；整文件需要真实桌面时声明能力，混合套件只跳过真实桌面用例。浏览器、Office 和不需要交互桌面的集成不再依赖文件名允许列表。
 
 新增回归覆盖不合作回调的槽位占用、幂等与旧库升级、真实 Playwright context 关闭及 CDP 断线、两个真实 Kernel 的集成所有权与协议隔离，以及真实 HTTP 断开时阻塞附件读取收到取消并释放配额。浏览器测试仍需已安装 Chromium；没有运行的真实桌面、远端供应商及生产负载不因本地测试通过而算作已验证。
@@ -107,7 +109,7 @@ node scripts/benchmark-kernel-footprint.mjs
 
 运行时基准直接向 stdout 输出 JSON。存储基准与空闲进程基准的采样、临时数据和输出位置以脚本为准；不调用收费模型。SDK 压缩包与独立消费者需另执行 `npm run pack:sdk` 和 `npm run verify:sdk`，源码验证不能证明既有 tarball 已更新。
 
-本轮已完成 `check:quality`、core/host 构建与编译产物 smoke 检查；核心测试 **641/641 通过**，宿主测试 **35 通过、1 个真实桌面用例按能力跳过、0 失败**。核心及包含可选依赖的 npm audit 均报告 0 个漏洞，这是本次依赖审计结果，不是整个产品的安全证明。日志、环境与命令汇总保存在 [validation.json](../verification/optimization-20261023/validation.json)、[核心测试](../verification/optimization-20261023/core-tests.log)、[宿主测试](../verification/optimization-20261023/host-tests.log) 与 [质量检查](../verification/optimization-20261023/quality.log)。SDK 交付与独立消费者验收的最终结果以对应报告为准，不由上述测试数推定。
+批量优化阶段已完成 `check:quality`、core/host 构建与编译产物 smoke 检查；核心测试 **641/641 通过**，宿主测试 **35 通过、1 个真实桌面用例按能力跳过、0 失败**。后续 SSE 修复新增 1 个核心回归，相关流式与资源限制测试在 Node 22.23.2、24.22.1 各 **22/22 通过**，Node 24 的两个关键用例连续 5 轮 **10/10 通过**；最终全量与 SDK 复验记录见 [validation.json](../verification/optimization-20261023/validation.json)。核心及包含可选依赖的 npm audit 均报告 0 个漏洞，这是本次依赖审计结果，不是整个产品的安全证明。原阶段日志保存在 [核心测试](../verification/optimization-20261023/core-tests.log)、[宿主测试](../verification/optimization-20261023/host-tests.log) 与 [质量检查](../verification/optimization-20261023/quality.log)，后续专项日志为 [Node 22 SSE](../verification/optimization-20261023/sse-node22-regression.log)、[Node 24 SSE](../verification/optimization-20261023/sse-node24-regression.log) 与 [重复验证](../verification/optimization-20261023/sse-node24-repeated.log)。SDK 交付与独立消费者验收的最终结果以对应报告为准，不由上述测试数推定。
 
 ## 本轮测量
 

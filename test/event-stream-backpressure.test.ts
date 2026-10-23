@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
-import { once } from "node:events";
+import { EventEmitter, once } from "node:events";
 import { mkdtemp, rm } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { Readable } from "node:stream";
-import { setTimeout as delay } from "node:timers/promises";
+import { setImmediate, setTimeout as delay } from "node:timers/promises";
 import { test, type TestContext } from "node:test";
 import { streamRunEvents } from "../src/api/events.js";
 import { FoundationClient } from "../src/client.js";
@@ -79,21 +78,55 @@ async function fixture(t: TestContext) {
   };
 }
 
-async function consume(response: http.IncomingMessage) {
+async function consume(
+  response: http.IncomingMessage,
+  t: TestContext,
+  diagnostics: () => Record<string, unknown>,
+) {
   const events: { seq: number | null; type: string; index?: number }[] = [];
-  const stream = Readable.toWeb(response) as ReadableStream<Uint8Array>;
-  // The fixture explicitly paused the socket; resume only after the adapter owns its data listeners.
-  response.resume();
-  for await (const frame of decodeEventStream(stream, {
-    maxFrameChars: 64 * 1024 * 1024,
-  })) {
-    const event = JSON.parse(frame.data) as FoundationEvent;
-    events.push({
-      seq: event.seq,
-      type: event.type,
-      index: event.data.index as number | undefined,
-    });
-    if (events.length % 1000 === 0) await delay(1);
+  let receivedBytes = 0;
+  // Use one owner for read flow instead of toWeb's pause/resume bridge plus an
+  // explicit resume of the already paused IncomingMessage. The native iterator
+  // reads only when the decoder pulls, including after the deliberate delays.
+  const iterator = response[Symbol.asyncIterator]();
+  const stream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      const { done, value } = await iterator.next();
+      if (done) controller.close();
+      else {
+        const chunk = value as Uint8Array;
+        receivedBytes += chunk.byteLength;
+        controller.enqueue(chunk);
+      }
+    },
+    async cancel() {
+      await iterator.return?.();
+    },
+  });
+  try {
+    for await (const frame of decodeEventStream(stream, {
+      maxFrameChars: 64 * 1024 * 1024,
+    })) {
+      const event = JSON.parse(frame.data) as FoundationEvent;
+      events.push({
+        seq: event.seq,
+        type: event.type,
+        index: event.data.index as number | undefined,
+      });
+      if (events.length % 1000 === 0) await delay(1);
+    }
+  } catch (error) {
+    t.diagnostic(
+      JSON.stringify({
+        receivedBytes,
+        receivedEvents: events.length,
+        readableLength: response.readableLength,
+        readableFlowing: response.readableFlowing,
+        complete: response.complete,
+        ...diagnostics(),
+      }),
+    );
+    throw error;
   }
   return events;
 }
@@ -125,7 +158,12 @@ test(
       "the real server socket reached backpressure",
     );
     await delay(30);
-    const events = await consume(incoming);
+    const events = await consume(incoming, t, () => ({
+      blockedWrites: x.blockedWrites(),
+      drains: x.drains(),
+      writableLength: x.responses[0].writableLength,
+      writableNeedDrain: x.responses[0].writableNeedDrain,
+    }));
     assert.equal(events.length, count + 2);
     assert.equal(events[0].seq, first.seq);
     assert.deepEqual(
@@ -159,7 +197,12 @@ test(
     const final = x.complete();
     assert.equal(x.responses[0].writableNeedDrain, true);
     await delay(30);
-    const received = await consume(incoming);
+    const received = await consume(incoming, t, () => ({
+      blockedWrites: x.blockedWrites(),
+      drains: x.drains(),
+      writableLength: x.responses[0].writableLength,
+      writableNeedDrain: x.responses[0].writableNeedDrain,
+    }));
     assert.notEqual(
       received.at(-1)!.type,
       "run.completed",
@@ -211,3 +254,77 @@ test(
     );
   },
 );
+
+test("completed HTTP writes release backpressure even when the socket never emits drain", async (t) => {
+  const x = await fixture(t);
+  const first = x.store.emit(x.runId, "replay", { value: "initial" });
+  const final = x.complete();
+  class Response extends EventEmitter {
+    destroyed = false;
+    writableEnded = false;
+    writableLength = 0;
+    readonly chunks: string[] = [];
+    callbacks: (() => void)[] = [];
+    writeHead() {
+      return this;
+    }
+    write(data: string, callback: () => void) {
+      this.chunks.push(data);
+      this.writableLength = Buffer.byteLength(data);
+      this.callbacks.push(() => {
+        this.writableLength = 0;
+        callback();
+      });
+      return false;
+    }
+    end() {
+      this.writableEnded = true;
+      this.emit("finish");
+    }
+    destroy() {
+      this.destroyed = true;
+      this.emit("close");
+      return this;
+    }
+  }
+  const response = new Response();
+  const streaming = streamRunEvents(
+    x.store,
+    x.runId,
+    0,
+    response as unknown as http.ServerResponse,
+    {
+      maxSseSubscribers: 1,
+      maxSseSubscribersPerRun: 1,
+      maxSseBufferBytes: 4096,
+      maxSseConnectionBytes: 4096,
+      sseDrainTimeoutMs: 1000,
+    },
+  );
+  t.after(() => response.destroy());
+  await setImmediate();
+  assert.equal(
+    response.chunks.length,
+    1,
+    "pending writes still apply backpressure",
+  );
+  response.callbacks.shift()!();
+  await setImmediate();
+  assert.equal(
+    response.chunks.length,
+    2,
+    "the write callback releases the waiter",
+  );
+  response.callbacks.shift()!();
+  await streaming;
+  assert.equal(
+    response.destroyed,
+    false,
+    "the drain timeout did not close the stream",
+  );
+  assert.equal(response.writableEnded, true);
+  assert.match(response.chunks[0], new RegExp(`^id: ${first.seq}\\n`));
+  assert.match(response.chunks[1], new RegExp(`^id: ${final.seq}\\n`));
+  assert.equal(x.store.events.listenerCount(x.runId), 0);
+  assert.equal(response.listenerCount("drain"), 0);
+});

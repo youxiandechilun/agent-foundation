@@ -1,0 +1,143 @@
+TAP version 13
+# Subtest: client reconnects only GET streams with a durable cursor and deduplicates replayed events
+ok 1 - client reconnects only GET streams with a durable cursor and deduplicates replayed events
+  ---
+  duration_ms: 30.5094
+  type: 'test'
+  ...
+# Subtest: event delivery handles a large durable replay and live completion without discarding its initial event
+ok 2 - event delivery handles a large durable replay and live completion without discarding its initial event
+  ---
+  duration_ms: 84.7996
+  type: 'test'
+  ...
+# Subtest: structured HTTP errors preserve status and code, and permanent auth failures are never retried
+ok 3 - structured HTTP errors preserve status and code, and permanent auth failures are never retried
+  ---
+  duration_ms: 3.6456
+  type: 'test'
+  ...
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 4 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 731.8935
+  type: 'test'
+  ...
+# Subtest: UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence
+ok 5 - UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence
+  ---
+  duration_ms: 808.6574
+  type: 'test'
+  ...
+# Subtest: disconnecting a genuinely blocked HTTP consumer releases the event subscription and drain waiter
+ok 6 - disconnecting a genuinely blocked HTTP consumer releases the event subscription and drain waiter
+  ---
+  duration_ms: 74.0788
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 7 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 24.8639
+  type: 'test'
+  ...
+# Subtest: history checkpoints load a bounded tail, survive append/restart and invalidate changed prefixes
+ok 8 - history checkpoints load a bounded tail, survive append/restart and invalidate changed prefixes
+  ---
+  duration_ms: 66.5816
+  type: 'test'
+  ...
+# Subtest: real compaction persists a reusable checkpoint and keeps the durable message budget
+ok 9 - real compaction persists a reusable checkpoint and keeps the durable message budget
+  ---
+  duration_ms: 76.5553
+  type: 'test'
+  ...
+# Subtest: streaming assets clean cancellation, enforce reservations and serve a verified immutable snapshot
+ok 10 - streaming assets clean cancellation, enforce reservations and serve a verified immutable snapshot
+  ---
+  duration_ms: 47.1993
+  type: 'test'
+  ...
+# Subtest: kernel shutdown cancels stalled asset writes and closes outstanding download snapshots
+ok 11 - kernel shutdown cancels stalled asset writes and closes outstanding download snapshots
+  ---
+  duration_ms: 27.3381
+  type: 'test'
+  ...
+# Subtest: entity API cursor pages remain bounded and stable across updates
+ok 12 - entity API cursor pages remain bounded and stable across updates
+  ---
+  duration_ms: 32.6106
+  type: 'test'
+  ...
+# Subtest: live retention yields between batches and cancellation preserves remaining work
+ok 13 - live retention yields between batches and cancellation preserves remaining work
+  ---
+  duration_ms: 30.2815
+  type: 'test'
+  ...
+# Subtest: input admission limits reject before persistence and release queue capacity after failure
+ok 14 - input admission limits reject before persistence and release queue capacity after failure
+  ---
+  duration_ms: 99.5012
+  type: 'test'
+  ...
+# Subtest: SSE global bytes, per-run subscribers and stalled drain reservations are released
+ok 15 - SSE global bytes, per-run subscribers and stalled drain reservations are released
+  ---
+  duration_ms: 133.3147
+  type: 'test'
+  ...
+# Subtest: kernel redaction policies and rotated credentials have independent async lifetimes
+ok 16 - kernel redaction policies and rotated credentials have independent async lifetimes
+  ---
+  duration_ms: 52.9093
+  type: 'test'
+  ...
+# Subtest: shared SSE decoder preserves mixed line endings, split Unicode and final events
+ok 17 - shared SSE decoder preserves mixed line endings, split Unicode and final events
+  ---
+  duration_ms: 5.1057
+  type: 'test'
+  ...
+# Subtest: SSE limits apply to individual frames across chunks and enforce total bytes
+ok 18 - SSE limits apply to individual frames across chunks and enforce total bytes
+  ---
+  duration_ms: 1.2885
+  type: 'test'
+  ...
+# Subtest: MCP frames preserve empty cursor events, bounded retry and UTF-8 byte limits across every split
+ok 19 - MCP frames preserve empty cursor events, bounded retry and UTF-8 byte limits across every split
+  ---
+  duration_ms: 2.1994
+  type: 'test'
+  ...
+# Subtest: SSE abort interrupts an idle reader and early consumer exit releases its lock
+ok 20 - SSE abort interrupts an idle reader and early consumer exit releases its lock
+  ---
+  duration_ms: 0.4175
+  type: 'test'
+  ...
+# Subtest: SSE cancellation stops buffered events and cleans up an already-aborted input
+ok 21 - SSE cancellation stops buffered events and cleans up an already-aborted input
+  ---
+  duration_ms: 0.7656
+  type: 'test'
+  ...
+# Subtest: fetch client accepts coalesced bounded frames and validates complete event envelopes over HTTP
+ok 22 - fetch client accepts coalesced bounded frames and validates complete event envelopes over HTTP
+  ---
+  duration_ms: 29.6066
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3291.6298
+Compiled tests kept at E:\agent-foundation-main\.agent-data-tests\compiled-tests-MvhQ7Y

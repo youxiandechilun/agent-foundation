@@ -96,21 +96,39 @@ export async function streamRunEvents(
       return false;
     }
     try {
-      if (!res.write(data)) {
+      let written = false;
+      let resume: (() => void) | undefined;
+      const accepted = res.write(data, (error?: Error | null) => {
+        written = true;
+        if (error) res.destroy();
+        // A chunked HTTP response can cross its high-water mark while its
+        // underlying socket does not. Node may complete the write without
+        // emitting drain; an empty buffer is the same safe point to resume.
+        if (error || res.writableLength === 0) resume?.();
+      });
+      if (!accepted) {
         blocked = true;
         await new Promise<void>((resolve) => {
           const finish = () => {
+            resume = undefined;
             res.off("drain", finish);
             res.off("close", finish);
             clearTimeout(timer);
             resolve();
           };
+          resume = finish;
           res.once("drain", finish);
           res.once("close", finish);
           const timer = setTimeout(() => {
             res.destroy();
             finish();
           }, limits.sseDrainTimeoutMs).unref();
+          if (
+            res.destroyed ||
+            res.writableEnded ||
+            (written && res.writableLength === 0)
+          )
+            finish();
         });
         blocked = false;
       }

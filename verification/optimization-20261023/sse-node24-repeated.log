@@ -1,0 +1,121 @@
+Node 24.22.1: five sequential runs of real paused consumer and callback-without-drain regression
+
+Run 1
+TAP version 13
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 1 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 767.2605
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 2 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 23.3541
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 899.4464
+
+Run 2
+TAP version 13
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 1 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 783.6198
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 2 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 22.4718
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 923.7977
+
+Run 3
+TAP version 13
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 1 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 762.8806
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 2 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 18.2585
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 889.5229
+
+Run 4
+TAP version 13
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 1 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 721.1798
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 2 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 19.471
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 846.3915
+
+Run 5
+TAP version 13
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 1 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 748.611
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 2 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 20.5406
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 875.2397

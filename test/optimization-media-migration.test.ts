@@ -82,6 +82,8 @@ test("media admission bounds provider concurrency and queued work, cancels reser
       () => x.kernel.media.create({ ...input, idempotencyKey: "closed" }),
       /closed/,
     );
+    // Preserve the public async contract even when admission rejects immediately.
+    await assert.rejects(x.kernel.media.cancel(first.id), /closed/);
   } finally {
     await x.close();
   }

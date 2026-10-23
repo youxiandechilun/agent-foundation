@@ -100,7 +100,8 @@
     "productionLoadOrLongTermLeakTest": false,
     "crossOsMigration": false,
     "sdkRuntimeVersionsTestedLocally": [
-      "v22.23.2"
+      "v22.23.2",
+      "v24.22.1"
     ],
     "minimumExactNode2219Tested": false,
     "githubCi": "Node 22/24 workflow runs after pushing this commit; see GitHub for the remote result.",
@@ -122,6 +123,67 @@
     },
     "strictTestTypes": "passed; ci-test-types.log",
     "lintAndFormat": "passed for test/media-nodes.test.ts",
-    "remoteRevalidation": "A new full Node 22/24 CI run is required for this follow-up commit; see GitHub."
+    "remoteRevalidation": "Run 39897501349: Node 22 passed all steps. Node 24 failed the SSE backlog test; see sseFollowup."
+  },
+  "sseFollowup": {
+    "observedRun": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39897501349",
+    "observedCommit": "15b62afdea69393ff35bf0bdd2ed062589461d1a",
+    "cause": "Reproduced on Node 24.22.1: an HTTP chunked response returned write(false), then completed with an empty buffer without drain, leaving the sender waiting until its 30 second timeout.",
+    "changes": [
+      "Resume after the write callback completes and writableLength is zero, retaining drain/close listeners, capacity budgets and the original timeout.",
+      "Use one native async iterator for the paused test consumer and report flow diagnostics on failure.",
+      "Preserve the asynchronous Media.cancel rejection contract after close."
+    ],
+    "focusedRegressions": [
+      {
+        "node": "v22.23.2",
+        "failed": 0,
+        "log": "sse-node22-regression.log",
+        "passed": 22
+      },
+      {
+        "node": "v24.22.1",
+        "failed": 0,
+        "log": "sse-node24-regression.log",
+        "passed": 22
+      },
+      {
+        "rounds": 5,
+        "node": "v24.22.1",
+        "failed": 0,
+        "log": "sse-node24-repeated.log",
+        "passed": 10
+      },
+      {
+        "node": "v22.23.2",
+        "failed": 0,
+        "log": "media-async-regression.log",
+        "passed": 12
+      }
+    ],
+    "independentReview": "Read-only review plus five Node 24 callback/drain/error ordering probes found no blocking issue.",
+    "quality": "passed; quality-final.log",
+    "finalCore": {
+      "node": "v24.22.1",
+      "command": "node scripts/run-core-tests.mjs",
+      "tests": 642,
+      "passed": 642,
+      "failed": 0,
+      "skipped": 0,
+      "log": "core-node24-final.log"
+    },
+    "finalSdk": {
+      "status": "passed",
+      "runtimes": [
+        "v22.23.2",
+        "v24.22.1"
+      ],
+      "packagedRegexWorker": true,
+      "packageReport": "sdk-package.json",
+      "consumerReport": "sdk-consumer.json"
+    },
+    "remoteRevalidation": "A new full Node 22/24 CI run will validate the follow-up commit.",
+    "checkedAt": "2026-10-23T04:17:41.289Z",
+    "sourceVerification": "passed; source-final.log"
   }
 }

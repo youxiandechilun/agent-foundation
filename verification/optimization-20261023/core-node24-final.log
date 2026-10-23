@@ -1,0 +1,3895 @@
+TAP version 13
+# Subtest: retry policy: transient-only, bounded, honours Retry-After
+ok 1 - retry policy: transient-only, bounded, honours Retry-After
+  ---
+  duration_ms: 5.8997
+  type: 'test'
+  ...
+# Subtest: the last route in the chain retries transient failures in place
+ok 2 - the last route in the chain retries transient failures in place
+  ---
+  duration_ms: 259.5134
+  type: 'test'
+  ...
+# Subtest: retries stop at maxRetries and the run fails with the provider error
+ok 3 - retries stop at maxRetries and the run fails with the provider error
+  ---
+  duration_ms: 153.7675
+  type: 'test'
+  ...
+# Subtest: Anthropic cache breakpoints copy blocks and stay within four markers
+ok 4 - Anthropic cache breakpoints copy blocks and stay within four markers
+  ---
+  duration_ms: 0.6937
+  type: 'test'
+  ...
+# Subtest: Anthropic requests carry cache_control unless the route disables it
+ok 5 - Anthropic requests carry cache_control unless the route disables it
+  ---
+  duration_ms: 114.7349
+  type: 'test'
+  ...
+# Subtest: programmatic hooks deny, rewrite, annotate and continue without granting access
+ok 6 - programmatic hooks deny, rewrite, annotate and continue without granting access
+  ---
+  duration_ms: 224.7947
+  type: 'test'
+  ...
+# Subtest: hook-rewritten arguments are re-validated and still pass permission policy
+ok 7 - hook-rewritten arguments are re-validated and still pass permission policy
+  ---
+  duration_ms: 172.0177
+  type: 'test'
+  ...
+# Subtest: config command hooks follow the exit-code/JSON protocol
+ok 8 - config command hooks follow the exit-code/JSON protocol
+  ---
+  duration_ms: 713.0941
+  type: 'test'
+  ...
+# Subtest: a crashing observer hook is reported but a crashing PreToolUse hook fails closed
+ok 9 - a crashing observer hook is reported but a crashing PreToolUse hook fails closed
+  ---
+  duration_ms: 246.0726
+  type: 'test'
+  ...
+# Subtest: exact management routes reject unknown suffixes without changing resources
+ok 10 - exact management routes reject unknown suffixes without changing resources
+  ---
+  duration_ms: 139.1682
+  type: 'test'
+  ...
+# Subtest: static routes win over IDs, response status and fresh validation remain intact
+ok 11 - static routes win over IDs, response status and fresh validation remain intact
+  ---
+  duration_ms: 87.0622
+  type: 'test'
+  ...
+# Subtest: cancelled asset writes never publish metadata or leave a partial artifact
+ok 12 - cancelled asset writes never publish metadata or leave a partial artifact
+  ---
+  duration_ms: 93.4094
+  type: 'test'
+  ...
+# Subtest: automatic memory excerpts are bounded and failed semantic retrieval falls back with an explicit event
+ok 13 - automatic memory excerpts are bounded and failed semantic retrieval falls back with an explicit event
+  ---
+  duration_ms: 209.0974
+  type: 'test'
+  ...
+# Subtest: recreating a deleted memory preserves prior revisions and cannot reassign another project's ID
+ok 14 - recreating a deleted memory preserves prior revisions and cannot reassign another project's ID
+  ---
+  duration_ms: 88.3108
+  type: 'test'
+  ...
+# Subtest: media cannot claim completion with an empty payload, text-only image, or another project's asset
+ok 15 - media cannot claim completion with an empty payload, text-only image, or another project's asset
+  ---
+  duration_ms: 210.116
+  type: 'test'
+  ...
+# Subtest: asset reads and HTTP downloads reject changed bytes instead of returning a mismatched digest
+ok 16 - asset reads and HTTP downloads reject changed bytes instead of returning a mismatched digest
+  ---
+  duration_ms: 98.1431
+  type: 'test'
+  ...
+# Subtest: oversized tool output is archived and replaced by an explicit bounded reference, including details
+ok 17 - oversized tool output is archived and replaced by an explicit bounded reference, including details
+  ---
+  duration_ms: 170.2239
+  type: 'test'
+  ...
+# Subtest: attachment preparation is cancelable during shutdown and keeps the session configuration stable
+ok 18 - attachment preparation is cancelable during shutdown and keeps the session configuration stable
+  ---
+  duration_ms: 99.6336
+  type: 'test'
+  ...
+# Subtest: settlement hooks cannot keep a completed run or its session alive forever
+ok 19 - settlement hooks cannot keep a completed run or its session alive forever
+  ---
+  duration_ms: 280.8078
+  type: 'test'
+  ...
+# Subtest: failed kernel initialization releases the single-writer lease
+ok 20 - failed kernel initialization releases the single-writer lease
+  ---
+  duration_ms: 120.683
+  type: 'test'
+  ...
+# Subtest: actual command stdout preserves UTF-8 characters split between process writes
+ok 21 - actual command stdout preserves UTF-8 characters split between process writes
+  ---
+  duration_ms: 209.8861
+  type: 'test'
+  ...
+# Subtest: reinstalling reviewed plugin source repairs added files without retaining old trust
+ok 22 - reinstalling reviewed plugin source repairs added files without retaining old trust
+  ---
+  duration_ms: 79.6643
+  type: 'test'
+  ...
+# Subtest: media plugins declare actual capabilities and adapter IDs cannot silently bind another plugin
+ok 23 - media plugins declare actual capabilities and adapter IDs cannot silently bind another plugin
+  ---
+  duration_ms: 68.019
+  type: 'test'
+  ...
+# Subtest: route deletion respects reusable mode and agent references
+ok 24 - route deletion respects reusable mode and agent references
+  ---
+  duration_ms: 81.8289
+  type: 'test'
+  ...
+# Subtest: a failing integration cleanup cannot leave the store lease or other resources open
+ok 25 - a failing integration cleanup cannot leave the store lease or other resources open
+  ---
+  duration_ms: 60.5347
+  type: 'test'
+  ...
+# Subtest: provider context overflow triggers one model compaction retry and preserves canonical history
+ok 26 - provider context overflow triggers one model compaction retry and preserves canonical history
+  ---
+  duration_ms: 310.558
+  type: 'test'
+  ...
+# Subtest: repeated identical tool results stop the loop with durable results and a failed run
+ok 27 - repeated identical tool results stop the loop with durable results and a failed run
+  ---
+  duration_ms: 224.6362
+  type: 'test'
+  ...
+# Subtest: registered execute tools without capability declarations inherit exec permission checks
+ok 28 - registered execute tools without capability declarations inherit exec permission checks
+  ---
+  duration_ms: 162.37
+  type: 'test'
+  ...
+# Subtest: planning mode may persist its internal plan while external file writes remain denied
+ok 29 - planning mode may persist its internal plan while external file writes remain denied
+  ---
+  duration_ms: 151.9326
+  type: 'test'
+  ...
+# Subtest: file search counts actual directory entries and stops at its configured budget
+ok 30 - file search counts actual directory entries and stops at its configured budget
+  ---
+  duration_ms: 162.4123
+  type: 'test'
+  ...
+# Subtest: Skill selection in a steering input delivers its actual instructions in the continuing run
+ok 31 - Skill selection in a steering input delivers its actual instructions in the continuing run
+  ---
+  duration_ms: 134.3144
+  type: 'test'
+  ...
+# Subtest: disconnect during MCP initialization revokes the pending connection instead of re-enabling it
+ok 32 - disconnect during MCP initialization revokes the pending connection instead of re-enabling it
+  ---
+  duration_ms: 458.5713
+  type: 'test'
+  ...
+# Subtest: integration authorization cannot downgrade the tool's original capabilities or risk
+ok 33 - integration authorization cannot downgrade the tool's original capabilities or risk
+  ---
+  duration_ms: 158.5629
+  type: 'test'
+  ...
+# Subtest: automatic memory retrieval respects host, route and project denial and never bypasses ask
+ok 34 - automatic memory retrieval respects host, route and project denial and never bypasses ask
+  ---
+  duration_ms: 492.4948
+  type: 'test'
+  ...
+# Subtest: a policy revoked while approval is pending is enforced before the file effect begins
+ok 35 - a policy revoked while approval is pending is enforced before the file effect begins
+  ---
+  duration_ms: 123.1722
+  type: 'test'
+  ...
+# Subtest: git inspection cannot execute repository helpers under read-only permissions
+ok 36 - git inspection cannot execute repository helpers under read-only permissions
+  ---
+  duration_ms: 268.5123
+  type: 'test'
+  ...
+# Subtest: an MCP tool closure is revoked after disconnect and cannot call a replacement server
+ok 37 - an MCP tool closure is revoked after disconnect and cannot call a replacement server
+  ---
+  duration_ms: 810.4422
+  type: 'test'
+  ...
+# Subtest: automatic memory is excluded from a fallback model that denies memory reads
+ok 38 - automatic memory is excluded from a fallback model that denies memory reads
+  ---
+  duration_ms: 195.8824
+  type: 'test'
+  ...
+# Subtest: fallback context is budgeted for the actual smaller model before sending its request
+ok 39 - fallback context is budgeted for the actual smaller model before sending its request
+  ---
+  duration_ms: 120.9671
+  type: 'test'
+  ...
+# Subtest: Responses argument deltas are emitted before the completed tool declaration
+ok 40 - Responses argument deltas are emitted before the completed tool declaration
+  ---
+  duration_ms: 72.7819
+  type: 'test'
+  ...
+# Subtest: session message budgets stop before another model call and keep the executed tool result
+ok 41 - session message budgets stop before another model call and keep the executed tool result
+  ---
+  duration_ms: 183.7649
+  type: 'test'
+  ...
+# Subtest: steering between tools skips remaining effects and records matching results before continuing
+ok 42 - steering between tools skips remaining effects and records matching results before continuing
+  ---
+  duration_ms: 147.33
+  type: 'test'
+  ...
+# Subtest: old registration disposers cannot revoke replacement tools or counters
+ok 43 - old registration disposers cannot revoke replacement tools or counters
+  ---
+  duration_ms: 0.6904
+  type: 'test'
+  ...
+# Subtest: escaped configured secrets never enter model inputs or durable tool effect results
+ok 44 - escaped configured secrets never enter model inputs or durable tool effect results
+  ---
+  duration_ms: 132.0822
+  type: 'test'
+  ...
+# Subtest: another live kernel cannot recover active runs; a dead owner's lease is recovered atomically
+ok 45 - another live kernel cannot recover active runs; a dead owner's lease is recovered atomically
+  ---
+  duration_ms: 503.0391
+  type: 'test'
+  ...
+# Subtest: host billing authorizes each model call with the project account and receives normalized tokens
+ok 46 - host billing authorizes each model call with the project account and receives normalized tokens
+  ---
+  duration_ms: 218.6742
+  type: 'test'
+  ...
+# Subtest: a billing refusal voids the reservation before any provider request
+ok 47 - a billing refusal voids the reservation before any provider request
+  ---
+  duration_ms: 101.4739
+  type: 'test'
+  ...
+# Subtest: undelivered outcomes are retried after restart and media units reach the host
+ok 48 - undelivered outcomes are retried after restart and media units reach the host
+  ---
+  duration_ms: 87.0365
+  type: 'test'
+  ...
+# Subtest: a custom system prompt replaces the default persona and keeps safety rules
+ok 49 - a custom system prompt replaces the default persona and keeps safety rules
+  ---
+  duration_ms: 0.3996
+  type: 'test'
+  ...
+# Subtest: rewind restores files and forks the conversation at a past input
+ok 50 - rewind restores files and forks the conversation at a past input
+  ---
+  duration_ms: 406.8353
+  type: 'test'
+  ...
+# Subtest: external changes are reported as conflicts and only overwritten with force
+ok 51 - external changes are reported as conflicts and only overwritten with force
+  ---
+  duration_ms: 197.651
+  type: 'test'
+  ...
+# Subtest: device client methods preserve public states and reject malformed HTTP payloads
+ok 52 - device client methods preserve public states and reject malformed HTTP payloads
+  ---
+  duration_ms: 36.6889
+  type: 'test'
+  ...
+# Subtest: client reconnects only GET streams with a durable cursor and deduplicates replayed events
+ok 53 - client reconnects only GET streams with a durable cursor and deduplicates replayed events
+  ---
+  duration_ms: 25.8375
+  type: 'test'
+  ...
+# Subtest: event delivery handles a large durable replay and live completion without discarding its initial event
+ok 54 - event delivery handles a large durable replay and live completion without discarding its initial event
+  ---
+  duration_ms: 148.1385
+  type: 'test'
+  ...
+# Subtest: structured HTTP errors preserve status and code, and permanent auth failures are never retried
+ok 55 - structured HTTP errors preserve status and code, and permanent auth failures are never retried
+  ---
+  duration_ms: 3.6249
+  type: 'test'
+  ...
+# Subtest: collaboration coordinates distinct models in one workspace without occupying the only tool slot
+ok 56 - collaboration coordinates distinct models in one workspace without occupying the only tool slot
+  ---
+  duration_ms: 620.5584
+  type: 'test'
+  ...
+# Subtest: collaboration can re-review after the latest user explicitly removes blocked work, with exact evidence
+ok 57 - collaboration can re-review after the latest user explicitly removes blocked work, with exact evidence
+  ---
+  duration_ms: 494.3377
+  type: 'test'
+  ...
+# Subtest: collaboration rejects overlapping active write scopes and a second active assignment for one member
+ok 58 - collaboration rejects overlapping active write scopes and a second active assignment for one member
+  ---
+  duration_ms: 218.1944
+  type: 'test'
+  ...
+# Subtest: collaboration bounds dispatches per run and lets later user rounds reuse member sessions
+ok 59 - collaboration bounds dispatches per run and lets later user rounds reuse member sessions
+  ---
+  duration_ms: 240.6913
+  type: 'test'
+  ...
+# Subtest: collaboration keeps brainstorming read-only and continues from one user-facing conversation
+ok 60 - collaboration keeps brainstorming read-only and continues from one user-facing conversation
+  ---
+  duration_ms: 222.8119
+  type: 'test'
+  ...
+# Subtest: collaboration denies unrelated conversation reads and member redispatch
+ok 61 - collaboration denies unrelated conversation reads and member redispatch
+  ---
+  duration_ms: 110.5002
+  type: 'test'
+  ...
+# Subtest: collaboration marks earlier member work stale after accepted steering and preserves the initial goal
+ok 62 - collaboration marks earlier member work stale after accepted steering and preserves the initial goal
+  ---
+  duration_ms: 850.6132
+  type: 'test'
+  ...
+# Subtest: collaboration cancels background member runs with the coordinator
+ok 63 - collaboration cancels background member runs with the coordinator
+  ---
+  duration_ms: 114.4023
+  type: 'test'
+  ...
+# Subtest: collaboration requires whole-roster review and a host decision before missing responsibilities can be reassigned
+ok 64 - collaboration requires whole-roster review and a host decision before missing responsibilities can be reassigned
+  ---
+  duration_ms: 113.5663
+  type: 'test'
+  ...
+# Subtest: collaboration reuses broad planning and execution roles for testing without inventing agents or repeating review
+ok 65 - collaboration reuses broad planning and execution roles for testing without inventing agents or repeating review
+  ---
+  duration_ms: 284.0122
+  type: 'test'
+  ...
+# Subtest: later compaction extends the previous summary instead of re-reading the whole history
+ok 66 - later compaction extends the previous summary instead of re-reading the whole history
+  ---
+  duration_ms: 83.2564
+  type: 'test'
+  ...
+# Subtest: context selection preserves exact byte rounding, tool groups and non-additive host counters
+ok 67 - context selection preserves exact byte rounding, tool groups and non-additive host counters
+  ---
+  duration_ms: 93.1192
+  type: 'test'
+  ...
+# Subtest: token estimator preserves image cost and one global rounding across message groups
+ok 68 - token estimator preserves image cost and one global rounding across message groups
+  ---
+  duration_ms: 0.2951
+  type: 'test'
+  ...
+# Subtest: Chinese context uses UTF-8 weighted budgets and hierarchical consolidation processes the tail segment
+ok 69 - Chinese context uses UTF-8 weighted budgets and hierarchical consolidation processes the tail segment
+  ---
+  duration_ms: 159.302
+  type: 'test'
+  ...
+# Subtest: custom mode persists across restart, restricts advertised tools, and cannot elevate a denied capability
+ok 70 - custom mode persists across restart, restricts advertised tools, and cannot elevate a denied capability
+  ---
+  duration_ms: 135.9274
+  type: 'test'
+  ...
+# Subtest: configured credential refs with ordinary environment names are redacted before inbox, model input and events
+ok 71 - configured credential refs with ordinary environment names are redacted before inbox, model input and events
+  ---
+  duration_ms: 57.5359
+  type: 'test'
+  ...
+# Subtest: aggregate attachment byte and excerpt budgets are enforced while original bytes remain available
+ok 72 - aggregate attachment byte and excerpt budgets are enforced while original bytes remain available
+  ---
+  duration_ms: 48.7629
+  type: 'test'
+  ...
+# Subtest: MCP shutdown aborts in-flight initialization and same-turn connection races without waiting for request timeout
+ok 73 - MCP shutdown aborts in-flight initialization and same-turn connection races without waiting for request timeout
+  ---
+  duration_ms: 446.4038
+  type: 'test'
+  ...
+# Subtest: automatic memory extraction obeys plan mode and host memory-write denial
+ok 74 - automatic memory extraction obeys plan mode and host memory-write denial
+  ---
+  duration_ms: 77.366
+  type: 'test'
+  ...
+# Subtest: legacy transcripts migrate losslessly into append-only paged messages and rollback atomically
+ok 75 - legacy transcripts migrate losslessly into append-only paged messages and rollback atomically
+  ---
+  duration_ms: 23.8023
+  type: 'test'
+  ...
+# Subtest: memory namespaces filter before ranking limits, revisions detect conflicts, and imports/merge/prune are transactional
+ok 76 - memory namespaces filter before ranking limits, revisions detect conflicts, and imports/merge/prune are transactional
+  ---
+  duration_ms: 121.8449
+  type: 'test'
+  ...
+# Subtest: automatic memory extraction creates reviewable proposals and never silently persists a fact
+ok 77 - automatic memory extraction creates reviewable proposals and never silently persists a fact
+  ---
+  duration_ms: 99.9899
+  type: 'test'
+  ...
+# Subtest: Skill bundles preserve text and binary resources, directory snapshots and safe paths without executing scripts
+ok 78 - Skill bundles preserve text and binary resources, directory snapshots and safe paths without executing scripts
+  ---
+  duration_ms: 96.8735
+  type: 'test'
+  ...
+# Subtest: route CRUD changes defaults atomically and persists them, while invalid or referenced deletion is rejected
+ok 79 - route CRUD changes defaults atomically and persists them, while invalid or referenced deletion is rejected
+  ---
+  duration_ms: 49.6541
+  type: 'test'
+  ...
+# Subtest: cancellation settles a run blocked in an uncooperative context counter
+ok 80 - cancellation settles a run blocked in an uncooperative context counter
+  ---
+  duration_ms: 103.9493
+  type: 'test'
+  ...
+# Subtest: default kernel has no desktop services and registered source tools execute through the shared loop with revocation
+ok 81 - default kernel has no desktop services and registered source tools execute through the shared loop with revocation
+  ---
+  duration_ms: 86.5967
+  type: 'test'
+  ...
+# Subtest: cancellation settles an uncooperative tool promptly and records its uncertain effect
+ok 82 - cancellation settles an uncooperative tool promptly and records its uncertain effect
+  ---
+  duration_ms: 77.9944
+  type: 'test'
+  ...
+# Subtest: cancellation also stops a run during tool-factory preparation and settlement hook errors do not strand sessions
+ok 83 - cancellation also stops a run during tool-factory preparation and settlement hook errors do not strand sessions
+  ---
+  duration_ms: 54.1591
+  type: 'test'
+  ...
+# Subtest: explicit resume applies durable pending input once and never replays unknown effects automatically
+ok 84 - explicit resume applies durable pending input once and never replays unknown effects automatically
+  ---
+  duration_ms: 51.0524
+  type: 'test'
+  ...
+# Subtest: a registered model counter receives tool declarations and reports its precision; missing counters fail explicitly
+ok 85 - a registered model counter receives tool declarations and reports its precision; missing counters fail explicitly
+  ---
+  duration_ms: 53.1144
+  type: 'test'
+  ...
+# Subtest: compaction retains one copy of context across tool turns and keeps durable message limits
+ok 86 - compaction retains one copy of context across tool turns and keeps durable message limits
+  ---
+  duration_ms: 41.9343
+  type: 'test'
+  ...
+# Subtest: history byte limits reject oversized initial and prepared contexts before a model request
+ok 87 - history byte limits reject oversized initial and prepared contexts before a model request
+  ---
+  duration_ms: 33.5618
+  type: 'test'
+  ...
+# Subtest: a failed checkpoint rolls back durable input and leaves no phantom in-memory message
+ok 88 - a failed checkpoint rolls back durable input and leaves no phantom in-memory message
+  ---
+  duration_ms: 16.9741
+  type: 'test'
+  ...
+# Subtest: parent abort listeners are released after every run and restored if the engine runs again
+ok 89 - parent abort listeners are released after every run and restored if the engine runs again
+  ---
+  duration_ms: 17.2119
+  type: 'test'
+  ...
+# Subtest: a historical successful finish call cannot hide a currently denied call with the same ID
+ok 90 - a historical successful finish call cannot hide a currently denied call with the same ID
+  ---
+  duration_ms: 22.8987
+  type: 'test'
+  ...
+# Subtest: a corrupted stored result is reported without replaying or overwriting the completed effect
+ok 91 - a corrupted stored result is reported without replaying or overwriting the completed effect
+  ---
+  duration_ms: 18.7521
+  type: 'test'
+  ...
+# Subtest: a checkpoint failure waits for already-running sibling tools before the run settles
+ok 92 - a checkpoint failure waits for already-running sibling tools before the run settles
+  ---
+  duration_ms: 20.3685
+  type: 'test'
+  ...
+# Subtest: cancellation interrupts an uncooperative authorization without executing the tool
+ok 93 - cancellation interrupts an uncooperative authorization without executing the tool
+  ---
+  duration_ms: 17.9826
+  type: 'test'
+  ...
+# Subtest: conflicting duplicate tool IDs preserve the completed audit record and never repeat the file effect
+ok 94 - conflicting duplicate tool IDs preserve the completed audit record and never repeat the file effect
+  ---
+  duration_ms: 39.6732
+  type: 'test'
+  ...
+# Subtest: partial write followed by transport failure stays unknown and both opened model steps settle
+ok 95 - partial write followed by transport failure stays unknown and both opened model steps settle
+  ---
+  duration_ms: 20.9845
+  type: 'test'
+  ...
+# Subtest: streamed deltas are coalesced in order and commits reuse one serialization
+ok 96 - streamed deltas are coalesced in order and commits reuse one serialization
+  ---
+  duration_ms: 41.2768
+  type: 'test'
+  ...
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 97 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 749.3666
+  type: 'test'
+  ...
+# Subtest: UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence
+ok 98 - UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence
+  ---
+  duration_ms: 829.0173
+  type: 'test'
+  ...
+# Subtest: disconnecting a genuinely blocked HTTP consumer releases the event subscription and drain waiter
+ok 99 - disconnecting a genuinely blocked HTTP consumer releases the event subscription and drain waiter
+  ---
+  duration_ms: 79.669
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 100 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 19.8392
+  type: 'test'
+  ...
+# Subtest: plugin worker transports share bounded settlement and terminate after reply, error, timeout and cancellation
+ok 101 - plugin worker transports share bounded settlement and terminate after reply, error, timeout and cancellation
+  ---
+  duration_ms: 4970.0106
+  type: 'test'
+  ...
+# Subtest: Docker remains optional for actual native plugin and stdio MCP execution
+ok 102 - Docker remains optional for actual native plugin and stdio MCP execution
+  ---
+  duration_ms: 862.8031
+  type: 'test'
+  ...
+# Subtest: native plugin snapshots accept a configured data directory alias
+ok 103 - native plugin snapshots accept a configured data directory alias
+  ---
+  duration_ms: 414.2162
+  type: 'test'
+  ...
+# Subtest: extension host generates restrictive mounts and container limits without placing credentials in argv
+ok 104 - extension host generates restrictive mounts and container limits without placing credentials in argv
+  ---
+  duration_ms: 53.79
+  type: 'test'
+  ...
+# Subtest: extension isolation rejects out-of-root mounts, disabled network and unsafe container policy
+ok 105 - extension isolation rejects out-of-root mounts, disabled network and unsafe container policy
+  ---
+  duration_ms: 42.1722
+  type: 'test'
+  ...
+# Subtest: isolated plugin and MCP stdio fail closed and clean staging when Docker is unavailable
+ok 106 - isolated plugin and MCP stdio fail closed and clean staging when Docker is unavailable
+  ---
+  duration_ms: 82.984
+  type: 'test'
+  ...
+# Test fixture initialization failed {
+#   stage: 'api-listen',
+#   apiOrigin: undefined,
+#   providerOrigin: 'http://127.0.0.1:50324',
+#   causeName: undefined,
+#   causeCode: undefined,
+#   badPort: false
+# }
+# Subtest: fixture closes its wire server and kernel when host initialization fails
+ok 107 - fixture closes its wire server and kernel when host initialization fails
+  ---
+  duration_ms: 36.5749
+  type: 'test'
+  ...
+# Test fixture initialization failed {
+#   stage: 'project-create',
+#   apiOrigin: 'http://127.0.0.1:50326',
+#   providerOrigin: 'http://127.0.0.1:50325',
+#   causeName: 'SocketError',
+#   causeCode: 'UND_ERR_SOCKET',
+#   badPort: false
+# }
+# Subtest: fixture closes both HTTP servers after its first POST fails (cleanup failure=false)
+ok 108 - fixture closes both HTTP servers after its first POST fails (cleanup failure=false)
+  ---
+  duration_ms: 37.5331
+  type: 'test'
+  ...
+# Test fixture initialization failed {
+#   stage: 'project-create',
+#   apiOrigin: 'http://127.0.0.1:50329',
+#   providerOrigin: 'http://127.0.0.1:50328',
+#   causeName: 'SocketError',
+#   causeCode: 'UND_ERR_SOCKET',
+#   badPort: false
+# }
+# Subtest: fixture closes both HTTP servers after its first POST fails (cleanup failure=true)
+ok 109 - fixture closes both HTTP servers after its first POST fails (cleanup failure=true)
+  ---
+  duration_ms: 25.2636
+  type: 'test'
+  ...
+# Subtest: fixture cleanup still closes the wire server when kernel cleanup rejects
+ok 110 - fixture cleanup still closes the wire server when kernel cleanup rejects
+  ---
+  duration_ms: 27.59
+  type: 'test'
+  ...
+# Subtest: real protocol usage settles the configured model price and exposes durable cost APIs
+ok 111 - real protocol usage settles the configured model price and exposes durable cost APIs
+  ---
+  duration_ms: 124.4551
+  type: 'test'
+  ...
+# Subtest: cost ceilings and missing prices stop before any model HTTP request
+ok 112 - cost ceilings and missing prices stop before any model HTTP request
+  ---
+  duration_ms: 53.0154
+  type: 'test'
+  ...
+# Subtest: reservations are atomic across concurrent scopes and ambiguous charges stay held until reconciliation
+ok 113 - reservations are atomic across concurrent scopes and ambiguous charges stay held until reconciliation
+  ---
+  duration_ms: 28.2896
+  type: 'test'
+  ...
+# Subtest: cache accounting distinguishes inclusive OpenAI usage from Anthropic cache token categories
+ok 114 - cache accounting distinguishes inclusive OpenAI usage from Anthropic cache token categories
+  ---
+  duration_ms: 24.3197
+  type: 'test'
+  ...
+# Subtest: fallback attempts keep distinct price snapshots and the failed attempt's reservation
+ok 115 - fallback attempts keep distinct price snapshots and the failed attempt's reservation
+  ---
+  duration_ms: 46.7155
+  type: 'test'
+  ...
+# Subtest: media requests reserve their configured maximum and idempotent replay does not reserve twice
+ok 116 - media requests reserve their configured maximum and idempotent replay does not reserve twice
+  ---
+  duration_ms: 27.1877
+  type: 'test'
+  ...
+# Subtest: embedding work inside a run inherits its financial scope and settles actual input usage
+ok 117 - embedding work inside a run inherits its financial scope and settles actual input usage
+  ---
+  duration_ms: 44.1846
+  type: 'test'
+  ...
+# Subtest: automatic memory extraction is charged to the same run with its own purpose
+ok 118 - automatic memory extraction is charged to the same run with its own purpose
+  ---
+  duration_ms: 44.6711
+  type: 'test'
+  ...
+# Subtest: media adapter billing settles the job reservation and keeps the configured price snapshot
+ok 119 - media adapter billing settles the job reservation and keeps the configured price snapshot
+  ---
+  duration_ms: 49.5132
+  type: 'test'
+  ...
+# Subtest: run, session, project, UTC-day and total ceilings account for outstanding reservations
+ok 120 - run, session, project, UTC-day and total ceilings account for outstanding reservations
+  ---
+  duration_ms: 128.0043
+  type: 'test'
+  ...
+# Subtest: cancelled model streams retain reservations instead of inventing zero-cost success
+ok 121 - cancelled model streams retain reservations instead of inventing zero-cost success
+  ---
+  duration_ms: 49.7883
+  type: 'test'
+  ...
+# Subtest: missing credentials release a provably unsent reservation and settlement overruns preserve the actual charge
+ok 122 - missing credentials release a provably unsent reservation and settlement overruns preserve the actual charge
+  ---
+  duration_ms: 3056.8819
+  type: 'test'
+  ...
+# Subtest: hierarchical compaction model calls are charged to the originating run
+ok 123 - hierarchical compaction model calls are charged to the originating run
+  ---
+  duration_ms: 86.1555
+  type: 'test'
+  ...
+# Subtest: container commands use non-root bounded isolation and cannot inject Docker flags or escape the workspace
+ok 124 - container commands use non-root bounded isolation and cannot inject Docker flags or escape the workspace
+  ---
+  duration_ms: 68.5339
+  type: 'test'
+  ...
+# Subtest: required isolation rejects native plugin and MCP stdio execution before launching any source
+ok 125 - required isolation rejects native plugin and MCP stdio execution before launching any source
+  ---
+  duration_ms: 41.143
+  type: 'test'
+  ...
+# Subtest: process HTTP actions require approval, respect plan restrictions and publish real results
+ok 126 - process HTTP actions require approval, respect plan restrictions and publish real results
+  ---
+  duration_ms: 578.9357
+  type: 'test'
+  ...
+# Subtest: managed output redacts known secrets split across writes before durable journal persistence
+ok 127 - managed output redacts known secrets split across writes before durable journal persistence
+  ---
+  duration_ms: 304.5349
+  type: 'test'
+  ...
+# Subtest: command preparation resolves configured root aliases and still rejects nested junction escapes
+ok 128 - command preparation resolves configured root aliases and still rejects nested junction escapes
+  ---
+  duration_ms: 70.1199
+  type: 'test'
+  ...
+# Subtest: an unavailable Docker backend fails closed without running the command on the host
+ok 129 - an unavailable Docker backend fails closed without running the command on the host
+  ---
+  duration_ms: 24.8711
+  type: 'test'
+  ...
+# Subtest: process RPC authenticates replies, hides its control secret and rejects replayed requests
+ok 130 - process RPC authenticates replies, hides its control secret and rejects replayed requests
+  ---
+  duration_ms: 496.7885
+  type: 'test'
+  ...
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 131 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 213.1027
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 132 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 671.1
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 133 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 490.1718
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 134 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1953.4486
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 135 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 526.5046
+  type: 'test'
+  ...
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 136 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 106.0718
+  type: 'test'
+  ...
+# Subtest: independent tools actually overlap and all results reach the next model step
+ok 137 - independent tools actually overlap and all results reach the next model step
+  ---
+  duration_ms: 218.227
+  type: 'test'
+  ...
+# Subtest: kernel scheduler enforces shared/exclusive locks, fairness, capacity and cancelled waiters
+ok 138 - kernel scheduler enforces shared/exclusive locks, fairness, capacity and cancelled waiters
+  ---
+  duration_ms: 31.1961
+  type: 'test'
+  ...
+# Subtest: undeclared native tools remain exclusive and denied parallel tools never execute
+ok 139 - undeclared native tools remain exclusive and denied parallel tools never execute
+  ---
+  duration_ms: 182.8687
+  type: 'test'
+  ...
+# Subtest: steering stops undispatched parallel work and retains a result for every declared call
+ok 140 - steering stops undispatched parallel work and retains a result for every declared call
+  ---
+  duration_ms: 141.799
+  type: 'test'
+  ...
+# Subtest: different sessions share the kernel-wide tool concurrency ceiling
+ok 141 - different sessions share the kernel-wide tool concurrency ceiling
+  ---
+  duration_ms: 246.5315
+  type: 'test'
+  ...
+# Subtest: Windows AppContainer runs actual Node code with verified lowbox token, project file access, denied sibling data and blocked loopback networking
+ok 142 - Windows AppContainer runs actual Node code with verified lowbox token, project file access, denied sibling data and blocked loopback networking
+  ---
+  duration_ms: 1821.1154
+  type: 'test'
+  ...
+# Subtest: legacy Node pipe incompatibility fails explicitly inside the real sandbox while inherited subprocess isolation remains usable
+ok 143 - legacy Node pipe incompatibility fails explicitly inside the real sandbox while inherited subprocess isolation remains usable
+  ---
+  duration_ms: 1242.469
+  type: 'test'
+  ...
+# Subtest: Windows isolated persistent pipes have actual interactive IO, verified child state and confirmed cleanup
+ok 144 - Windows isolated persistent pipes have actual interactive IO, verified child state and confirmed cleanup
+  ---
+  duration_ms: 1487.8098
+  type: 'test'
+  ...
+# Subtest: Windows isolation rejects unsupported PTY and overbroad filesystem or network grants without native effects
+ok 145 - Windows isolation rejects unsupported PTY and overbroad filesystem or network grants without native effects
+  ---
+  duration_ms: 365.8842
+  type: 'test'
+  ...
+# Subtest: Windows isolated source plugins perform actual project writes, deny private reads and cannot modify reviewed source
+ok 146 - Windows isolated source plugins perform actual project writes, deny private reads and cannot modify reviewed source
+  ---
+  duration_ms: 1287.3222
+  type: 'test'
+  ...
+# Subtest: Windows isolated MCP stdio completes actual protocol calls, read-only filesystem denial, scoped roots and explicit secret forwarding
+ok 147 - Windows isolated MCP stdio completes actual protocol calls, read-only filesystem denial, scoped roots and explicit secret forwarding
+  ---
+  duration_ms: 1707.0358
+  type: 'test'
+  ...
+# Subtest: Windows sandbox timeout and cancellation terminate actual descendant processes and revoke project ACLs
+ok 148 - Windows sandbox timeout and cancellation terminate actual descendant processes and revoke project ACLs
+  ---
+  duration_ms: 4320.6749
+  type: 'test'
+  ...
+# Subtest: Windows sandbox recovery preserves live owners, cleans a killed launcher's actual job and resumes through kernel startup
+ok 149 - Windows sandbox recovery preserves live owners, cleans a killed launcher's actual job and resumes through kernel startup
+  ---
+  duration_ms: 1996.6259
+  type: 'test'
+  ...
+# Subtest: Windows process cancellation during sandbox preparation cleans staged runtime and never launches requested code
+ok 150 - Windows process cancellation during sandbox preparation cleans staged runtime and never launches requested code
+  ---
+  duration_ms: 481.0537
+  type: 'test'
+  ...
+# Subtest: Windows sandbox cannot traverse a project junction into private host data and preserves the private ACL
+ok 151 - Windows sandbox cannot traverse a project junction into private host data and preserves the private ACL
+  ---
+  duration_ms: 1569.6817
+  type: 'test'
+  ...
+# Subtest: Windows sandbox persistent process survives kernel restart with one launch and can still be explicitly stopped
+ok 152 - Windows sandbox persistent process survives kernel restart with one launch and can still be explicitly stopped
+  ---
+  duration_ms: 1470.565
+  type: 'test'
+  ...
+# Subtest: Windows sandbox automatically terminates and cleans the actual job when its nonpersistent owner crashes
+ok 153 - Windows sandbox automatically terminates and cleans the actual job when its nonpersistent owner crashes
+  ---
+  duration_ms: 1302.6567
+  type: 'test'
+  ...
+# Subtest: Windows sandbox job enforces the configured process limit against real inherited and detached child launches
+ok 154 - Windows sandbox job enforces the configured process limit against real inherited and detached child launches
+  ---
+  duration_ms: 1199.4407
+  type: 'test'
+  ...
+# Subtest: kernel shutdown drains actual isolated commands and source plugin cleanup before releasing the single-user kernel
+ok 155 - kernel shutdown drains actual isolated commands and source plugin cleanup before releasing the single-user kernel
+  ---
+  duration_ms: 2444.7501
+  type: 'test'
+  ...
+# Subtest: Windows execution probe and capability API report actual isolation and the explicit unsupported PTY boundary
+ok 156 - Windows execution probe and capability API report actual isolation and the explicit unsupported PTY boundary
+  ---
+  duration_ms: 1211.457
+  type: 'test'
+  ...
+# Subtest: persistent broker revokes actual sandbox grants after the isolated launcher is killed without a stop request
+ok 157 - persistent broker revokes actual sandbox grants after the isolated launcher is killed without a stop request
+  ---
+  duration_ms: 1884.9209
+  type: 'test'
+  ...
+# Subtest: Windows sandbox cleanup waits for actual transient file-sharing locks before confirming removal
+ok 158 - Windows sandbox cleanup waits for actual transient file-sharing locks before confirming removal
+  ---
+  duration_ms: 7052.6307
+  type: 'test'
+  ...
+# Subtest: Windows sandbox read-only policy is enforced by the OS and child processes retain the same file isolation
+ok 159 - Windows sandbox read-only policy is enforced by the OS and child processes retain the same file isolation
+  ---
+  duration_ms: 1474.592
+  type: 'test'
+  ...
+# Subtest: userPromptSubmit cancellation skips later hooks after late completion and preserves active hook cleanup
+ok 160 - userPromptSubmit cancellation skips later hooks after late completion and preserves active hook cleanup
+  ---
+  duration_ms: 3.6717
+  type: 'test'
+  ...
+# Subtest: userPromptSubmit cancellation skips later hooks after late rejection and preserves active hook cleanup
+ok 161 - userPromptSubmit cancellation skips later hooks after late rejection and preserves active hook cleanup
+  ---
+  duration_ms: 0.4812
+  type: 'test'
+  ...
+# Subtest: preToolUse cancellation skips later hooks after late completion and preserves active hook cleanup
+ok 162 - preToolUse cancellation skips later hooks after late completion and preserves active hook cleanup
+  ---
+  duration_ms: 0.5044
+  type: 'test'
+  ...
+# Subtest: preToolUse cancellation skips later hooks after late rejection and preserves active hook cleanup
+ok 163 - preToolUse cancellation skips later hooks after late rejection and preserves active hook cleanup
+  ---
+  duration_ms: 0.313
+  type: 'test'
+  ...
+# Subtest: postToolUse cancellation skips later hooks after late completion and preserves active hook cleanup
+ok 164 - postToolUse cancellation skips later hooks after late completion and preserves active hook cleanup
+  ---
+  duration_ms: 0.4499
+  type: 'test'
+  ...
+# Subtest: postToolUse cancellation skips later hooks after late rejection and preserves active hook cleanup
+ok 165 - postToolUse cancellation skips later hooks after late rejection and preserves active hook cleanup
+  ---
+  duration_ms: 0.2725
+  type: 'test'
+  ...
+# Subtest: stop cancellation skips later hooks after late completion and preserves active hook cleanup
+ok 166 - stop cancellation skips later hooks after late completion and preserves active hook cleanup
+  ---
+  duration_ms: 0.2773
+  type: 'test'
+  ...
+# Subtest: stop cancellation skips later hooks after late rejection and preserves active hook cleanup
+ok 167 - stop cancellation skips later hooks after late rejection and preserves active hook cleanup
+  ---
+  duration_ms: 0.2525
+  type: 'test'
+  ...
+# Subtest: automatic HTTP ports reject a real blocked allocation before a single fetch request
+ok 168 - automatic HTTP ports reject a real blocked allocation before a single fetch request
+  ---
+  duration_ms: 29.8938
+  type: 'test'
+  ...
+# Subtest: explicit blocked ports are preserved even though fetch rejects them
+ok 169 - explicit blocked ports are preserved even though fetch rejects them
+  ---
+  duration_ms: 6.6659
+  type: 'test'
+  ...
+# Subtest: exhausted HTTP port reselection is bounded and releases the candidate and temporary listeners
+ok 170 - exhausted HTTP port reselection is bounded and releases the candidate and temporary listeners
+  ---
+  duration_ms: 14.4738
+  type: 'test'
+  ...
+# Subtest: bind failures are not retried and preserve unrelated event listeners
+ok 171 - bind failures are not retried and preserve unrelated event listeners
+  ---
+  duration_ms: 1.6458
+  type: 'test'
+  ...
+# Subtest: synchronous listen errors release temporary event listeners
+ok 172 - synchronous listen errors release temporary event listeners
+  ---
+  duration_ms: 0.3294
+  type: 'test'
+  ...
+# Subtest: resource routes retain upload status, binary bytes and encoded download filenames
+ok 173 - resource routes retain upload status, binary bytes and encoded download filenames
+  ---
+  duration_ms: 67.0973
+  type: 'test'
+  ...
+# Subtest: run routes preserve Last-Event-ID replay for JSON and SSE and missing-session validation order
+ok 174 - run routes preserve Last-Event-ID replay for JSON and SSE and missing-session validation order
+  ---
+  duration_ms: 82.0135
+  type: 'test'
+  ...
+# Subtest: model context checks each route once per request and immediately observes policy changes
+ok 175 - model context checks each route once per request and immediately observes policy changes
+  ---
+  duration_ms: 1.2557
+  type: 'test'
+  ...
+# Subtest: model and process authorization preserve original execution and cumulative restrictions
+ok 176 - model and process authorization preserve original execution and cumulative restrictions
+  ---
+  duration_ms: 63.2702
+  type: 'test'
+  ...
+# Subtest: authorization hooks reject changed identities and abort uncooperative hook promises
+ok 177 - authorization hooks reject changed identities and abort uncooperative hook promises
+  ---
+  duration_ms: 29.9486
+  type: 'test'
+  ...
+# Subtest: cached process validators still validate every call and controls retain their own session
+ok 178 - cached process validators still validate every call and controls retain their own session
+  ---
+  duration_ms: 60.5223
+  type: 'test'
+  ...
+# Subtest: input lanes isolate sessions, recover after failure and retain the latest queued owner
+ok 179 - input lanes isolate sessions, recover after failure and retain the latest queued owner
+  ---
+  duration_ms: 1.7278
+  type: 'test'
+  ...
+# Subtest: preparation transfers its single capacity slot to the live run without double counting
+ok 180 - preparation transfers its single capacity slot to the live run without double counting
+  ---
+  duration_ms: 0.1835
+  type: 'test'
+  ...
+# Subtest: late preparation and run finalizers cannot remove newer owners
+ok 181 - late preparation and run finalizers cannot remove newer owners
+  ---
+  duration_ms: 0.0839
+  type: 'test'
+  ...
+# Subtest: shutdown aborts runs and preparations before waiting on slow process control settlement
+ok 182 - shutdown aborts runs and preparations before waiting on slow process control settlement
+  ---
+  duration_ms: 0.3241
+  type: 'test'
+  ...
+# Subtest: single-user kernel serves authenticated clients without account login or constructing an MCP OAuth service
+ok 183 - single-user kernel serves authenticated clients without account login or constructing an MCP OAuth service
+  ---
+  duration_ms: 487.8492
+  type: 'test'
+  ...
+# Subtest: MCP close exposes an unconfirmed execution cleanup instead of silently reporting success
+ok 184 - MCP close exposes an unconfirmed execution cleanup instead of silently reporting success
+  ---
+  duration_ms: 383.0122
+  type: 'test'
+  ...
+# Subtest: route network denial blocks one-shot, persistent and Git commands before an internet-enabled execution backend starts
+ok 185 - route network denial blocks one-shot, persistent and Git commands before an internet-enabled execution backend starts
+  ---
+  duration_ms: 96.4455
+  type: 'test'
+  ...
+# Subtest: MCP tool sampling performs a real server file effect and result continuation over openai-completions
+ok 186 - MCP tool sampling performs a real server file effect and result continuation over openai-completions
+  ---
+  duration_ms: 577.2756
+  type: 'test'
+  ...
+# Subtest: MCP tool sampling performs a real server file effect and result continuation over openai-responses
+ok 187 - MCP tool sampling performs a real server file effect and result continuation over openai-responses
+  ---
+  duration_ms: 452.9074
+  type: 'test'
+  ...
+# Subtest: MCP tool sampling performs a real server file effect and result continuation over anthropic-messages
+ok 188 - MCP tool sampling performs a real server file effect and result continuation over anthropic-messages
+  ---
+  duration_ms: 445.5848
+  type: 'test'
+  ...
+# Subtest: MCP sampling validates opt-in, schemas, grouped tool history and bounded tool declarations
+ok 189 - MCP sampling validates opt-in, schemas, grouped tool history and bounded tool declarations
+  ---
+  duration_ms: 1.7297
+  type: 'test'
+  ...
+# Subtest: MCP sampling rejects forged provider tool names, invalid arguments and violated tool choices
+ok 190 - MCP sampling rejects forged provider tool names, invalid arguments and violated tool choices
+  ---
+  duration_ms: 0.4149
+  type: 'test'
+  ...
+# Subtest: legacy MCP sampling runs the complete tool and tool-result cycle through real stdio
+ok 191 - legacy MCP sampling runs the complete tool and tool-result cycle through real stdio
+  ---
+  duration_ms: 440.0856
+  type: 'test'
+  ...
+# Subtest: MCP tool sampling remains disabled unless explicitly declared and never prompts or spends without opt-in
+ok 192 - MCP tool sampling remains disabled unless explicitly declared and never prompts or spends without opt-in
+  ---
+  duration_ms: 398.118
+  type: 'test'
+  ...
+# Subtest: MCP sampling fallback cannot select tools excluded by its effective route
+ok 193 - MCP sampling fallback cannot select tools excluded by its effective route
+  ---
+  duration_ms: 403.0653
+  type: 'test'
+  ...
+# Subtest: MCP sampling rechecks permissions after model completion before returning a server tool call
+ok 194 - MCP sampling rechecks permissions after model completion before returning a server tool call
+  ---
+  duration_ms: 583.6593
+  type: 'test'
+  ...
+# Subtest: MCP sampling obeys the originating run cost ceiling before sending model HTTP
+ok 195 - MCP sampling obeys the originating run cost ceiling before sending model HTTP
+  ---
+  duration_ms: 431.284
+  type: 'test'
+  ...
+# Subtest: MCP sampling tool continuations share one per-origin request quota
+ok 196 - MCP sampling tool continuations share one per-origin request quota
+  ---
+  duration_ms: 422.3812
+  type: 'test'
+  ...
+# Subtest: MCP task reverse input retains its origin after creation for immediate callbacks
+ok 197 - MCP task reverse input retains its origin after creation for immediate callbacks
+  ---
+  duration_ms: 450.1487
+  type: 'test'
+  ...
+# Subtest: MCP task reverse input retains its origin after creation for wait callbacks
+ok 198 - MCP task reverse input retains its origin after creation for wait callbacks
+  ---
+  duration_ms: 461.5423
+  type: 'test'
+  ...
+# Subtest: MCP concurrent tasks route reverse callbacks by exact task ID and shared origin only
+ok 199 - MCP concurrent tasks route reverse callbacks by exact task ID and shared origin only
+  ---
+  duration_ms: 360.0825
+  type: 'test'
+  ...
+# Subtest: MCP asynchronous task sampling executes server tools and keeps both model charges on the originating run
+ok 200 - MCP asynchronous task sampling executes server tools and keeps both model charges on the originating run
+  ---
+  duration_ms: 480.3757
+  type: 'test'
+  ...
+# Subtest: MCP task rejects foreign reverse callbacks without granting another origin
+ok 201 - MCP task rejects foreign reverse callbacks without granting another origin
+  ---
+  duration_ms: 358.9222
+  type: 'test'
+  ...
+# Subtest: MCP task rejects no-meta reverse callbacks without granting another origin
+ok 202 - MCP task rejects no-meta reverse callbacks without granting another origin
+  ---
+  duration_ms: 365.2644
+  type: 'test'
+  ...
+# Subtest: MCP task cancellation aborts an active reverse callback and rejects late callbacks
+ok 203 - MCP task cancellation aborts an active reverse callback and rejects late callbacks
+  ---
+  duration_ms: 383.4759
+  type: 'test'
+  ...
+# Subtest: MCP task TTL aborts stalled callback consent and prevents file effects
+ok 204 - MCP task TTL aborts stalled callback consent and prevents file effects
+  ---
+  duration_ms: 428.5578
+  type: 'test'
+  ...
+# Subtest: MCP rejects result-no-meta task results instead of accepting an unbound result
+ok 205 - MCP rejects result-no-meta task results instead of accepting an unbound result
+  ---
+  duration_ms: 344.7203
+  type: 'test'
+  ...
+# Subtest: MCP rejects result-foreign task results instead of accepting an unbound result
+ok 206 - MCP rejects result-foreign task results instead of accepting an unbound result
+  ---
+  duration_ms: 350.3768
+  type: 'test'
+  ...
+# Subtest: MCP task progress survives initial RPC completion with the original progress token
+ok 207 - MCP task progress survives initial RPC completion with the original progress token
+  ---
+  duration_ms: 361.3569
+  type: 'test'
+  ...
+# Subtest: MCP HTTP task callbacks on GET streams keep their related-task origin
+ok 208 - MCP HTTP task callbacks on GET streams keep their related-task origin
+  ---
+  duration_ms: 77.6912
+  type: 'test'
+  ...
+# Subtest: MCP HTTP task callbacks on unrelated POST streams keep their related-task origin
+ok 209 - MCP HTTP task callbacks on unrelated POST streams keep their related-task origin
+  ---
+  duration_ms: 89.8718
+  type: 'test'
+  ...
+# Subtest: complete MCP catalogs remove stale validators and headers without caching results
+ok 210 - complete MCP catalogs remove stale validators and headers without caching results
+  ---
+  duration_ms: 62.6867
+  type: 'test'
+  ...
+# Subtest: cancelled, rejected and successful paginated MCP catalogs commit metadata atomically
+ok 211 - cancelled, rejected and successful paginated MCP catalogs commit metadata atomically
+  ---
+  duration_ms: 16.0398
+  type: 'test'
+  ...
+# Subtest: MCP list-change notifications reject in-progress metadata before commit
+ok 212 - MCP list-change notifications reject in-progress metadata before commit
+  ---
+  duration_ms: 8.0193
+  type: 'test'
+  ...
+# Subtest: in-flight MCP calls retain their schema and header bindings across catalog refresh
+ok 213 - in-flight MCP calls retain their schema and header bindings across catalog refresh
+  ---
+  duration_ms: 8.0599
+  type: 'test'
+  ...
+# Subtest: legacy required task rejects invalid original output after its tool is removed
+ok 214 - legacy required task rejects invalid original output after its tool is removed
+  ---
+  duration_ms: 48.2121
+  type: 'test'
+  ...
+# Subtest: legacy required task accepts valid original output after its tool is removed
+ok 215 - legacy required task accepts valid original output after its tool is removed
+  ---
+  duration_ms: 34.3102
+  type: 'test'
+  ...
+# Subtest: legacy required task rejects invalid original output after its tool is changed
+ok 216 - legacy required task rejects invalid original output after its tool is changed
+  ---
+  duration_ms: 36.4182
+  type: 'test'
+  ...
+# Subtest: legacy required task accepts valid original output after its tool is changed
+ok 217 - legacy required task accepts valid original output after its tool is changed
+  ---
+  duration_ms: 31.2006
+  type: 'test'
+  ...
+# Subtest: CIMD none completes PKCE and refresh over trusted HTTPS using published client metadata
+ok 218 - CIMD none completes PKCE and refresh over trusted HTTPS using published client metadata
+  ---
+  duration_ms: 474.5483
+  type: 'test'
+  ...
+# Subtest: CIMD RS256 completes PKCE and refresh over trusted HTTPS using published client metadata
+ok 219 - CIMD RS256 completes PKCE and refresh over trusted HTTPS using published client metadata
+  ---
+  duration_ms: 473.2671
+  type: 'test'
+  ...
+# Subtest: CIMD ES256 completes PKCE and refresh over trusted HTTPS using published client metadata
+ok 220 - CIMD ES256 completes PKCE and refresh over trusted HTTPS using published client metadata
+  ---
+  duration_ms: 447.0178
+  type: 'test'
+  ...
+# Subtest: CIMD EdDSA completes PKCE and refresh over trusted HTTPS using published client metadata
+ok 221 - CIMD EdDSA completes PKCE and refresh over trusted HTTPS using published client metadata
+  ---
+  duration_ms: 449.9861
+  type: 'test'
+  ...
+# Subtest: CIMD refuses an unsupported authorization server without silently registering another client
+ok 222 - CIMD refuses an unsupported authorization server without silently registering another client
+  ---
+  duration_ms: 426.8416
+  type: 'test'
+  ...
+# Subtest: CIMD uses explicit DCR fallback only when metadata support is absent
+ok 223 - CIMD uses explicit DCR fallback only when metadata support is absent
+  ---
+  duration_ms: 441.6927
+  type: 'test'
+  ...
+# Subtest: CIMD configuration rejects insecure or ambiguous client identifiers before publication
+ok 224 - CIMD configuration rejects insecure or ambiguous client identifiers before publication
+  ---
+  duration_ms: 1.1091
+  type: 'test'
+  ...
+# Subtest: CIMD documents include the exact callback and prohibit shared-secret authentication
+ok 225 - CIMD documents include the exact callback and prohibit shared-secret authentication
+  ---
+  duration_ms: 4.9122
+  type: 'test'
+  ...
+# Subtest: CIMD private key JWT uses public JWKS and a short audience-bound assertion with unique IDs
+ok 226 - CIMD private key JWT uses public JWKS and a short audience-bound assertion with unique IDs
+  ---
+  duration_ms: 68.868
+  type: 'test'
+  ...
+# Subtest: CIMD public endpoint exposes only the configured document and rejects conflicting paths
+ok 227 - CIMD public endpoint exposes only the configured document and rejects conflicting paths
+  ---
+  duration_ms: 80.705
+  type: 'test'
+  ...
+# Subtest: CIMD can export a document for external HTTPS hosting without exposing a local public endpoint
+ok 228 - CIMD can export a document for external HTTPS hosting without exposing a local public endpoint
+  ---
+  duration_ms: 51.6872
+  type: 'test'
+  ...
+# Subtest: CIMD rejects a client assertion algorithm excluded by authorization server metadata
+ok 229 - CIMD rejects a client assertion algorithm excluded by authorization server metadata
+  ---
+  duration_ms: 439.8262
+  type: 'test'
+  ...
+# Subtest: own stdio MCP correlates concurrent responses, handles server ping, progress and explicit cancellation
+ok 230 - own stdio MCP correlates concurrent responses, handles server ping, progress and explicit cancellation
+  ---
+  duration_ms: 486.417
+  type: 'test'
+  ...
+# Subtest: own MCP rejects malformed and oversized stdio frames and terminates their connections
+ok 231 - own MCP rejects malformed and oversized stdio frames and terminates their connections
+  ---
+  duration_ms: 685.4709
+  type: 'test'
+  ...
+# Subtest: a false remote readOnlyHint cannot cause an actual side effect in a planning run
+ok 232 - a false remote readOnlyHint cannot cause an actual side effect in a planning run
+  ---
+  duration_ms: 498.5729
+  type: 'test'
+  ...
+# Subtest: MCP catalog rejects repeated pagination cursors
+ok 233 - MCP catalog rejects repeated pagination cursors
+  ---
+  duration_ms: 364.054
+  type: 'test'
+  ...
+# Subtest: concurrent MCP catalogs share only in-flight pages and isolate cancellation, changes and reconnects
+ok 234 - concurrent MCP catalogs share only in-flight pages and isolate cancellation, changes and reconnects
+  ---
+  duration_ms: 275.5124
+  type: 'test'
+  ...
+# Subtest: own HTTP MCP negotiates session headers, JSON/SSE, server requests, stream recovery and never replays an expired effect
+ok 235 - own HTTP MCP negotiates session headers, JSON/SSE, server requests, stream recovery and never replays an expired effect
+  ---
+  duration_ms: 45.3977
+  type: 'test'
+  ...
+# Subtest: OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP
+ok 236 - OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP
+  ---
+  duration_ms: 1124.0831
+  type: 'test'
+  ...
+# Subtest: OAuth device polling persists authorization_pending and slow_down with the required five-second increase
+ok 237 - OAuth device polling persists authorization_pending and slow_down with the required five-second increase
+  ---
+  duration_ms: 8152.9711
+  type: 'test'
+  ...
+# Subtest: OAuth device flow uses the five-second default and never polls early after restart
+ok 238 - OAuth device flow uses the five-second default and never polls early after restart
+  ---
+  duration_ms: 5086.2705
+  type: 'test'
+  ...
+# Subtest: OAuth device access_denied is terminal and cannot trigger automatic authorization or polling
+ok 239 - OAuth device access_denied is terminal and cannot trigger automatic authorization or polling
+  ---
+  duration_ms: 1102.3385
+  type: 'test'
+  ...
+# Subtest: OAuth device expired_token is terminal and cannot trigger automatic authorization or polling
+ok 240 - OAuth device expired_token is terminal and cannot trigger automatic authorization or polling
+  ---
+  duration_ms: 1110.7517
+  type: 'test'
+  ...
+# Subtest: OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling
+ok 241 - OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling
+  ---
+  duration_ms: 1089.0438
+  type: 'test'
+  ...
+# Subtest: OAuth device flow expires locally without contacting the token endpoint
+ok 242 - OAuth device flow expires locally without contacting the token endpoint
+  ---
+  duration_ms: 1107.8651
+  type: 'test'
+  ...
+# Subtest: OAuth device connection failure doubles the persisted polling interval
+ok 243 - OAuth device connection failure doubles the persisted polling interval
+  ---
+  duration_ms: 3124.5083
+  type: 'test'
+  ...
+# Subtest: OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization
+ok 244 - OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization
+  ---
+  duration_ms: 1358.4199
+  type: 'test'
+  ...
+# Subtest: OAuth device start cancellation and logout during discovery leave no resumable grant
+ok 245 - OAuth device start cancellation and logout during discovery leave no resumable grant
+  ---
+  duration_ms: 265.38
+  type: 'test'
+  ...
+# Subtest: OAuth device dynamic none registration uses the issued credentials and device grant metadata
+ok 246 - OAuth device dynamic none registration uses the issued credentials and device grant metadata
+  ---
+  duration_ms: 1125.2507
+  type: 'test'
+  ...
+# Subtest: OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata
+ok 247 - OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata
+  ---
+  duration_ms: 1134.8752
+  type: 'test'
+  ...
+# Subtest: OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata
+ok 248 - OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata
+  ---
+  duration_ms: 1120.433
+  type: 'test'
+  ...
+# Subtest: OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant
+ok 249 - OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant
+  ---
+  duration_ms: 59.5273
+  type: 'test'
+  ...
+# Subtest: OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata
+ok 250 - OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata
+  ---
+  duration_ms: 40.5206
+  type: 'test'
+  ...
+# Subtest: OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice
+ok 251 - OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice
+  ---
+  duration_ms: 1096.59
+  type: 'test'
+  ...
+# Subtest: OAuth device continuous waiting honors cancellation and can resume the same pending grant
+ok 252 - OAuth device continuous waiting honors cancellation and can resume the same pending grant
+  ---
+  duration_ms: 1063.067
+  type: 'test'
+  ...
+# Subtest: OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS
+ok 253 - OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS
+  ---
+  duration_ms: 1529.0881
+  type: 'test'
+  ...
+# Subtest: OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS
+ok 254 - OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS
+  ---
+  duration_ms: 1523.7377
+  type: 'test'
+  ...
+# Subtest: OAuth short-lived assertion redaction expires without removing persistent credential redaction
+ok 255 - OAuth short-lived assertion redaction expires without removing persistent credential redaction
+  ---
+  duration_ms: 68.4928
+  type: 'test'
+  ...
+# Subtest: OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+ok 256 - OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+  ---
+  duration_ms: 187.8708
+  type: 'test'
+  ...
+# Subtest: OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+ok 257 - OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+  ---
+  duration_ms: 93.8208
+  type: 'test'
+  ...
+# Subtest: OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material
+ok 258 - OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material
+  ---
+  duration_ms: 89.4584
+  type: 'test'
+  ...
+# Subtest: OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock
+ok 259 - OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock
+  ---
+  duration_ms: 82.003
+  type: 'test'
+  ...
+# Subtest: OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline
+ok 260 - OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline
+  ---
+  duration_ms: 55.2793
+  type: 'test'
+  ...
+# Subtest: OAuth managed concurrent publication, signing and rotation share one active key and one successor
+ok 261 - OAuth managed concurrent publication, signing and rotation share one active key and one successor
+  ---
+  duration_ms: 216.6802
+  type: 'test'
+  ...
+# Subtest: OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys
+ok 262 - OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys
+  ---
+  duration_ms: 0.9412
+  type: 'test'
+  ...
+# Subtest: OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown
+ok 263 - OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown
+  ---
+  duration_ms: 18.2059
+  type: 'test'
+  ...
+# Subtest: OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm
+ok 264 - OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm
+  ---
+  duration_ms: 63.4269
+  type: 'test'
+  ...
+# Subtest: OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication
+ok 265 - OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication
+  ---
+  duration_ms: 92.2833
+  type: 'test'
+  ...
+# Subtest: OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window
+ok 266 - OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window
+  ---
+  duration_ms: 60748.3283
+  type: 'test'
+  ...
+# Subtest: source OAuth performs real PKCE exchange, encrypts tokens and refreshes once across concurrent MCP requests
+ok 267 - source OAuth performs real PKCE exchange, encrypts tokens and refreshes once across concurrent MCP requests
+  ---
+  duration_ms: 232.0827
+  type: 'test'
+  ...
+# Subtest: OAuth rejects state substitution, issuer mix-up and redirect mismatch before sending a token exchange
+ok 268 - OAuth rejects state substitution, issuer mix-up and redirect mismatch before sending a token exchange
+  ---
+  duration_ms: 44.2328
+  type: 'test'
+  ...
+# Subtest: OAuth invalid_grant clears local authorization and never retries the uncertain tool effect
+ok 269 - OAuth invalid_grant clears local authorization and never retries the uncertain tool effect
+  ---
+  duration_ms: 42.6447
+  type: 'test'
+  ...
+# Subtest: OAuth scope challenges require explicit reauthorization and do not replay a tool call
+ok 270 - OAuth scope challenges require explicit reauthorization and do not replay a tool call
+  ---
+  duration_ms: 166.5925
+  type: 'test'
+  ...
+# Subtest: OAuth tokens are bound to the reviewed resource and HTTP or unapproved issuers are rejected
+ok 271 - OAuth tokens are bound to the reviewed resource and HTTP or unapproved issuers are rejected
+  ---
+  duration_ms: 40.6859
+  type: 'test'
+  ...
+# Subtest: revoking OAuth while a refresh is in flight cannot restore the token vault
+ok 272 - revoking OAuth while a refresh is in flight cannot restore the token vault
+  ---
+  duration_ms: 155.3867
+  type: 'test'
+  ...
+# Subtest: closing the MCP host aborts pending OAuth refresh instead of leaving background authorization work
+ok 273 - closing the MCP host aborts pending OAuth refresh instead of leaving background authorization work
+  ---
+  duration_ms: 57.5553
+  type: 'test'
+  ...
+# Subtest: modern stdio MCP discovers without initialization and completes MRTR with exact state and distinct IDs
+ok 274 - modern stdio MCP discovers without initialization and completes MRTR with exact state and distinct IDs
+  ---
+  duration_ms: 391.4467
+  type: 'test'
+  ...
+# Subtest: MCP auto negotiation falls back only for a legacy discovery error and handles bidirectional requests
+ok 275 - MCP auto negotiation falls back only for a legacy discovery error and handles bidirectional requests
+  ---
+  duration_ms: 357.4211
+  type: 'test'
+  ...
+# Subtest: modern MCP rejects undeclared inputs and bounds server-driven continuation loops
+ok 276 - modern MCP rejects undeclared inputs and bounds server-driven continuation loops
+  ---
+  duration_ms: 352.93
+  type: 'test'
+  ...
+# Subtest: modern subscriptions require acknowledgement, filter unrelated events and cancel the real stdio request
+ok 277 - modern subscriptions require acknowledgement, filter unrelated events and cancel the real stdio request
+  ---
+  duration_ms: 401.4595
+  type: 'test'
+  ...
+# Subtest: headless MCP elicitation validates responses, scopes roots and never accepts an expired answer
+ok 278 - headless MCP elicitation validates responses, scopes roots and never accepts an expired answer
+  ---
+  duration_ms: 540.0211
+  type: 'test'
+  ...
+# Subtest: MCP sampling requires explicit consent, uses the configured route and bills the originating run
+ok 279 - MCP sampling requires explicit consent, uses the configured route and bills the originating run
+  ---
+  duration_ms: 409.2813
+  type: 'test'
+  ...
+# Subtest: MCP required legacy tasks persist remote identity, poll completion and return actual peer output
+ok 280 - MCP required legacy tasks persist remote identity, poll completion and return actual peer output
+  ---
+  duration_ms: 500.3802
+  type: 'test'
+  ...
+# Subtest: modern HTTP MCP mirrors encoded routing headers and never opens a legacy GET or DELETE channel
+ok 281 - modern HTTP MCP mirrors encoded routing headers and never opens a legacy GET or DELETE channel
+  ---
+  duration_ms: 9.1646
+  type: 'test'
+  ...
+# Subtest: modern HTTP SSE carries MRTR and cancellation without Last-Event-ID resumption or effect replay
+ok 282 - modern HTTP SSE carries MRTR and cancellation without Last-Event-ID resumption or effect replay
+  ---
+  duration_ms: 62.3493
+  type: 'test'
+  ...
+# Subtest: MCP sampling consent cannot override a newly denied capability or a cancelled originating run
+ok 283 - MCP sampling consent cannot override a newly denied capability or a cancelled originating run
+  ---
+  duration_ms: 882.2598
+  type: 'test'
+  ...
+# Subtest: MCP denies ambiguous legacy callbacks instead of attaching them to an arbitrary concurrent caller
+ok 284 - MCP denies ambiguous legacy callbacks instead of attaching them to an arbitrary concurrent caller
+  ---
+  duration_ms: 347.5755
+  type: 'test'
+  ...
+# Subtest: MCP task cancellation preserves its remote identity for explicit inspection
+ok 285 - MCP task cancellation preserves its remote identity for explicit inspection
+  ---
+  duration_ms: 426.8661
+  type: 'test'
+  ...
+# Subtest: MCP client inputs retain the effective fallback route's capability restrictions
+ok 286 - MCP client inputs retain the effective fallback route's capability restrictions
+  ---
+  duration_ms: 432.0875
+  type: 'test'
+  ...
+# Subtest: MCP JSON Schema 2020-12 validates tuple inputs and rejects invalid structured output
+ok 287 - MCP JSON Schema 2020-12 validates tuple inputs and rejects invalid structured output
+  ---
+  duration_ms: 13.517
+  type: 'test'
+  ...
+# Subtest: MCP root changes notify the peer and reject paths outside configured host roots
+ok 288 - MCP root changes notify the peer and reject paths outside configured host roots
+  ---
+  duration_ms: 404.0357
+  type: 'test'
+  ...
+# Subtest: MCP completion and logging use declared server capabilities and real peer notifications
+ok 289 - MCP completion and logging use declared server capabilities and real peer notifications
+  ---
+  duration_ms: 349.6651
+  type: 'test'
+  ...
+# Subtest: OAuth registration refuses an issued client secret without an explicit expiration and retains unknown outcome
+ok 290 - OAuth registration refuses an issued client secret without an explicit expiration and retains unknown outcome
+  ---
+  duration_ms: 81.3395
+  type: 'test'
+  ...
+# Subtest: OAuth management refuses an issued client secret without an explicit expiration and retains unknown outcome
+ok 291 - OAuth management refuses an issued client secret without an explicit expiration and retains unknown outcome
+  ---
+  duration_ms: 56.2817
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 reads remote registration and atomically adopts rotated management and client credentials
+ok 292 - OAuth RFC 7592 reads remote registration and atomically adopts rotated management and client credentials
+  ---
+  duration_ms: 73.5156
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 updates send complete metadata, preserve unknown extensions and omit registration-only fields
+ok 293 - OAuth RFC 7592 updates send complete metadata, preserve unknown extensions and omit registration-only fields
+  ---
+  duration_ms: 56.5153
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 rejects credential injection and incompatible grants without sending a remote mutation
+ok 294 - OAuth RFC 7592 rejects credential injection and incompatible grants without sending a remote mutation
+  ---
+  duration_ms: 46.0334
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 successful remote deletion removes registration and authorization while local reset reports no remote deletion
+ok 295 - OAuth RFC 7592 successful remote deletion removes registration and authorization while local reset reports no remote deletion
+  ---
+  duration_ms: 68.7093
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 uncertain management outcome persists across restart and blocks replay until an acknowledged reconciliation read
+ok 296 - OAuth RFC 7592 uncertain management outcome persists across restart and blocks replay until an acknowledged reconciliation read
+  ---
+  duration_ms: 71.6895
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 known unsupported method preserves credentials and permits an explicit retry
+ok 297 - OAuth RFC 7592 known unsupported method preserves credentials and permits an explicit retry
+  ---
+  duration_ms: 58.7521
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 rejects a changed registration_client_uri response and keeps the operation outcome unknown
+ok 298 - OAuth RFC 7592 rejects a changed registration_client_uri response and keeps the operation outcome unknown
+  ---
+  duration_ms: 51.6348
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 rejects a changed client_id response and keeps the operation outcome unknown
+ok 299 - OAuth RFC 7592 rejects a changed client_id response and keeps the operation outcome unknown
+  ---
+  duration_ms: 49.7834
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 cannot race configuration replacement, local reset or another remote mutation
+ok 300 - OAuth RFC 7592 cannot race configuration replacement, local reset or another remote mutation
+  ---
+  duration_ms: 234.4116
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 is unavailable when registration returns no management credentials and rejects incomplete management pairs
+ok 301 - OAuth RFC 7592 is unavailable when registration returns no management credentials and rejects incomplete management pairs
+  ---
+  duration_ms: 53.7291
+  type: 'test'
+  ...
+# Subtest: OAuth RFC 7592 shutdown cannot commit a late credential rotation and vault files contain no plaintext credentials
+ok 302 - OAuth RFC 7592 shutdown cannot commit a late credential rotation and vault files contain no plaintext credentials
+  ---
+  duration_ms: 70.6404
+  type: 'test'
+  ...
+# Subtest: OAuth dynamic none client completes actual registration, PKCE and refresh without SDKs
+ok 303 - OAuth dynamic none client completes actual registration, PKCE and refresh without SDKs
+  ---
+  duration_ms: 108.0146
+  type: 'test'
+  ...
+# Subtest: OAuth dynamic client_secret_basic client completes actual registration, PKCE and refresh without SDKs
+ok 304 - OAuth dynamic client_secret_basic client completes actual registration, PKCE and refresh without SDKs
+  ---
+  duration_ms: 59.5275
+  type: 'test'
+  ...
+# Subtest: OAuth dynamic client_secret_post client completes actual registration, PKCE and refresh without SDKs
+ok 305 - OAuth dynamic client_secret_post client completes actual registration, PKCE and refresh without SDKs
+  ---
+  duration_ms: 57.9931
+  type: 'test'
+  ...
+# Subtest: OAuth DCR deduplicates concurrent registration and reuses encrypted credentials after host restart
+ok 306 - OAuth DCR deduplicates concurrent registration and reuses encrypted credentials after host restart
+  ---
+  duration_ms: 160.9867
+  type: 'test'
+  ...
+# Subtest: OAuth DCR scopes initial access tokens and software statements to the reviewed registration POST
+ok 307 - OAuth DCR scopes initial access tokens and software statements to the reviewed registration POST
+  ---
+  duration_ms: 42.725
+  type: 'test'
+  ...
+# Subtest: OAuth DCR uncertain network outcome survives restart and requires explicit acknowledgement before retry
+ok 308 - OAuth DCR uncertain network outcome survives restart and requires explicit acknowledgement before retry
+  ---
+  duration_ms: 46.3581
+  type: 'test'
+  ...
+# Subtest: OAuth DCR rejects redirect response changes and prevents automatic re-registration
+ok 309 - OAuth DCR rejects redirect response changes and prevents automatic re-registration
+  ---
+  duration_ms: 40.0312
+  type: 'test'
+  ...
+# Subtest: OAuth DCR rejects auth response changes and prevents automatic re-registration
+ok 310 - OAuth DCR rejects auth response changes and prevents automatic re-registration
+  ---
+  duration_ms: 34.969
+  type: 'test'
+  ...
+# Subtest: OAuth DCR rejects grant response changes and prevents automatic re-registration
+ok 311 - OAuth DCR rejects grant response changes and prevents automatic re-registration
+  ---
+  duration_ms: 37.1145
+  type: 'test'
+  ...
+# Subtest: OAuth DCR rejects missing-secret response changes and prevents automatic re-registration
+ok 312 - OAuth DCR rejects missing-secret response changes and prevents automatic re-registration
+  ---
+  duration_ms: 37.6454
+  type: 'test'
+  ...
+# Subtest: OAuth DCR denies unreviewed endpoint origins and rejects contradictory registration configuration
+ok 313 - OAuth DCR denies unreviewed endpoint origins and rejects contradictory registration configuration
+  ---
+  duration_ms: 27.78
+  type: 'test'
+  ...
+# Subtest: OAuth DCR known rejection permits an explicit retry and local reset preserves truthful remote status
+ok 314 - OAuth DCR known rejection permits an explicit retry and local reset preserves truthful remote status
+  ---
+  duration_ms: 54.6864
+  type: 'test'
+  ...
+# Subtest: OAuth DCR configuration replacement and reset cannot race an in-flight registration
+ok 315 - OAuth DCR configuration replacement and reset cannot race an in-flight registration
+  ---
+  duration_ms: 329.6664
+  type: 'test'
+  ...
+# Subtest: OAuth DCR host shutdown leaves an uncertain attempt instead of committing late credentials
+ok 316 - OAuth DCR host shutdown leaves an uncertain attempt instead of committing late credentials
+  ---
+  duration_ms: 51.9192
+  type: 'test'
+  ...
+# Subtest: OAuth DCR server failure is not replayed and expired client secrets require an explicit reset
+ok 317 - OAuth DCR server failure is not replayed and expired client secrets require an explicit reset
+  ---
+  duration_ms: 62.3327
+  type: 'test'
+  ...
+# Subtest: MCP client receives a real asynchronous elicitation task with durable state and deferred result
+ok 318 - MCP client receives a real asynchronous elicitation task with durable state and deferred result
+  ---
+  duration_ms: 536.8689
+  type: 'test'
+  ...
+# Subtest: MCP client receives a real asynchronous sampling task with durable state and deferred result
+ok 319 - MCP client receives a real asynchronous sampling task with durable state and deferred result
+  ---
+  duration_ms: 424.5499
+  type: 'test'
+  ...
+# Subtest: MCP client tasks require explicit capabilities and matching enabled input handlers
+ok 320 - MCP client tasks require explicit capabilities and matching enabled input handlers
+  ---
+  duration_ms: 377.7939
+  type: 'test'
+  ...
+# Subtest: MCP received task cancellation aborts consent, stays terminal and creates no file effect
+ok 321 - MCP received task cancellation aborts consent, stays terminal and creates no file effect
+  ---
+  duration_ms: 405.0716
+  type: 'test'
+  ...
+# Subtest: MCP received task TTL cancels pending input and expired handles cannot retrieve a result
+ok 322 - MCP received task TTL cancels pending input and expired handles cannot retrieve a result
+  ---
+  duration_ms: 459.6884
+  type: 'test'
+  ...
+# Subtest: MCP client tasks cannot outlive an originating tool call or charge after its run has ended
+ok 323 - MCP client tasks cannot outlive an originating tool call or charge after its run has ended
+  ---
+  duration_ms: 478.4962
+  type: 'test'
+  ...
+# Subtest: MCP received task pagination uses scoped opaque cursors and preserves every actual result
+ok 324 - MCP received task pagination uses scoped opaque cursors and preserves every actual result
+  ---
+  duration_ms: 377.9907
+  type: 'test'
+  ...
+# Subtest: MCP received task handles from another connection never expose private state
+ok 325 - MCP received task handles from another connection never expose private state
+  ---
+  duration_ms: 754.167
+  type: 'test'
+  ...
+# Subtest: MCP receiver persists interrupted tasks on shutdown and startup never resumes model work
+ok 326 - MCP receiver persists interrupted tasks on shutdown and startup never resumes model work
+  ---
+  duration_ms: 33.7327
+  type: 'test'
+  ...
+# Subtest: modern MCP task extension polls and submits actual user input before returning real server output
+ok 327 - modern MCP task extension polls and submits actual user input before returning real server output
+  ---
+  duration_ms: 517.2886
+  type: 'test'
+  ...
+# Subtest: modern MCP task sampling preserves tool results, real file bytes and the originating cost scope
+ok 328 - modern MCP task sampling preserves tool results, real file bytes and the originating cost scope
+  ---
+  duration_ms: 509.865
+  type: 'test'
+  ...
+# Subtest: modern MCP tasks require negotiated extension support and may still return an immediate result
+ok 329 - modern MCP tasks require negotiated extension support and may still return an immediate result
+  ---
+  duration_ms: 404.6628
+  type: 'test'
+  ...
+# Subtest: modern task input deduplication tolerates eventually consistent acknowledgement without repeating a prompt
+ok 330 - modern task input deduplication tolerates eventually consistent acknowledgement without repeating a prompt
+  ---
+  duration_ms: 447.3418
+  type: 'test'
+  ...
+# Subtest: modern task input keys cannot be reused for different payloads before showing another prompt
+ok 331 - modern task input keys cannot be reused for different payloads before showing another prompt
+  ---
+  duration_ms: 390.9584
+  type: 'test'
+  ...
+# Subtest: modern task cancellation acknowledges intent while keeping uncertain remote effects distinct from cancellation
+ok 332 - modern task cancellation acknowledges intent while keeping uncertain remote effects distinct from cancellation
+  ---
+  duration_ms: 506.0816
+  type: 'test'
+  ...
+# Subtest: modern task TTL bounds polling and records an uncertain outcome without replaying tools
+ok 333 - modern task TTL bounds polling and records an uncertain outcome without replaying tools
+  ---
+  duration_ms: 428.5224
+  type: 'test'
+  ...
+# Subtest: modern task protocol errors, tool errors and terminal seed states keep their distinct semantics
+ok 334 - modern task protocol errors, tool errors and terminal seed states keep their distinct semantics
+  ---
+  duration_ms: 353.7415
+  type: 'test'
+  ...
+# Subtest: modern task rejects wrong-id polling results before accepting success
+ok 335 - modern task rejects wrong-id polling results before accepting success
+  ---
+  duration_ms: 354.4198
+  type: 'test'
+  ...
+# Subtest: modern task rejects bad-shape polling results before accepting success
+ok 336 - modern task rejects bad-shape polling results before accepting success
+  ---
+  duration_ms: 365.5855
+  type: 'test'
+  ...
+# Subtest: modern terminal task snapshots cannot be changed back to a working task
+ok 337 - modern terminal task snapshots cannot be changed back to a working task
+  ---
+  duration_ms: 356.8831
+  type: 'test'
+  ...
+# Subtest: modern task subscriptions require acknowledgement and reject notifications for unrequested tasks
+ok 338 - modern task subscriptions require acknowledgement and reject notifications for unrequested tasks
+  ---
+  duration_ms: 391.6508
+  type: 'test'
+  ...
+# Subtest: modern task records preserve remote IDs across disconnect and reject a changed server binding
+ok 339 - modern task records preserve remote IDs across disconnect and reject a changed server binding
+  ---
+  duration_ms: 463.5591
+  type: 'test'
+  ...
+# Subtest: modern HTTP task requests mirror the task ID in routing headers without legacy task methods
+ok 340 - modern HTTP task requests mirror the task ID in routing headers without legacy task methods
+  ---
+  duration_ms: 7.4849
+  type: 'test'
+  ...
+# Subtest: modern task input round limits stop before another model or user handler runs
+ok 341 - modern task input round limits stop before another model or user handler runs
+  ---
+  duration_ms: 372.157
+  type: 'test'
+  ...
+# Subtest: modern task sampling consent cannot override a newly denied capability
+ok 342 - modern task sampling consent cannot override a newly denied capability
+  ---
+  duration_ms: 452.5786
+  type: 'test'
+  ...
+# Subtest: received sampling tasks share one originating quota across concurrent client task handles
+ok 343 - received sampling tasks share one originating quota across concurrent client task handles
+  ---
+  duration_ms: 453.233
+  type: 'test'
+  ...
+# Subtest: MCP task receiver fails closed when durable task creation cannot be persisted
+ok 344 - MCP task receiver fails closed when durable task creation cannot be persisted
+  ---
+  duration_ms: 1.1735
+  type: 'test'
+  ...
+# Subtest: modern task update connection loss retains unknown state without repeating input or tool effects
+ok 345 - modern task update connection loss retains unknown state without repeating input or tool effects
+  ---
+  duration_ms: 74.9072
+  type: 'test'
+  ...
+# Subtest: legacy HTTP peer can create a client task and fetch its deferred result over the notification stream
+ok 346 - legacy HTTP peer can create a client task and fetch its deferred result over the notification stream
+  ---
+  duration_ms: 36.615
+  type: 'test'
+  ...
+# Subtest: modern seed-invalid cannot be counted as a completed validated task
+ok 347 - modern seed-invalid cannot be counted as a completed validated task
+  ---
+  duration_ms: 350.6594
+  type: 'test'
+  ...
+# Subtest: modern invalid-tool cannot be counted as a completed validated task
+ok 348 - modern invalid-tool cannot be counted as a completed validated task
+  ---
+  duration_ms: 372.6679
+  type: 'test'
+  ...
+# Subtest: MCP tool catalogs reject malformed named fields before exposing tool definitions
+ok 349 - MCP tool catalogs reject malformed named fields before exposing tool definitions
+  ---
+  duration_ms: 0.9003
+  type: 'test'
+  ...
+# Subtest: MCP catalog validation preserves extension fields and enforces valid output schemas
+ok 350 - MCP catalog validation preserves extension fields and enforces valid output schemas
+  ---
+  duration_ms: 24.1372
+  type: 'test'
+  ...
+# Subtest: MCP client tasks fail malformed handler results and release their execution signal
+ok 351 - MCP client tasks fail malformed handler results and release their execution signal
+  ---
+  duration_ms: 4.1155
+  type: 'test'
+  ...
+# Subtest: MCP client task object results retain their payload and extension metadata
+ok 352 - MCP client task object results retain their payload and extension metadata
+  ---
+  duration_ms: 0.4998
+  type: 'test'
+  ...
+# Subtest: uncooperative media adapters time out without stranding shutdown or being resubmitted
+ok 353 - uncooperative media adapters time out without stranding shutdown or being resubmitted
+  ---
+  duration_ms: 178.4884
+  type: 'test'
+  ...
+# Subtest: installed source media plugin receives actual asset bytes and calls its vendor through HTTP
+ok 354 - installed source media plugin receives actual asset bytes and calls its vendor through HTTP
+  ---
+  duration_ms: 455.4181
+  type: 'test'
+  ...
+# Subtest: registered media adapter invokes its real cancel method without depending on built-in cancelPath configuration
+ok 355 - registered media adapter invokes its real cancel method without depending on built-in cancelPath configuration
+  ---
+  duration_ms: 47.8538
+  type: 'test'
+  ...
+# Subtest: canonical media requests support image bytes, async video, mapped fields, cancellation and unknown-job recovery without resubmission
+ok 356 - canonical media requests support image bytes, async video, mapped fields, cancellation and unknown-job recovery without resubmission
+  ---
+  duration_ms: 205.8243
+  type: 'test'
+  ...
+# Subtest: semantic ranking retains stable ties, later winners, scope and top-k limits
+ok 357 - semantic ranking retains stable ties, later winners, scope and top-k limits
+  ---
+  duration_ms: 70.3972
+  type: 'test'
+  ...
+# Subtest: dimension-mismatched vectors still yield and observe cancellation during scanning
+ok 358 - dimension-mismatched vectors still yield and observe cancellation during scanning
+  ---
+  duration_ms: 36.0455
+  type: 'test'
+  ...
+# Subtest: concurrent semantic scans retain independent cursors while synchronous queries reuse statements
+ok 359 - concurrent semantic scans retain independent cursors while synchronous queries reuse statements
+  ---
+  duration_ms: 33.5907
+  type: 'test'
+  ...
+# Subtest: portable migration moves actual binary assets and balanced tool evidence between independent hosts without replay
+ok 360 - portable migration moves actual binary assets and balanced tool evidence between independent hosts without replay
+  ---
+  duration_ms: 174.731
+  type: 'test'
+  ...
+# Subtest: migration idempotency binds the full key and project without confusing other receipts
+ok 361 - migration idempotency binds the full key and project without confusing other receipts
+  ---
+  duration_ms: 35.1037
+  type: 'test'
+  ...
+# Subtest: migration rejects corruption, missing dependencies, extra assets and traversal before writing any destination state
+ok 362 - migration rejects corruption, missing dependencies, extra assets and traversal before writing any destination state
+  ---
+  duration_ms: 63.0865
+  type: 'test'
+  ...
+# Subtest: migration rolls back promoted files and metadata if destination route validation fails
+ok 363 - migration rolls back promoted files and metadata if destination route validation fails
+  ---
+  duration_ms: 58.5964
+  type: 'test'
+  ...
+# Subtest: migration recovery deletes only orphan promotions and preserves committed assets
+ok 364 - migration recovery deletes only orphan promotions and preserves committed assets
+  ---
+  duration_ms: 30.9269
+  type: 'test'
+  ...
+# Subtest: migration enforces total bytes and refuses foreign-project asset references
+ok 365 - migration enforces total bytes and refuses foreign-project asset references
+  ---
+  duration_ms: 28.792
+  type: 'test'
+  ...
+# Subtest: migration startup recovery works after reopening the actual database and preserves committed data
+ok 366 - migration startup recovery works after reopening the actual database and preserves committed data
+  ---
+  duration_ms: 31.4708
+  type: 'test'
+  ...
+# Subtest: portable migration supports histories larger than the legacy 8 MiB snapshot while respecting the configured total budget
+ok 367 - portable migration supports histories larger than the legacy 8 MiB snapshot while respecting the configured total budget
+  ---
+  duration_ms: 269.0041
+  type: 'test'
+  ...
+# Subtest: persistent CJK/English memory search, updates, namespaces, deletion and project isolation
+ok 368 - persistent CJK/English memory search, updates, namespaces, deletion and project isolation
+  ---
+  duration_ms: 61.4504
+  type: 'test'
+  ...
+# Subtest: skills install/enable/load and custom agent definitions are used in real provider requests
+ok 369 - skills install/enable/load and custom agent definitions are used in real provider requests
+  ---
+  duration_ms: 88.9446
+  type: 'test'
+  ...
+# Subtest: native plugin source executes in a child process, source hash approval and disable are enforced
+ok 370 - native plugin source executes in a child process, source hash approval and disable are enforced
+  ---
+  duration_ms: 436.8054
+  type: 'test'
+  ...
+# Subtest: actual stdio MCP child reads files, resources and prompts and contributes tools to the agent
+ok 371 - actual stdio MCP child reads files, resources and prompts and contributes tools to the agent
+  ---
+  duration_ms: 435.8027
+  type: 'test'
+  ...
+# Subtest: model summary compaction uses a provider, preserves original history and caches durable summaries
+ok 372 - model summary compaction uses a provider, preserves original history and caches durable summaries
+  ---
+  duration_ms: 39.4036
+  type: 'test'
+  ...
+# Subtest: filesystem paths, unknown binary assets and argument validation preserve boundaries
+ok 373 - filesystem paths, unknown binary assets and argument validation preserve boundaries
+  ---
+  duration_ms: 25.7391
+  type: 'test'
+  ...
+# Subtest: host billing keeps hosted search unknown until the actual charge is reconciled
+ok 374 - host billing keeps hosted search unknown until the actual charge is reconciled
+  ---
+  duration_ms: 35.1154
+  type: 'test'
+  ...
+# Subtest: ordinary unpriced text still reports settled tokens to host billing
+ok 375 - ordinary unpriced text still reports settled tokens to host billing
+  ---
+  duration_ms: 19.5587
+  type: 'test'
+  ...
+# Subtest: reconciliation waits for the earlier outcome without marking its newer delivery complete
+ok 376 - reconciliation waits for the earlier outcome without marking its newer delivery complete
+  ---
+  duration_ms: 19.116
+  type: 'test'
+  ...
+# Subtest: a blocked billing delivery does not prevent another charge from reaching the host
+ok 377 - a blocked billing delivery does not prevent another charge from reaching the host
+  ---
+  duration_ms: 20.4541
+  type: 'test'
+  ...
+# Subtest: failed hosted search without requestSent still notifies the reconciled charge
+ok 378 - failed hosted search without requestSent still notifies the reconciled charge
+  ---
+  duration_ms: 19.421
+  type: 'test'
+  ...
+# Subtest: failed hosted search with requestSent still notifies the reconciled charge
+ok 379 - failed hosted search with requestSent still notifies the reconciled charge
+  ---
+  duration_ms: 18.6243
+  type: 'test'
+  ...
+# Subtest: a persisted hosted search reservation retains reconciliation after recovery
+ok 380 - a persisted hosted search reservation retains reconciliation after recovery
+  ---
+  duration_ms: 27.2769
+  type: 'test'
+  ...
+# Subtest: native search capability round-trips through route APIs and persists atomically
+ok 381 - native search capability round-trips through route APIs and persists atomically
+  ---
+  duration_ms: 74.6439
+  type: 'test'
+  ...
+# Subtest: native search honors host, route, project, mode, agent, ancestor and planning restrictions
+ok 382 - native search honors host, route, project, mode, agent, ancestor and planning restrictions
+  ---
+  duration_ms: 421.6208
+  type: 'test'
+  ...
+# Subtest: native search waits for approval before HTTP and handles approval, refusal and cancellation
+ok 383 - native search waits for approval before HTTP and handles approval, refusal and cancellation
+  ---
+  duration_ms: 111.7521
+  type: 'test'
+  ...
+# Subtest: approval cannot restore native search after permission is revoked while waiting
+ok 384 - approval cannot restore native search after permission is revoked while waiting
+  ---
+  duration_ms: 39.6274
+  type: 'test'
+  ...
+# Subtest: native search combines primary and fallback policies using the actual route capability
+ok 385 - native search combines primary and fallback policies using the actual route capability
+  ---
+  duration_ms: 159.6632
+  type: 'test'
+  ...
+# Subtest: a retry rechecks native search policies before the next HTTP attempt
+ok 386 - a retry rechecks native search policies before the next HTTP attempt
+  ---
+  duration_ms: 38.6666
+  type: 'test'
+  ...
+# Subtest: native search obeys integration authorization and does not swallow unrelated failures
+ok 387 - native search obeys integration authorization and does not swallow unrelated failures
+  ---
+  duration_ms: 64.9829
+  type: 'test'
+  ...
+# Subtest: native search is security audited before the HTTP request
+ok 388 - native search is security audited before the HTTP request
+  ---
+  duration_ms: 33.6746
+  type: 'test'
+  ...
+# Subtest: internal compaction and memory extraction do not inherit native search capability
+ok 389 - internal compaction and memory extraction do not inherit native search capability
+  ---
+  duration_ms: 77.7537
+  type: 'test'
+  ...
+# Subtest: session codec preserves native search evidence and rejects malformed, unsafe or oversized metadata
+ok 390 - session codec preserves native search evidence and rejects malformed, unsafe or oversized metadata
+  ---
+  duration_ms: 107.8847
+  type: 'test'
+  ...
+# Subtest: native search sessions round-trip through HTTP export and import without losing citations or replaying searches
+ok 391 - native search sessions round-trip through HTTP export and import without losing citations or replaying searches
+  ---
+  duration_ms: 131.3793
+  type: 'test'
+  ...
+# Subtest: portable migration preserves native search evidence across independent hosts and permits continuation
+ok 392 - portable migration preserves native search evidence across independent hosts and permits continuation
+  ---
+  duration_ms: 85.4703
+  type: 'test'
+  ...
+# Subtest: native search is an explicit Responses capability and is exposed in public configuration
+ok 393 - native search is an explicit Responses capability and is exposed in public configuration
+  ---
+  duration_ms: 7.0312
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when not authorized
+ok 394 - Responses omits hosted search when not authorized
+  ---
+  duration_ms: 23.7761
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when capability off
+ok 395 - Responses omits hosted search when capability off
+  ---
+  duration_ms: 5.5665
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when tool choice none
+ok 396 - Responses omits hosted search when tool choice none
+  ---
+  duration_ms: 3.0038
+  type: 'test'
+  ...
+# Subtest: Responses omits hosted search when route allowlist
+ok 397 - Responses omits hosted search when route allowlist
+  ---
+  duration_ms: 2.8596
+  type: 'test'
+  ...
+# Subtest: Responses coexists with function tools and sends stable hosted web_search with auto choice
+ok 398 - Responses coexists with function tools and sends stable hosted web_search with auto choice
+  ---
+  duration_ms: 3.5426
+  type: 'test'
+  ...
+# Subtest: required choice accepts an authorized hosted tool without function tools
+ok 399 - required choice accepts an authorized hosted tool without function tools
+  ---
+  duration_ms: 5.1772
+  type: 'test'
+  ...
+# Subtest: provider does not forward raw hosted tools injected after config validation
+ok 400 - provider does not forward raw hosted tools injected after config validation
+  ---
+  duration_ms: 3.1929
+  type: 'test'
+  ...
+# Subtest: Responses json retains search calls, citations and ordered replay without duplicates
+ok 401 - Responses json retains search calls, citations and ordered replay without duplicates
+  ---
+  duration_ms: 3.9748
+  type: 'test'
+  ...
+# Subtest: Responses terminal retains search calls, citations and ordered replay without duplicates
+ok 402 - Responses terminal retains search calls, citations and ordered replay without duplicates
+  ---
+  duration_ms: 3.8094
+  type: 'test'
+  ...
+# Subtest: Responses incremental retains search calls, citations and ordered replay without duplicates
+ok 403 - Responses incremental retains search calls, citations and ordered replay without duplicates
+  ---
+  duration_ms: 3.8898
+  type: 'test'
+  ...
+# Subtest: citation offsets cover multiple output parts and malformed or unsafe references are excluded
+ok 404 - citation offsets cover multiple output parts and malformed or unsafe references are excluded
+  ---
+  duration_ms: 4.1994
+  type: 'test'
+  ...
+# Subtest: mixed hosted search and function calls replay every provider item exactly once
+ok 405 - mixed hosted search and function calls replay every provider item exactly once
+  ---
+  duration_ms: 2.5563
+  type: 'test'
+  ...
+# Subtest: search activity prevents retry and fallback after an interrupted stream
+ok 406 - search activity prevents retry and fallback after an interrupted stream
+  ---
+  duration_ms: 3.0294
+  type: 'test'
+  ...
+# Subtest: an upstream cannot silently return an unauthorized hosted search
+ok 407 - an upstream cannot silently return an unauthorized hosted search
+  ---
+  duration_ms: 2.1533
+  type: 'test'
+  ...
+# Subtest: mixed streamed and terminal text is completed before citation offsets are exposed
+ok 408 - mixed streamed and terminal text is completed before citation offsets are exposed
+  ---
+  duration_ms: 11.0135
+  type: 'test'
+  ...
+# Subtest: citation offsets align with textOf when reasoning splits assistant text parts
+ok 409 - citation offsets align with textOf when reasoning splits assistant text parts
+  ---
+  duration_ms: 2.2321
+  type: 'test'
+  ...
+# Subtest: interrupted search responses never replay function calls missing semantic tool results
+ok 410 - interrupted search responses never replay function calls missing semantic tool results
+  ---
+  duration_ms: 2.1843
+  type: 'test'
+  ...
+# Subtest: terminal function arguments update a declared call before execution and replay
+ok 411 - terminal function arguments update a declared call before execution and replay
+  ---
+  duration_ms: 2.185
+  type: 'test'
+  ...
+# Subtest: native search cost holds the configured total bound for reconciliation and enforces budgets before HTTP
+ok 412 - native search cost holds the configured total bound for reconciliation and enforces budgets before HTTP
+  ---
+  duration_ms: 106.0596
+  type: 'test'
+  ...
+# Subtest: media admission bounds provider concurrency and queued work, cancels reservations and reuses idempotent jobs
+ok 413 - media admission bounds provider concurrency and queued work, cancels reservations and reuses idempotent jobs
+  ---
+  duration_ms: 89.9709
+  type: 'test'
+  ...
+# Subtest: media rejects queued metadata above its byte budget before persisting a job or charge
+ok 414 - media rejects queued metadata above its byte budget before persisting a job or charge
+  ---
+  duration_ms: 23.5611
+  type: 'test'
+  ...
+# Subtest: media timeouts retain admission for adapters that ignore abort and do not block close
+ok 415 - media timeouts retain admission for adapters that ignore abort and do not block close
+  ---
+  duration_ms: 143.1581
+  type: 'test'
+  ...
+# Subtest: text excerpts stream full integrity verification and detect binary bytes beyond the retained prefix
+ok 416 - text excerpts stream full integrity verification and detect binary bytes beyond the retained prefix
+  ---
+  duration_ms: 66.906
+  type: 'test'
+  ...
+# Subtest: bounded JSON fragments preserve escaping, Unicode and stable migration digests
+ok 417 - bounded JSON fragments preserve escaping, Unicode and stable migration digests
+  ---
+  duration_ms: 2.7277
+  type: 'test'
+  ...
+# Subtest: migration checks attachment metadata before reading and bounds overlapping exports
+ok 418 - migration checks attachment metadata before reading and bounds overlapping exports
+  ---
+  duration_ms: 33.7115
+  type: 'test'
+  ...
+# Subtest: HTTP migration cancellation aborts blocked asset collection and releases both admission limits
+ok 419 - HTTP migration cancellation aborts blocked asset collection and releases both admission limits
+  ---
+  duration_ms: 103.6707
+  type: 'test'
+  ...
+# Subtest: long JSON keys preserve surrogate boundaries, bounded fragments and the v1 canonical digest
+ok 420 - long JSON keys preserve surrogate boundaries, bounded fragments and the v1 canonical digest
+  ---
+  duration_ms: 35.8432
+  type: 'test'
+  ...
+# Subtest: same-name protocols remain independent across Kernels after the assembly registries are unregistered
+ok 421 - same-name protocols remain independent across Kernels after the assembly registries are unregistered
+  ---
+  duration_ms: 137.1049
+  type: 'test'
+  ...
+# Subtest: configuration loading, route updates and restart restoration use the Kernel's custom protocol registry
+ok 422 - configuration loading, route updates and restart restoration use the Kernel's custom protocol registry
+  ---
+  duration_ms: 59.3282
+  type: 'test'
+  ...
+# Subtest: regex search times out without blocking host timers and terminates its worker
+ok 423 - regex search times out without blocking host timers and terminates its worker
+  ---
+  duration_ms: 522.9951
+  type: 'test'
+  ...
+# Subtest: regex worker preserves matching semantics, invalid-pattern errors, and cancellation
+ok 424 - regex worker preserves matching semantics, invalid-pattern errors, and cancellation
+  ---
+  duration_ms: 93.2208
+  type: 'test'
+  ...
+# Subtest: directory enumeration stops at capacity and closed handles allow cleanup
+ok 425 - directory enumeration stops at capacity and closed handles allow cleanup
+  ---
+  duration_ms: 34.4156
+  type: 'test'
+  ...
+# Subtest: ignore rules are scoped to their directory and oversize inputs fail explicitly
+ok 426 - ignore rules are scoped to their directory and oversize inputs fail explicitly
+  ---
+  duration_ms: 99.1106
+  type: 'test'
+  ...
+# Subtest: Anthropic history stores large content once and replays signed and unknown blocks exactly
+ok 427 - Anthropic history stores large content once and replays signed and unknown blocks exactly
+  ---
+  duration_ms: 10.776
+  type: 'test'
+  ...
+# Subtest: coalesced native text segments keep their exact original boundaries
+ok 428 - coalesced native text segments keep their exact original boundaries
+  ---
+  duration_ms: 0.3143
+  type: 'test'
+  ...
+# Subtest: protocol registries isolate identical adapter IDs, immutable snapshots, and provider assembly
+ok 429 - protocol registries isolate identical adapter IDs, immutable snapshots, and provider assembly
+  ---
+  duration_ms: 17.5407
+  type: 'test'
+  ...
+# Subtest: protocol snapshots preserve class-based adapters and their method receiver
+ok 430 - protocol snapshots preserve class-based adapters and their method receiver
+  ---
+  duration_ms: 0.1493
+  type: 'test'
+  ...
+# Subtest: compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes
+ok 431 - compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes
+  ---
+  duration_ms: 26.5419
+  type: 'test'
+  ...
+# Subtest: redaction cache observes environment rotations and late registrations
+ok 432 - redaction cache observes environment rotations and late registrations
+  ---
+  duration_ms: 0.7737
+  type: 'test'
+  ...
+# Subtest: billing recovery keeps backlog in SQLite and bounds callback concurrency
+ok 433 - billing recovery keeps backlog in SQLite and bounds callback concurrency
+  ---
+  duration_ms: 354.0915
+  type: 'test'
+  ...
+# Subtest: billing latest outcomes remain ordered per charge while other charges can progress
+ok 434 - billing latest outcomes remain ordered per charge while other charges can progress
+  ---
+  duration_ms: 22.6247
+  type: 'test'
+  ...
+# Subtest: billing timeouts preserve slots for callbacks ignoring abort and close leaves recoverable work
+ok 435 - billing timeouts preserve slots for callbacks ignoring abort and close leaves recoverable work
+  ---
+  duration_ms: 105.2936
+  type: 'test'
+  ...
+# Subtest: FTS upgrade preserves old rows and updates/deletes use indexed rowid mappings
+ok 436 - FTS upgrade preserves old rows and updates/deletes use indexed rowid mappings
+  ---
+  duration_ms: 22.0406
+  type: 'test'
+  ...
+# Subtest: global budget totals follow raw SQL, replacement, rollback, overflow and trigger repair
+ok 437 - global budget totals follow raw SQL, replacement, rollback, overflow and trigger repair
+  ---
+  duration_ms: 42.5783
+  type: 'test'
+  ...
+# Subtest: media idempotency lookup tolerates historical duplicates but rejects any conflicting hash and new duplicates
+ok 438 - media idempotency lookup tolerates historical duplicates but rejects any conflicting hash and new duplicates
+  ---
+  duration_ms: 32.8538
+  type: 'test'
+  ...
+# Subtest: queued media cancellation releases only an unsubmitted unauthorized reservation
+ok 439 - queued media cancellation releases only an unsubmitted unauthorized reservation
+  ---
+  duration_ms: 17.0998
+  type: 'test'
+  ...
+# Subtest: cancelled authorization waits for the host result before delivering an uncertain outcome
+ok 440 - cancelled authorization waits for the host result before delivering an uncertain outcome
+  ---
+  duration_ms: 18.4824
+  type: 'test'
+  ...
+# Subtest: late authorization resolution or rejection cannot access a closed store and is recovered as unknown
+ok 441 - late authorization resolution or rejection cannot access a closed store and is recovered as unknown
+  ---
+  duration_ms: 41.0635
+  type: 'test'
+  ...
+# Subtest: concurrent process tree cleanup shares one operation and stops the child
+ok 442 - concurrent process tree cleanup shares one operation and stops the child
+  ---
+  duration_ms: 320.9572
+  type: 'test'
+  ...
+# Subtest: command cancellation stops output delivery and the running process
+ok 443 - command cancellation stops output delivery and the running process
+  ---
+  duration_ms: 344.6506
+  type: 'test'
+  ...
+# Subtest: an output observer failure rejects the command after terminating its process
+ok 444 - an output observer failure rejects the command after terminating its process
+  ---
+  duration_ms: 331.9068
+  type: 'test'
+  ...
+# Subtest: command output limits retain bounded output and terminate a flooding process
+ok 445 - command output limits retain bounded output and terminate a flooding process
+  ---
+  duration_ms: 354.1482
+  type: 'test'
+  ...
+# Subtest: command timeout terminates execution and pre-cancelled commands never start
+ok 446 - command timeout terminates execution and pre-cancelled commands never start
+  ---
+  duration_ms: 417.5196
+  type: 'test'
+  ...
+# Subtest: cancellation during abort listener registration is observed immediately
+ok 447 - cancellation during abort listener registration is observed immediately
+  ---
+  duration_ms: 300.5939
+  type: 'test'
+  ...
+# Subtest: successful commands preserve split UTF-8 output, streams and exit status
+ok 448 - successful commands preserve split UTF-8 output, streams and exit status
+  ---
+  duration_ms: 166.9347
+  type: 'test'
+  ...
+# Subtest: file_patch inserts replacement markers literally and rejects ambiguous matches
+ok 449 - file_patch inserts replacement markers literally and rejects ambiguous matches
+  ---
+  duration_ms: 144.002
+  type: 'test'
+  ...
+# Subtest: glob matching: segments, globstar, braces, classes and basename patterns
+ok 450 - glob matching: segments, globstar, braces, classes and basename patterns
+  ---
+  duration_ms: 0.5645
+  type: 'test'
+  ...
+# Subtest: .gitignore rules: last match wins, anchoring, directory-only and nested bases
+ok 451 - .gitignore rules: last match wins, anchoring, directory-only and nested bases
+  ---
+  duration_ms: 0.4472
+  type: 'test'
+  ...
+# Subtest: file_search and file_glob respect .gitignore, filters and regex
+ok 452 - file_search and file_glob respect .gitignore, filters and regex
+  ---
+  duration_ms: 196.6026
+  type: 'test'
+  ...
+# Subtest: plugin IPC and isolated stdio share verified exports and preserve media receiver binding
+ok 453 - plugin IPC and isolated stdio share verified exports and preserve media receiver binding
+  ---
+  duration_ms: 466.8078
+  type: 'test'
+  ...
+# Subtest: MCP concurrent progress routes by token and completed requests release their callbacks
+ok 454 - MCP concurrent progress routes by token and completed requests release their callbacks
+  ---
+  duration_ms: 53.8439
+  type: 'test'
+  ...
+# Subtest: MCP catalog discovery overlaps independent servers with a bounded fan-out and stable order
+ok 455 - MCP catalog discovery overlaps independent servers with a bounded fan-out and stable order
+  ---
+  duration_ms: 82.4398
+  type: 'test'
+  ...
+# Subtest: SSE decoder handles split UTF-8, CRLF and multiline frames
+ok 456 - SSE decoder handles split UTF-8, CRLF and multiline frames
+  ---
+  duration_ms: 2.7283
+  type: 'test'
+  ...
+# Subtest: tool screenshots reach all three vision wire formats after a complete tool result batch
+ok 457 - tool screenshots reach all three vision wire formats after a complete tool result batch
+  ---
+  duration_ms: 5.4121
+  type: 'test'
+  ...
+# Subtest: Anthropic native thinking signatures, redacted blocks and tool JSON survive round trips
+ok 458 - Anthropic native thinking signatures, redacted blocks and tool JSON survive round trips
+  ---
+  duration_ms: 31.2601
+  type: 'test'
+  ...
+# Subtest: Responses json retains ordered reasoning and compaction once for its route
+ok 459 - Responses json retains ordered reasoning and compaction once for its route
+  ---
+  duration_ms: 34.2733
+  type: 'test'
+  ...
+# Subtest: Responses terminal-stream retains ordered reasoning and compaction once for its route
+ok 460 - Responses terminal-stream retains ordered reasoning and compaction once for its route
+  ---
+  duration_ms: 7.5551
+  type: 'test'
+  ...
+# Subtest: Responses repeated-stream retains ordered reasoning and compaction once for its route
+ok 461 - Responses repeated-stream retains ordered reasoning and compaction once for its route
+  ---
+  duration_ms: 4.6545
+  type: 'test'
+  ...
+# Subtest: Responses interrupted streams retain completed reasoning in the failure's partial message
+ok 462 - Responses interrupted streams retain completed reasoning in the failure's partial message
+  ---
+  duration_ms: 4.0999
+  type: 'test'
+  ...
+# Subtest: Responses interrupted multi-message replay keeps all text once with search and reasoning
+ok 463 - Responses interrupted multi-message replay keeps all text once with search and reasoning
+  ---
+  duration_ms: 0.4794
+  type: 'test'
+  ...
+# Subtest: Responses complete multi-message replay keeps all text once with search and reasoning
+ok 464 - Responses complete multi-message replay keeps all text once with search and reasoning
+  ---
+  duration_ms: 0.2188
+  type: 'test'
+  ...
+# Subtest: Responses JSON completed retains its terminal status
+ok 465 - Responses JSON completed retains its terminal status
+  ---
+  duration_ms: 4.1636
+  type: 'test'
+  ...
+# Subtest: Responses JSON incomplete retains its terminal status
+ok 466 - Responses JSON incomplete retains its terminal status
+  ---
+  duration_ms: 5.2312
+  type: 'test'
+  ...
+# Subtest: Responses JSON failed retains its terminal status
+ok 467 - Responses JSON failed retains its terminal status
+  ---
+  duration_ms: 3.1904
+  type: 'test'
+  ...
+# Subtest: Responses merges sparse streamed calls with terminal-only calls without losing IDs
+ok 468 - Responses merges sparse streamed calls with terminal-only calls without losing IDs
+  ---
+  duration_ms: 3.4736
+  type: 'test'
+  ...
+# Subtest: Anthropic thinking blocks retain separate text and signatures in content and replay
+ok 469 - Anthropic thinking blocks retain separate text and signatures in content and replay
+  ---
+  duration_ms: 6.645
+  type: 'test'
+  ...
+# Subtest: Anthropic JSON retains the signature supplied with an initial thinking block
+ok 470 - Anthropic JSON retains the signature supplied with an initial thinking block
+  ---
+  duration_ms: 4.4186
+  type: 'test'
+  ...
+# Subtest: compatible completion streams may leave optional tool fields null
+ok 471 - compatible completion streams may leave optional tool fields null
+  ---
+  duration_ms: 2.9101
+  type: 'test'
+  ...
+# Subtest: provider boundaries reject malformed deltas before appending visible content
+ok 472 - provider boundaries reject malformed deltas before appending visible content
+  ---
+  duration_ms: 1.7245
+  type: 'test'
+  ...
+# Subtest: provider usage validates counts atomically and retains split cache accounting
+ok 473 - provider usage validates counts atomically and retains split cache accounting
+  ---
+  duration_ms: 0.6779
+  type: 'test'
+  ...
+# Subtest: Anthropic retains opaque native replay fields while ignoring unrelated events
+ok 474 - Anthropic retains opaque native replay fields while ignoring unrelated events
+  ---
+  duration_ms: 0.6368
+  type: 'test'
+  ...
+# Subtest: unknown message parts cannot be mistaken for text
+ok 475 - unknown message parts cannot be mistaken for text
+  ---
+  duration_ms: 0.1395
+  type: 'test'
+  ...
+# Subtest: indexed entity queries upgrade existing JSON data and preserve ordering, rollback and connection visibility
+ok 476 - indexed entity queries upgrade existing JSON data and preserve ordering, rollback and connection visibility
+  ---
+  duration_ms: 40.7948
+  type: 'test'
+  ...
+# Subtest: transcript windows and last assistant use canonical sequence and run ownership
+ok 477 - transcript windows and last assistant use canonical sequence and run ownership
+  ---
+  duration_ms: 16.7953
+  type: 'test'
+  ...
+# Subtest: cost aggregate preserves void, unknown, settlement, UTC day and atomic budget enforcement
+ok 478 - cost aggregate preserves void, unknown, settlement, UTC day and atomic budget enforcement
+  ---
+  duration_ms: 71.9226
+  type: 'test'
+  ...
+# Subtest: unknown MCP DELETE operation cannot remove the server and indexed API views remain scoped
+ok 479 - unknown MCP DELETE operation cannot remove the server and indexed API views remain scoped
+  ---
+  duration_ms: 38.1823
+  type: 'test'
+  ...
+# Subtest: redaction modes choose which credentials are removed
+ok 480 - redaction modes choose which credentials are removed
+  ---
+  duration_ms: 2.9751
+  type: 'test'
+  ...
+# Subtest: the kernel applies its configured redaction mode
+ok 481 - the kernel applies its configured redaction mode
+  ---
+  duration_ms: 27.224
+  type: 'test'
+  ...
+# Subtest: JSON redaction handles escaped values and keys while observing per-call environment rotation
+ok 482 - JSON redaction handles escaped values and keys while observing per-call environment rotation
+  ---
+  duration_ms: 1.7143
+  type: 'test'
+  ...
+# Subtest: generated tool schemas describe input defaults without changing arguments and retain nested service constraints
+ok 483 - generated tool schemas describe input defaults without changing arguments and retain nested service constraints
+  ---
+  duration_ms: 24.2477
+  type: 'test'
+  ...
+# Subtest: encrypted persistence reads historical envelopes and writes compatible authenticated files without committing after revocation
+ok 484 - encrypted persistence reads historical envelopes and writes compatible authenticated files without committing after revocation
+  ---
+  duration_ms: 59.6689
+  type: 'test'
+  ...
+# Subtest: actual Streamable HTTP MCP reads files with header env references
+ok 485 - actual Streamable HTTP MCP reads files with header env references
+  ---
+  duration_ms: 100.7845
+  type: 'test'
+  ...
+# Subtest: embedding adapter sends real HTTP payload and project semantic ranking uses persisted vectors
+ok 486 - embedding adapter sends real HTTP payload and project semantic ranking uses persisted vectors
+  ---
+  duration_ms: 37.0933
+  type: 'test'
+  ...
+# Subtest: fallback model cannot escalate primary model permissions
+ok 487 - fallback model cannot escalate primary model permissions
+  ---
+  duration_ms: 91.4003
+  type: 'test'
+  ...
+# Subtest: recovery persists uncertain effects and queued input without replay; model routes persist
+ok 488 - recovery persists uncertain effects and queued input without replay; model routes persist
+  ---
+  duration_ms: 41.1077
+  type: 'test'
+  ...
+# Subtest: resource cleanup preserves dependency order and reports every failure
+ok 489 - resource cleanup preserves dependency order and reports every failure
+  ---
+  duration_ms: 1.0989
+  type: 'test'
+  ...
+# Subtest: failed integration cleanup still closes later integrations and releases the kernel lease
+ok 490 - failed integration cleanup still closes later integrations and releases the kernel lease
+  ---
+  duration_ms: 53.3228
+  type: 'test'
+  ...
+# Subtest: history checkpoints load a bounded tail, survive append/restart and invalidate changed prefixes
+ok 491 - history checkpoints load a bounded tail, survive append/restart and invalidate changed prefixes
+  ---
+  duration_ms: 54.0743
+  type: 'test'
+  ...
+# Subtest: real compaction persists a reusable checkpoint and keeps the durable message budget
+ok 492 - real compaction persists a reusable checkpoint and keeps the durable message budget
+  ---
+  duration_ms: 78.7224
+  type: 'test'
+  ...
+# Subtest: streaming assets clean cancellation, enforce reservations and serve a verified immutable snapshot
+ok 493 - streaming assets clean cancellation, enforce reservations and serve a verified immutable snapshot
+  ---
+  duration_ms: 44.9044
+  type: 'test'
+  ...
+# Subtest: kernel shutdown cancels stalled asset writes and closes outstanding download snapshots
+ok 494 - kernel shutdown cancels stalled asset writes and closes outstanding download snapshots
+  ---
+  duration_ms: 29.7406
+  type: 'test'
+  ...
+# Subtest: entity API cursor pages remain bounded and stable across updates
+ok 495 - entity API cursor pages remain bounded and stable across updates
+  ---
+  duration_ms: 32.0732
+  type: 'test'
+  ...
+# Subtest: live retention yields between batches and cancellation preserves remaining work
+ok 496 - live retention yields between batches and cancellation preserves remaining work
+  ---
+  duration_ms: 29.0319
+  type: 'test'
+  ...
+# Subtest: input admission limits reject before persistence and release queue capacity after failure
+ok 497 - input admission limits reject before persistence and release queue capacity after failure
+  ---
+  duration_ms: 85.9487
+  type: 'test'
+  ...
+# Subtest: SSE global bytes, per-run subscribers and stalled drain reservations are released
+ok 498 - SSE global bytes, per-run subscribers and stalled drain reservations are released
+  ---
+  duration_ms: 118.6123
+  type: 'test'
+  ...
+# Subtest: kernel redaction policies and rotated credentials have independent async lifetimes
+ok 499 - kernel redaction policies and rotated credentials have independent async lifetimes
+  ---
+  duration_ms: 43.9848
+  type: 'test'
+  ...
+# Subtest: a reply cut off by the output limit continues instead of failing
+ok 500 - a reply cut off by the output limit continues instead of failing
+  ---
+  duration_ms: 119.2837
+  type: 'test'
+  ...
+# Subtest: continuation is bounded, disabled by 0, and never applies to truncated tool calls
+ok 501 - continuation is bounded, disabled by 0, and never applies to truncated tool calls
+  ---
+  duration_ms: 126.4373
+  type: 'test'
+  ...
+# Subtest: structured output: schema-validated result ends the run and is stored on it
+ok 502 - structured output: schema-validated result ends the run and is stored on it
+  ---
+  duration_ms: 94.5485
+  type: 'test'
+  ...
+# Subtest: non-object schemas are wrapped; missing results are reminded, then fail
+ok 503 - non-object schemas are wrapped; missing results are reminded, then fail
+  ---
+  duration_ms: 68.692
+  type: 'test'
+  ...
+# Subtest: restrictive allowlists still offer submit_result; bad schemas and steering use are rejected
+ok 504 - restrictive allowlists still offer submit_result; bad schemas and steering use are rejected
+  ---
+  duration_ms: 41.4794
+  type: 'test'
+  ...
+# Subtest: merging consecutive native assistant messages never alters replay state
+ok 505 - merging consecutive native assistant messages never alters replay state
+  ---
+  duration_ms: 1.0873
+  type: 'test'
+  ...
+# Subtest: an enabled non-text fallback does not suppress retries of the final text route
+ok 506 - an enabled non-text fallback does not suppress retries of the final text route
+  ---
+  duration_ms: 63.3865
+  type: 'test'
+  ...
+# Subtest: cost totals retain settled, held, void and unpriced semantics in mixed ledgers
+ok 507 - cost totals retain settled, held, void and unpriced semantics in mixed ledgers
+  ---
+  duration_ms: 28.5028
+  type: 'test'
+  ...
+# Subtest: hierarchical compaction preserves mixed UTF-8 text and bounds each request
+ok 508 - hierarchical compaction preserves mixed UTF-8 text and bounds each request
+  ---
+  duration_ms: 52.2852
+  type: 'test'
+  ...
+# Subtest: provider array mutations stay request-local across 1 run(s)
+ok 509 - provider array mutations stay request-local across 1 run(s)
+  ---
+  duration_ms: 40.838
+  type: 'test'
+  ...
+# Subtest: provider array mutations stay request-local across 2 run(s)
+ok 510 - provider array mutations stay request-local across 2 run(s)
+  ---
+  duration_ms: 23.1069
+  type: 'test'
+  ...
+# Subtest: own runtime commits replies before actual tools and continues; durable effects and input IDs
+ok 511 - own runtime commits replies before actual tools and continues; durable effects and input IDs
+  ---
+  duration_ms: 202.0939
+  type: 'test'
+  ...
+# Subtest: own openai-completions wire serializer/parser and tools
+ok 512 - own openai-completions wire serializer/parser and tools
+  ---
+  duration_ms: 51.501
+  type: 'test'
+  ...
+# Subtest: own openai-responses wire serializer/parser and tools
+ok 513 - own openai-responses wire serializer/parser and tools
+  ---
+  duration_ms: 53.7545
+  type: 'test'
+  ...
+# Subtest: own anthropic-messages wire serializer/parser and tools
+ok 514 - own anthropic-messages wire serializer/parser and tools
+  ---
+  duration_ms: 46.6933
+  type: 'test'
+  ...
+# Subtest: approval, planning mode, model/project policy intersection block side effects
+ok 515 - approval, planning mode, model/project policy intersection block side effects
+  ---
+  duration_ms: 105.1842
+  type: 'test'
+  ...
+# Subtest: steer/enqueue run continuity, cancel, fork and session export
+ok 516 - steer/enqueue run continuity, cancel, fork and session export
+  ---
+  duration_ms: 274.1643
+  type: 'test'
+  ...
+# Subtest: auth, CORS, unknown model keys and malformed inputs return explicit errors
+ok 517 - auth, CORS, unknown model keys and malformed inputs return explicit errors
+  ---
+  duration_ms: 27.658
+  type: 'test'
+  ...
+# Subtest: reusing a declaration array cannot undercount active tools or release another reader's locks
+ok 518 - reusing a declaration array cannot undercount active tools or release another reader's locks
+  ---
+  duration_ms: 1.5867
+  type: 'test'
+  ...
+# Subtest: empty reused lock arrays still consume one slot per tool
+ok 519 - empty reused lock arrays still consume one slot per tool
+  ---
+  duration_ms: 0.1354
+  type: 'test'
+  ...
+# Subtest: mutating a returned declaration cannot change active or queued resources
+ok 520 - mutating a returned declaration cannot change active or queued resources
+  ---
+  duration_ms: 0.1499
+  type: 'test'
+  ...
+# Subtest: indexed arbitration matches pairwise read/write and wildcard semantics
+ok 521 - indexed arbitration matches pairwise read/write and wildcard semantics
+  ---
+  duration_ms: 2.4786
+  type: 'test'
+  ...
+# Subtest: conflicting readers respect an earlier writer while unrelated resources bypass it
+ok 522 - conflicting readers respect an earlier writer while unrelated resources bypass it
+  ---
+  duration_ms: 0.2614
+  type: 'test'
+  ...
+# Subtest: schema reuse keeps validation errors private and recompiles modified schemas
+ok 523 - schema reuse keeps validation errors private and recompiles modified schemas
+  ---
+  duration_ms: 20.0823
+  type: 'test'
+  ...
+# Subtest: schema cache retains local references, draft selection and validation constraints
+ok 524 - schema cache retains local references, draft selection and validation constraints
+  ---
+  duration_ms: 15.9274
+  type: 'test'
+  ...
+# Subtest: schema cache eviction preserves existing validators and revalidates limits
+ok 525 - schema cache eviction preserves existing validators and revalidates limits
+  ---
+  duration_ms: 48.1174
+  type: 'test'
+  ...
+# Subtest: repeated tool catalogs larger than 64 schemas reuse validation code and bounded compiler generations
+ok 526 - repeated tool catalogs larger than 64 schemas reuse validation code and bounded compiler generations
+  ---
+  duration_ms: 30.2895
+  type: 'test'
+  ...
+# Subtest: compiler reuse isolates nested IDs and clears failed schemas in both dialects
+ok 527 - compiler reuse isolates nested IDs and clears failed schemas in both dialects
+  ---
+  duration_ms: 2.529
+  type: 'test'
+  ...
+# Subtest: recursive local references survive compiler rotation and cache eviction
+ok 528 - recursive local references survive compiler rotation and cache eviction
+  ---
+  duration_ms: 28.0367
+  type: 'test'
+  ...
+# Subtest: compiler reuse preserves built-in meta aliases without admitting a conflicting user ID
+ok 529 - compiler reuse preserves built-in meta aliases without admitting a conflicting user ID
+  ---
+  duration_ms: 0.5734
+  type: 'test'
+  ...
+# Subtest: draft 2020 compiler cleanup retains its public generic meta-schema alias
+ok 530 - draft 2020 compiler cleanup retains its public generic meta-schema alias
+  ---
+  duration_ms: 0.7374
+  type: 'test'
+  ...
+# Subtest: security audit defaults off without evaluating rules or removing system instructions
+ok 531 - security audit defaults off without evaluating rules or removing system instructions
+  ---
+  duration_ms: 118.1695
+  type: 'test'
+  ...
+# Subtest: audit mode records deny findings without blocking and exposes scoped pagination
+ok 532 - audit mode records deny findings without blocking and exposes scoped pagination
+  ---
+  duration_ms: 47.2774
+  type: 'test'
+  ...
+# Subtest: enforced input rejection precedes run, inbox and provider work
+ok 533 - enforced input rejection precedes run, inbox and provider work
+  ---
+  duration_ms: 31.0158
+  type: 'test'
+  ...
+# Subtest: input auditing includes an uploaded attachment excerpt
+ok 534 - input auditing includes an uploaded attachment excerpt
+  ---
+  duration_ms: 42.0574
+  type: 'test'
+  ...
+# Subtest: input auditing matches registered secrets before redacting text and attachment excerpts
+ok 535 - input auditing matches registered secrets before redacting text and attachment excerpts
+  ---
+  duration_ms: 37.0141
+  type: 'test'
+  ...
+# Subtest: tool auditing blocks direct and hook-rewritten arguments before file effects
+ok 536 - tool auditing blocks direct and hook-rewritten arguments before file effects
+  ---
+  duration_ms: 66.1303
+  type: 'test'
+  ...
+# Subtest: default prompt-injection flag remains advisory in enforce mode
+ok 537 - default prompt-injection flag remains advisory in enforce mode
+  ---
+  duration_ms: 43.0481
+  type: 'test'
+  ...
+# Subtest: rejected steering and queued inputs leave the current run active
+ok 538 - rejected steering and queued inputs leave the current run active
+  ---
+  duration_ms: 54.6626
+  type: 'test'
+  ...
+# Subtest: client process actions pass tool auditing before starting a process
+ok 539 - client process actions pass tool auditing before starting a process
+  ---
+  duration_ms: 31.0157
+  type: 'test'
+  ...
+# Subtest: enabling enforcement audits old pending inbox entries before resume creates a run
+ok 540 - enabling enforcement audits old pending inbox entries before resume creates a run
+  ---
+  duration_ms: 37.932
+  type: 'test'
+  ...
+# Subtest: audit configuration defaults, strict fields, bounds and unique rule identifiers
+ok 541 - audit configuration defaults, strict fields, bounds and unique rule identifiers
+  ---
+  duration_ms: 4.3012
+  type: 'test'
+  ...
+# Subtest: off bypasses request extraction, rules, cancellation and storage
+ok 542 - off bypasses request extraction, rules, cancellation and storage
+  ---
+  duration_ms: 18.2832
+  type: 'test'
+  ...
+# Subtest: audit records denials without blocking; enforce flags allow and denials persist
+ok 543 - audit records denials without blocking; enforce flags allow and denials persist
+  ---
+  duration_ms: 17.4994
+  type: 'test'
+  ...
+# Subtest: text rules match literals, honor stage and case, and snapshot configuration
+ok 544 - text rules match literals, honor stage and case, and snapshot configuration
+  ---
+  duration_ms: 17.0951
+  type: 'test'
+  ...
+# Subtest: tool text rules inspect decoded values and keys without joining fields
+ok 545 - tool text rules inspect decoded values and keys without joining fields
+  ---
+  duration_ms: 19.5172
+  type: 'test'
+  ...
+# Subtest: prompt injection heuristics flag English and Chinese, with explicit enforcement only
+ok 546 - prompt injection heuristics flag English and Chinese, with explicit enforcement only
+  ---
+  duration_ms: 16.3687
+  type: 'test'
+  ...
+# Subtest: registration validates identifiers and stages, preserves snapshots and supports safe unregister
+ok 547 - registration validates identifiers and stages, preserves snapshots and supports safe unregister
+  ---
+  duration_ms: 16.8973
+  type: 'test'
+  ...
+# Subtest: exceptions and invalid or oversized results are structured failures with mode policy
+ok 548 - exceptions and invalid or oversized results are structured failures with mode policy
+  ---
+  duration_ms: 17.866
+  type: 'test'
+  ...
+# Subtest: one deadline bounds all concurrent rules and late completion cannot change records
+ok 549 - one deadline bounds all concurrent rules and late completion cannot change records
+  ---
+  duration_ms: 61.9338
+  type: 'test'
+  ...
+# Subtest: external cancellation propagates the original reason and leaves no audit record
+ok 550 - external cancellation propagates the original reason and leaves no audit record
+  ---
+  duration_ms: 31.0519
+  type: 'test'
+  ...
+# Subtest: synchronous work exceeding the deadline prevents subsequent rules from starting
+ok 551 - synchronous work exceeding the deadline prevents subsequent rules from starting
+  ---
+  duration_ms: 34.9093
+  type: 'test'
+  ...
+# Subtest: frozen request snapshots protect original and subsequent rule data
+ok 552 - frozen request snapshots protect original and subsequent rule data
+  ---
+  duration_ms: 14.7106
+  type: 'test'
+  ...
+# Subtest: list uses matching project scope, validates pages and omits sensitive input and error data
+ok 553 - list uses matching project scope, validates pages and omits sensitive input and error data
+  ---
+  duration_ms: 15.8415
+  type: 'test'
+  ...
+# Subtest: plugin integrity rejects changed entry, dependencies and added source, then revokes trust
+ok 554 - plugin integrity rejects changed entry, dependencies and added source, then revokes trust
+  ---
+  duration_ms: 83.4147
+  type: 'test'
+  ...
+# Subtest: plugin runs its verified snapshot even if the installation changes during invocation
+ok 555 - plugin runs its verified snapshot even if the installation changes during invocation
+  ---
+  duration_ms: 664.7203
+  type: 'test'
+  ...
+# Subtest: planning mode rejects MCP and native plugin operations regardless of their read-only metadata
+ok 556 - planning mode rejects MCP and native plugin operations regardless of their read-only metadata
+  ---
+  duration_ms: 27.6601
+  type: 'test'
+  ...
+# Subtest: server fact windows retain insertion order, the latest 100 and project grants
+ok 557 - server fact windows retain insertion order, the latest 100 and project grants
+  ---
+  duration_ms: 27.8799
+  type: 'test'
+  ...
+# Subtest: removing a server deletes its facts across projects and preserves other servers
+ok 558 - removing a server deletes its facts across projects and preserves other servers
+  ---
+  duration_ms: 20.317
+  type: 'test'
+  ...
+# Subtest: server creation retains the 1000 profile limit and project validation
+ok 559 - server creation retains the 1000 profile limit and project validation
+  ---
+  duration_ms: 21.9265
+  type: 'test'
+  ...
+# Subtest: server mutation queues drain the same server without blocking another server
+ok 560 - server mutation queues drain the same server without blocking another server
+  ---
+  duration_ms: 18.0145
+  type: 'test'
+  ...
+# Subtest: a rejected server mutation does not strand queued or later changes
+ok 561 - a rejected server mutation does not strand queued or later changes
+  ---
+  duration_ms: 17.3937
+  type: 'test'
+  ...
+# Subtest: different managers preserve concurrent credentials using same path
+ok 562 - different managers preserve concurrent credentials using same path
+  ---
+  duration_ms: 38.1746
+  type: 'test'
+  ...
+# Subtest: different managers preserve concurrent credentials using Windows case alias
+ok 563 - different managers preserve concurrent credentials using Windows case alias
+  ---
+  duration_ms: 36.1436
+  type: 'test'
+  ...
+# Test fixture initialization failed {
+#   stage: 'project-create',
+#   apiOrigin: 'http://127.0.0.1:59583',
+#   providerOrigin: 'http://127.0.0.1:59582',
+#   causeName: undefined,
+#   causeCode: undefined,
+#   badPort: false
+# }
+# Subtest: servers: failed project initialization closes its SSH listener and restores the vault environment
+ok 564 - servers: failed project initialization closes its SSH listener and restores the vault environment
+  ---
+  duration_ms: 138.8757
+  type: 'test'
+  ...
+# Subtest: servers: failed session initialization closes its SSH listener and restores the vault environment
+ok 565 - servers: failed session initialization closes its SSH listener and restores the vault environment
+  ---
+  duration_ms: 91.2403
+  type: 'test'
+  ...
+# Subtest: servers: authenticated HTTP profiles, probe without authentication, encrypted credentials, bounded verified command evidence
+ok 566 - servers: authenticated HTTP profiles, probe without authentication, encrypted credentials, bounded verified command evidence
+  ---
+  duration_ms: 171.9691
+  type: 'test'
+  ...
+# Subtest: servers: encrypted private key authentication is supported without exposing credentials
+ok 567 - servers: encrypted private key authentication is supported without exposing credentials
+  ---
+  duration_ms: 147.0401
+  type: 'test'
+  ...
+# Subtest: servers: wrong host fingerprint and wrong password are rejected, foreign project cannot connect
+ok 568 - servers: wrong host fingerprint and wrong password are rejected, foreign project cannot connect
+  ---
+  duration_ms: 80.8171
+  type: 'test'
+  ...
+# Subtest: servers: cancellation, disconnect and output limit preserve unknown state without retry
+ok 569 - servers: cancellation, disconnect and output limit preserve unknown state without retry
+  ---
+  duration_ms: 146.2272
+  type: 'test'
+  ...
+# Subtest: servers: profile changes and credential deletion cancel active operations across managers before committing
+ok 570 - servers: profile changes and credential deletion cancel active operations across managers before committing
+  ---
+  duration_ms: 127.6122
+  type: 'test'
+  ...
+# Subtest: servers: trust update while credentials load cannot dispatch using an old profile
+ok 571 - servers: trust update while credentials load cannot dispatch using an old profile
+  ---
+  duration_ms: 101.5941
+  type: 'test'
+  ...
+# Subtest: servers: SFTP cancellation, path validation and download byte limit preserve project boundaries
+ok 572 - servers: SFTP cancellation, path validation and download byte limit preserve project boundaries
+  ---
+  duration_ms: 159.0774
+  type: 'test'
+  ...
+# Subtest: servers: SFTP round trip uses owned assets, upload declares remote execution and refuses foreign assets
+ok 573 - servers: SFTP round trip uses owned assets, upload declares remote execution and refuses foreign assets
+  ---
+  duration_ms: 100.5039
+  type: 'test'
+  ...
+# Subtest: servers: credentials deletion removes reference and external master key is required
+ok 574 - servers: credentials deletion removes reference and external master key is required
+  ---
+  duration_ms: 85.7347
+  type: 'test'
+  ...
+# Subtest: session subagent toggle and inherited agent settings reach actual model requests
+ok 575 - session subagent toggle and inherited agent settings reach actual model requests
+  ---
+  duration_ms: 139.313
+  type: 'test'
+  ...
+# Subtest: delegated sessions cannot exceed their parent's tool or model policies
+ok 576 - delegated sessions cannot exceed their parent's tool or model policies
+  ---
+  duration_ms: 27.5826
+  type: 'test'
+  ...
+# Subtest: fork records source and settings, and explicit conversation grants stay within a project
+ok 577 - fork records source and settings, and explicit conversation grants stay within a project
+  ---
+  duration_ms: 61.4827
+  type: 'test'
+  ...
+# Subtest: reasoning adapter uses explicit levels and refuses incompatible settings
+ok 578 - reasoning adapter uses explicit levels and refuses incompatible settings
+  ---
+  duration_ms: 21.9574
+  type: 'test'
+  ...
+# Subtest: references attached by steering are readable in the same live run
+ok 579 - references attached by steering are readable in the same live run
+  ---
+  duration_ms: 69.8319
+  type: 'test'
+  ...
+# Subtest: team settings and explicit user role decisions use the authenticated HTTP API
+ok 580 - team settings and explicit user role decisions use the authenticated HTTP API
+  ---
+  duration_ms: 32.0416
+  type: 'test'
+  ...
+# Subtest: session snapshot round-trips into an assist session without executing historical effects or reusing provider state
+ok 581 - session snapshot round-trips into an assist session without executing historical effects or reusing provider state
+  ---
+  duration_ms: 167.0838
+  type: 'test'
+  ...
+# Subtest: session import rejects privileged roles, invalid tool groups, duplicate messages and cross-project data atomically
+ok 582 - session import rejects privileged roles, invalid tool groups, duplicate messages and cross-project data atomically
+  ---
+  duration_ms: 52.0115
+  type: 'test'
+  ...
+# Subtest: session references use primary keys, retain insertion order and recheck live project grants
+ok 583 - session references use primary keys, retain insertion order and recheck live project grants
+  ---
+  duration_ms: 201.8362
+  type: 'test'
+  ...
+# {"unrelatedSessions":12000,"previousMedianMs":10.724,"primaryKeyMedianMs":0.017}
+# Subtest: events observe run updates and deletion committed through another connection
+ok 584 - events observe run updates and deletion committed through another connection
+  ---
+  duration_ms: 34.1459
+  type: 'test'
+  ...
+# Subtest: event session identifiers use persisted redaction for put and write
+ok 585 - event session identifiers use persisted redaction for put and write
+  ---
+  duration_ms: 30.0225
+  type: 'test'
+  ...
+# Subtest: event session projections respect savepoints and transaction rollback
+ok 586 - event session projections respect savepoints and transaction rollback
+  ---
+  duration_ms: 30.5184
+  type: 'test'
+  ...
+# Subtest: events observe a run update committed by a separate Store process
+ok 587 - events observe a run update committed by a separate Store process
+  ---
+  duration_ms: 116.0035
+  type: 'test'
+  ...
+# Subtest: cost index upgrade preserves ordering, sequences and custom triggers
+ok 588 - cost index upgrade preserves ordering, sequences and custom triggers
+  ---
+  duration_ms: 46.9245
+  type: 'test'
+  ...
+# Subtest: project budgets use covered values and stay exact across raw changes, rollback and index repair
+ok 589 - project budgets use covered values and stay exact across raw changes, rollback and index repair
+  ---
+  duration_ms: 46.3904
+  type: 'test'
+  ...
+# Subtest: effects project filtering remains indexed after updates, rollback and missing-index repair
+ok 590 - effects project filtering remains indexed after updates, rollback and missing-index repair
+  ---
+  duration_ms: 47.6543
+  type: 'test'
+  ...
+# Subtest: transcript replacement preserves prefix sequences, unique identities and atomic conflicts
+ok 591 - transcript replacement preserves prefix sequences, unique identities and atomic conflicts
+  ---
+  duration_ms: 18.1633
+  type: 'test'
+  ...
+# Subtest: redacted storage observes credential addition, rotation and deletion between synchronous calls
+ok 592 - redacted storage observes credential addition, rotation and deletion between synchronous calls
+  ---
+  duration_ms: 16.3579
+  type: 'test'
+  ...
+# Subtest: transcript counts follow raw SQL, cross-connection changes, moves and trigger repair
+ok 593 - transcript counts follow raw SQL, cross-connection changes, moves and trigger repair
+  ---
+  duration_ms: 46.4601
+  type: 'test'
+  ...
+# Subtest: JSON read statements preserve named public rows and body aliases in any column position
+ok 594 - JSON read statements preserve named public rows and body aliases in any column position
+  ---
+  duration_ms: 15.4857
+  type: 'test'
+  ...
+# Subtest: repeated storage operations preserve nested rollback, message identity and cross-connection visibility
+ok 595 - repeated storage operations preserve nested rollback, message identity and cross-connection visibility
+  ---
+  duration_ms: 41.5711
+  type: 'test'
+  ...
+# Subtest: memory lookups preserve insertion order, expiry, revisions and project ownership after reopen
+ok 596 - memory lookups preserve insertion order, expiry, revisions and project ownership after reopen
+  ---
+  duration_ms: 26.6182
+  type: 'test'
+  ...
+# Subtest: memory import and proposals retain atomicity and project scope
+ok 597 - memory import and proposals retain atomicity and project scope
+  ---
+  duration_ms: 18.6986
+  type: 'test'
+  ...
+# Subtest: memory proposals deduplicate the persisted redacted content
+ok 598 - memory proposals deduplicate the persisted redacted content
+  ---
+  duration_ms: 17.8414
+  type: 'test'
+  ...
+# Subtest: opening an existing database adds selective memory indexes without changing stored bodies
+ok 599 - opening an existing database adds selective memory indexes without changing stored bodies
+  ---
+  duration_ms: 26.2839
+  type: 'test'
+  ...
+# Subtest: prune deletes old finished-run events and unreferenced caches only
+ok 600 - prune deletes old finished-run events and unreferenced caches only
+  ---
+  duration_ms: 28.0993
+  type: 'test'
+  ...
+# Subtest: emitted events reuse one wire serialization equal to JSON.stringify
+ok 601 - emitted events reuse one wire serialization equal to JSON.stringify
+  ---
+  duration_ms: 16.019
+  type: 'test'
+  ...
+# Subtest: pre-serialized transcript messages store the same row as plain appends
+ok 602 - pre-serialized transcript messages store the same row as plain appends
+  ---
+  duration_ms: 16.2834
+  type: 'test'
+  ...
+# Subtest: transcript version changes on every insert and suffix rewrite
+ok 603 - transcript version changes on every insert and suffix rewrite
+  ---
+  duration_ms: 17.2972
+  type: 'test'
+  ...
+# Subtest: cost totals aggregate in SQL like the per-entry summary
+ok 604 - cost totals aggregate in SQL like the per-entry summary
+  ---
+  duration_ms: 16.2912
+  type: 'test'
+  ...
+# Subtest: session filters on nested team fields match the JSON values
+ok 605 - session filters on nested team fields match the JSON values
+  ---
+  duration_ms: 15.4059
+  type: 'test'
+  ...
+# Subtest: shared SSE decoder preserves mixed line endings, split Unicode and final events
+ok 606 - shared SSE decoder preserves mixed line endings, split Unicode and final events
+  ---
+  duration_ms: 4.6656
+  type: 'test'
+  ...
+# Subtest: SSE limits apply to individual frames across chunks and enforce total bytes
+ok 607 - SSE limits apply to individual frames across chunks and enforce total bytes
+  ---
+  duration_ms: 0.9612
+  type: 'test'
+  ...
+# Subtest: MCP frames preserve empty cursor events, bounded retry and UTF-8 byte limits across every split
+ok 608 - MCP frames preserve empty cursor events, bounded retry and UTF-8 byte limits across every split
+  ---
+  duration_ms: 1.2089
+  type: 'test'
+  ...
+# Subtest: SSE abort interrupts an idle reader and early consumer exit releases its lock
+ok 609 - SSE abort interrupts an idle reader and early consumer exit releases its lock
+  ---
+  duration_ms: 0.3263
+  type: 'test'
+  ...
+# Subtest: SSE cancellation stops buffered events and cleans up an already-aborted input
+ok 610 - SSE cancellation stops buffered events and cleans up an already-aborted input
+  ---
+  duration_ms: 0.2404
+  type: 'test'
+  ...
+# Subtest: fetch client accepts coalesced bounded frames and validates complete event envelopes over HTTP
+ok 611 - fetch client accepts coalesced bounded frames and validates complete event envelopes over HTTP
+  ---
+  duration_ms: 29.2636
+  type: 'test'
+  ...
+# Subtest: parallel sub-agents get fresh context, use tools without deadlock and report back
+ok 612 - parallel sub-agents get fresh context, use tools without deadlock and report back
+  ---
+  duration_ms: 498.1499
+  type: 'test'
+  ...
+# Subtest: sub-agents cannot switch to a more permissive mode
+ok 613 - sub-agents cannot switch to a more permissive mode
+  ---
+  duration_ms: 48.8247
+  type: 'test'
+  ...
+# Subtest: cancelling the parent cancels the running sub-agent
+ok 614 - cancelling the parent cancels the running sub-agent
+  ---
+  duration_ms: 65.2718
+  type: 'test'
+  ...
+# Subtest: background sub-agents return immediately and are collected with agent_result
+ok 615 - background sub-agents return immediately and are collected with agent_result
+  ---
+  duration_ms: 370.3075
+  type: 'test'
+  ...
+# Subtest: cancelling the parent run also cancels its background sub-agents
+ok 616 - cancelling the parent run also cancels its background sub-agents
+  ---
+  duration_ms: 68.1218
+  type: 'test'
+  ...
+# Subtest: maxAgentDepth allows nested delegation up to the limit
+ok 617 - maxAgentDepth allows nested delegation up to the limit
+  ---
+  duration_ms: 67.5517
+  type: 'test'
+  ...
+# Subtest: team status counts all matching history but refreshes only the latest 40 in insertion order
+ok 618 - team status counts all matching history but refreshes only the latest 40 in insertion order
+  ---
+  duration_ms: 251.2203
+  type: 'test'
+  ...
+# Subtest: teamId entity queries remain parameterized and use the index without changing row order
+ok 619 - teamId entity queries remain parameterized and use the index without changing row order
+  ---
+  duration_ms: 33.5841
+  type: 'test'
+  ...
+# Subtest: editing an idle team does not refresh or fail on another team's stale task
+ok 620 - editing an idle team does not refresh or fail on another team's stale task
+  ---
+  duration_ms: 38.238
+  type: 'test'
+  ...
+# Subtest: dispatch reuses the member session through bounded parent queries despite unrelated history
+ok 621 - dispatch reuses the member session through bounded parent queries despite unrelated history
+  ---
+  duration_ms: 113.101
+  type: 'test'
+  ...
+# Subtest: registered text protocols are routable without changing the provider
+ok 622 - registered text protocols are routable without changing the provider
+  ---
+  duration_ms: 33.6425
+  type: 'test'
+  ...
+# Subtest: text routes must name a registered protocol
+ok 623 - text routes must name a registered protocol
+  ---
+  duration_ms: 1.5314
+  type: 'test'
+  ...
+# Subtest: tool input contracts retain service validation, grants, cancellation and resource locks
+ok 624 - tool input contracts retain service validation, grants, cancellation and resource locks
+  ---
+  duration_ms: 83.2479
+  type: 'test'
+  ...
+# Subtest: branch HTTP traversal finds unordered descendants and bounds cycles within the current project
+ok 625 - branch HTTP traversal finds unordered descendants and bounds cycles within the current project
+  ---
+  duration_ms: 38.9736
+  type: 'test'
+  ...
+# Subtest: core verifier separates audit JSON from stderr and replaces stale success after registry failure
+ok 626 - core verifier separates audit JSON from stderr and replaces stale success after registry failure
+  ---
+  duration_ms: 505.7782
+  type: 'test'
+  ...
+# Subtest: a zero-exit subprocess with invalid audit JSON still fails and writes unavailable
+ok 627 - a zero-exit subprocess with invalid audit JSON still fails and writes unavailable
+  ---
+  duration_ms: 467.315
+  type: 'test'
+  ...
+# Subtest: audit findings remain failed with the actual vulnerability count
+ok 628 - audit findings remain failed with the actual vulnerability count
+  ---
+  duration_ms: 487
+  type: 'test'
+  ...
+# Subtest: valid audit JSON with stderr diagnostics can pass without contaminating the report
+ok 629 - valid audit JSON with stderr diagnostics can pass without contaminating the report
+  ---
+  duration_ms: 468.9899
+  type: 'test'
+  ...
+# Subtest: host build failure writes the current failed report and still records remaining checks
+ok 630 - host build failure writes the current failed report and still records remaining checks
+  ---
+  duration_ms: 254.8562
+  type: 'test'
+  ...
+# Subtest: host registry failure remains unavailable with no invented zero vulnerabilities
+ok 631 - host registry failure remains unavailable with no invented zero vulnerabilities
+  ---
+  duration_ms: 252.2142
+  type: 'test'
+  ...
+# Subtest: evidence-only without an existing host report writes a failed current report
+ok 632 - evidence-only without an existing host report writes a failed current report
+  ---
+  duration_ms: 67.8408
+  type: 'test'
+  ...
+# Subtest: missing host acceptance inputs cannot leave the previous successful report intact
+ok 633 - missing host acceptance inputs cannot leave the previous successful report intact
+  ---
+  duration_ms: 246.3175
+  type: 'test'
+  ...
+# Subtest: evidence-only accepts same-version legacy reports with no report or check status
+ok 634 - evidence-only accepts same-version legacy reports with no report or check status
+  ---
+  duration_ms: 312.2515
+  type: 'test'
+  ...
+# Subtest: evidence-only preserves audit process errors and unavailable states despite complete stdout
+ok 635 - evidence-only preserves audit process errors and unavailable states despite complete stdout
+  ---
+  duration_ms: 375.0946
+  type: 'test'
+  ...
+# Subtest: HTML becomes readable text with headings, lists, links and entities
+ok 636 - HTML becomes readable text with headings, lists, links and entities
+  ---
+  duration_ms: 2.08
+  type: 'test'
+  ...
+# Subtest: proxy selection honours NO_PROXY and refuses unsupported schemes
+ok 637 - proxy selection honours NO_PROXY and refuses unsupported schemes
+  ---
+  duration_ms: 0.9192
+  type: 'test'
+  ...
+# Subtest: fetch converts HTML, decodes gzip and GBK, follows bounded redirects and caches
+ok 638 - fetch converts HTML, decodes gzip and GBK, follows bounded redirects and caches
+  ---
+  duration_ms: 35.5295
+  type: 'test'
+  ...
+# Subtest: private networks, blocked hosts, redirects, size and time are enforced
+ok 639 - private networks, blocked hosts, redirects, size and time are enforced
+  ---
+  duration_ms: 1018.5604
+  type: 'test'
+  ...
+# Subtest: HTTP proxy: absolute-form requests, CONNECT tunnels with extra CA, proxy auth
+ok 640 - HTTP proxy: absolute-form requests, CONNECT tunnels with extra CA, proxy auth
+  ---
+  duration_ms: 26.8173
+  type: 'test'
+  ...
+# Subtest: search providers: SearXNG, Tavily and registered providers with filtering
+ok 641 - search providers: SearXNG, Tavily and registered providers with filtering
+  ---
+  duration_ms: 7.7772
+  type: 'test'
+  ...
+# Subtest: web_fetch and web_search tools run through policy, paging and asset storage
+ok 642 - web_fetch and web_search tools run through policy, paging and asset storage
+  ---
+  duration_ms: 153.417
+  type: 'test'
+  ...
+1..642
+# tests 642
+# suites 0
+# pass 642
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 263396.2325

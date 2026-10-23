@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-10-23T03:34:37.052Z",
+  "checkedAt": "2026-10-23T04:15:03.547Z",
   "status": "passed",
   "published": false,
   "checks": [
     {
       "binary": "E:\\nodejs\\node.exe",
       "node": "v22.23.2",
-      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1",
+      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\1",
       "status": "passed",
       "portableClientWithoutNodeBuiltins": true,
       "exampleSyntaxChecks": [
@@ -18,7 +18,7 @@
       "runtime": {
         "node": "v22.23.2",
         "version": "0.12.1",
-        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1\\node_modules\\@local\\agent-foundation\\",
+        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\1\\node_modules\\@local\\agent-foundation\\",
         "checks": {
           "modelAndFileWrite": true,
           "httpAndSseClient": true,
@@ -31,12 +31,51 @@
             "exec_stop"
           ],
           "packagedOfficeWorkerCsv": true,
-          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1\\node_modules\\@local\\agent-foundation\\package.json",
+          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\1\\node_modules\\@local\\agent-foundation\\package.json",
           "cli": {
             "started": true,
             "runtime": "v22.23.2",
             "command": "agent-foundation serve --config <file>",
-            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1\\node_modules\\.bin\\agent-foundation.cmd"
+            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\1\\node_modules\\.bin\\agent-foundation.cmd"
+          }
+        },
+        "status": "passed"
+      }
+    },
+    {
+      "binary": "C:\\Users\\chilun\\AppData\\Local\\npm-cache\\_npx\\ef8b185be06dfeb4\\node_modules\\node\\bin\\node.exe",
+      "node": "v24.22.1",
+      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\2",
+      "status": "passed",
+      "portableClientWithoutNodeBuiltins": true,
+      "exampleSyntaxChecks": [
+        "embedded.mjs",
+        "http-client.mjs",
+        "team-service.mjs"
+      ],
+      "strictTypes": true,
+      "runtime": {
+        "node": "v24.22.1",
+        "version": "0.12.1",
+        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\2\\node_modules\\@local\\agent-foundation\\",
+        "checks": {
+          "modelAndFileWrite": true,
+          "httpAndSseClient": true,
+          "packagedRegexWorker": true,
+          "sourcePluginWorker": true,
+          "persistentExecTools": [
+            "exec_start",
+            "exec_write",
+            "exec_read",
+            "exec_stop"
+          ],
+          "packagedOfficeWorkerCsv": true,
+          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\2\\node_modules\\@local\\agent-foundation\\package.json",
+          "cli": {
+            "started": true,
+            "runtime": "v24.22.1",
+            "command": "agent-foundation serve --config <file>",
+            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew\\2\\node_modules\\.bin\\agent-foundation.cmd"
           }
         },
         "status": "passed"
@@ -44,15 +83,16 @@
     }
   ],
   "package": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
-  "sha256": "dc20e9f3c0ea6292011164bc385161c894781a8a75f547f950162ab57380a01e",
+  "sha256": "726890d6e3368a75b098f415e2565acbebeb89a931e7e639517718b00e71093d",
   "version": "0.12.1",
-  "consumerDirectory": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy",
+  "consumerDirectory": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-FJtRew",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "validationBoundary": {
     "supportedRuntimeVersions": [
-      "v22.23.2"
+      "v22.23.2",
+      "v24.22.1"
     ],
     "unsupportedRuntimeVersions": [],
     "minimumExactRuntimeTested": false,

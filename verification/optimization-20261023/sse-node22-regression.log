@@ -1,0 +1,148 @@
+TAP version 13
+# (node:23592) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: client reconnects only GET streams with a durable cursor and deduplicates replayed events
+ok 1 - client reconnects only GET streams with a durable cursor and deduplicates replayed events
+  ---
+  duration_ms: 54.232
+  type: 'test'
+  ...
+# Subtest: event delivery handles a large durable replay and live completion without discarding its initial event
+ok 2 - event delivery handles a large durable replay and live completion without discarding its initial event
+  ---
+  duration_ms: 233.8876
+  type: 'test'
+  ...
+# Subtest: structured HTTP errors preserve status and code, and permanent auth failures are never retried
+ok 3 - structured HTTP errors preserve status and code, and permanent auth failures are never retried
+  ---
+  duration_ms: 5.1895
+  type: 'test'
+  ...
+# (node:25072) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real paused HTTP consumer drains a large live backlog in order after its replay watermark
+ok 4 - real paused HTTP consumer drains a large live backlog in order after its replay watermark
+  ---
+  duration_ms: 978.9769
+  type: 'test'
+  ...
+# Subtest: UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence
+ok 5 - UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence
+  ---
+  duration_ms: 1078.5555
+  type: 'test'
+  ...
+# Subtest: disconnecting a genuinely blocked HTTP consumer releases the event subscription and drain waiter
+ok 6 - disconnecting a genuinely blocked HTTP consumer releases the event subscription and drain waiter
+  ---
+  duration_ms: 95.2175
+  type: 'test'
+  ...
+# Subtest: completed HTTP writes release backpressure even when the socket never emits drain
+ok 7 - completed HTTP writes release backpressure even when the socket never emits drain
+  ---
+  duration_ms: 53.9708
+  type: 'test'
+  ...
+# (node:21648) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: history checkpoints load a bounded tail, survive append/restart and invalidate changed prefixes
+ok 8 - history checkpoints load a bounded tail, survive append/restart and invalidate changed prefixes
+  ---
+  duration_ms: 114.3418
+  type: 'test'
+  ...
+# Subtest: real compaction persists a reusable checkpoint and keeps the durable message budget
+ok 9 - real compaction persists a reusable checkpoint and keeps the durable message budget
+  ---
+  duration_ms: 138.1973
+  type: 'test'
+  ...
+# Subtest: streaming assets clean cancellation, enforce reservations and serve a verified immutable snapshot
+ok 10 - streaming assets clean cancellation, enforce reservations and serve a verified immutable snapshot
+  ---
+  duration_ms: 79.8531
+  type: 'test'
+  ...
+# Subtest: kernel shutdown cancels stalled asset writes and closes outstanding download snapshots
+ok 11 - kernel shutdown cancels stalled asset writes and closes outstanding download snapshots
+  ---
+  duration_ms: 62.2088
+  type: 'test'
+  ...
+# Subtest: entity API cursor pages remain bounded and stable across updates
+ok 12 - entity API cursor pages remain bounded and stable across updates
+  ---
+  duration_ms: 137.9762
+  type: 'test'
+  ...
+# Subtest: live retention yields between batches and cancellation preserves remaining work
+ok 13 - live retention yields between batches and cancellation preserves remaining work
+  ---
+  duration_ms: 92.1227
+  type: 'test'
+  ...
+# Subtest: input admission limits reject before persistence and release queue capacity after failure
+ok 14 - input admission limits reject before persistence and release queue capacity after failure
+  ---
+  duration_ms: 195.8127
+  type: 'test'
+  ...
+# Subtest: SSE global bytes, per-run subscribers and stalled drain reservations are released
+ok 15 - SSE global bytes, per-run subscribers and stalled drain reservations are released
+  ---
+  duration_ms: 147.8901
+  type: 'test'
+  ...
+# Subtest: kernel redaction policies and rotated credentials have independent async lifetimes
+ok 16 - kernel redaction policies and rotated credentials have independent async lifetimes
+  ---
+  duration_ms: 142.8334
+  type: 'test'
+  ...
+# Subtest: shared SSE decoder preserves mixed line endings, split Unicode and final events
+ok 17 - shared SSE decoder preserves mixed line endings, split Unicode and final events
+  ---
+  duration_ms: 5.8245
+  type: 'test'
+  ...
+# Subtest: SSE limits apply to individual frames across chunks and enforce total bytes
+ok 18 - SSE limits apply to individual frames across chunks and enforce total bytes
+  ---
+  duration_ms: 2.6928
+  type: 'test'
+  ...
+# Subtest: MCP frames preserve empty cursor events, bounded retry and UTF-8 byte limits across every split
+ok 19 - MCP frames preserve empty cursor events, bounded retry and UTF-8 byte limits across every split
+  ---
+  duration_ms: 3.0206
+  type: 'test'
+  ...
+# Subtest: SSE abort interrupts an idle reader and early consumer exit releases its lock
+ok 20 - SSE abort interrupts an idle reader and early consumer exit releases its lock
+  ---
+  duration_ms: 0.5589
+  type: 'test'
+  ...
+# Subtest: SSE cancellation stops buffered events and cleans up an already-aborted input
+ok 21 - SSE cancellation stops buffered events and cleans up an already-aborted input
+  ---
+  duration_ms: 0.326
+  type: 'test'
+  ...
+# Subtest: fetch client accepts coalesced bounded frames and validates complete event envelopes over HTTP
+ok 22 - fetch client accepts coalesced bounded frames and validates complete event envelopes over HTTP
+  ---
+  duration_ms: 33.1509
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4738.5946

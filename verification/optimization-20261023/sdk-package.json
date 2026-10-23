@@ -1,14 +1,14 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T03:34:13.889Z",
+  "checkedAt": "2026-10-23T04:14:55.451Z",
   "node": "v22.23.2",
   "platform": "win32",
   "status": "passed",
   "published": false,
   "tarball": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
-  "sha256": "dc20e9f3c0ea6292011164bc385161c894781a8a75f547f950162ab57380a01e",
-  "bytes": 592942,
-  "unpackedBytes": 2326697,
+  "sha256": "726890d6e3368a75b098f415e2565acbebeb89a931e7e639517718b00e71093d",
+  "bytes": 593603,
+  "unpackedBytes": 2328519,
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
