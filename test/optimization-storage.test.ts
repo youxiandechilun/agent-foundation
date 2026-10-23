@@ -459,7 +459,7 @@ test("queued media cancellation releases only an unsubmitted unauthorized reserv
   await ledger.close();
 });
 
-test("cancelled authorization waits for the host result before delivering an uncertain outcome", async (t) => {
+test("cancelled authorization waits for the host result before voiding the unsent call", async (t) => {
   const { store, config } = fixture(t);
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
@@ -497,12 +497,12 @@ test("cancelled authorization waits for the host result before delivering an unc
   await ledger.drain();
   assert.deepEqual(
     outcomes.map((outcome) => outcome.status),
-    ["unknown"],
+    ["void"],
   );
   await ledger.close();
 });
 
-test("late authorization resolution or rejection cannot access a closed store and is recovered as unknown", async (t) => {
+test("late authorization cannot access a closed store and recovers as an unsent void", async (t) => {
   for (const reject of [false, true]) {
     const { root, store, config } = fixture(t);
     let finish!: () => void;
@@ -546,7 +546,7 @@ test("late authorization resolution or rejection cannot access a closed store an
       await recovered.drain();
       assert.deepEqual(
         outcomes.map((outcome) => outcome.status),
-        ["unknown"],
+        ["void"],
       );
     } finally {
       await recovered.close();

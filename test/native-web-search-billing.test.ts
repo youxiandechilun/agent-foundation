@@ -62,7 +62,7 @@ async function fixture(
   };
   const ledger = new CostLedger(store, config, provider);
   t.after(async () => {
-    await ledger.drain();
+    if (!store.isClosed) await ledger.close();
     store.close();
   });
   const request: ModelRequest = {
@@ -125,7 +125,10 @@ test("host billing keeps hosted search unknown until the actual charge is reconc
   assert.equal(x.recorded.length, 1);
   assert.equal(x.recorded[0].charge.id, entry.id);
   assert.deepEqual(x.recorded[0].outcome, {
+    revision: 1,
     status: "unknown",
+    responseId: "billing-response",
+    reason: "Provider-hosted web search charges require reconciliation",
     tokens: { input: 20, output: 5, cacheRead: 0, cacheWrite: 0 },
   });
 
@@ -140,7 +143,9 @@ test("host billing keeps hosted search unknown until the actual charge is reconc
   assert.equal(x.recorded.length, 2);
   assert.equal(x.recorded[1].charge.id, entry.id);
   assert.deepEqual(x.recorded[1].outcome, {
+    revision: 2,
     status: "settled",
+    responseId: "billing-response",
     tokens: { input: 20, output: 5, cacheRead: 0, cacheWrite: 0 },
     chargedMicros: 30000,
     reference: "provider-invoice-1",
@@ -169,7 +174,9 @@ test("ordinary unpriced text still reports settled tokens to host billing", asyn
   assert.equal(x.recorded.length, 1);
   assert.equal(x.recorded[0].charge.id, entry.id);
   assert.deepEqual(x.recorded[0].outcome, {
+    revision: 1,
     status: "settled",
+    responseId: "billing-response",
     tokens: { input: 20, output: 5, cacheRead: 0, cacheWrite: 0 },
   });
 });
@@ -318,6 +325,7 @@ for (const explicitSent of [false, true]) {
     assert.equal(x.recorded.length, 2);
     assert.equal(x.recorded[1].charge.id, entry.id);
     assert.deepEqual(x.recorded[1].outcome, {
+      revision: 2,
       status: "settled",
       chargedMicros: 20000,
       reference: "interrupted-invoice-1",
@@ -366,6 +374,7 @@ test("a persisted hosted search reservation retains reconciliation after recover
     assert.equal(x.recorded.length, 2);
     assert.equal(x.recorded[1].charge.id, reservation.id);
     assert.deepEqual(x.recorded[1].outcome, {
+      revision: 2,
       status: "settled",
       chargedMicros: 60000,
       reference: "recovered-invoice-1",

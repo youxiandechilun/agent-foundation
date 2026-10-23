@@ -1,52 +1,12 @@
 {
-  "checkedAt": "2026-10-23T09:18:12.725Z",
+  "checkedAt": "2026-10-23T15:05:38.205Z",
   "status": "passed",
   "published": false,
   "checks": [
     {
-      "binary": "E:\\nodejs\\node.exe",
-      "node": "v22.23.2",
-      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\1",
-      "status": "passed",
-      "portableClientWithoutNodeBuiltins": true,
-      "exampleSyntaxChecks": [
-        "embedded.mjs",
-        "http-client.mjs",
-        "team-service.mjs"
-      ],
-      "strictTypes": true,
-      "publicContractCompatibility": true,
-      "runtime": {
-        "node": "v22.23.2",
-        "version": "0.12.1",
-        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\1\\node_modules\\@local\\agent-foundation\\",
-        "checks": {
-          "modelAndFileWrite": true,
-          "httpAndSseClient": true,
-          "packagedRegexWorker": true,
-          "sourcePluginWorker": true,
-          "persistentExecTools": [
-            "exec_start",
-            "exec_write",
-            "exec_read",
-            "exec_stop"
-          ],
-          "packagedOfficeWorkerCsv": true,
-          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\1\\node_modules\\@local\\agent-foundation\\package.json",
-          "cli": {
-            "started": true,
-            "runtime": "v22.23.2",
-            "command": "agent-foundation serve --config <file>",
-            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\1\\node_modules\\.bin\\agent-foundation.cmd"
-          }
-        },
-        "status": "passed"
-      }
-    },
-    {
       "binary": "C:\\Program Files\\nodejs\\node.exe",
-      "node": "v24.20.0",
-      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\2",
+      "node": "v22.22.0",
+      "consumer": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1",
       "status": "passed",
       "portableClientWithoutNodeBuiltins": true,
       "exampleSyntaxChecks": [
@@ -57,9 +17,9 @@
       "strictTypes": true,
       "publicContractCompatibility": true,
       "runtime": {
-        "node": "v24.20.0",
-        "version": "0.12.1",
-        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\2\\node_modules\\@local\\agent-foundation\\",
+        "node": "v22.22.0",
+        "version": "0.13.0",
+        "packageRoot": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1\\node_modules\\@local\\agent-foundation\\",
         "checks": {
           "modelAndFileWrite": true,
           "httpAndSseClient": true,
@@ -72,29 +32,28 @@
             "exec_stop"
           ],
           "packagedOfficeWorkerCsv": true,
-          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\2\\node_modules\\@local\\agent-foundation\\package.json",
+          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1\\node_modules\\@local\\agent-foundation\\package.json",
           "cli": {
             "started": true,
-            "runtime": "v24.20.0",
+            "runtime": "v22.22.0",
             "command": "agent-foundation serve --config <file>",
-            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6\\2\\node_modules\\.bin\\agent-foundation.cmd"
+            "installedBin": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1\\node_modules\\.bin\\agent-foundation.cmd"
           }
         },
         "status": "passed"
       }
     }
   ],
-  "package": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
-  "sha256": "b10bb0586a6c7cb1cef70b4bd498fafbd6ca5b5a2da05d5edae2f4467c89da90",
-  "version": "0.12.1",
-  "consumerDirectory": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-9gjvO6",
+  "package": "E:\\agent-foundation\\releases\\0.13.0\\local-agent-foundation-0.13.0.tgz",
+  "sha256": "5fa95553e4c6f69f6ac954319e4fa543ca4d580c65214e5daf95e675f55509dd",
+  "version": "0.13.0",
+  "consumerDirectory": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "validationBoundary": {
     "supportedRuntimeVersions": [
-      "v22.23.2",
-      "v24.20.0"
+      "v22.22.0"
     ],
     "unsupportedRuntimeVersions": [],
     "minimumExactRuntimeTested": false,

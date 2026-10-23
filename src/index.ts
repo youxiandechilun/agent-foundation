@@ -89,7 +89,10 @@ export {
   defaultTextProtocols,
 } from "./providers/registry.js";
 export type { TextProtocolFactory } from "./providers/registry.js";
-export type { BillingDeliveryOptions } from "./runtime/billing.js";
+export type {
+  BillingDeliveryOptions,
+  BillingDeliveryStatus,
+} from "./runtime/billing.js";
 export { ResponseBuilder, parseArgs } from "./providers/protocol.js";
 export type {
   TextProtocol,
