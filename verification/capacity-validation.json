@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-23T00:45:07.640Z",
+  "status": "passed",
+  "version": "0.12.1",
+  "baseCommit": "7ca1f201d6f6b8504ebf2264c284182d7acf8518",
+  "sourceSha256": "8f51f0cbb293b3979c1a640b38c3e885f26713f238dd6c8894300b0e542454e0",
+  "distSha256": "a108a5b09421a87131d29c135b5a403c14bf2bebe9ff3c5773d276c061992af4",
+  "sourceManifestSha256": "241ae97730d8444eea94b22408a381f4845d20dbb51bac12d108b3ae449b939b",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "win32",
+    "architecture": "x64",
+    "osRelease": "10.0.26200",
+    "cpu": "Intel(R) Core(TM) i5-14600KF",
+    "logicalCpus": 20,
+    "totalMemoryBytes": 16924135424
+  },
+  "fixes": [
+    {
+      "id": "history",
+      "status": "implemented",
+      "files": [
+        "src/storage/store.ts",
+        "src/core/context.ts",
+        "src/core/kernel/run-setup.ts",
+        "src/runtime/engine.ts",
+        "src/core/kernel/engine.ts"
+      ],
+      "behavior": "Validated per-session/per-route summary checkpoints, bounded row-wise recovery, mutation invalidation including sequence changes, complete tool groups, durable message budgets and release of omitted runtime references."
+    },
+    {
+      "id": "assets",
+      "status": "implemented",
+      "files": [
+        "src/storage/assets.ts",
+        "src/storage/asset-stream.ts",
+        "src/api/routes/resources.ts",
+        "src/host/browser/manager.ts"
+      ],
+      "behavior": "Streaming uploads and browser downloads, exclusive temporary publication, bounded transfer admission, verified immutable HTTP download snapshots, cancellation and shutdown cleanup."
+    },
+    {
+      "id": "pagination",
+      "status": "implemented",
+      "files": [
+        "src/storage/store.ts",
+        "src/api/routes/sessions.ts",
+        "src/api/routes/resources.ts",
+        "src/api/routes/memory.ts",
+        "src/api/routes/session-management.ts"
+      ],
+      "behavior": "Default 100/max 1000 rowid cursor pages for growing entity lists; independent session run pages; byte-batched event replay."
+    },
+    {
+      "id": "retention",
+      "status": "implemented",
+      "files": [
+        "src/storage/store.ts",
+        "src/core/kernel.ts"
+      ],
+      "behavior": "Yielding cancellable online maintenance with shared in-flight work and observable errors; synchronous maintenance compatibility retained."
+    },
+    {
+      "id": "admission",
+      "status": "implemented",
+      "files": [
+        "src/core/config.ts",
+        "src/runtime/keyed-queue.ts",
+        "src/runtime/capacity.ts",
+        "src/runtime/engine.ts",
+        "src/api/events.ts"
+      ],
+      "behavior": "Count and byte limits for queues, assets and SSE; admission before persistence; idempotent reservation release and stalled-stream timeout."
+    },
+    {
+      "id": "quality",
+      "status": "implemented",
+      "files": [
+        "tsconfig.test.json",
+        "test/support/client.ts",
+        "test/support/payloads.ts",
+        "scripts/verify-release.mjs",
+        ".github/workflows/quality.yml"
+      ],
+      "behavior": "Strict source/test/example typing, typed fixtures and result validation, lint/format release gates and Windows Node 22/24 CI."
+    },
+    {
+      "id": "redaction",
+      "status": "implemented",
+      "files": [
+        "src/core/redaction.ts",
+        "src/core/kernel.ts",
+        "src/api/server.ts"
+      ],
+      "behavior": "Per-Kernel async redaction ownership and credential lifecycle, including lazy services and prototype method replacement compatibility."
+    },
+    {
+      "id": "modules",
+      "status": "implemented",
+      "files": [
+        "src/core/kernel/engine.ts",
+        "src/extensions/mcp/declaration.ts"
+      ],
+      "behavior": "Separate run engine assembly and MCP declaration schema with public SDK entry points retained."
+    }
+  ],
+  "validation": {
+    "quality": {
+      "status": "passed",
+      "command": "npm run check:quality",
+      "scope": "Strict core/host/test/example types, ESLint and Prettier"
+    },
+    "release": {
+      "status": "passed",
+      "command": "npm run verify",
+      "checks": [
+        {
+          "name": "build",
+          "status": "passed"
+        },
+        {
+          "name": "test-types",
+          "status": "passed"
+        },
+        {
+          "name": "lint",
+          "status": "passed"
+        },
+        {
+          "name": "format",
+          "status": "passed"
+        },
+        {
+          "name": "source-independence",
+          "status": "passed"
+        },
+        {
+          "name": "core-integration",
+          "status": "passed"
+        },
+        {
+          "name": "production-dependency-audit",
+          "status": "passed"
+        },
+        {
+          "name": "compiled-smoke",
+          "status": "passed"
+        },
+        {
+          "name": "acceptance-evidence",
+          "status": "passed"
+        }
+      ],
+      "coreTests": {
+        "total": 609,
+        "passed": 609,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "durationMs": 241699.27
+      },
+      "evidence": "verification/report.json"
+    },
+    "host": {
+      "status": "passed",
+      "command": "npm run test:host -- --filter=browser-app --filter=browser-bridge-app --filter=office-app --filter=host-route-boundaries --filter=host-nodes",
+      "tests": {
+        "total": 22,
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "durationMs": 16770.6433
+      },
+      "evidence": "verification/capacity-host-integration.log",
+      "sha256": "3ea03b1bea327f2a284f6df4a8c5800493a91358d642114da74b430209f0d893"
+    },
+    "sdk": {
+      "status": "passed",
+      "commands": [
+        "npm run pack:sdk",
+        "npm run verify:sdk"
+      ],
+      "sha256": "5d25eb68ed4ecff35986bd1e5a6520bcaf291bbe1d5fa7318f6db0c5ad85faf3",
+      "bytes": 567003,
+      "published": false,
+      "runtimes": [
+        {
+          "node": "v22.23.2",
+          "status": "passed"
+        }
+      ],
+      "evidence": [
+        "verification/sdk-package.json",
+        "verification/sdk-consumer.json"
+      ]
+    },
+    "architecture": {
+      "method": "Static runtime ESM imports/re-exports; excludes type-only, dynamic and package dependencies",
+      "rootStaticModules": 146,
+      "clientStaticModules": 2,
+      "hostLoadedByCore": [],
+      "runtimeCycles": []
+    },
+    "sourceManifest": {
+      "status": "passed",
+      "files": 403,
+      "allFileHashesRechecked": true
+    }
+  },
+  "measurements": {
+    "samplesPerCapacityScenario": 3,
+    "idleSamples": 5,
+    "capacityMedians": {
+      "history": {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 91.53789999999992,
+          "allocatedHeapBytes": 36855104,
+          "retainedHeapBytes": 25943144
+        },
+        "checkpoint": {
+          "rows": 201,
+          "durationMs": 1.5308999999999742,
+          "allocatedHeapBytes": 664392,
+          "retainedHeapBytes": 261624
+        }
+      },
+      "compaction": {
+        "sourceRows": 19900,
+        "activeRows": 202,
+        "durableRows": 19902,
+        "originalReleased": true,
+        "fullHeapBytes": 37084528,
+        "compactHeapBytes": 13061848,
+        "releasedHeapBytes": 24022592
+      },
+      "lists": {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 54.39769999999996,
+          "allocatedHeapBytes": 45771328,
+          "retainedHeapBytes": 22517880
+        },
+        "page": {
+          "rows": 100,
+          "durationMs": 0.6187000000000467,
+          "allocatedHeapBytes": 260760,
+          "retainedHeapBytes": 116080
+        }
+      },
+      "upload": {
+        "inputBytes": 52428800,
+        "chunkBytes": 65536,
+        "durationMs": 82.89960000000002,
+        "peakArrayBufferDeltaBytes": 33591296,
+        "finalArrayBufferDeltaBytes": 19129576,
+        "rssDeltaBytes": 19267584
+      },
+      "retention": {
+        "sourceEvents": 50000,
+        "batch": 500,
+        "durationMs": 340.77329999999995,
+        "maxEventLoopGapMs": 22.62259999999992,
+        "deleted": {
+          "events": 50000,
+          "summaries": 0,
+          "workContexts": 0
+        }
+      }
+    },
+    "idle": {
+      "readyMs": {
+        "median": 331.7557,
+        "minimum": 329.41429999999997,
+        "maximum": 338.2104
+      },
+      "rssBytes": {
+        "median": 119992320,
+        "minimum": 119410688,
+        "maximum": 120356864
+      },
+      "heapUsedBytes": {
+        "median": 33180720,
+        "minimum": 33172832,
+        "maximum": 33214368
+      },
+      "externalBytes": {
+        "median": 3998062,
+        "minimum": 3998062,
+        "maximum": 3998062
+      },
+      "processMaxRssBytes": {
+        "median": 119992320,
+        "minimum": 119410688,
+        "maximum": 120356864
+      }
+    },
+    "evidence": [
+      "verification/capacity-benchmark.json",
+      "verification/kernel-footprint.json"
+    ]
+  },
+  "compatibility": {
+    "listDefaultLimit": 100,
+    "listMaxLimit": 1000,
+    "listContinuation": "after=previous cursor until hasMore=false",
+    "exports": [
+      ".",
+      "./client",
+      "./host"
+    ],
+    "bufferAssetReadPreserved": true,
+    "synchronousPrunePreserved": true,
+    "retentionDefaultsUnchanged": true
+  },
+  "limitations": [
+    "Capacity workloads are local synthetic samples; checkpoint and compaction summaries are fixed synthetic content. Model summary quality and paid provider behavior were not evaluated.",
+    "First uncached full history recovery remains O(n); metadata tracking and row-wise parsing increased that case from about 65 ms to 92 ms in this benchmark. Idle RSS remains about 114 MiB.",
+    "Upload baseline measures request-body buffering; the new upload includes disk writes and hashing. Buffer allocation snapshots, GC and timing probes have distinct scopes.",
+    "Native interactive desktop acceptance, Node 24 runtime execution, Docker, Linux/macOS, remote business services and long-running concurrency/leak tests were not run in this repair pass. Node 24 is configured in CI; a workflow definition is not evidence of a completed run.",
+    "API pagination requires callers that previously consumed an entire list to follow the returned cursor. Verified HTTP downloads use extra disk I/O; SDK buffer reads retain their existing return contract."
+  ]
+}

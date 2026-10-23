@@ -90,7 +90,9 @@ test("the kernel applies its configured redaction mode", async (t) => {
   );
   try {
     assert.equal(
-      redactSecrets("scanned-credential-value listed-credential-value"),
+      kernel.redaction.run(() =>
+        redactSecrets("scanned-credential-value listed-credential-value"),
+      ),
       "scanned-credential-value [REDACTED]",
     );
   } finally {

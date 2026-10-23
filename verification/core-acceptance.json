@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "version": "0.12.1",
-  "checkedAt": "2026-10-22T15:53:29.304Z",
+  "checkedAt": "2026-10-23T00:43:42.717Z",
   "coreCriteriaPassed": 323,
   "optionalCriteriaPassed": 9,
   "criteriaPassed": 332,
   "criteriaNotTested": 0,
-  "testsPassed": 598,
+  "testsPassed": 609,
   "testsSkipped": 0,
   "criteria": [
     {

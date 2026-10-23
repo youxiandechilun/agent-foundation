@@ -177,6 +177,15 @@ export class MemoryStore {
       [memoryId, projectId],
     );
   }
+  page(projectId: string, namespace?: string, after = 0, limit = 100) {
+    this.store.project(projectId);
+    return this.store.selectJsonPage<MemoryEntry>(
+      "SELECT rowid AS cursor,body FROM e_memories WHERE json_extract(body,'$.projectId')=? AND (? IS NULL OR json_extract(body,'$.namespace')=?) AND (json_extract(body,'$.expiresAt') IS NULL OR json_extract(body,'$.expiresAt')>?)",
+      [projectId, namespace ?? null, namespace ?? null, now()],
+      after,
+      limit,
+    );
+  }
   remove(memoryId: string, projectId: string, reason = "deleted") {
     const entry = this.store.get<MemoryEntry>("memories", memoryId);
     invariant(entry.projectId === projectId, "Memory project mismatch", 403);

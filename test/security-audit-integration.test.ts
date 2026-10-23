@@ -1,9 +1,10 @@
+import { TestClient } from "./support/client.js";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { test, type TestContext } from "node:test";
-import { FoundationClient, FoundationHttpError } from "../src/client.js";
+import { FoundationHttpError } from "../src/client.js";
 import { serve } from "../src/api/server.js";
 import { parseConfig } from "../src/core/config.js";
 import { Kernel } from "../src/core/kernel.js";
@@ -359,7 +360,7 @@ test("enabling enforcement audits old pending inbox entries before resume create
   let api: Awaited<ReturnType<typeof serve>> | undefined;
   try {
     api = await serve(kernel, token);
-    const client = new FoundationClient(api.url, token);
+    const client = new TestClient(api.url, token);
     await denied(client.request("POST", "/v1/runs/interrupted-run/resume"));
     assert.equal(kernel.store.count("runs"), 1);
     assert.equal(kernel.store.count("inbox"), 1);

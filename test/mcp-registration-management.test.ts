@@ -28,7 +28,7 @@ for (const phase of ["registration", "management"])
           : x.client.readMCPRegistration("registered"),
         /secret expiration/,
       );
-      const status = await x.client.mcpRegistration("registered");
+      const status = await x.client.dynamicRegistration("registered");
       assert.equal(
         phase === "registration" ? status.state : status.managementState,
         "outcome_unknown",
@@ -89,7 +89,7 @@ test("OAuth RFC 7592 reads remote registration and atomically adopts rotated man
       (await x.kernel.mcp.oauth!.registrations.credentials(target))!
         .clientSecret,
     );
-    const status = await x.client.mcpRegistration("registered");
+    const status = await x.client.dynamicRegistration("registered");
     assert.equal(status.remoteManagement, true);
     assert.ok(!JSON.stringify(status).includes("management-secret"));
   } finally {
@@ -172,7 +172,7 @@ test("OAuth RFC 7592 successful remote deletion removes registration and authori
     assert.equal(result.remoteRegistrationDeleted, true);
     assert.equal(peer.clients.size, 0);
     assert.equal(
-      (await x.client.mcpRegistration("registered")).state,
+      (await x.client.dynamicRegistration("registered")).state,
       "unregistered",
     );
     assert.equal((await x.client.mcpDeviceAuth("registered")).state, "idle");
@@ -201,7 +201,7 @@ test("OAuth RFC 7592 uncertain management outcome persists across restart and bl
     );
     assert.equal([...peer.clients.values()][0].client_name, "Changed remotely");
     assert.equal(
-      (await x.client.mcpRegistration("registered")).managementState,
+      (await x.client.dynamicRegistration("registered")).managementState,
       "outcome_unknown",
     );
     await assert.rejects(
@@ -229,6 +229,7 @@ test("OAuth RFC 7592 uncertain management outcome persists across restart and bl
       undefined,
       true,
     );
+    assert.ok(result.metadata);
     assert.equal(result.metadata.client_name, "Changed remotely");
     assert.ok(await restored.registrations.credentials(target));
   } finally {
@@ -250,7 +251,7 @@ test("OAuth RFC 7592 known unsupported method preserves credentials and permits 
       /HTTP 405/,
     );
     assert.equal(
-      (await x.client.mcpRegistration("registered")).managementState,
+      (await x.client.dynamicRegistration("registered")).managementState,
       "rejected",
     );
     assert.equal(
@@ -283,7 +284,7 @@ for (const field of ["registration_client_uri", "client_id"])
       };
       await assert.rejects(x.client.readMCPRegistration("registered"));
       assert.equal(
-        (await x.client.mcpRegistration("registered")).managementState,
+        (await x.client.dynamicRegistration("registered")).managementState,
         "outcome_unknown",
       );
       await assert.rejects(
@@ -344,7 +345,7 @@ test("OAuth RFC 7592 is unavailable when registration returns no management cred
     };
     await x.client.registerMCPOAuth("registered");
     assert.equal(
-      (await x.client.mcpRegistration("registered")).remoteManagement,
+      (await x.client.dynamicRegistration("registered")).remoteManagement,
       false,
     );
     await assert.rejects(
@@ -361,7 +362,7 @@ test("OAuth RFC 7592 is unavailable when registration returns no management cred
     };
     await assert.rejects(x.client.registerMCPOAuth("registered"), /Incomplete/);
     assert.equal(
-      (await x.client.mcpRegistration("registered")).state,
+      (await x.client.dynamicRegistration("registered")).state,
       "outcome_unknown",
     );
   } finally {
@@ -395,7 +396,11 @@ test("OAuth RFC 7592 shutdown cannot commit a late credential rotation and vault
     const restored = new MCPOAuth(x.config);
     try {
       assert.equal(
-        (await restored.registrationStatus(target)).managementState,
+        (
+          (await restored.registrationStatus(target)) as Awaited<
+            ReturnType<typeof restored.registrations.status>
+          >
+        ).managementState,
         "outcome_unknown",
       );
     } finally {

@@ -31,7 +31,7 @@ export class VendorVideoAdapter implements MediaAdapter {
   }
   async poll(
     remoteId: string,
-    state: Record<string, unknown> | undefined,
+    _state: Record<string, unknown> | undefined,
     context: MediaAdapterContext,
   ) {
     return this.normalize(
@@ -40,14 +40,14 @@ export class VendorVideoAdapter implements MediaAdapter {
   }
   async recover(
     remoteId: string,
-    state: Record<string, unknown> | undefined,
+    _state: Record<string, unknown> | undefined,
     context: MediaAdapterContext,
   ) {
-    return this.poll(remoteId, state, context);
+    return this.poll(remoteId, _state, context);
   }
   async cancel(
     remoteId: string,
-    state: Record<string, unknown> | undefined,
+    _state: Record<string, unknown> | undefined,
     context: MediaAdapterContext,
   ) {
     return this.normalize(

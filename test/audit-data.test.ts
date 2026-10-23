@@ -50,7 +50,7 @@ test("recreating a deleted memory preserves prior revisions and cannot reassign 
     const history = x.kernel.memory.history(memory.id, x.project.id);
     assert.equal(history.length, 3);
     assert.equal(
-      history.find((r: any) => r.revision === 1).entry.content,
+      history.find((r) => r.revision === 1)!.entry.content,
       "original durable fact",
     );
     x.kernel.memory.remove(memory.id, x.project.id);

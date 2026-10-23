@@ -14,7 +14,7 @@ test("legacy transcripts migrate losslessly into append-only paged messages and 
   old.exec(
     "CREATE TABLE transcripts(session_id TEXT PRIMARY KEY,body TEXT NOT NULL)",
   );
-  const original = {
+  const original: import("../src/contracts.js").StoredMessage = {
     id: "m_old",
     runId: "run_old",
     message: { role: "user", content: "original history", timestamp: 1 },
@@ -213,7 +213,7 @@ test("Skill bundles preserve text and binary resources, directory snapshots and 
           'raise RuntimeError("must not execute automatically")',
       },
     });
-    assert.equal(installed.resources.length, 3);
+    assert.equal(installed.resources!.length, 3);
     assert.equal(
       x.kernel.skills.resource("bundle", "assets/data.bin").data,
       "AAEC",

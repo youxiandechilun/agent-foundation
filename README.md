@@ -45,13 +45,15 @@
 
 | 指标                     | 五个独立进程的中位数                    |
 | ------------------------ | --------------------------------------- |
-| 整进程 RSS               | **109.8 MiB**，五次范围 109.1–110.0 MiB |
-| JavaScript `heapUsed`    | **31.2 MiB**                            |
-| 动态导入内核至 HTTP 就绪 | **0.74 秒**                             |
+| 整进程 RSS               | **114.4 MiB**，五次范围 113.9–114.8 MiB |
+| JavaScript `heapUsed`    | **31.6 MiB**                            |
+| 动态导入内核至 HTTP 就绪 | **0.332 秒**                            |
 
-测量于 **2026-10-23**，Windows x64 10.0.26200、Intel i7-12700H、Node.js v22.22.0；五个进程串行启动，各用全新 SQLite，服务就绪后空闲 500ms 并显式 GC。启动时间不含 Node 进程创建和脚本静态导入；未创建项目、会话或调用工具与模型，可选宿主未启用。
+测量于 **2026-10-23**，Windows x64 10.0.26200、Intel i5-14600KF、Node.js v22.23.2；五个进程串行启动，各用全新 SQLite，服务就绪后空闲 500ms 并显式 GC。启动时间不含 Node 进程创建和脚本静态导入；未创建项目、会话或调用工具与模型，可选宿主未启用。
 
 结果只描述这个空闲场景，不能外推到浏览器、Office、大数据或并发任务，也没有与竞品做同条件比较。构建后运行 `node scripts/benchmark-kernel-footprint.mjs` 可复现，见 [测量脚本](scripts/benchmark-kernel-footprint.mjs) 与 [原始报告](verification/kernel-footprint.json)。历史 [优化说明](docs/OPTIMIZATION.md) 中的 2026-10-18 模块增量堆数据是另一种口径；存储设计与复现入口见 [存储性能文档](docs/STORAGE-PERFORMANCE.md)。
+
+活动历史、上传/下载、输入队列和 SSE 的容量约束，以及列表分页迁移见 [容量与效率](docs/CAPACITY-OPTIMIZATION.md)。完整开发质量检查为 `npm run check:quality`，包含测试和示例的严格类型检查。
 
 ## 多账户用量与计费接入
 

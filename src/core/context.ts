@@ -344,6 +344,13 @@ export class ContextManager {
       after <= budget,
       "context_limit: summary and recent messages exceed context budget",
     );
+    if (sessionId && omitted.length)
+      this.store.saveHistoryCheckpoint(
+        sessionId,
+        routeId,
+        omitted.at(-1)!,
+        prepared[head.length],
+      );
     this.store.emit(runId, "context.compacted", {
       trigger: budgetScale < 1 ? "provider-context-overflow" : "budget",
       strategy: "model-summary",

@@ -1,3 +1,4 @@
+import { captureRedaction } from "../core/util.js";
 import path from "node:path";
 import { z } from "zod";
 import type { Store } from "../storage/store.js";
@@ -49,6 +50,8 @@ export class ServerManager {
       options.vaultKeyEnv,
     );
     this.access = serverAccess(store);
+
+    captureRedaction(this);
   }
   list(projectId?: string): ServerProfile[] {
     if (projectId) this.store.project(projectId);

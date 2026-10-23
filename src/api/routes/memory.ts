@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { MemoryEntry } from "../../contracts.js";
+import type { MemoryEntry, MemoryProposal } from "../../contracts.js";
 import { invariant } from "../../core/util.js";
 import { apiRoutes, input, status } from "../route-table.js";
-import type { ApiContext } from "../shared.js";
+import { cursor, entityList, type ApiContext } from "../shared.js";
 
 function projectId({ url }: ApiContext): string {
   const value = url.searchParams.get("projectId");
@@ -16,15 +16,26 @@ export const memoryRoutes = apiRoutes({
       project = projectId(context);
     const query = url.searchParams.get("q"),
       namespace = url.searchParams.get("namespace") || undefined;
+    if (!query) {
+      const page = k.memory.page(
+        project,
+        namespace,
+        cursor(url.searchParams.get("after")),
+        Number(url.searchParams.get("limit") ?? 100),
+      );
+      return {
+        memories: page.items,
+        cursor: page.cursor,
+        hasMore: page.hasMore,
+      };
+    }
     return {
-      memories: query
-        ? k.memory.search(
-            project,
-            query,
-            Number(url.searchParams.get("limit") || 8),
-            namespace,
-          )
-        : k.memory.list(project, namespace),
+      memories: k.memory.search(
+        project,
+        query,
+        Number(url.searchParams.get("limit") || 8),
+        namespace,
+      ),
     };
   },
   "POST memories": status(201, async ({ k, json }) =>
@@ -92,9 +103,16 @@ export const memoryRoutes = apiRoutes({
     revisions: context.k.memory.history(context.id, projectId(context)),
   }),
   "POST memories/:id/embed": ({ k, id }) => k.memory.embed(id),
-  "GET memory-proposals": (context) => ({
-    proposals: context.k.memory.proposals(projectId(context)),
-  }),
+  "GET memory-proposals": (context) => {
+    const project = projectId(context);
+    context.k.store.project(project);
+    return entityList<MemoryProposal>(
+      context,
+      "memory-proposals",
+      "proposals",
+      { projectId: project },
+    );
+  },
   "POST memory-proposals/:id/resolve": input(
     z.object({ allow: z.boolean() }).strict(),
     ({ k, id }, value) => {

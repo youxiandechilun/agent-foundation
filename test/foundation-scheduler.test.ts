@@ -4,11 +4,11 @@ import { ToolScheduler } from "../src/runtime/scheduler.js";
 import { setup, collect, until } from "./support/wire-server.js";
 import type { ToolDefinition } from "../src/runtime/types.js";
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const tool = (
+const tool = <A>(
   name: string,
-  execute: ToolDefinition["execute"],
+  execute: ToolDefinition<A>["execute"],
   parallelSafe = true,
-): ToolDefinition => ({
+): ToolDefinition<A> => ({
   name,
   description: name,
   parameters: { type: "object" },
@@ -166,7 +166,7 @@ test("steering stops undispatched parallel work and retains a result for every d
     sid = "",
     steered = false;
   x.kernel.toolRegistry.register("steering", () => [
-    tool("steer_parallel", async (_id, args) => {
+    tool("steer_parallel", async (_id, args: { n: number }) => {
       started++;
       await until(() => (started >= 2 ? true : undefined), 2000);
       if (!steered) {

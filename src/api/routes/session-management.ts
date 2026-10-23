@@ -2,6 +2,7 @@ import { z } from "zod";
 import { invariant } from "../../core/util.js";
 import type { ToolEffect, InboxEntry } from "../../contracts.js";
 import type { MigrationReceipt } from "../../sessions/migration.js";
+import { entityList } from "../shared.js";
 import { apiRoutes, input, status } from "../route-table.js";
 
 export const sessionManagementRoutes = apiRoutes({
@@ -42,11 +43,12 @@ export const sessionManagementRoutes = apiRoutes({
     const projectId = url.searchParams.get("projectId");
     invariant(projectId, "projectId required");
     k.store.project(projectId);
-    return {
-      migrations: k.store.list<MigrationReceipt>("session-migrations", {
-        projectId,
-      }),
-    };
+    return entityList<MigrationReceipt>(
+      { k, url },
+      "session-migrations",
+      "migrations",
+      { projectId },
+    );
   },
   "POST sessions/import": status(
     201,
@@ -74,9 +76,10 @@ export const sessionManagementRoutes = apiRoutes({
       .strict(),
     ({ k, id }, value) => k.rewind(id, value),
   ),
-  "GET sessions/:id/checkpoints": ({ k, id }) => {
+  "GET sessions/:id/checkpoints": (context) => {
+    const { k, id } = context;
     k.store.session(id);
-    return { checkpoints: k.checkpoints.list(id) };
+    return entityList(context, "checkpoints", "checkpoints", { sessionId: id });
   },
   "POST sessions/:id/fork": status(201, async ({ k, id, json }) =>
     k.forkSession(id, (await json()).throughMessageId),
@@ -91,12 +94,12 @@ export const sessionManagementRoutes = apiRoutes({
     return k.store.find("work-contexts", id) || { status: "not-prepared" };
   },
   "POST runs/:id/resume": status(202, ({ k, id }) => k.resume(id)),
-  "GET runs/:id/effects": ({ k, id }) => ({
-    effects: k.store.list<ToolEffect>("effects", { runId: id }),
-  }),
-  "GET runs/:id/inbox": ({ k, id }) => ({
-    inputs: k.store.list<InboxEntry>("inbox", { runId: id }),
-  }),
+  "GET runs/:id/effects": (context) =>
+    entityList<ToolEffect>(context, "effects", "effects", {
+      runId: context.id,
+    }),
+  "GET runs/:id/inbox": (context) =>
+    entityList<InboxEntry>(context, "inbox", "inputs", { runId: context.id }),
   "GET runs/:id/plan": ({ k, id }) =>
     k.store.find("work-plans", id) || { steps: [] },
 });

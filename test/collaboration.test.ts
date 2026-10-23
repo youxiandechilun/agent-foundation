@@ -891,7 +891,7 @@ test("collaboration requires whole-roster review and a host decision before miss
       ],
     ] as const) {
       const unregister = x.kernel.toolRegistry.register("forged", () => [
-        forged,
+        { ...forged, capabilities: [...forged.capabilities] },
       ]);
       try {
         await assert.rejects(makeTools(ctx), rejected);

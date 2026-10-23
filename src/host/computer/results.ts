@@ -44,4 +44,15 @@ export const computerResultSchema = z.object({
   bounded: z.boolean().optional(),
 });
 export type ComputerResult = z.infer<typeof computerResultSchema>;
-export type ComputerActionResult = ComputerResult & { asset?: Asset };
+export type ComputerActionResult<A extends string = string> = ComputerResult & {
+  asset?: Asset;
+} & (A extends "windows"
+    ? { windows: NonNullable<ComputerResult["windows"]> }
+    : A extends "tree"
+      ? {
+          window: NonNullable<ComputerResult["window"]>;
+          elements: NonNullable<ComputerResult["elements"]>;
+        }
+      : A extends "screenshot"
+        ? { asset: Asset }
+        : unknown);

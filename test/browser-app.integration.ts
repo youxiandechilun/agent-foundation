@@ -1,3 +1,4 @@
+import { required } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
@@ -125,8 +126,8 @@ test("managed browser snapshots bind element references to a snapshot and target
     let snapshot = await x.kernel.browser.action(b.id, x.project.id, {
       action: "inspect",
     });
-    const ref = snapshot.elements.find((e: any) => e.id === "input").ref,
-      stale = snapshot.elements.find((e: any) => e.id === "save").ref;
+    const ref = required(snapshot.elements.find((e) => e.id === "input")).ref,
+      stale = required(snapshot.elements.find((e) => e.id === "save")).ref;
     snapshot = await x.kernel.browser.action(b.id, x.project.id, {
       action: "fill",
       ref,
@@ -141,7 +142,7 @@ test("managed browser snapshots bind element references to a snapshot and target
     );
     snapshot = await x.kernel.browser.action(b.id, x.project.id, {
       action: "click",
-      ref: snapshot.elements.find((e: any) => e.id === "save").ref,
+      ref: required(snapshot.elements.find((e) => e.id === "save")).ref,
     });
     assert.match(snapshot.snapshot, /bound reference/);
     snapshot = await x.kernel.browser.action(b.id, x.project.id, {
@@ -155,8 +156,8 @@ test("managed browser snapshots bind element references to a snapshot and target
       selector: "#checked",
     });
     assert.match(snapshot.snapshot, /checked/);
-    const frameId = snapshot.frames.find((f: any) =>
-      f.url.endsWith("/frame"),
+    const frameId = required(
+      snapshot.frames.find((f) => f.url.endsWith("/frame")),
     ).id;
     snapshot = await x.kernel.browser.action(b.id, x.project.id, {
       action: "fill",
@@ -180,14 +181,14 @@ test("managed browser handles explicit dialogs and actual proxied WebSocket traf
       selector: "#confirm",
     });
     assert.match(snapshot.snapshot, /dismissed/);
-    assert.equal(snapshot.dialog.accepted, false);
+    assert.equal(required(snapshot.dialog).accepted, false);
     snapshot = await x.kernel.browser.action(b.id, x.project.id, {
       action: "click",
       selector: "#confirm",
       dialog: { accept: true },
     });
     assert.match(snapshot.snapshot, /accepted/);
-    assert.equal(snapshot.dialog.accepted, true);
+    assert.equal(required(snapshot.dialog).accepted, true);
     await x.kernel.browser.action(b.id, x.project.id, {
       action: "click",
       selector: "#ws",

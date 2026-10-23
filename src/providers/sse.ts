@@ -1,6 +1,7 @@
 import { AppError, invariant } from "../core/util.js";
 import { decodeEventStream } from "../transport/sse.js";
 import type { ServerEvent } from "../transport/sse.js";
+import type { AssistantMessage } from "../runtime/types.js";
 export type { ServerEvent } from "../transport/sse.js";
 
 /** Incremental SSE decoder: CRLF, split UTF-8, multi-line data and bounded frames. */
@@ -38,6 +39,8 @@ export async function readJson(
   }
 }
 export class ProviderError extends AppError {
+  partial?: AssistantMessage;
+  requestSent?: boolean;
   constructor(
     message: string,
     public upstreamStatus = 502,

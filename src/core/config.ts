@@ -436,6 +436,37 @@ export const configSchema = z
         maxRunMs: z.number().int().min(100).default(900_000),
         maxConcurrentRuns: z.number().int().min(1).default(4),
         maxConcurrentTools: z.number().int().min(1).max(64).default(4),
+        maxHistoryBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(128 * 1024 * 1024),
+        maxQueuedInputs: z.number().int().min(1).max(10000).default(32),
+        maxQueuedInputBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(16 * 1024 * 1024),
+        maxConcurrentUploads: z.number().int().min(1).max(1024).default(4),
+        maxConcurrentDownloads: z.number().int().min(1).max(1024).default(8),
+        maxInFlightAssetBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(100 * 1024 * 1024),
+        maxSseSubscribers: z.number().int().min(1).max(10000).default(128),
+        maxSseSubscribersPerRun: z.number().int().min(1).max(1000).default(16),
+        maxSseBufferBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(64 * 1024 * 1024),
+        maxSseConnectionBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(16 * 1024 * 1024),
+        sseDrainTimeoutMs: z.number().int().min(100).max(600000).default(30000),
         maxAttachmentText: z.number().int().min(100).default(20_000),
         compactAtRatio: z.number().min(0.1).max(0.9).default(0.7),
         maxOutputBytes: z.number().int().positive().default(64_000),

@@ -43,8 +43,12 @@ export class RunLifecycle {
     return this.slots.has(sessionId) || this.lanes.has(sessionId);
   }
 
-  enqueue<T>(sessionId: string, submit: () => Promise<T>): Promise<T> {
-    return this.lanes.run(sessionId, submit);
+  enqueue<T>(
+    sessionId: string,
+    submit: () => Promise<T>,
+    limit?: { count: number; bytes: number; size: number },
+  ): Promise<T> {
+    return this.lanes.run(sessionId, submit, limit);
   }
 
   prepare(sessionId: string): {

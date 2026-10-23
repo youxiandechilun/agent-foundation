@@ -1,3 +1,4 @@
+import { required } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -28,9 +29,10 @@ test("session snapshot round-trips into an assist session without executing hist
       "GET",
       `/v1/sessions/${source.id}/export`,
     );
-    const assistant = snapshot.messages.find(
-      (m: any) => m.message.role === "assistant",
+    const assistant = required(
+      snapshot.messages.find((m) => m.message.role === "assistant"),
     ).message;
+    assert.ok(assistant.role === "assistant");
     assistant.responseId = "nonportable-id";
     assistant.providerState = {
       protocol: "openai-responses",

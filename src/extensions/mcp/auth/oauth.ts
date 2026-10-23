@@ -5,7 +5,12 @@ import path from "node:path";
 import { rmSync } from "node:fs";
 import type { Config } from "../../../core/config.js";
 import { readJson } from "../../../providers/sse.js";
-import { invariant, hash, registerSecret } from "../../../core/util.js";
+import {
+  invariant,
+  hash,
+  registerSecret,
+  captureRedaction,
+} from "../../../core/util.js";
 import {
   wireIncludes,
   wireObject,
@@ -159,6 +164,14 @@ export class MCPOAuth {
     );
     this.devices = new MCPDeviceFlow(vault, this.lifetime.signal);
     this.keys = new MCPKeyring(vault, this.lifetime.signal);
+    for (const service of [
+      this,
+      this.registrations,
+      this.devices,
+      this.keys,
+      vault,
+    ])
+      captureRedaction(service);
   }
   private safeUrl(value: string, oauth: MCPOAuthConfig) {
     const url = new URL(value);

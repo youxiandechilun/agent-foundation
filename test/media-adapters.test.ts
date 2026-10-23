@@ -1,3 +1,4 @@
+import { parseAdapterResult } from "../src/media/adapters.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
@@ -171,10 +172,13 @@ test("registered media adapter invokes its real cancel method without depending 
         cancellation: true,
         recovery: true,
       },
-      submit: async (_r, c) => c.request("/start", {}),
-      poll: async (_id, _s, c) => c.request("/state"),
-      cancel: async (_id, _s, c) => c.request("/stop", {}),
-      recover: async (_id, _s, c) => c.request("/state"),
+      submit: async (_r, c) =>
+        parseAdapterResult(await c.request("/start", {})),
+      poll: async (_id, _s, c) => parseAdapterResult(await c.request("/state")),
+      cancel: async (_id, _s, c) =>
+        parseAdapterResult(await c.request("/stop", {})),
+      recover: async (_id, _s, c) =>
+        parseAdapterResult(await c.request("/state")),
     });
     x.config.routes.registered_video = {
       ...x.config.routes.text,

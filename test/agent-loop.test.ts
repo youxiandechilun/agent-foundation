@@ -182,7 +182,7 @@ test("Anthropic requests carry cache_control unless the route disables it", asyn
 });
 
 test("programmatic hooks deny, rewrite, annotate and continue without granting access", async () => {
-  const x = await setup((body, index) => {
+  const x = await setup((_body, index) => {
     if (index === 0)
       return {
         calls: [

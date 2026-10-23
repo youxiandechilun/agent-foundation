@@ -367,8 +367,8 @@ test("transcript replacement preserves prefix sequences, unique identities and a
   );
   const initial = changes();
   store.saveTranscript("history", updated);
-  // Ten deletions and ten inserts, each updating the transactional count once.
-  assert.equal(changes() - initial, 40);
+  // Count triggers cover both operations; deletions also invalidate history generations.
+  assert.equal(changes() - initial, 50);
   assert.deepEqual(sequences().slice(0, 70), before.slice(0, 70));
   store.saveTranscript("history", [
     updated[0],

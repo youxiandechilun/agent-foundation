@@ -1,3 +1,4 @@
+import { required } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
@@ -26,7 +27,9 @@ function install(x: any, peer: any, extra: any = {}) {
   return { id: d.id, url: d.url!, oauth: d.oauth! };
 }
 async function due(status: any) {
-  await sleep(Math.max(1, Date.parse(status.nextPollAt) - Date.now() + 20));
+  await sleep(
+    Math.max(1, Date.parse(required(status.nextPollAt)) - Date.now() + 20),
+  );
 }
 test("OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP", async () => {
   const x = await setup(),
@@ -42,7 +45,7 @@ test("OAuth device flow performs callbackless discovery, user verification, toke
       peer.requests.filter((r: any) => r.path === "/token").length,
       0,
     );
-    await fetch(start.verificationUriComplete);
+    await fetch(required(start.verificationUriComplete));
     await due(start);
     assert.equal(
       (await x.client.pollMCPDeviceAuth("device")).state,
@@ -88,13 +91,13 @@ test("OAuth device polling persists authorization_pending and slow_down with the
     const last = peer.requests
       .filter((r: any) => r.path === "/token")
       .at(-1).at;
-    assert.ok(Date.parse(status.nextPollAt) - last >= 6000);
+    assert.ok(Date.parse(required(status.nextPollAt)) - last >= 6000);
     await x.client.pollMCPDeviceAuth("device");
     assert.equal(
       peer.requests.filter((r: any) => r.path === "/token").length,
       2,
     );
-    await fetch(status.verificationUriComplete);
+    await fetch(required(status.verificationUriComplete));
     await due(status);
     assert.equal(
       (await x.client.pollMCPDeviceAuth("device")).state,
@@ -134,7 +137,7 @@ test("OAuth device flow uses the five-second default and never polls early after
           await readFile(path.join(x.config.dataDir, "mcp-oauth", file), "utf8")
         ).includes("private-device"),
       );
-    await fetch(start.verificationUriComplete);
+    await fetch(required(start.verificationUriComplete));
     await due(start);
     assert.equal((await restored.devicePoll(target)).state, "authorized");
   } finally {
@@ -209,7 +212,7 @@ test("OAuth device connection failure doubles the persisted polling interval", a
       1,
     );
     peer.controls.pollDrop = false;
-    await fetch(status.verificationUriComplete);
+    await fetch(required(status.verificationUriComplete));
     await due(status);
     assert.equal(
       (await x.client.pollMCPDeviceAuth("device")).state,
@@ -226,7 +229,7 @@ test("OAuth device concurrent polls share one request and cancellation prevents 
   try {
     const target = install(x, peer);
     const status = await x.client.beginMCPDeviceAuth("device");
-    await fetch(status.verificationUriComplete);
+    await fetch(required(status.verificationUriComplete));
     await due(status);
     peer.controls.pollDelay = 200;
     const pending = Array.from({ length: 5 }, () =>
@@ -286,7 +289,7 @@ for (const method of ["none", "client_secret_basic", "client_secret_post"])
         );
       assert.deepEqual(post.grant_types, [DEVICE_GRANT, "refresh_token"]);
       assert.equal(post.redirect_uris, undefined);
-      await fetch(start.verificationUriComplete);
+      await fetch(required(start.verificationUriComplete));
       await due(start);
       assert.equal(
         (await x.client.pollMCPDeviceAuth("device")).state,
@@ -370,7 +373,7 @@ test("OAuth device recovery recognizes a committed token after a failed final st
   try {
     const target = install(x, peer),
       start = await x.client.beginMCPDeviceAuth("device");
-    await fetch(start.verificationUriComplete);
+    await fetch(required(start.verificationUriComplete));
     await due(start);
     let fail = true;
     OAuthVault.prototype.save = async function (
@@ -417,7 +420,7 @@ test("OAuth device continuous waiting honors cancellation and can resume the sam
     setTimeout(() => controller.abort(), 40);
     await assert.rejects(waiting, /Cancelled|aborted/);
     assert.equal((await x.client.mcpDeviceAuth("device")).state, "pending");
-    await fetch(start.verificationUriComplete);
+    await fetch(required(start.verificationUriComplete));
     assert.equal(
       (await x.kernel.mcp.oauth!.deviceWait(target)).state,
       "authorized",

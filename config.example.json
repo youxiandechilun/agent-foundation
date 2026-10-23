@@ -145,7 +145,18 @@
     "executionBoundary": "native"
   },
   "limits": {
-    "maxConcurrentTools": 4
+    "maxConcurrentTools": 4,
+    "maxHistoryBytes": 134217728,
+    "maxQueuedInputs": 32,
+    "maxQueuedInputBytes": 16777216,
+    "maxConcurrentUploads": 4,
+    "maxConcurrentDownloads": 8,
+    "maxInFlightAssetBytes": 104857600,
+    "maxSseSubscribers": 128,
+    "maxSseSubscribersPerRun": 16,
+    "maxSseBufferBytes": 67108864,
+    "maxSseConnectionBytes": 16777216,
+    "sseDrainTimeoutMs": 30000
   },
   "budgets": {
     "enabled": false

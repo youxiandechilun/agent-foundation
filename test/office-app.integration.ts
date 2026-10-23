@@ -186,6 +186,7 @@ test("PPTX inspection follows presentation relationships and source-preserving e
       await zip.generateAsync({ type: "nodebuffer" }),
     );
     const inspect = await x.kernel.office.inspect(x.project.id, source.id);
+    assert.ok("parts" in inspect);
     assert.match(JSON.stringify(inspect.parts[0]), /Second marker/);
     const output = await x.kernel.office.replaceText(x.project.id, {
       assetId: source.id,

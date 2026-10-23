@@ -7,6 +7,7 @@ import { EventEmitter } from "node:events";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { hostname } from "node:os";
+import type { Message } from "../runtime/types.js";
 import type {
   Approval,
   Asset,
@@ -57,6 +58,16 @@ type EntityStatement = "insert" | "find" | "remove" | "count";
 type JsonRow = string[] | { body: string };
 type JsonStatement = { statement: StatementSync; bodyColumn: number };
 type EntityWriter = (item: { id: string }) => string;
+interface MessagePosition {
+  sessionId: string;
+  seq: number;
+  messageId: string;
+  generation: number;
+}
+export interface HistoryCheckpoint {
+  throughSeq: number;
+  summary: Message;
+}
 const returnArrays = (statement: StatementSync) => {
   const supported = statement as StatementSync & {
     setReturnArrays?: (enabled: boolean) => void;
@@ -71,6 +82,7 @@ export class Store {
   private readonly statements = new Map<string, StatementSync>();
   // Wire text of emitted events, so each subscriber reuses one serialization.
   private readonly eventText = new WeakMap<FoundationEvent, string>();
+  private readonly messagePositions = new WeakMap<Message, MessagePosition>();
   private readonly jsonStatements = new Map<string, JsonStatement>();
   private readonly entityStatements = new Map<
     Table,
@@ -98,6 +110,21 @@ export class Store {
       CREATE INDEX IF NOT EXISTS messages_session ON messages(session_id,seq);
       CREATE INDEX IF NOT EXISTS messages_run_assistant ON messages(session_id,json_extract(body,'$.runId'),seq) WHERE json_extract(body,'$.message.role')='assistant';
       CREATE TABLE IF NOT EXISTS kernel_owner(slot INTEGER PRIMARY KEY CHECK(slot=1),owner TEXT NOT NULL,pid INTEGER NOT NULL,host TEXT NOT NULL,created_at TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS transcript_generations(session_id TEXT PRIMARY KEY,generation INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS transcript_contexts(session_id TEXT NOT NULL,route_id TEXT NOT NULL,through_seq INTEGER NOT NULL,summary TEXT NOT NULL,PRIMARY KEY(session_id,route_id));
+      CREATE TRIGGER IF NOT EXISTS messages_context_insert AFTER INSERT ON messages WHEN new.seq<(SELECT MAX(seq) FROM messages WHERE session_id=new.session_id) BEGIN
+        DELETE FROM transcript_contexts WHERE session_id=new.session_id AND through_seq>=new.seq;
+        INSERT INTO transcript_generations VALUES(new.session_id,1) ON CONFLICT(session_id) DO UPDATE SET generation=generation+1;
+      END;
+      CREATE TRIGGER IF NOT EXISTS messages_context_delete AFTER DELETE ON messages BEGIN
+        DELETE FROM transcript_contexts WHERE session_id=old.session_id AND through_seq>=old.seq;
+        INSERT INTO transcript_generations VALUES(old.session_id,1) ON CONFLICT(session_id) DO UPDATE SET generation=generation+1;
+      END;
+      CREATE TRIGGER IF NOT EXISTS messages_context_update AFTER UPDATE OF body,message_id,session_id,seq ON messages BEGIN
+        DELETE FROM transcript_contexts WHERE (session_id=old.session_id AND through_seq>=old.seq) OR (session_id=new.session_id AND through_seq>=new.seq);
+        INSERT INTO transcript_generations VALUES(old.session_id,1) ON CONFLICT(session_id) DO UPDATE SET generation=generation+1;
+        INSERT INTO transcript_generations VALUES(new.session_id,1) ON CONFLICT(session_id) DO UPDATE SET generation=generation+1;
+      END;
     `);
     try {
       if (options.exclusiveKernel) this.acquireKernelLease();
@@ -354,6 +381,45 @@ export class Store {
       [...where.values, ...order.values],
     );
   }
+  /** Stable rowid cursor: updates do not move existing records to a different page. */
+  page<T>(kind: Table, filter: EntityFilter = {}, after = 0, limit = 100) {
+    const where = entityWhere(filter);
+    return this.selectJsonPage<T>(
+      `SELECT rowid AS cursor,body FROM ${entityTable(kind)}${where.sql || " WHERE 1"}`,
+      where.values,
+      after,
+      limit,
+    );
+  }
+  selectJsonPage<T>(
+    sql: string,
+    values: SQLInputValue[],
+    after = 0,
+    limit = 100,
+  ) {
+    invariant(
+      Number.isSafeInteger(after) &&
+        after >= 0 &&
+        Number.isSafeInteger(limit) &&
+        limit >= 1 &&
+        limit <= 1000,
+      "Invalid entity page",
+    );
+    const rows = this.prepare(`${sql} AND rowid>? ORDER BY rowid LIMIT ?`).all(
+      ...values,
+      after,
+      limit + 1,
+    ) as {
+      cursor: number;
+      body: string;
+    }[];
+    const selected = rows.slice(0, limit);
+    return {
+      items: selected.map((row) => JSON.parse(row.body) as T),
+      cursor: selected.at(-1)?.cursor ?? after,
+      hasMore: rows.length > limit,
+    };
+  }
   /** Select requested primary keys while retaining the table's insertion order. */
   listByIds<T>(kind: Table, entityIds: readonly string[]): T[] {
     invariant(
@@ -469,10 +535,115 @@ export class Store {
     return this.get<Approval>("approvals", id);
   }
   transcript(sessionId: string): StoredMessage[] {
-    return this.selectJson<StoredMessage>(
-      "SELECT body FROM messages WHERE session_id=? ORDER BY seq",
-      [sessionId],
+    return this.transcriptWindow(sessionId);
+  }
+  transcriptCount(sessionId: string): number {
+    return (
+      (
+        this.prepare(
+          "SELECT total FROM transcript_counts WHERE session_id=?",
+        ).get(sessionId) as { total: number } | undefined
+      )?.total || 0
     );
+  }
+  private transcriptGeneration(sessionId: string): number {
+    return (
+      (
+        this.prepare(
+          "SELECT generation FROM transcript_generations WHERE session_id=?",
+        ).get(sessionId) as { generation: number } | undefined
+      )?.generation || 0
+    );
+  }
+  /** Parse one row at a time; never retain a second array of serialized history. */
+  transcriptWindow(
+    sessionId: string,
+    after = 0,
+    maxBytes = Infinity,
+  ): StoredMessage[] {
+    const result: StoredMessage[] = [];
+    const generation = this.transcriptGeneration(sessionId);
+    let bytes = 0;
+    const statement = this.prepare(
+      "SELECT seq,body FROM messages WHERE session_id=? AND seq>? ORDER BY seq",
+    );
+    for (const row of statement.iterate(sessionId, after) as Iterable<{
+      seq: number;
+      body: string;
+    }>) {
+      bytes += Buffer.byteLength(row.body);
+      invariant(
+        bytes <= maxBytes,
+        "Session history byte budget exceeded; fork or export it first",
+        413,
+        "history_capacity",
+      );
+      const item = JSON.parse(row.body) as StoredMessage;
+      this.messagePositions.set(item.message, {
+        sessionId,
+        seq: row.seq,
+        messageId: item.id,
+        generation,
+      });
+      result.push(item);
+    }
+    return result;
+  }
+  historyCheckpoint(
+    sessionId: string,
+    routeId: string,
+  ): HistoryCheckpoint | undefined {
+    const row = this.prepare(
+      "SELECT through_seq,summary FROM transcript_contexts WHERE session_id=? AND route_id=?",
+    ).get(sessionId, routeId) as
+      { through_seq: number; summary: string } | undefined;
+    return row
+      ? {
+          throughSeq: row.through_seq,
+          summary: JSON.parse(row.summary) as Message,
+        }
+      : undefined;
+  }
+  /** A summary is usable only when its covered persisted prefix has not changed. */
+  saveHistoryCheckpoint(
+    sessionId: string,
+    routeId: string,
+    through: Message,
+    summary: Message,
+  ): boolean {
+    const position = this.messagePositions.get(through);
+    if (
+      !position ||
+      position.sessionId !== sessionId ||
+      position.generation !== this.transcriptGeneration(sessionId)
+    )
+      return false;
+    const row = this.prepare(
+      "SELECT message_id FROM messages WHERE session_id=? AND seq=?",
+    ).get(sessionId, position.seq) as { message_id: string } | undefined;
+    if (row?.message_id !== position.messageId) return false;
+    const assistant = this.prepare(
+      "SELECT seq,body FROM messages WHERE session_id=? AND seq<=? AND json_extract(body,'$.message.role')='assistant' ORDER BY seq DESC LIMIT 1",
+    ).get(sessionId, position.seq) as { seq: number; body: string } | undefined;
+    if (assistant) {
+      const item = JSON.parse(assistant.body) as StoredMessage;
+      if (item.message.role === "assistant") {
+        const calls = item.message.content.filter(
+          (part) => part.type === "toolCall",
+        );
+        if (calls.length) {
+          const results = this.prepare(
+            "SELECT json_extract(body,'$.message.toolCallId') AS id FROM messages WHERE session_id=? AND seq>? AND seq<=? AND json_extract(body,'$.message.role')='toolResult'",
+          ).all(sessionId, assistant.seq, position.seq) as { id: string }[];
+          const completed = new Set(results.map((result) => result.id));
+          if (calls.some((call) => !completed.has(call.id))) return false;
+        }
+      }
+    }
+    this.prepare(
+      "INSERT INTO transcript_contexts VALUES(?,?,?,?) ON CONFLICT(session_id,route_id) DO UPDATE SET through_seq=excluded.through_seq,summary=excluded.summary",
+    ).run(sessionId, routeId, position.seq, redactJsonText(summary));
+    return true;
   }
   transcriptSlice(sessionId: string, offset: number, limit: number) {
     entityPage({ offset, limit });
@@ -539,20 +710,29 @@ export class Store {
     // A conflicting INSERT is dramatically slower in Node's SQLite binding, so
     // check the unique key first and write only fresh messages.
     const previous = this.prepare(
-      "SELECT body FROM messages WHERE session_id=? AND message_id=?",
-    ).get(sessionId, message.id) as { body: string } | undefined;
+      "SELECT seq,body FROM messages WHERE session_id=? AND message_id=?",
+    ).get(sessionId, message.id) as { seq: number; body: string } | undefined;
     invariant(
       !previous || previous.body === body,
       "Message ID reused with different content",
       409,
     );
-    if (!previous)
-      this.prepare(
-        "INSERT INTO messages(session_id,message_id,body) VALUES(?,?,?)",
-      ).run(sessionId, message.id, body);
+    const seq =
+      previous?.seq ??
+      Number(
+        this.prepare(
+          "INSERT INTO messages(session_id,message_id,body) VALUES(?,?,?)",
+        ).run(sessionId, message.id, body).lastInsertRowid,
+      );
+    this.messagePositions.set(message.message, {
+      sessionId,
+      seq,
+      messageId: message.id,
+      generation: this.transcriptGeneration(sessionId),
+    });
   }
   /** Replace a transcript, rewriting only the suffix after the unchanged prefix. */
-  saveTranscript(sessionId: string, messages: StoredMessage[]) {
+  saveTranscript(sessionId: string, messages: StoredMessage[], after = 0) {
     this.transaction(() => {
       // A synchronous replacement is one redaction operation. Do not rebuild
       // the credential snapshot for every message or serialize its suffix twice.
@@ -573,8 +753,12 @@ export class Store {
         }
       }
       const existing = this.prepare(
-        "SELECT seq,message_id,body FROM messages WHERE session_id=? ORDER BY seq",
-      ).all(sessionId) as { seq: number; message_id: string; body: string }[];
+        "SELECT seq,message_id,body FROM messages WHERE session_id=? AND seq>? ORDER BY seq",
+      ).all(sessionId, after) as {
+        seq: number;
+        message_id: string;
+        body: string;
+      }[];
       let kept = 0;
       while (
         kept < existing.length &&
@@ -657,15 +841,26 @@ export class Store {
     after = 0,
     limit = 10000,
     until = Number.MAX_SAFE_INTEGER,
+    maxBytes = Infinity,
   ): FoundationEvent[] {
-    return (
-      this.prepare(
-        "SELECT seq,body FROM events WHERE run_id=? AND seq>? AND seq<=? ORDER BY seq LIMIT ?",
-      ).all(runId, after, until, Math.max(1, Math.min(limit, 10000))) as {
-        seq: number;
-        body: string;
-      }[]
-    ).map((r) => ({ ...JSON.parse(r.body), seq: r.seq }));
+    const events: FoundationEvent[] = [];
+    let bytes = 0;
+    const statement = this.prepare(
+      "SELECT seq,body FROM events WHERE run_id=? AND seq>? AND seq<=? ORDER BY seq LIMIT ?",
+    );
+    for (const row of statement.iterate(
+      runId,
+      after,
+      until,
+      Math.max(1, Math.min(limit, 10000)),
+    ) as Iterable<{ seq: number; body: string }>) {
+      const size = Buffer.byteLength(row.body);
+      if (events.length && bytes + size > maxBytes) break;
+      bytes += size;
+      events.push({ ...JSON.parse(row.body), seq: row.seq } as FoundationEvent);
+      if (bytes >= maxBytes) break;
+    }
+    return events;
   }
   status(runId: string, status: Run["status"], error?: string) {
     this.write("runs", {
@@ -739,6 +934,37 @@ export class Store {
    * and the cost ledger are kept. A cutoff of undefined skips that category.
    */
   prune(cutoffs: { events?: string; caches?: string }, batch = 2000) {
+    invariant(
+      Number.isSafeInteger(batch) && batch > 0 && batch <= 10000,
+      "Invalid retention batch",
+    );
+    return this.pruneBatch(cutoffs, batch, true);
+  }
+  /** Live maintenance yields between bounded transactions; synchronous prune is for offline callers. */
+  async pruneAsync(
+    cutoffs: { events?: string; caches?: string },
+    batch = 2000,
+    signal?: AbortSignal,
+  ) {
+    invariant(
+      Number.isSafeInteger(batch) && batch > 0 && batch <= 10000,
+      "Invalid retention batch",
+    );
+    const total = { events: 0, summaries: 0, workContexts: 0 };
+    for (;;) {
+      signal?.throwIfAborted();
+      const deleted = this.pruneBatch(cutoffs, batch, false);
+      for (const key of ["events", "summaries", "workContexts"] as const)
+        total[key] += deleted[key];
+      if (Object.values(deleted).every((count) => count < batch)) return total;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+  }
+  private pruneBatch(
+    cutoffs: { events?: string; caches?: string },
+    batch: number,
+    all: boolean,
+  ) {
     const deleted = { events: 0, summaries: 0, workContexts: 0 };
     const repeat = (sql: string, ...values: SQLInputValue[]) => {
       let total = 0;
@@ -748,7 +974,7 @@ export class Store {
             .changes,
         );
         total += changes;
-        if (changes < batch) return total;
+        if (!all || changes < batch) return total;
       }
     };
     const terminal = [...terminalStatuses].map(() => "?").join(",");

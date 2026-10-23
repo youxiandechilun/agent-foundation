@@ -15,7 +15,6 @@ import type {
   Session,
   StoredMessage,
   InboxEntry,
-  AgentDefinition,
   Autonomy,
   ReasoningEffort,
 } from "../contracts.js";
@@ -34,8 +33,6 @@ import { TeamManager } from "../collaboration/index.js";
 import { ModeRegistry } from "../modes/registry.js";
 import { decodeSessionSnapshot } from "../sessions/codec.js";
 import { SessionMigration } from "../sessions/migration.js";
-import { normalizeToolResult } from "../runtime/tool-result.js";
-import { ExecutionEngine } from "../runtime/engine.js";
 import { ToolScheduler } from "../runtime/scheduler.js";
 import { CostLedger, type CostScope } from "../runtime/cost.js";
 import type { BillingProvider } from "../runtime/billing.js";
@@ -43,13 +40,7 @@ import { ProcessManager } from "../execution/sessions.js";
 import { CommandRunner } from "../execution/process.js";
 import { recoverWindowsSandboxes } from "../execution/windows-sandbox.js";
 import { RouteRouter, type RouteRouterOptions } from "../providers/text.js";
-import {
-  textOf,
-  type Message,
-  type JsonObject,
-  type ToolDefinition,
-  type UserMessage,
-} from "../runtime/types.js";
+import { textOf, type Message, type UserMessage } from "../runtime/types.js";
 import { ToolRegistry, type KernelIntegration } from "../runtime/registry.js";
 import { bindHooks, commandHooks, type RunHooks } from "../runtime/hooks.js";
 import { WebClient } from "../web/client.js";
@@ -63,7 +54,7 @@ import {
   errorText,
   within,
   registerSecret,
-  configureRedaction,
+  RedactionScope,
   abortable,
   closeResources,
 } from "./util.js";
@@ -71,12 +62,8 @@ import {
 import { McpHost } from "./kernel/mcp-host.js";
 import { createInputBuilder, inputSchema } from "./kernel/input.js";
 import { repairHistory } from "./kernel/history.js";
-import {
-  filterModelContext,
-  resolveToolPolicy,
-} from "./kernel/authorization.js";
 import { RunLifecycle, type LiveRun } from "./kernel/lifecycle.js";
-import { nativeWebSearchRequest } from "./kernel/native-web-search.js";
+import { createRunEngine } from "./kernel/engine.js";
 import { startProcessAction } from "./kernel/process-action.js";
 import {
   loadRunHistory,
@@ -103,6 +90,7 @@ export interface KernelOptions {
   billing?: BillingProvider;
 }
 export class Kernel {
+  readonly redaction: RedactionScope;
   readonly modes = new ModeRegistry();
   readonly toolRegistry = new ToolRegistry();
   private runHooks = new Set<RunHooks>();
@@ -134,6 +122,13 @@ export class Kernel {
   private closeCompletion?: Promise<void>;
   private changingRoutes = false;
   private retentionTimer?: ReturnType<typeof setInterval>;
+  private retentionWork?: Promise<{
+    events: number;
+    summaries: number;
+    workContexts: number;
+  }>;
+  private readonly retentionAbort = new AbortController();
+  readonly retentionStatus: { lastError?: string; completedAt?: string } = {};
   /** Register lifecycle hooks for subsequent runs; returns an unregister function. */
   addHooks(hooks: RunHooks) {
     const entry = { ...hooks };
@@ -167,52 +162,69 @@ export class Kernel {
     readonly config: Config,
     options: KernelOptions = {},
   ) {
-    configureRedaction(config.redaction);
+    this.redaction = new RedactionScope(config.redaction);
+    this.redaction.bind(this);
+    const create = <T extends object>(factory: () => T): T =>
+      this.redaction.run(() => this.redaction.bind(factory()));
     this.registerRouteSecrets();
     this.integrations = Object.freeze([...(options.integrations || [])]);
     for (const integration of this.integrations)
       if (integration.tools)
         this.toolRegistry.register(integration.id, integration.tools);
-    this.store = new Store(config.dataDir, { exclusiveKernel: true });
+    this.store = create(
+      () => new Store(config.dataDir, { exclusiveKernel: true }),
+    );
     try {
-      this.securityAudit = new SecurityAudit(
-        config.securityAudit,
-        this.store,
-        options.securityAuditRules,
+      this.securityAudit = create(
+        () =>
+          new SecurityAudit(
+            config.securityAudit,
+            this.store,
+            options.securityAuditRules,
+          ),
       );
     } catch (error) {
       this.store.close();
       throw error;
     }
     this.store.recover();
-    this.costs = new CostLedger(this.store, config, options.billing);
-    this.web = new WebClient(config.web);
-    this.checkpoints = new Checkpoints(this.store, config.dataDir);
-    this.costs.recover();
-    this.assets = new Assets(this.store, config);
-    this.migrations = new SessionMigration(this.store, this.assets, config);
-    this.plugins = new PluginManager(this.store, config);
-    this.skills = new SkillManager(this.store, config);
-    this.buildInput = createInputBuilder(config, this.assets, this.skills);
-    this.mcp = new MCPManager(this.store, config);
-    this.media = new Media(
-      this.store,
-      this.assets,
-      config,
-      this.plugins,
-      this.costs,
+    this.costs = create(
+      () => new CostLedger(this.store, config, options.billing),
     );
-    this.permissions = new Permissions(this.store, config, this.modes);
+    this.web = create(() => new WebClient(config.web));
+    this.checkpoints = create(
+      () => new Checkpoints(this.store, config.dataDir),
+    );
+    this.costs.recover();
+    this.assets = create(() => new Assets(this.store, config));
+    this.migrations = create(
+      () => new SessionMigration(this.store, this.assets, config),
+    );
+    this.plugins = create(() => new PluginManager(this.store, config));
+    this.skills = create(() => new SkillManager(this.store, config));
+    this.buildInput = createInputBuilder(config, this.assets, this.skills);
+    this.mcp = create(() => new MCPManager(this.store, config));
+    this.media = create(
+      () =>
+        new Media(this.store, this.assets, config, this.plugins, this.costs),
+    );
+    this.permissions = create(
+      () => new Permissions(this.store, config, this.modes),
+    );
     this.mcp.setHost(
       new McpHost(config, this.store, this.permissions, this.costs),
     );
-    this.memory = new MemoryStore(this.store, config, this.costs);
-    this.context = new ContextManager(this.store, config, this.costs);
-    this.agents = new AgentManager(this.store);
-    this.teams = new TeamManager(this);
-    this.scheduler = new ToolScheduler(config.limits.maxConcurrentTools);
-    this.processes = new ProcessManager(this.store, config);
-    this.commands = new CommandRunner(config);
+    this.memory = create(() => new MemoryStore(this.store, config, this.costs));
+    this.context = create(
+      () => new ContextManager(this.store, config, this.costs),
+    );
+    this.agents = create(() => new AgentManager(this.store));
+    this.teams = create(() => new TeamManager(this));
+    this.scheduler = create(
+      () => new ToolScheduler(config.limits.maxConcurrentTools),
+    );
+    this.processes = create(() => new ProcessManager(this.store, config));
+    this.commands = create(() => new CommandRunner(config));
   }
   // Route credentials never expire once registered; skip values already known.
   private readonly routeSecrets = new Set<string>();
@@ -254,6 +266,7 @@ export class Kernel {
       ...this.config.extensions.allowedRoots,
     ])
       await mkdir(root, { recursive: true });
+    await this.assets.init();
     for (const integration of this.integrations)
       await integration.install?.(this);
     await this.mcp.init();
@@ -261,27 +274,44 @@ export class Kernel {
       this.modes.put(definition);
     const { eventDays, cacheDays, intervalMs } = this.config.retention;
     if (eventDays || cacheDays) {
-      this.prune();
+      void this.pruneAsync().catch(() => undefined);
       this.retentionTimer = setInterval(() => {
-        try {
-          this.prune();
-        } catch {
-          // A busy database retries on the next interval.
-        }
+        void this.pruneAsync().catch(() => undefined);
       }, intervalMs).unref();
     }
   }
-  /** Apply config.retention now; categories configured as 0 days are kept. */
-  prune() {
+  private retentionCutoffs() {
     const { eventDays, cacheDays } = this.config.retention,
       before = (days: number) =>
         days
           ? new Date(Date.now() - days * 86_400_000).toISOString()
           : undefined;
-    return this.store.prune({
-      events: before(eventDays),
-      caches: before(cacheDays),
-    });
+    return { events: before(eventDays), caches: before(cacheDays) };
+  }
+  /** Synchronous compatibility entry for offline maintenance. */
+  prune() {
+    return this.store.prune(this.retentionCutoffs());
+  }
+  /** Live maintenance yields between batches and shares one in-flight sweep. */
+  pruneAsync() {
+    if (this.retentionWork) return this.retentionWork;
+    this.retentionWork = this.store
+      .pruneAsync(this.retentionCutoffs(), 500, this.retentionAbort.signal)
+      .then(
+        (result) => {
+          delete this.retentionStatus.lastError;
+          this.retentionStatus.completedAt = now();
+          return result;
+        },
+        (error: unknown) => {
+          this.retentionStatus.lastError = errorText(error);
+          throw error;
+        },
+      )
+      .finally(() => {
+        this.retentionWork = undefined;
+      });
+    return this.retentionWork;
   }
   async createProject(
     name: string,
@@ -599,8 +629,22 @@ export class Kernel {
     sessionId: string,
     input: Input,
   ): Promise<{ runId: string; inputId: string }> {
-    return this.lifecycle.enqueue(sessionId, () =>
-      this.submitUnlocked(sessionId, input),
+    let snapshot: Input;
+    let size: number;
+    try {
+      snapshot = inputSchema.parse(input);
+      size = Buffer.byteLength(JSON.stringify(snapshot));
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return this.lifecycle.enqueue(
+      sessionId,
+      () => this.submitUnlocked(sessionId, snapshot),
+      {
+        count: this.config.limits.maxQueuedInputs,
+        bytes: this.config.limits.maxQueuedInputBytes,
+        size,
+      },
     );
   }
   private async checkSecurityAudit(
@@ -753,6 +797,7 @@ export class Kernel {
           "Run finished while preparing input; submit a new start input",
           409,
         );
+      current?.engine?.checkQueueCapacity(message);
       this.store.transaction(() => {
         if (input.contextSessionIds.length)
           this.store.write("sessions", {
@@ -857,7 +902,10 @@ export class Kernel {
           );
           live.engine = engine;
           if (live.cancelled) engine.abort();
-          const result = await engine.run(message);
+          const running = engine.run(message);
+          message = { role: "user", content: "", timestamp: 0 };
+          recoveredInputs = [];
+          const result = await running;
           if (result.status === "completed" && this.autoExtractsMemory(session))
             await this.extractMemory(
               session,
@@ -907,6 +955,10 @@ export class Kernel {
       this.store,
       session.id,
       this.config.limits.maxSessionMessages,
+      {
+        routeId: session.routeId,
+        maxBytes: this.config.limits.maxHistoryBytes,
+      },
     );
     const outputSchema = this.store.run(runId).outputSchema;
     const tools = await runTools(scope, mode, outputSchema);
@@ -926,253 +978,41 @@ export class Kernel {
       skillInstructions: this.skills.instructions(selectedSkills),
       outputTool: outputSchema ? OUTPUT_TOOL : undefined,
     });
-    return this.createEngine({
-      runId,
-      session,
-      definition,
-      root,
-      signal,
-      deadline,
-      instructions,
-      contextMessages,
-      history: stored.map((m) => m.message),
-      recoveredInputs,
-      tools,
-      finishTool: outputSchema ? OUTPUT_TOOL : undefined,
-    });
-  }
-  private createEngine(setup: {
-    runId: string;
-    session: Session;
-    definition?: AgentDefinition;
-    root: string;
-    signal: AbortSignal;
-    deadline: number;
-    instructions: string;
-    contextMessages: Message[];
-    history: Message[];
-    recoveredInputs: UserMessage[];
-    tools: ToolDefinition[];
-    finishTool?: string;
-  }) {
-    const { runId, session, definition, tools } = setup;
-    let extended:
-      { source: Message; team: string; message: Message } | undefined;
-    const filter = (
-        routeId: string,
-        messages: Message[],
-        toolList: ToolDefinition[],
-        current: Session = session,
-      ) =>
-        filterModelContext(
-          this.permissions,
-          current,
-          routeId,
-          messages,
-          toolList,
-        ),
-      prepareFor = (
-        routeId: string,
-        messages: Message[],
-        toolList: ToolDefinition[],
-        signal: AbortSignal | undefined,
-        scale = 1,
-      ) =>
-        this.context.prepare(
-          runId,
-          routeId,
-          filter(routeId, messages, toolList),
-          signal,
-          toolList,
-          scale,
-        );
-    // Reuse the extended system message while its inputs are unchanged, so the
-    // token estimate cached on that object stays valid across model steps.
-    function withTeamInstructions(entry: Message, team: string): Message {
-      if (extended?.source !== entry || extended.team !== team)
-        extended = {
-          source: entry,
-          team,
-          message: { ...entry, content: entry.content + team } as Message,
-        };
-      return extended.message;
-    }
-    const authorize = async (
-      tool: ToolDefinition,
-      args: JsonObject,
-      callId: string,
-      signal: AbortSignal,
-      effectiveRoute: string,
-    ) => {
-      const current = this.store.session(session.id);
-      if (this.securityAudit.enabled)
-        await this.checkSecurityAudit(
-          {
-            stage: "tool",
-            projectId: current.projectId,
-            sessionId: current.id,
-            routeId: effectiveRoute,
-            runId,
-            toolCallId: callId,
-            toolName: tool.name,
-            arguments: args,
-          },
-          signal,
-        );
-      const policyTool = await resolveToolPolicy(
-        { kernel: this, runId, session: current, routeId: effectiveRoute },
-        tool,
-        args,
-        signal,
-      );
-      return this.permissions.check(
+    return createRunEngine(
+      this,
+      {
         runId,
-        effectiveRoute,
-        policyTool,
-        args,
-        callId,
+        session,
+        definition,
+        root,
         signal,
-      );
-    };
-    return new ExecutionEngine({
-      signal: setup.signal,
-      runId,
-      routeId: session.routeId,
-      modelSettings: {
-        reasoningEffort: session.reasoningEffort ?? definition?.reasoningEffort,
-        reasoningBudgetTokens:
-          session.reasoningBudgetTokens ?? definition?.reasoningBudgetTokens,
+        deadline,
+        instructions,
+        contextMessages,
+        history: stored.map((m) => m.message),
+        recoveredInputs,
+        tools,
+        finishTool: outputSchema ? OUTPUT_TOOL : undefined,
       },
-      instructions: setup.instructions,
-      contextMessages: setup.contextMessages,
-      history: setup.history,
-      recoveredInputs: setup.recoveredInputs,
-      tools,
-      provider: this.routerFor(
-        {
-          projectId: session.projectId,
-          sessionId: session.id,
-          runId,
-          purpose: "agent",
-        },
-        {
-          onRoute: (routeId, fallback) =>
-            this.store.emit(runId, "model.route.selected", {
-              routeId,
-              fallback,
-            }),
-          prepareRoute: async (request, signal) =>
-            request.routeId === session.routeId
-              ? {
-                  ...request,
-                  messages: filter(
-                    request.routeId,
-                    request.messages,
-                    request.tools,
-                  ),
-                }
-              : {
-                  ...request,
-                  messages: await prepareFor(
-                    request.routeId,
-                    request.messages,
-                    request.tools,
-                    signal,
-                  ),
-                },
-          repairContext: async (request, signal) => ({
-            ...request,
-            messages: await prepareFor(
-              request.routeId,
-              request.messages,
-              request.tools,
-              signal,
-              0.5,
-            ),
-          }),
-          onRetry: (notice) =>
-            this.store.emit(runId, "model.retry", { ...notice }),
-          beforeRequest: (request, signal) =>
-            nativeWebSearchRequest(
-              this.config,
-              this.permissions,
-              this.store.session(session.id),
-              request,
-              signal || setup.signal,
-              authorize,
-              (reason) =>
-                this.store.emit(runId, "model.native-web-search.disabled", {
-                  routeId: request.routeId,
-                  reason,
-                }),
-            ),
-        },
-      ),
-      maxSteps: Math.min(
-        definition?.maxSteps || this.config.limits.maxSteps,
-        this.config.limits.maxSteps,
-      ),
-      maxToolCalls: this.config.limits.maxToolCalls,
-      scheduler: this.scheduler,
-      maxRepeatedToolResults: this.config.limits.maxRepeatedToolResults,
-      maxOutputContinuations: this.config.limits.maxOutputContinuations,
-      finishTool: setup.finishTool,
-      hooks: this.hooksFor(runId, session, setup.root),
-      maxStopContinuations: this.config.hooks.maxStopContinuations,
-      maxMessages: this.config.limits.maxSessionMessages,
-      normalizeResult: (result, signal) =>
-        normalizeToolResult(
-          result,
-          this.assets,
-          session.projectId,
-          this.config.limits.maxOutputBytes,
-          signal,
-        ),
-      timeoutMs: Math.max(1, setup.deadline - Date.now()),
-      store: this.store,
-      publish: (type, data, durable = true, redactedText) => {
-        durable
-          ? this.store.emit(runId, type, data, true, redactedText)
-          : this.store.emitEphemeral(runId, type, data);
+      {
+        hooks: this.hooksFor(runId, session, root),
+        checkSecurityAudit: (request, signal) =>
+          this.checkSecurityAudit(request, signal),
       },
-      checkpoint: (item, messageId, messageText) => {
-        this.store.appendTranscript(
-          session.id,
-          { id: messageId, runId, message: item },
-          messageText,
-        );
-      },
-      prepare: (messages, signal) => {
-        const current = this.store.session(session.id);
-        return this.context.prepare(
-          runId,
-          session.routeId,
-          filter(
-            session.routeId,
-            messages.map((entry, index) =>
-              index === 0 && entry.role === "system"
-                ? withTeamInstructions(entry, this.teams.instructions(current))
-                : entry,
-            ),
-            tools,
-            current,
-          ),
-          signal,
-          tools,
-        );
-      },
-      authorize,
-    });
+    );
   }
+
   /** Text provider whose model calls are charged to `scope` in the cost ledger. */
   routerFor(
     scope: CostScope,
     options: Omit<RouteRouterOptions, "billing"> = {},
   ): RouteRouter {
-    return RouteRouter.create(this.config, {
-      ...options,
-      billing: { ledger: this.costs, scope },
-    });
+    return this.redaction.bind(
+      RouteRouter.create(this.config, {
+        ...options,
+        billing: { ledger: this.costs, scope },
+      }),
+    );
   }
   private autoExtractsMemory(session: Session) {
     return (
@@ -1317,6 +1157,8 @@ export class Kernel {
   }
   private async closeOnce() {
     clearInterval(this.retentionTimer);
+    this.retentionAbort.abort(new Error("Kernel shutting down"));
+    await this.retentionWork?.catch(() => undefined);
     await this.lifecycle.drain();
     await closeResources(
       [
@@ -1335,10 +1177,11 @@ export class Kernel {
         // Outcomes still in flight are persisted before the store closes.
         { close: () => this.costs.drain() },
         this.mcp,
+        this.assets,
         this.store,
       ],
       "Kernel cleanup reported errors; remaining resources were still closed",
-    );
+    ).finally(() => this.redaction.close());
   }
   /** Client-originated process operations use the same tools, validators and approvals as model calls. */
   processAction(

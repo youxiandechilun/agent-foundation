@@ -1,3 +1,4 @@
+import { firstText } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, mkdtemp } from "node:fs/promises";
@@ -327,7 +328,7 @@ test("legacy MCP sampling runs the complete tool and tool-result cycle through r
     )
       .trim()
       .split("\n")
-      .map(JSON.parse);
+      .map((text) => JSON.parse(text));
     assert.deepEqual(
       requests.find((m) => m.method === "initialize").params.capabilities
         .sampling,
@@ -370,7 +371,7 @@ test("MCP tool sampling remains disabled unless explicitly declared and never pr
     )
       .trim()
       .split("\n")
-      .map(JSON.parse);
+      .map((text) => JSON.parse(text));
     assert.deepEqual(
       requests[0].params._meta["io.modelcontextprotocol/clientCapabilities"]
         .sampling,
@@ -989,7 +990,7 @@ for (const channel of ["GET", "unrelated POST"])
               { localContext: { label: "unrelated prompt" } },
             )
           : Promise.resolve();
-      assert.equal((await result).content[0].text, "http completed");
+      assert.equal(firstText(await result), "http completed");
       await prompt;
       assert.equal(calls, 1);
       assert.equal(replies[0].result._meta[related].taskId, "http-task");

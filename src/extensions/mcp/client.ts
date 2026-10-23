@@ -704,7 +704,10 @@ export class MCPClient {
           "Invalid MCP completion result",
           502,
         );
-        return result;
+        return {
+          ...result,
+          completion: { ...wireObject(result.completion), values },
+        };
       },
     );
   }

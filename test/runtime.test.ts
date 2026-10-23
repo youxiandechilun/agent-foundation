@@ -100,7 +100,7 @@ test("own runtime commits replies before actual tools and continues; durable eff
       "GET",
       `/v1/runs/${submitted.runId}/events?format=json&after=0`,
     );
-    assert.equal(replay.events.at(-1).type, "run.completed");
+    assert.equal(replay.events.at(-1)!.type, "run.completed");
     assert.ok(replay.events.every((e: any) => e.seq !== null));
   } finally {
     await x.close();

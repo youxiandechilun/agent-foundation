@@ -1,3 +1,5 @@
+import { wireMember } from "../src/core/wire.js";
+import { firstText } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile } from "node:fs/promises";
@@ -35,7 +37,7 @@ test("modern stdio MCP discovers without initialization and completes MRTR with 
   });
   try {
     const value = await x.client.callTool({ name: "work", arguments: {} });
-    assert.ok(value.content[0].text.includes("real answer"));
+    assert.ok(firstText(value).includes("real answer"));
     const effect = JSON.parse(
       await readFile(path.join(x.root, "effect.json"), "utf8"),
     );
@@ -45,7 +47,7 @@ test("modern stdio MCP discovers without initialization and completes MRTR with 
     )
       .trim()
       .split("\n")
-      .map(JSON.parse);
+      .map((text) => JSON.parse(text));
     assert.equal(requests[0].method, "server/discover");
     assert.ok(
       !requests.some(
@@ -78,13 +80,13 @@ test("MCP auto negotiation falls back only for a legacy discovery error and hand
   try {
     assert.equal(x.client.protocolVersion, "2025-11-25");
     const r = await x.client.callTool({ name: "work", arguments: {} });
-    assert.ok(r.content[0].text.includes("decline"));
+    assert.ok(firstText(r).includes("decline"));
     const requests = (
       await readFile(path.join(x.root, "requests.jsonl"), "utf8")
     )
       .trim()
       .split("\n")
-      .map(JSON.parse);
+      .map((text) => JSON.parse(text));
     assert.deepEqual(
       requests.slice(0, 2).map((m) => m.method),
       ["server/discover", "initialize"],
@@ -174,7 +176,7 @@ test("headless MCP elicitation validates responses, scopes roots and never accep
         .list("peer")
         .find((r) => r.status === "pending"),
     );
-    assert.equal(pending.origin.runId, run.runId);
+    assert.equal(wireMember(pending, "origin", "runId"), run.runId);
     await assert.rejects(
       x.client.request("POST", `/v1/mcp-interactions/${pending.id}/resolve`, {
         action: "accept",
@@ -279,13 +281,13 @@ test("MCP required legacy tasks persist remote identity, poll completion and ret
     const tasks = x.kernel.mcp.tasks("peer");
     assert.equal(tasks.length, 1);
     assert.equal(tasks[0].status, "completed");
-    assert.equal(tasks[0].origin.runId, run.runId);
+    assert.equal(wireMember(tasks[0], "origin", "runId"), run.runId);
     assert.equal(
       await readFile(path.join(x.project.root, "task-effect.txt"), "utf8"),
       "actual task bytes",
     );
     assert.equal(
-      (await x.kernel.mcp.task("peer", tasks[0].id, "result")).content[0].text,
+      firstText(await x.kernel.mcp.task("peer", tasks[0].id, "result")),
       "actual task bytes",
     );
     await assert.rejects(
@@ -361,12 +363,12 @@ test("modern HTTP MCP mirrors encoded routing headers and never opens a legacy G
       ["你好"],
     );
     assert.equal(
-      (
+      firstText(
         await client.callTool({
           name: "你好",
           arguments: { settings: { region: "华北\nvalue" } },
-        })
-      ).content[0].text,
+        }),
+      ),
       "华北\nvalue",
     );
     const call = seen.at(-1);
@@ -479,7 +481,7 @@ test("modern HTTP SSE carries MRTR and cancellation without Last-Event-ID resump
   try {
     await client.connect();
     assert.equal(
-      (await client.callTool({ name: "work", arguments: {} })).content[0].text,
+      firstText(await client.callTool({ name: "work", arguments: {} })),
       "sse complete",
     );
     const sub = client.listenNotifications({ toolsListChanged: true });
@@ -765,12 +767,14 @@ test("MCP JSON Schema 2020-12 validates tuple inputs and rejects invalid structu
       /structured output/,
     );
     assert.equal(
-      (
+      wireMember(
         await client.callTool({
           name: "structured",
           arguments: { tuple: ["ok"] },
-        })
-      ).structuredContent.count,
+        }),
+        "structuredContent",
+        "count",
+      ),
       2,
     );
     assert.equal(calls, 2);

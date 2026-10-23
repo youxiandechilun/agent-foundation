@@ -1,4 +1,4 @@
-# Agent Foundation API v1 · runtime 0.12.0
+# Agent Foundation API v1 · runtime 0.12.1
 
 统一供网页、Electron、CLI 和其他可信接入端使用。默认内核只有 HTTP JSON / SSE；办公、浏览器、桌面和设备端点属于显式加载的可选宿主集成。本轮不做 UI 或 ESP32。
 
@@ -57,6 +57,16 @@ directory 必须存在并在 workspaceRoots 内。默认模式 chat/code/office�
 自定义模式在空闲时修改并持久化。autonomy 为 plan / assist / autonomous；新会话默认 assist。plan 允许可信只读工具和内部 plan_update 状态记录，MCP/原生 Plugin 即使自称 read 也禁止执行。autonomous 仍不能覆盖 deny/ask。
 
 消息分页游标是 SQLite 消息序号；只用于 after，不是消息数组下标。导出是完整会话快照，导入当前限 8 MiB 与 maxSessionMessages，且只允许同项目，避免悄悄丢失附件归属。跨主机/跨项目资产搬迁需单独实现。导入拒绝 system 角色、重复消息、孤立/缺失/重复工具结果；移除不可移植的供应商延续状态/签名，历史工具绝不在导入时运行。运行/审批/效果日志不会被伪造成新会话的执行记录。
+
+## 列表分页与容量
+
+项目、会话、资产、任务、待处理审批、记忆提案、迁移记录、检查点、效果和 inbox 列表，以及不带 `q` 的记忆列表，接受 `after=0&limit=100`；默认 100 条，上限 1000 条。保留原数组字段，并增加 `{cursor,hasMore}`。`after` 使用上次响应的数值 `cursor`，不要使用数组下标或实体 ID。游标用于遍历，重新获取最新列表从 0 开始。
+
+`GET /v1/sessions/{id}` 的消息仍使用 `after` / `limit`；运行列表独立使用 `runsAfter` / `runsLimit`，返回 `runsCursor` / `runsHasMore`。也可以用 `GET /v1/sessions/{id}/runs?after=0&limit=100` 单独翻页。原来依赖单次列表返回全部记录的调用方需要循环读取 `hasMore`；进程内 `Store.list()` 与显式导出接口继续支持完整读取。
+
+`GET /v1/runs/{id}/events?format=json` 接受条数限制，并按约 1 MiB 的原始事件数据分批返回（单个事件保持完整），返回 `hasMore` 与 `cursor`。SSE 自动按相同字节窗口回放；慢连接超过积压、订阅或等待 drain 的限制时结束连接，客户端从最后收到的持久游标恢复。
+
+队列、上传/下载和 SSE 受 `limits` 的数量与字节预算共同约束。容量不足返回 429（`input_capacity`、`stream_capacity` 或 `resource_capacity`）；历史超出字节预算返回 413（`history_capacity`）。超限输入在写入 inbox 和 `input.accepted` 事件前拒绝。详细默认值和流式传输约束见 [容量与效率](CAPACITY-OPTIMIZATION.md)。
 
 ## 输入、运行与持续工作
 

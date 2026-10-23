@@ -172,7 +172,11 @@ test("core verifier separates audit JSON from stderr and replaces stale success 
   assert.equal(report.status, "failed");
   assert.equal(report.dependencyAuditStatus, "unavailable");
   assert.equal(report.dependencyAudit, null);
-  assert.equal(report.checks.length, 6);
+  assert.equal(report.checks.length, 9);
+  assert.deepEqual(
+    report.checks.slice(1, 4).map((check) => check.name),
+    ["test-types", "lint", "format"],
+  );
   const stdout = await readFile(
     path.join(x.root, "verification/production-dependency-audit.log"),
     "utf8",

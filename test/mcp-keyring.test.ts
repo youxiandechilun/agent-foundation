@@ -1,3 +1,4 @@
+import { keyDocument, required } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir, writeFile, rm } from "node:fs/promises";
@@ -70,7 +71,9 @@ async function fixture(alg = "ES256") {
 function verifyJWT(jwt: string, document: any) {
   const [h, p, s] = jwt.split("."),
     header = JSON.parse(Buffer.from(h, "base64url").toString()),
-    jwk = document.jwks.keys.find((k: any) => k.kid === header.kid);
+    jwk = keyDocument(document).jwks.keys.find(
+      (k: any) => k.kid === header.kid,
+    );
   assert.ok(jwk);
   assert.ok(
     verify(
@@ -110,8 +113,12 @@ for (const algorithm of ["RS256", "ES256", "EdDSA"])
         f.config,
         "http://127.0.0.1/callback",
       );
-      assert.equal(published.jwks.keys.length, 2);
-      assert.ok(published.jwks.keys.every((k: any) => !k.d && !k.p && !k.q));
+      assert.equal(keyDocument(published).jwks.keys.length, 2);
+      assert.ok(
+        keyDocument(published).jwks.keys.every(
+          (k: any) => !k.d && !k.p && !k.q,
+        ),
+      );
       f.advance(59999);
       assert.equal((await f.manager.status(f.config)).activeKid, oldKid);
       f.advance(1);
@@ -149,7 +156,9 @@ for (const algorithm of ["RS256", "ES256", "EdDSA"])
         f.config,
         "http://127.0.0.1/callback",
       );
-      assert.ok(!pruned.jwks.keys.some((k: any) => k.kid === oldKid));
+      assert.ok(
+        !keyDocument(pruned).jwks.keys.some((k: any) => k.kid === oldKid),
+      );
     } finally {
       await f.close();
     }
@@ -220,7 +229,7 @@ test("OAuth managed concurrent publication, signing and rotation share one activ
         f.manager.document(f.config, "http://127.0.0.1/callback"),
       ),
     );
-    assert.ok(docs.every((d) => d.jwks.keys.length === 2));
+    assert.ok(docs.every((d) => keyDocument(d).jwks.keys.length === 2));
     const jwt = await Promise.all(
       Array.from({ length: 8 }, () =>
         f.manager.assertion(f.config, "https://as.example/token"),
@@ -361,7 +370,8 @@ test("OAuth managed HTTP API publishes only public keys and HEAD cannot acknowle
     assert.equal(first.activeKid, stage.activeKid);
     await fetch(x.api.url + "/oauth/client.json", { method: "HEAD" });
     assert.equal(
-      (await x.client.mcpOAuthKeys("managed")).pending.waitingForPublication,
+      required((await x.client.mcpOAuthKeys("managed")).pending)
+        .waitingForPublication,
       true,
     );
     const response = await fetch(x.api.url + "/oauth/client.json"),
@@ -370,7 +380,8 @@ test("OAuth managed HTTP API publishes only public keys and HEAD cannot acknowle
     assert.ok(!JSON.stringify(doc).includes("PRIVATE KEY"));
     assert.ok(doc.jwks.keys.every((k: any) => !k.d));
     assert.equal(
-      (await x.client.mcpOAuthKeys("managed")).pending.waitingForPublication,
+      required((await x.client.mcpOAuthKeys("managed")).pending)
+        .waitingForPublication,
       false,
     );
     assert.equal(

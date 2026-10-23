@@ -63,6 +63,7 @@ await walk(path.join(root, "examples"));
 await walk(path.join(root, "scripts"));
 await walk(path.join(root, "docs"));
 await walk(path.join(root, "test"));
+await walk(path.join(root, ".github"));
 for (const name of [
   "package.json",
   "package-lock.json",
@@ -70,6 +71,8 @@ for (const name of [
   "config.example.json",
   "tsconfig.json",
   "tsconfig.core.json",
+  "tsconfig.test.json",
+  "eslint.config.js",
   "README.md",
 ]) {
   const content = await readFile(path.join(root, name));

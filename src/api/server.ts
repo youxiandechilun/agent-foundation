@@ -41,41 +41,43 @@ export async function apiToken(kernel: Kernel) {
 export async function serve(kernel: Kernel, token?: string) {
   await kernel.init();
   const secret = token || (await apiToken(kernel));
-  registerSecret(secret);
+  kernel.redaction.run(() => registerSecret(secret));
   const expected = Buffer.from(secret);
   const server = http.createServer((req, res) => {
-    void handle(req, res).catch((error) => {
-      if (res.headersSent) {
-        res.end();
-        return;
-      }
-      const status =
-        error instanceof AppError
-          ? error.status
-          : error instanceof ZodError
-            ? 400
-            : 500;
-      respond(
-        res,
-        {
-          error: {
-            code:
-              error instanceof AppError
-                ? error.code
-                : error instanceof ZodError
-                  ? "invalid_request"
-                  : "internal_error",
-            message:
-              error instanceof ZodError
-                ? error.issues
-                    .map((i) => `${i.path.join(".")}: ${i.message}`)
-                    .join("; ")
-                : errorText(error),
+    void kernel.redaction.run(() =>
+      handle(req, res).catch((error: unknown) => {
+        if (res.headersSent) {
+          res.end();
+          return;
+        }
+        const status =
+          error instanceof AppError
+            ? error.status
+            : error instanceof ZodError
+              ? 400
+              : 500;
+        respond(
+          res,
+          {
+            error: {
+              code:
+                error instanceof AppError
+                  ? error.code
+                  : error instanceof ZodError
+                    ? "invalid_request"
+                    : "internal_error",
+              message:
+                error instanceof ZodError
+                  ? error.issues
+                      .map((i) => `${i.path.join(".")}: ${i.message}`)
+                      .join("; ")
+                  : errorText(error),
+            },
           },
-        },
-        status,
-      );
-    });
+          status,
+        );
+      }),
+    );
   });
   server.requestTimeout = 30_000;
   server.headersTimeout = 15_000;
@@ -192,9 +194,11 @@ export async function serve(kernel: Kernel, token?: string) {
     throw new AppError(404, "not_found", "Endpoint not found");
   }
   server.on("upgrade", (req, socket, head) => {
-    for (const integration of kernel.integrations)
-      if (integration.upgrade?.(req, socket, head)) return;
-    socket.destroy();
+    kernel.redaction.run(() => {
+      for (const integration of kernel.integrations)
+        if (integration.upgrade?.(req, socket, head)) return;
+      socket.destroy();
+    });
   });
   const address = await listenHttp(server, kernel.config.server);
   return {

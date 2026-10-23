@@ -31,20 +31,48 @@ export function loadRunHistory(
   store: Store,
   sessionId: string,
   maxMessages: number,
+  options: { routeId?: string; maxBytes?: number } = {},
 ): StoredMessage[] {
-  const original = store.transcript(sessionId),
-    stored = repairHistory(original);
-  if (
-    stored.length !== original.length ||
-    stored.some((m, i) => m.id !== original[i]?.id)
-  )
-    store.saveTranscript(sessionId, stored);
   invariant(
-    stored.length < maxMessages,
+    store.transcriptCount(sessionId) < maxMessages,
     "Session message limit reached; fork or export it first",
     413,
   );
-  return stored;
+  const checkpoint = options.routeId
+    ? store.historyCheckpoint(sessionId, options.routeId)
+    : undefined;
+  const original = store.transcriptWindow(
+    sessionId,
+    checkpoint?.throughSeq,
+    options.maxBytes,
+  );
+  let stored = repairHistory(original);
+  if (
+    stored.length !== original.length ||
+    stored.some((m, i) => m.id !== original[i]?.id)
+  ) {
+    store.saveTranscript(sessionId, stored, checkpoint?.throughSeq);
+    stored = store.transcriptWindow(
+      sessionId,
+      checkpoint?.throughSeq,
+      options.maxBytes,
+    );
+  }
+  invariant(
+    store.transcriptCount(sessionId) < maxMessages,
+    "Session message limit reached; fork or export it first",
+    413,
+  );
+  return checkpoint
+    ? [
+        {
+          id: "context-summary",
+          runId: "context-summary",
+          message: checkpoint.summary,
+        },
+        ...stored,
+      ]
+    : stored;
 }
 
 /** Tools this run may offer: mode and agent filters, plus the structured-result tool. */

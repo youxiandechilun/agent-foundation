@@ -1,3 +1,16 @@
+import { redactSecrets } from "./redaction.js";
+export {
+  RedactionScope,
+  captureRedaction,
+  configureRedaction,
+  processSecretSnapshot,
+  registerSecret,
+  redactSecrets,
+  createJsonRedactor,
+  redactJsonText,
+  redactJson,
+} from "./redaction.js";
+export type { RedactionMode } from "./redaction.js";
 import { randomUUID, createHash } from "node:crypto";
 import { realpath, lstat, mkdir, writeFile, rename } from "node:fs/promises";
 import path from "node:path";
@@ -14,36 +27,6 @@ export function deepFreeze<T>(value: T, seen = new WeakSet<object>()): T {
 }
 export const hash = (s: string | Buffer) =>
   createHash("sha256").update(s).digest("hex");
-const explicitSecrets = new Map<string, number>();
-function activeSecrets() {
-  const time = Date.now();
-  for (const [secret, expiresAt] of explicitSecrets)
-    if (expiresAt <= time) explicitSecrets.delete(secret);
-  return explicitSecrets.keys();
-}
-/** Internal host handoff for durable process-output redaction; never expose through HTTP. */
-export function processSecretSnapshot() {
-  return redaction.mode === "off" ? [] : [...activeSecrets()];
-}
-export function registerSecret(value: string, ttlMs?: number) {
-  const expiresAt =
-    ttlMs === undefined ? Infinity : Date.now() + Math.max(1, ttlMs);
-  if (ttlMs !== undefined) activeSecrets();
-  const add = (secret: string) =>
-    explicitSecrets.set(
-      secret,
-      Math.max(explicitSecrets.get(secret) || 0, expiresAt),
-    );
-  if (value.length >= 8) {
-    add(value);
-    add(JSON.stringify(value).slice(1, -1));
-    const raw = value.replace(/^(Bearer|Basic)\s+/i, "");
-    if (raw.length >= 8) {
-      add(raw);
-      add(JSON.stringify(raw).slice(1, -1));
-    }
-  }
-}
 export class AppError extends Error {
   constructor(
     public status: number,
@@ -140,100 +123,6 @@ export function errorText(error: unknown) {
     redactSecrets(error instanceof Error ? error.message : String(error)),
     2000,
   );
-}
-interface Redactor {
-  (text: string): string;
-  /** Length of the shortest secret; shorter text cannot contain one. */
-  readonly shortest: number;
-}
-/**
- * full: registered secrets plus every credential-named environment variable, re-read
- * on each operation. registered: registered secrets plus the listed variables, without
- * enumerating the environment. off: no credential redaction.
- */
-export type RedactionMode = "full" | "registered" | "off";
-let redaction: { mode: RedactionMode; environment: readonly string[] } = {
-  mode: "full",
-  environment: [],
-};
-/** Process-wide; the kernel applies its configuration when constructed. */
-export function configureRedaction(next: {
-  mode: RedactionMode;
-  environment?: readonly string[];
-}) {
-  redaction = {
-    mode: next.mode,
-    environment: Object.freeze([...(next.environment || [])]),
-  };
-}
-const unredacted: Redactor = Object.assign((text: string) => text, {
-  shortest: Infinity,
-});
-const credentialName = /(KEY|TOKEN|SECRET|PASSWORD|AUTH|CREDENTIAL)/i;
-// JSON-escaped forms of environment values; a pure function of the value, so
-// caching it never hides rotation. Bounded because values may rotate repeatedly.
-const escapedValues = new Map<string, string>();
-const escaped = (value: string) => {
-  let form = escapedValues.get(value);
-  if (form === undefined) {
-    form = JSON.stringify(value).slice(1, -1);
-    if (escapedValues.size >= 256) escapedValues.clear();
-    escapedValues.set(value, form);
-  }
-  return form;
-};
-function secretRedactor(): Redactor {
-  if (redaction.mode === "off") return unredacted;
-  const secrets = new Set(activeSecrets());
-  // Remove configured credential values even if an upstream SDK includes them in its error.
-  // Reading every environment value is particularly costly on Windows. Enumerate
-  // names first, but still observe additions, rotation and removal on every call.
-  const names =
-    redaction.mode === "full"
-      ? Object.getOwnPropertyNames(process.env).filter((name) =>
-          credentialName.test(name),
-        )
-      : redaction.environment;
-  for (const name of names) {
-    const value = process.env[name];
-    if (value && value.length >= 8) {
-      secrets.add(value);
-      secrets.add(escaped(value));
-    }
-  }
-  let shortest = Infinity;
-  for (const secret of secrets) shortest = Math.min(shortest, secret.length);
-  return Object.assign(
-    (text: string) => {
-      if (text.length < shortest) return text;
-      for (const secret of secrets)
-        if (text.length >= secret.length)
-          text = text.replaceAll(secret, "[REDACTED]");
-      return text;
-    },
-    { shortest },
-  );
-}
-export function redactSecrets(text: string): string {
-  return secretRedactor()(text);
-}
-/** Serialize with per-string and whole-payload redaction, without allocating a parsed copy. */
-export function createJsonRedactor(): (value: unknown) => string {
-  const redact = secretRedactor();
-  // Without secrets both passes are identities; skip the per-value callback.
-  if (redact.shortest === Infinity) return (value) => JSON.stringify(value);
-  const replacer = (_key: string, item: unknown) =>
-    typeof item === "string" && item.length >= redact.shortest
-      ? redact(item)
-      : item;
-  return (value) => redact(JSON.stringify(value, replacer));
-}
-export function redactJsonText(value: unknown): string {
-  return createJsonRedactor()(value);
-}
-export function redactJson<T>(value: T): T {
-  // One snapshot per operation, never across calls: env rotation and expiry stay visible.
-  return JSON.parse(redactJsonText(value));
 }
 /** Close in dependency order, attempting every resource even when an earlier one fails. */
 export async function closeResources(

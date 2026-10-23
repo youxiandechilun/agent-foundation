@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "status": "passed",
-  "startedAt": "2026-10-22T15:54:06.386Z",
-  "completedAt": "2026-10-22T15:54:13.262Z",
+  "startedAt": "2026-10-23T00:38:46.912Z",
+  "completedAt": "2026-10-23T00:38:51.573Z",
   "environment": {
-    "node": "v22.22.0",
+    "node": "v22.23.2",
     "platform": "win32",
     "architecture": "x64",
     "osRelease": "10.0.26200",
-    "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "cpu": "Intel(R) Core(TM) i5-14600KF",
     "logicalCpus": 20,
-    "totalMemoryBytes": 25447112704
+    "totalMemoryBytes": 16924135424
   },
   "sampleCount": 5,
   "idleMs": 500,
@@ -27,80 +27,80 @@
   "samples": [
     {
       "version": "0.12.1",
-      "pid": 44124,
-      "readyMs": 750.5663,
-      "rssBytes": 114860032,
-      "heapUsedBytes": 32753696,
-      "externalBytes": 3956033,
-      "processMaxRssBytes": 115097600,
+      "pid": 11424,
+      "readyMs": 329.86240000000004,
+      "rssBytes": 119865344,
+      "heapUsedBytes": 33180720,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 119865344,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 10736,
-      "readyMs": 745.3518,
-      "rssBytes": 115138560,
-      "heapUsedBytes": 32757536,
-      "externalBytes": 3956033,
-      "processMaxRssBytes": 115138560,
+      "pid": 23576,
+      "readyMs": 331.7557,
+      "rssBytes": 119410688,
+      "heapUsedBytes": 33178152,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 119410688,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 17844,
-      "readyMs": 730.4241,
-      "rssBytes": 115240960,
-      "heapUsedBytes": 32753624,
-      "externalBytes": 3956033,
-      "processMaxRssBytes": 115240960,
+      "pid": 20592,
+      "readyMs": 329.41429999999997,
+      "rssBytes": 120356864,
+      "heapUsedBytes": 33172832,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 120356864,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 47144,
-      "readyMs": 740.0598,
-      "rssBytes": 114438144,
-      "heapUsedBytes": 32764792,
-      "externalBytes": 3956033,
-      "processMaxRssBytes": 114438144,
+      "pid": 44512,
+      "readyMs": 338.2104,
+      "rssBytes": 120111104,
+      "heapUsedBytes": 33214368,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 120111104,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 12500,
-      "readyMs": 715.0574,
-      "rssBytes": 115339264,
-      "heapUsedBytes": 32780656,
-      "externalBytes": 3956033,
-      "processMaxRssBytes": 115339264,
+      "pid": 43568,
+      "readyMs": 335.2027,
+      "rssBytes": 119992320,
+      "heapUsedBytes": 33213800,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 119992320,
       "cleanup": "passed"
     }
   ],
   "statistics": {
     "readyMs": {
-      "median": 740.0598,
-      "minimum": 715.0574,
-      "maximum": 750.5663
+      "median": 331.7557,
+      "minimum": 329.41429999999997,
+      "maximum": 338.2104
     },
     "rssBytes": {
-      "median": 115138560,
-      "minimum": 114438144,
-      "maximum": 115339264
+      "median": 119992320,
+      "minimum": 119410688,
+      "maximum": 120356864
     },
     "heapUsedBytes": {
-      "median": 32757536,
-      "minimum": 32753624,
-      "maximum": 32780656
+      "median": 33180720,
+      "minimum": 33172832,
+      "maximum": 33214368
     },
     "externalBytes": {
-      "median": 3956033,
-      "minimum": 3956033,
-      "maximum": 3956033
+      "median": 3998062,
+      "minimum": 3998062,
+      "maximum": 3998062
     },
     "processMaxRssBytes": {
-      "median": 115138560,
-      "minimum": 114438144,
-      "maximum": 115339264
+      "median": 119992320,
+      "minimum": 119410688,
+      "maximum": 120356864
     }
   },
   "errors": []

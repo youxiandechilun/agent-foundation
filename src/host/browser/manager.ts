@@ -1,3 +1,4 @@
+import { captureRedaction } from "../../core/util.js";
 import {
   chromium,
   type Browser,
@@ -106,7 +107,9 @@ export class BrowserManager {
     readonly store: Store,
     readonly assets: Assets,
     private authorize?: (projectId: string, action?: BrowserAction) => void,
-  ) {}
+  ) {
+    captureRedaction(this);
+  }
   private enabled() {
     this.lifetime.signal.throwIfAborted();
     invariant(
@@ -434,6 +437,20 @@ export class BrowserManager {
       ...(tab.lastDialog ? { dialog: tab.lastDialog } : {}),
     };
   }
+  action<A extends BrowserAction["action"]>(
+    browserId: string,
+    projectId: string,
+    input: Omit<BrowserAction, "action"> & { action: A },
+    signal?: AbortSignal,
+    owner?: string,
+  ): Promise<BrowserActionResult<A>>;
+  action(
+    browserId: string,
+    projectId: string,
+    input: BrowserAction | Record<string, unknown>,
+    signal?: AbortSignal,
+    owner?: string,
+  ): Promise<BrowserActionResult>;
   async action(
     browserId: string,
     projectId: string,
@@ -598,24 +615,11 @@ export class BrowserManager {
         try {
           const stream = await download.createReadStream();
           invariant(stream, "Browser download unavailable");
-          const chunks: Buffer[] = [];
-          let size = 0;
-          for await (const chunk of stream) {
-            stop.throwIfAborted();
-            size += chunk.length;
-            invariant(
-              size <= this.config.limits.maxUploadBytes,
-              "Download exceeds asset limit",
-              413,
-            );
-            chunks.push(Buffer.from(chunk));
-          }
-          stop.throwIfAborted();
           return {
-            asset: await this.assets.create(
+            asset: await this.assets.createStream(
               session.projectId,
               download.suggestedFilename(),
-              Buffer.concat(chunks),
+              stream,
               "artifact",
               undefined,
               stop,
@@ -683,3 +687,13 @@ export class BrowserManager {
     );
   }
 }
+type Performed = Awaited<ReturnType<BrowserManager["perform"]>>;
+export type BrowserActionResult<
+  A extends BrowserAction["action"] = BrowserAction["action"],
+> = A extends "tabs"
+  ? Extract<Performed, { tabs: unknown }>
+  : A extends "close_tab"
+    ? Extract<Performed, { closed: boolean }>
+    : A extends "screenshot" | "download"
+      ? Extract<Performed, { asset: unknown }>
+      : Extract<Performed, { snapshot: string }>;

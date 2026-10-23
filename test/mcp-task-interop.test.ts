@@ -1,3 +1,5 @@
+import { wireMember } from "../src/core/wire.js";
+import { firstText } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, writeFile } from "node:fs/promises";
@@ -34,7 +36,7 @@ async function requests(root: string, file: string) {
   return (await readFile(path.join(root, file), "utf8"))
     .trim()
     .split("\n")
-    .map(JSON.parse);
+    .map((text) => JSON.parse(text));
 }
 function install(
   x: Awaited<ReturnType<typeof setup>>,
@@ -87,7 +89,7 @@ for (const kind of ["elicitation", "sampling"])
         x.kernel.mcp.interactions.list().find((r) => r.status === "pending"),
       );
       const record = await until(() => x.kernel.mcp.receivedTasks("peer")[0]);
-      assert.equal(record.origin.runId, run.runId);
+      assert.equal(wireMember(record, "origin", "runId"), run.runId);
       assert.equal(record.status, "input_required");
       await x.client.resolveMCPInteraction(
         pending.id,
@@ -377,7 +379,7 @@ test("modern MCP task extension polls and submits actual user input before retur
     const pending: any = await until(() =>
       x.kernel.mcp.interactions.list().find((r) => r.status === "pending"),
     );
-    assert.equal(pending.origin.runId, run.runId);
+    assert.equal(wireMember(pending, "origin", "runId"), run.runId);
     await x.client.resolveMCPInteraction(pending.id, "accept", {
       value: "real modern task bytes",
     });
@@ -393,7 +395,7 @@ test("modern MCP task extension polls and submits actual user input before retur
       "real modern task bytes",
     );
     assert.equal(
-      (await x.kernel.mcp.task("peer", task.id, "result")).content[0].text,
+      firstText(await x.kernel.mcp.task("peer", task.id, "result")),
       "real modern task bytes",
     );
     const logs = await requests(x.project.root, "modern-task-requests.jsonl");
@@ -461,12 +463,12 @@ test("modern MCP tasks require negotiated extension support and may still return
   const x = await peer(modernFile, { taskExtension: false });
   try {
     assert.equal(
-      (
+      firstText(
         await x.client.callTool({
           name: "work",
           arguments: { scenario: "plain" },
-        })
-      ).content[0].text,
+        }),
+      ),
       "immediate result",
     );
     await assert.rejects(
@@ -540,8 +542,12 @@ test("modern task cancellation acknowledges intent while keeping uncertain remot
     await assert.rejects(pending, /cancel|ended/i);
     assert.equal(events.at(-1).kind, "unknown");
     const id = events[0].task.taskId;
+    assert.ok(typeof id === "string");
     const current = await x.client.taskGet(id);
-    assert.ok(["working", "cancelled"].includes(current.status));
+    assert.ok(
+      typeof current.status === "string" &&
+        ["working", "cancelled"].includes(current.status),
+    );
     await until(
       async () =>
         (await x.client.taskGet(id)).status === "cancelled" || undefined,
@@ -597,12 +603,12 @@ test("modern task protocol errors, tool errors and terminal seed states keep the
     );
     assert.equal(events.at(-1).task.status, "completed");
     assert.equal(
-      (
+      firstText(
         await x.client.callTool({
           name: "work",
           arguments: { scenario: "seed" },
-        })
-      ).content[0].text,
+        }),
+      ),
       "actual final result",
     );
   } finally {
@@ -647,6 +653,7 @@ test("modern task subscriptions require acknowledgement and reject notifications
       name: "work",
       arguments: { scenario: "slow" },
     });
+    assert.ok(typeof task.taskId === "string");
     const stream = x.client.listenNotifications({ taskIds: [task.taskId] });
     assert.deepEqual(await stream.ready, { taskIds: [task.taskId] });
     await until(() =>
@@ -754,7 +761,7 @@ test("modern HTTP task requests mirror the task ID in routing headers without le
   try {
     await client.connect();
     assert.equal(
-      (await client.callTool({ name: "work", arguments: {} })).content[0].text,
+      firstText(await client.callTool({ name: "work", arguments: {} })),
       "actual HTTP result",
     );
     const request = seen.find((r) => r.method === "tasks/get");
@@ -1056,7 +1063,7 @@ test("legacy HTTP peer can create a client task and fetch its deferred result ov
       { name: "work", arguments: {} },
       { localContext: { label: "real origin" } },
     );
-    assert.equal(result.content[0].text, "actual deferred HTTP answer");
+    assert.equal(firstText(result), "actual deferred HTTP answer");
     assert.equal(
       await readFile(path.join(root, "http-client-task.txt"), "utf8"),
       "real HTTP client task bytes",

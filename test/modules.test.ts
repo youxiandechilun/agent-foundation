@@ -191,12 +191,21 @@ test("actual stdio MCP child reads files, resources and prompts and contributes 
     )?.data.result;
     assert.match(result.content[0].text, /actual filesystem content/);
     assert.equal(
-      (await x.client.request("GET", "/v1/mcp/files/resources")).resources
-        .length,
+      (
+        await x.client.request<{ resources: { uri: string }[] }>(
+          "GET",
+          "/v1/mcp/files/resources",
+        )
+      ).resources.length,
       1,
     );
     assert.equal(
-      (await x.client.request("GET", "/v1/mcp/files/prompts")).prompts[0].name,
+      (
+        await x.client.request<{ prompts: { name: string }[] }>(
+          "GET",
+          "/v1/mcp/files/prompts",
+        )
+      ).prompts[0].name,
       "review",
     );
     await x.client.request("POST", "/v1/mcp/files/disconnect", {});

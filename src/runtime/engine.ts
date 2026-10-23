@@ -36,6 +36,11 @@ export interface EngineOptions {
   instructions: string;
   contextMessages?: Message[];
   history: Message[];
+  historyMessageCount?: number;
+  compactHistory?: boolean;
+  maxHistoryBytes?: number;
+  maxQueuedInputs?: number;
+  maxQueuedInputBytes?: number;
   recoveredInputs?: UserMessage[];
   tools: ToolDefinition[];
   provider: TextProvider;
@@ -89,6 +94,11 @@ export class ExecutionEngine {
   isRunning = false;
   private steerQueue: UserMessage[] = [];
   private followQueue: UserMessage[] = [];
+  private queuedBytes = 0;
+  private readonly queueBytes = new WeakMap<UserMessage, number>();
+  private messageCount: number;
+  private historyBytes: number;
+  private readonly messageWeights = new WeakMap<Message, number>();
   private validators = new Map<string, SchemaValidator>();
   private toolExecution: ToolExecution;
   private batchResults = new Map<string, boolean>();
@@ -109,8 +119,16 @@ export class ExecutionEngine {
     );
   };
   steps = 0;
-  constructor(readonly options: EngineOptions) {
+  readonly options: EngineOptions;
+  constructor(options: EngineOptions) {
+    this.options = { ...options, history: [] };
     this.history = options.history.slice();
+    this.messageCount = options.historyMessageCount ?? this.history.length;
+    this.historyBytes = this.history.reduce(
+      (sum, message) => sum + this.messageWeight(message),
+      0,
+    );
+    this.checkHistoryCapacity();
     this.tools = new Map();
     for (const tool of options.tools) {
       invariant(
@@ -129,7 +147,7 @@ export class ExecutionEngine {
     }
     this.toolList = [...this.tools.values()];
     this.toolExecution = new ToolExecution({
-      options,
+      options: this.options,
       tools: this.tools,
       validators: this.validators,
       signal: this.controller.signal,
@@ -143,13 +161,44 @@ export class ExecutionEngine {
         once: true,
       });
   }
+  private messageWeight(message: Message): number {
+    const cached = this.messageWeights.get(message);
+    if (cached !== undefined) return cached;
+    const bytes = Buffer.byteLength(JSON.stringify(message));
+    this.messageWeights.set(message, bytes);
+    return bytes;
+  }
+  private checkHistoryCapacity(bytes = this.historyBytes) {
+    invariant(
+      bytes <= (this.options.maxHistoryBytes ?? Infinity),
+      "Active history byte budget exceeded; fork or export it first",
+      413,
+      "history_capacity",
+    );
+  }
   enqueue(message: UserMessage, delivery: "steer" | "enqueue") {
     invariant(
       this.isRunning && !this.controller.signal.aborted,
       "Run is not accepting inputs",
       409,
     );
+    const bytes = this.checkQueueCapacity(message);
+    this.queueBytes.set(message, bytes);
+    this.queuedBytes += bytes;
     (delivery === "steer" ? this.steerQueue : this.followQueue).push(message);
+  }
+  checkQueueCapacity(message: UserMessage): number {
+    const bytes = Buffer.byteLength(JSON.stringify(message));
+    invariant(
+      this.steerQueue.length + this.followQueue.length <
+        (this.options.maxQueuedInputs ?? 32) &&
+        this.queuedBytes + bytes <=
+          (this.options.maxQueuedInputBytes ?? 16 * 1024 * 1024),
+      "Queued input capacity reached",
+      429,
+      "input_capacity",
+    );
+    return bytes;
   }
   abort(reason: "cancelled" | "timeout" = "cancelled") {
     if (this.controller.signal.aborted) return;
@@ -158,13 +207,16 @@ export class ExecutionEngine {
   }
   private commit(message: Message, messageId = id("message")) {
     invariant(
-      this.history.length < (this.options.maxMessages ?? Infinity),
+      this.messageCount < (this.options.maxMessages ?? Infinity),
       "Session message budget exhausted",
       413,
     );
     // Serialize and redact once; the transcript row and the event reuse this text.
     const messageText = redactJsonText(message);
+    const bytes = Buffer.byteLength(messageText);
+    this.checkHistoryCapacity(this.historyBytes + bytes);
     message = JSON.parse(messageText) as Message;
+    this.messageWeights.set(message, bytes);
     this.options.store.transaction(() => {
       this.options.checkpoint(message, messageId, messageText);
       if (message.role === "user") {
@@ -179,6 +231,8 @@ export class ExecutionEngine {
       }
     });
     this.history.push(message);
+    this.messageCount++;
+    this.historyBytes += bytes;
     if (message.role === "toolResult")
       this.batchResults.set(message.toolCallId, !message.isError);
     if (message.role === "user") {
@@ -211,12 +265,14 @@ export class ExecutionEngine {
     try {
       for (const recovered of this.options.recoveredInputs || [])
         await this.admit(recovered);
+      this.options.recoveredInputs = [];
       if (!(await this.admit(input)))
         return {
           status: "failed",
           error: `Input blocked by UserPromptSubmit hook: ${this.lastRejection}`,
           steps: this.steps,
         };
+      input = { role: "user", content: "", timestamp: 0 };
       let stopContinuations = 0,
         outputContinuations = 0,
         finishReminders = 0;
@@ -229,7 +285,7 @@ export class ExecutionEngine {
       while (this.steps < this.options.maxSteps) {
         signal.throwIfAborted();
         invariant(
-          this.history.length < (this.options.maxMessages ?? Infinity),
+          this.messageCount < (this.options.maxMessages ?? Infinity),
           "Session message budget exhausted; no further model call was made",
           413,
         );
@@ -246,6 +302,21 @@ export class ExecutionEngine {
           ),
           signal,
         );
+        if (this.options.compactHistory) {
+          const history = context.filter(
+            (message) => message.role !== "system",
+          );
+          this.history.length = 0;
+          for (const message of history) this.history.push(message);
+          this.historyBytes = this.history.reduce(
+            (sum, message) => sum + this.messageWeight(message),
+            0,
+          );
+          this.options.contextMessages = this.options.contextMessages?.filter(
+            (message) => message.role === "system",
+          );
+          this.checkHistoryCapacity();
+        }
         const messageId = id("message");
         this.options.publish("assistant.message.started", {
           messageId,
@@ -291,7 +362,7 @@ export class ExecutionEngine {
           (part): part is ToolCall => part.type === "toolCall",
         );
         invariant(
-          this.history.length + 1 + calls.length <=
+          this.messageCount + 1 + calls.length <=
             (this.options.maxMessages ?? Infinity),
           "Session budget cannot retain this assistant/tool group",
           413,
@@ -420,6 +491,8 @@ ${feedback}
     } finally {
       clearTimeout(timer);
       this.options.signal?.removeEventListener("abort", this.onParentAbort);
+      this.steerQueue.length = this.followQueue.length = 0;
+      this.queuedBytes = 0;
       this.isRunning = false;
     }
   }
@@ -455,7 +528,12 @@ ${feedback}
     return true;
   }
   private async admitNext(queue: UserMessage[]) {
-    while (queue.length) if (await this.admit(queue.shift()!)) return true;
+    while (queue.length) {
+      const message = queue.shift()!;
+      this.queuedBytes -= this.queueBytes.get(message) || 0;
+      this.queueBytes.delete(message);
+      if (await this.admit(message)) return true;
+    }
     return false;
   }
   private async executeBatch(calls: ToolCall[], route: string) {

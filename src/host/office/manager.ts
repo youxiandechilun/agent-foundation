@@ -1,3 +1,4 @@
+import { captureRedaction } from "../../core/util.js";
 import { z } from "zod";
 import path from "node:path";
 import type { Browser } from "playwright";
@@ -202,6 +203,8 @@ export class Office {
     ) => void,
   ) {
     this.jobs = new OfficeJobs(config);
+
+    captureRedaction(this);
   }
   private allowed(
     write = false,

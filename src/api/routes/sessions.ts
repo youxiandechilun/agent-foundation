@@ -3,7 +3,12 @@ import { modeIdSchema } from "../../modes/registry.js";
 import { reasoningEffortSchema } from "../../core/config.js";
 import type { Project, Session, Run } from "../../contracts.js";
 import { streamRunEvents } from "../events.js";
-import { cursor, type HttpContext, type HttpResult } from "../shared.js";
+import {
+  cursor,
+  entityList,
+  type HttpContext,
+  type HttpResult,
+} from "../shared.js";
 import { apiRoutes, input, status } from "../route-table.js";
 
 const reasoningFields = {
@@ -25,7 +30,8 @@ const sessionUpdate = z
   .strict();
 
 const routes = apiRoutes({
-  "GET projects": ({ k }) => ({ projects: k.store.list<Project>("projects") }),
+  "GET projects": (context) =>
+    entityList<Project>(context, "projects", "projects"),
   "POST projects": status(
     201,
     input(
@@ -42,11 +48,10 @@ const routes = apiRoutes({
         }),
     ),
   ),
-  "GET sessions": ({ k, url }) => ({
-    sessions: k.store.list<Session>("sessions", {
-      projectId: url.searchParams.get("projectId") || undefined,
+  "GET sessions": (context) =>
+    entityList<Session>(context, "sessions", "sessions", {
+      projectId: context.url.searchParams.get("projectId") || undefined,
     }),
-  }),
   "POST sessions": status(
     201,
     input(
@@ -77,15 +82,29 @@ const routes = apiRoutes({
         ),
     ),
   ),
-  "GET sessions/:id": ({ k, id, url }) => ({
-    session: k.store.session(id),
-    ...k.store.transcriptPage(
-      id,
-      cursor(url.searchParams.get("after")),
-      Number(url.searchParams.get("limit") || 100),
-    ),
-    runs: k.store.list<Run>("runs", { sessionId: id }),
-  }),
+  "GET sessions/:id": ({ k, id, url }) => {
+    const runs = k.store.page<Run>(
+      "runs",
+      { sessionId: id },
+      cursor(url.searchParams.get("runsAfter")),
+      Number(url.searchParams.get("runsLimit") ?? 100),
+    );
+    return {
+      session: k.store.session(id),
+      ...k.store.transcriptPage(
+        id,
+        cursor(url.searchParams.get("after")),
+        Number(url.searchParams.get("limit") || 100),
+      ),
+      runs: runs.items,
+      runsCursor: runs.cursor,
+      runsHasMore: runs.hasMore,
+    };
+  },
+  "GET sessions/:id/runs": (context) => {
+    context.k.store.session(context.id);
+    return entityList<Run>(context, "runs", "runs", { sessionId: context.id });
+  },
   "PATCH sessions/:id": async ({ k, id, json }) => {
     k.store.session(id);
     return k.updateSession(id, sessionUpdate.parse(await json()));
@@ -119,15 +138,22 @@ export async function sessionRoutes(context: HttpContext): Promise<HttpResult> {
     url.searchParams.get("after") || req.headers["last-event-id"]?.toString(),
   );
   if (url.searchParams.get("format") === "json") {
-    const events = k.store.replay(run.id, after);
+    const events = k.store.replay(
+      run.id,
+      after,
+      Number(url.searchParams.get("limit") ?? 1000),
+      Number.MAX_SAFE_INTEGER,
+      1024 * 1024,
+    );
     return {
       data: {
         events,
         cursor: events.at(-1)?.seq || after,
+        hasMore: k.store.eventCursor(run.id) > (events.at(-1)?.seq || after),
         status: k.store.run(run.id).status,
       },
     };
   }
-  await streamRunEvents(k.store, run.id, after, res);
+  await streamRunEvents(k.store, run.id, after, res, k.config.limits);
   return true;
 }

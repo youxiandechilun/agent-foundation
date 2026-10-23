@@ -1,3 +1,6 @@
+import { required } from "./support/payloads.js";
+import { z } from "zod";
+import type { ComputerAction } from "../src/host/computer/manager.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -44,9 +47,13 @@ async function fixture() {
   const target = await until(async () => {
     if (child.exitCode !== null) throw new Error(error || "Fixture stopped");
     try {
-      return JSON.parse(
-        await readFile(path.join(directory, "ready.json"), "utf8"),
-      );
+      return z
+        .object({ windowId: z.string(), processId: z.number().int() })
+        .parse(
+          JSON.parse(
+            await readFile(path.join(directory, "ready.json"), "utf8"),
+          ),
+        );
     } catch {
       return undefined;
     }
@@ -88,7 +95,9 @@ test(
       assert.ok(tools.some((t) => t.name === "computer_action"));
       assert.ok(!tools.some((t) => /^(office|browser|node)_/.test(t.name)));
       const run = "native-patterns",
-        act = (args: any) =>
+        act = <A extends ComputerAction["action"]>(
+          args: Record<string, unknown> & { action: A },
+        ) =>
           x.kernel.computer.action(run, x.project.id, {
             ...app.target,
             ...args,
@@ -177,8 +186,9 @@ test(
       );
       const snapshot = await act({ action: "tree" });
       assert.equal(
-        snapshot.elements.find((e: any) => e.automationId === "fixture_editor")
-          .value,
+        required(
+          snapshot.elements.find((e) => e.automationId === "fixture_editor"),
+        ).value,
         "Actual native 中文 value",
       );
     } finally {
@@ -195,7 +205,9 @@ test(
     const x = await start(),
       app = await fixture();
     try {
-      const act = (args: any) =>
+      const act = <A extends ComputerAction["action"]>(
+        args: Record<string, unknown> & { action: A },
+      ) =>
         x.kernel.computer.action("input-fixture", x.project.id, {
           ...app.target,
           ...args,
@@ -205,6 +217,7 @@ test(
         editor = tree.elements.find(
           (e: any) => e.automationId === "fixture_editor",
         );
+      assert.ok(editor);
       const dx = Math.round(editor.bounds.x - tree.window.left + 15),
         dy = Math.round(editor.bounds.y - tree.window.top + 10);
       await act({ action: "click", x: dx, y: dy });
@@ -221,6 +234,7 @@ test(
       const button = tree.elements.find(
         (e: any) => e.automationId === "fixture_commit",
       );
+      assert.ok(button);
       await act({
         action: "click",
         x: Math.round(button.bounds.x - tree.window.left + 20),
@@ -230,8 +244,8 @@ test(
       const panel = tree.elements.find(
           (e: any) => e.automationId === "fixture_panel",
         ),
-        px = Math.round(panel.bounds.x - tree.window.left + 100),
-        py = Math.round(panel.bounds.y - tree.window.top + 30);
+        px = Math.round(required(panel).bounds.x - tree.window.left + 100),
+        py = Math.round(required(panel).bounds.y - tree.window.top + 30);
       const moved = await act({ action: "move", x: px, y: py });
       assert.equal(moved.cursor.x, tree.window.left + px);
       assert.equal(moved.cursor.y, tree.window.top + py);

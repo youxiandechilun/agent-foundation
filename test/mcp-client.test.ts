@@ -1,3 +1,4 @@
+import { firstText } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, mkdtemp } from "node:fs/promises";
@@ -43,8 +44,8 @@ test("own stdio MCP correlates concurrent responses, handles server ping, progre
       name: "declared_readonly",
       arguments: { value: "fast", delay: 1 },
     });
-    assert.equal((await fast).content[0].text, "fast");
-    assert.equal((await slow).content[0].text, "slow");
+    assert.equal(firstText(await fast), "fast");
+    assert.equal(firstText(await slow), "slow");
     assert.equal(progress[0].total, 2);
     await until(() =>
       readFile(path.join(root, "server-response.json"), "utf8").catch(
@@ -377,12 +378,12 @@ test("own HTTP MCP negotiates session headers, JSON/SSE, server requests, stream
     await client.listTools();
     const progress: any[] = [];
     assert.equal(
-      (
+      firstText(
         await client.callTool(
           { name: "render", arguments: { mode: "normal" } },
           { progress: (p) => progress.push(p) },
-        )
-      ).content[0].text,
+        ),
+      ),
       "中文 HTTP 工具结果",
     );
     assert.equal(progress.length, 1);
@@ -390,8 +391,12 @@ test("own HTTP MCP negotiates session headers, JSON/SSE, server requests, stream
       requests.find((r) => r.m.id === "server-http-ping" && r.m.result),
     );
     assert.equal(
-      (await client.callTool({ name: "render", arguments: { mode: "resume" } }))
-        .content[0].text,
+      firstText(
+        await client.callTool({
+          name: "render",
+          arguments: { mode: "resume" },
+        }),
+      ),
       "resumed without a new POST",
     );
     assert.equal(renderPosts, 2);

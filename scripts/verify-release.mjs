@@ -11,6 +11,9 @@ const npm =
   path.join(path.dirname(process.execPath), "node_modules/npm/bin/npm-cli.js");
 const checks = [
   ["build", [npm, "run", "build"]],
+  ["test-types", [npm, "run", "check:tests"]],
+  ["lint", [npm, "run", "lint"]],
+  ["format", [npm, "run", "format:check"]],
   ["source-independence", [path.join(root, "scripts/verify-source.mjs")]],
   ["core-integration", [path.join(root, "scripts/run-core-tests.mjs")]],
   [

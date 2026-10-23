@@ -1,0 +1,33 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check:quality
+      - run: npm run build
+      - run: npm test
+      - run: npm run pack:sdk
+      - run: npm run verify:sdk
+      - run: npx playwright install chromium
+      - run: npm run build:host
+      - run: npm run test:host -- --filter=browser-app --filter=browser-bridge-app --filter=office-app --filter=host-route-boundaries --filter=host-nodes

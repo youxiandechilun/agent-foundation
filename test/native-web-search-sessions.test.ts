@@ -213,7 +213,7 @@ test("session codec preserves native search evidence and rejects malformed, unsa
   for (const [index, value] of invalid.entries())
     assert.throws(
       () => decodeSessionSnapshot(snapshot(value), 10),
-      undefined,
+      /./,
       `case ${index}`,
     );
   assert.throws(() => decodeSessionSnapshot(snapshot(), 10, 100), /byte limit/);

@@ -84,7 +84,10 @@ export class MCPRegistrations {
   private resetting = new Set<string>();
   private managing = new Map<
     string,
-    { method: string; promise: Promise<unknown> }
+    {
+      method: string;
+      promise: Promise<Awaited<ReturnType<MCPRegistrations["manage"]>>>;
+    }
   >();
   constructor(
     private root: string,
@@ -642,7 +645,10 @@ export class MCPRegistrations {
       this.lifetime.throwIfAborted();
       rmSync(this.file(target.id, "client"), { force: true });
       rmSync(this.file(target.id, "attempt"), { force: true });
-      return { state: "unregistered", remoteRegistrationDeleted: true };
+      return {
+        state: "unregistered" as const,
+        remoteRegistrationDeleted: true,
+      };
     }
     if ([400, 401, 403, 404, 405].includes(response.status)) {
       await response.body?.cancel();
@@ -679,7 +685,7 @@ export class MCPRegistrations {
     await this.save(target, "client", value);
     rmSync(this.file(target.id, "attempt"), { force: true });
     return {
-      state: "registered",
+      state: "registered" as const,
       remoteManagement: true,
       clientId: value.clientId,
       metadata: this.publicMetadata(value.metadata!),

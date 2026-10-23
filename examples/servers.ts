@@ -8,8 +8,14 @@ import { serverIntegration } from "../src/servers/index.js";
 export async function startWithServers(configFile = "config.json") {
   const config = await loadConfig(configFile);
   const kernel = new Kernel(config, {
-    integrations: [serverIntegration({ timeoutMs: 30000, maxOutputBytes: 64000 })],
+    integrations: [
+      serverIntegration({ timeoutMs: 30000, maxOutputBytes: 64000 }),
+    ],
   });
-  try { return await serve(kernel); }
-  catch (error) { await kernel.close(); throw error; }
+  try {
+    return await serve(kernel);
+  } catch (error) {
+    await kernel.close();
+    throw error;
+  }
 }

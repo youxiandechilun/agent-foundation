@@ -1,6 +1,6 @@
 # 0.12.1 版本范围与验收依据
 
-0.12.1 在已有 Agent 内核、执行循环增强、多 Agent 协作、会话引用和服务器插件之上进行结构整理与重复代码精简，不新增产品能力。源码目录、阅读顺序与模块边界见 [ARCHITECTURE.md](ARCHITECTURE.md)。调用方继续使用编译后的 JavaScript、类型声明和必要运行资源接入，公开 SDK 入口、HTTP/工具协议和持久格式保持兼容。尚未选择公开许可证，也未在此声明已发布到 npm 或 GitHub。
+0.12.1 在已有 Agent 内核、执行循环、多 Agent 协作、会话引用和服务器插件之上整理模块边界，并补齐历史检查点、流式资产传输和资源容量约束。源码目录、阅读顺序与模块边界见 [ARCHITECTURE.md](ARCHITECTURE.md)。调用方继续使用编译后的 JavaScript、类型声明和必要运行资源接入，公开 SDK 入口及原有持久数据可继续使用。列表 API 改为默认有界分页，依赖单次返回全部记录的调用方需按 [API.md](API.md) 的游标迁移；其他容量默认值和兼容性说明见 [CAPACITY-OPTIMIZATION.md](CAPACITY-OPTIMIZATION.md)。尚未选择公开许可证，也未在此声明已发布到 npm。
 
 ## 当前范围
 
@@ -39,11 +39,15 @@
 使用项目已有入口：
 
 ```powershell
+npm ci --ignore-scripts
+npm run check:quality
 npm run verify
 npm run check:host
 ```
 
-`verify` 依次进行核心构建、源码/依赖边界检查、全部核心测试、生产依赖审计、编译后冒烟和逐项证据核对，生成 `verification/report.json`、`verification/core-acceptance.json`、`verification/audit-report.json` 及日志。SDK 的打包与独立安装验收使用交付脚本，不能用源码构建通过代替包安装验证。
+`check:quality` 检查全部生产源码、测试和 TypeScript 示例的类型，再执行 lint 与格式检查；它需要安装可选包的类型声明，使用完整 `npm ci --ignore-scripts`。只运行核心时仍可以省略可选依赖并执行 `npm run check` / `npm test`。`verify` 依次进行核心构建、测试类型检查、lint、格式、源码/依赖边界检查、全部核心测试、生产依赖审计、编译后冒烟和逐项证据核对，生成 `verification/report.json`、`verification/core-acceptance.json`、`verification/audit-report.json` 及日志。SDK 的打包与独立安装验收使用 `npm run pack:sdk` 后再执行 `npm run verify:sdk`，不能用源码构建通过代替包安装验证。
+
+`.github/workflows/quality.yml` 在 Windows Node 22/24 上执行质量检查、核心测试、当前 SDK 打包与独立安装，并验证可在无人工交互下运行的浏览器、Office、节点与宿主权限边界。需要真实交互桌面的验收继续在具备相应桌面会话的机器上单独执行。
 
 逐项验收核对 TAP 的实际 `ok` 结果和完整汇总。失败、取消、TODO、不完整日志或未登记的核心跳过均使验收失败。仅 `scope=optional-servers` 的明确测试允许因为缺少可选 `ssh2` 跳过，记为 `not-tested-optional-dependency`，计入未验证数而非通过数。装有 `ssh2` 时，这些条目必须实际执行并通过。
 

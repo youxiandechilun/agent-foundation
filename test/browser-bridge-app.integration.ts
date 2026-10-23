@@ -74,8 +74,9 @@ test("independent browser pack pairs a real Chrome extension with host URL revie
           .list(x.project.id)
           .some((n) => n.id === paired.id && n.connected) || undefined,
     );
-    const act = (args: any) =>
-      x.client.browserBridgeAction(paired.id, x.project.id, args);
+    const act = <A extends string>(
+      args: Record<string, unknown> & { action: A },
+    ) => x.client.browserBridgeAction(paired.id, x.project.id, args);
     assert.equal(
       (await act({ action: "inspect" })).title,
       "Independent bridge fixture",

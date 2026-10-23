@@ -1,0 +1,492 @@
+{
+  "checkedAt": "2026-10-23T00:38:37.707Z",
+  "status": "passed",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "win32",
+    "architecture": "x64",
+    "cpu": "Intel(R) Core(TM) i5-14600KF"
+  },
+  "sourceSha256": "8f51f0cbb293b3979c1a640b38c3e885f26713f238dd6c8894300b0e542454e0",
+  "distSha256": "a108a5b09421a87131d29c135b5a403c14bf2bebe9ff3c5773d276c061992af4",
+  "gitHead": "7ca1f201d6f6b8504ebf2264c284182d7acf8518",
+  "samplesPerScenario": 3,
+  "method": "Independent sequential child processes with explicit GC before each read; synthetic local data, no model calls. Read allocations and retained heaps are distinct. Upload tracks peak ArrayBuffer bytes over fresh 64 KiB chunks. Retention samples setImmediate gaps between transactions.",
+  "limitations": [
+    "A fixed synthetic summary validates checkpoint loading, not model summary quality. First-time history with no checkpoint still loads the original prefix within the byte budget.",
+    "Upload includes streaming disk writes and hashing; its elapsed time is not directly comparable to a buffered request-body-only measurement.",
+    "GC, filesystem cache and other system activity affect allocation and timing measurements. This is not a production concurrency or memory leak test."
+  ],
+  "scenarios": {
+    "history": [
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 91.06639999999999,
+          "allocatedHeapBytes": 36855104,
+          "retainedHeapBytes": 25943216
+        },
+        "checkpoint": {
+          "rows": 201,
+          "durationMs": 1.5308999999999742,
+          "allocatedHeapBytes": 664392,
+          "retainedHeapBytes": 261624
+        }
+      },
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 91.53789999999992,
+          "allocatedHeapBytes": 36880744,
+          "retainedHeapBytes": 25943144
+        },
+        "checkpoint": {
+          "rows": 201,
+          "durationMs": 1.4923000000000002,
+          "allocatedHeapBytes": 664392,
+          "retainedHeapBytes": 261624
+        }
+      },
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 94.9649,
+          "allocatedHeapBytes": 36788864,
+          "retainedHeapBytes": 25942680
+        },
+        "checkpoint": {
+          "rows": 201,
+          "durationMs": 1.5422999999999547,
+          "allocatedHeapBytes": 664392,
+          "retainedHeapBytes": 261672
+        }
+      }
+    ],
+    "compaction": [
+      {
+        "sourceRows": 19900,
+        "activeRows": 202,
+        "durableRows": 19902,
+        "originalReleased": true,
+        "fullHeapBytes": 37084528,
+        "compactHeapBytes": 13061480,
+        "releasedHeapBytes": 24023048
+      },
+      {
+        "sourceRows": 19900,
+        "activeRows": 202,
+        "durableRows": 19902,
+        "originalReleased": true,
+        "fullHeapBytes": 37084600,
+        "compactHeapBytes": 13062008,
+        "releasedHeapBytes": 24022592
+      },
+      {
+        "sourceRows": 19900,
+        "activeRows": 202,
+        "durableRows": 19902,
+        "originalReleased": true,
+        "fullHeapBytes": 37084440,
+        "compactHeapBytes": 13061848,
+        "releasedHeapBytes": 24022592
+      }
+    ],
+    "lists": [
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 56.51390000000001,
+          "allocatedHeapBytes": 45771328,
+          "retainedHeapBytes": 22519184
+        },
+        "page": {
+          "rows": 100,
+          "durationMs": 0.6157999999999788,
+          "allocatedHeapBytes": 260760,
+          "retainedHeapBytes": 116336
+        }
+      },
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 54.130000000000024,
+          "allocatedHeapBytes": 45773328,
+          "retainedHeapBytes": 22517880
+        },
+        "page": {
+          "rows": 100,
+          "durationMs": 0.6187000000000467,
+          "allocatedHeapBytes": 260760,
+          "retainedHeapBytes": 116080
+        }
+      },
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 54.39769999999996,
+          "allocatedHeapBytes": 45766832,
+          "retainedHeapBytes": 22517880
+        },
+        "page": {
+          "rows": 100,
+          "durationMs": 0.7092999999999847,
+          "allocatedHeapBytes": 260760,
+          "retainedHeapBytes": 116080
+        }
+      }
+    ],
+    "upload": [
+      {
+        "inputBytes": 52428800,
+        "chunkBytes": 65536,
+        "durationMs": 81.22969999999998,
+        "peakArrayBufferDeltaBytes": 33591296,
+        "finalArrayBufferDeltaBytes": 19129576,
+        "rssDeltaBytes": 19267584
+      },
+      {
+        "inputBytes": 52428800,
+        "chunkBytes": 65536,
+        "durationMs": 82.89960000000002,
+        "peakArrayBufferDeltaBytes": 33591296,
+        "finalArrayBufferDeltaBytes": 19129576,
+        "rssDeltaBytes": 19415040
+      },
+      {
+        "inputBytes": 52428800,
+        "chunkBytes": 65536,
+        "durationMs": 87.618,
+        "peakArrayBufferDeltaBytes": 33591296,
+        "finalArrayBufferDeltaBytes": 19129576,
+        "rssDeltaBytes": 19111936
+      }
+    ],
+    "retention": [
+      {
+        "sourceEvents": 50000,
+        "batch": 500,
+        "durationMs": 340.9318,
+        "maxEventLoopGapMs": 23.057999999999993,
+        "deleted": {
+          "events": 50000,
+          "summaries": 0,
+          "workContexts": 0
+        }
+      },
+      {
+        "sourceEvents": 50000,
+        "batch": 500,
+        "durationMs": 340.77329999999995,
+        "maxEventLoopGapMs": 22.62259999999992,
+        "deleted": {
+          "events": 50000,
+          "summaries": 0,
+          "workContexts": 0
+        }
+      },
+      {
+        "sourceEvents": 50000,
+        "batch": 500,
+        "durationMs": 336.5198,
+        "maxEventLoopGapMs": 21.745799999999974,
+        "deleted": {
+          "events": 50000,
+          "summaries": 0,
+          "workContexts": 0
+        }
+      }
+    ]
+  },
+  "baseline": {
+    "date": "2026-10-23",
+    "commit": "7ca1f201d6f6b8504ebf2264c284182d7acf8518",
+    "sourceModified": false,
+    "checks": {
+      "coreTypecheck": "passed",
+      "coreBuild": "passed",
+      "formatCheck": "passed",
+      "lint": "unavailable: eslint not installed",
+      "hostTypecheck": "incomplete: optional playwright package/types not installed",
+      "coreTests": {
+        "total": 598,
+        "passed": 587,
+        "failed": 0,
+        "skipped": 11,
+        "skipReason": "optional ssh2 dependency absent",
+        "durationMs": 264690.661
+      },
+      "expandedStrictTestTypes": {
+        "total": 262,
+        "source": 6,
+        "examples": 2,
+        "test": 254,
+        "affectedTestFiles": 37,
+        "testDiagnosticCodes": {
+          "2307": 6,
+          "2322": 6,
+          "2339": 24,
+          "2345": 9,
+          "2532": 2,
+          "2554": 1,
+          "2571": 47,
+          "2769": 8,
+          "6133": 1,
+          "7006": 1,
+          "7016": 1,
+          "18046": 120,
+          "18048": 28
+        },
+        "samples": [
+          {
+            "file": "test/audit-data.test.ts",
+            "code": 2571,
+            "line": 27,
+            "message": "Object is of type 'unknown'."
+          },
+          {
+            "file": "test/audit-data.test.ts",
+            "code": 2532,
+            "line": 53,
+            "message": "Object is possibly 'undefined'."
+          },
+          {
+            "file": "test/audit-extensions.test.ts",
+            "code": 2571,
+            "line": 105,
+            "message": "Object is of type 'unknown'."
+          },
+          {
+            "file": "test/browser-app.integration.ts",
+            "code": 2571,
+            "line": 67,
+            "message": "Object is of type 'unknown'."
+          },
+          {
+            "file": "test/browser-app.integration.ts",
+            "code": 18046,
+            "line": 75,
+            "message": "'opened' is of type 'unknown'."
+          },
+          {
+            "file": "test/browser-app.integration.ts",
+            "code": 18046,
+            "line": 78,
+            "message": "'opened' is of type 'unknown'."
+          },
+          {
+            "file": "test/browser-app.integration.ts",
+            "code": 18046,
+            "line": 93,
+            "message": "'opened' is of type 'unknown'."
+          },
+          {
+            "file": "test/browser-app.integration.ts",
+            "code": 18046,
+            "line": 102,
+            "message": "'opened' is of type 'unknown'."
+          }
+        ]
+      }
+    },
+    "importGraph": {
+      "method": "Static ESM import/export graph, excluding type-only imports. Dynamic imports and package dependencies excluded.",
+      "runtimeCycles": [],
+      "rootStaticModules": 141,
+      "kernelStaticModules": 117,
+      "clientStaticModules": 2,
+      "hostLoadedByCore": []
+    },
+    "idle": {
+      "readyMs": {
+        "median": 325.92310000000003,
+        "minimum": 319.46540000000005,
+        "maximum": 327.55809999999997
+      },
+      "rssBytes": {
+        "median": 119660544,
+        "minimum": 118550528,
+        "maximum": 120188928
+      },
+      "heapUsedBytes": {
+        "median": 32663656,
+        "minimum": 32650568,
+        "maximum": 32670920
+      },
+      "externalBytes": {
+        "median": 3994462,
+        "minimum": 3994462,
+        "maximum": 3994462
+      },
+      "processMaxRssBytes": {
+        "median": 119660544,
+        "minimum": 118878208,
+        "maximum": 120188928
+      },
+      "sampleCount": 5,
+      "environment": {
+        "node": "v22.23.2",
+        "platform": "win32",
+        "architecture": "x64",
+        "osRelease": "10.0.26200",
+        "cpu": "Intel(R) Core(TM) i5-14600KF",
+        "logicalCpus": 20,
+        "totalMemoryBytes": 16924135424
+      }
+    },
+    "load": {
+      "fixture": {
+        "rows": 19900,
+        "textBytesPerRow": 1024
+      },
+      "reads": [
+        {
+          "label": "loadRunHistory-full",
+          "rows": 19900,
+          "medianDurationMs": 65.02440000000001,
+          "medianHeapAllocatedBytes": 50902152,
+          "medianHeapRetainedBytes": 24874936
+        },
+        {
+          "label": "transcriptSlice-last200",
+          "rows": 200,
+          "medianDurationMs": 0.9383000000000266,
+          "medianHeapAllocatedBytes": 503696,
+          "medianHeapRetainedBytes": 253560
+        },
+        {
+          "label": "list-jobs-all",
+          "rows": 19900,
+          "medianDurationMs": 44.07079999999996,
+          "medianHeapAllocatedBytes": 45711328,
+          "medianHeapRetainedBytes": 22452240
+        },
+        {
+          "label": "list-jobs-limit100",
+          "rows": 100,
+          "medianDurationMs": 0.5492000000001553,
+          "medianHeapAllocatedBytes": 239288,
+          "medianHeapRetainedBytes": 114840
+        }
+      ],
+      "prune": {
+        "inputEvents": 50000,
+        "batch": 2000,
+        "deleted": {
+          "events": 50000,
+          "summaries": 0,
+          "workContexts": 0
+        },
+        "durationMs": 644.0438999999999,
+        "timerDelayMs": 644.1658999999997
+      },
+      "upload": {
+        "inputBytes": 52428800,
+        "chunkBytes": 65536,
+        "durationMs": 61.289900000000216,
+        "heapDeltaBytes": 43360,
+        "arrayBufferDeltaBytes": 118161408,
+        "externalDeltaBytes": 118161408,
+        "rssDeltaBytes": 118669312
+      }
+    },
+    "findings": [
+      {
+        "priority": "P1",
+        "title": "Run preparation loads and retains the whole transcript",
+        "sources": [
+          "src/core/kernel/run-setup.ts:35",
+          "src/runtime/engine.ts:113",
+          "src/core/context.ts:146"
+        ],
+        "suggestion": "Persist a validated summary boundary/cursor; load summary plus recent atomic conversation groups, repairing unfinished tail calls and retaining original history in SQLite."
+      },
+      {
+        "priority": "P1",
+        "title": "Asset upload and download fully materialize buffers",
+        "sources": [
+          "src/api/shared.ts:26",
+          "src/api/routes/resources.ts:98",
+          "src/storage/assets.ts:107"
+        ],
+        "suggestion": "Stream uploads through a bounded hash/size pipeline to a temporary file and atomically publish; stream verified downloads while preserving current integrity checks and cancellation cleanup; add aggregate in-flight byte limits."
+      },
+      {
+        "priority": "P2",
+        "title": "Several API lists and the runs array in session details have no page limit",
+        "sources": [
+          "src/api/routes/sessions.ts:45",
+          "src/api/routes/sessions.ts:87",
+          "src/api/routes/resources.ts:32",
+          "src/storage/store.ts:346"
+        ],
+        "suggestion": "Add bounded cursor pages and lightweight projections to list routes; use existing Store pagination rather than slicing after loading."
+      },
+      {
+        "priority": "P2",
+        "title": "Pruning drains every batch in one synchronous event-loop turn",
+        "sources": [
+          "src/storage/store.ts:741",
+          "src/core/kernel.ts:264"
+        ],
+        "suggestion": "Apply a per-tick batch/time budget and yield between transactions; retain a cursor and report cleanup errors."
+      },
+      {
+        "priority": "P2",
+        "title": "Input queues and total SSE subscription buffering lack aggregate capacity limits",
+        "sources": [
+          "src/runtime/engine.ts:146",
+          "src/runtime/keyed-queue.ts:12",
+          "src/api/events.ts:79"
+        ],
+        "suggestion": "Bound queued inputs by count and byte size; cap per-run/host subscribers and aggregate stream bytes, with capacity rejection before expensive preparation."
+      },
+      {
+        "priority": "P2",
+        "title": "Tests are transpiled without semantic typechecking and release verification omits lint/format gates",
+        "sources": [
+          "scripts/run-core-tests.mjs:46",
+          "scripts/verify-release.mjs:12",
+          "tsconfig.json:16"
+        ],
+        "suggestion": "Add a dedicated strict tests/examples configuration, improve typed fixture/client results, and run type/lint/format/test checks in CI."
+      },
+      {
+        "priority": "P2-conditional",
+        "title": "Redaction configuration and credential registrations are process-wide across Kernel instances",
+        "sources": [
+          "src/core/util.ts:17",
+          "src/core/util.ts:155",
+          "src/core/kernel.ts:170"
+        ],
+        "suggestion": "Use per-kernel redaction context and lifecycle-managed secret ownership if multiple kernels with different policies are needed in the same process."
+      },
+      {
+        "priority": "P3",
+        "title": "Large orchestration modules and broad SDK root import graph leave maintainability/startup opportunities",
+        "sources": [
+          "src/core/kernel.ts",
+          "src/extensions/mcp/manager.ts",
+          "src/index.ts"
+        ],
+        "suggestion": "Extract stable responsibilities as features change; profile feature-level lazy assembly before changing public entry points or dependencies."
+      }
+    ],
+    "limitations": [
+      "The 200-message and 100-row windows measure available storage operations; they are not behavior-equivalent replacements for history repair or an unpaginated API.",
+      "Single-process allocation deltas are not production RSS forecasts or leak tests.",
+      "Pruning is measured once with a synthetic backlog; concurrency and system activity can affect latency."
+    ]
+  }
+}

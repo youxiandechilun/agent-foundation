@@ -5,7 +5,8 @@ import path from "node:path";
 import { Kernel } from "../../src/core/kernel.js";
 import { parseConfig } from "../../src/core/config.js";
 import { serve } from "../../src/api/server.js";
-import { FoundationClient } from "../../src/client.js";
+import { TestClient } from "./client.js";
+import type { FoundationClient } from "../../src/client.js";
 import { listenHttp } from "../../src/transport/http-listener.js";
 import type { FoundationEvent } from "../../src/contracts.js";
 
@@ -259,7 +260,7 @@ export async function setup(
     stage = "api-listen";
     api = await serve(kernel, token);
     stage = "project-create";
-    const client = new FoundationClient(api.url, token),
+    const client = new TestClient(api.url, token),
       project = await client.project("test");
     const session = async (
       mode: "chat" | "code" | "office" = "chat",

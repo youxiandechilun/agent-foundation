@@ -1,3 +1,4 @@
+import { captureRedaction } from "../core/util.js";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
@@ -52,7 +53,9 @@ export class NodeManager {
       capability?: string,
       args?: unknown,
     ) => void,
-  ) {}
+  ) {
+    captureRedaction(this);
+  }
   pair(input: unknown) {
     const p = z
       .object({

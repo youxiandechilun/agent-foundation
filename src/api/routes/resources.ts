@@ -1,15 +1,21 @@
 import { z } from "zod";
 import type { Asset, Job, Approval } from "../../contracts.js";
 import { invariant } from "../../core/util.js";
-import { body, type HttpContext, type HttpResult } from "../shared.js";
+import {
+  requestSignal,
+  entityList,
+  type HttpContext,
+  type HttpResult,
+} from "../shared.js";
+import { createReadStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
 import { apiRoutes, input, status } from "../route-table.js";
 
 const routes = apiRoutes({
-  "GET assets": ({ k, url }) => ({
-    assets: k.store.list<Asset>("assets", {
-      projectId: url.searchParams.get("projectId") || undefined,
+  "GET assets": (context) =>
+    entityList<Asset>(context, "assets", "assets", {
+      projectId: context.url.searchParams.get("projectId") || undefined,
     }),
-  }),
   "GET assets/:id": ({ k, id }) => k.store.asset(id),
   "POST approvals/:id/resolve": input(
     z.object({ allow: z.boolean() }).strict(),
@@ -25,11 +31,14 @@ const routes = apiRoutes({
       404,
       "not_found",
     );
-    return {
-      approvals: k.store.list<Approval>("approvals", { status: "pending" }),
-    };
+    return entityList<Approval>({ k, url }, "approvals", "approvals", {
+      status: "pending",
+    });
   },
-  "GET jobs": ({ k }) => ({ jobs: k.store.list<Job>("jobs") }),
+  "GET jobs": (context) =>
+    entityList<Job>(context, "jobs", "jobs", {
+      projectId: context.url.searchParams.get("projectId") || undefined,
+    }),
   "POST jobs": status(
     202,
     input(
@@ -85,27 +94,53 @@ export async function resourceRoutes(
       "projectId and name query parameters required",
     );
     k.store.project(projectId);
-    const asset = await k.assets.create(
-      projectId,
-      name,
-      await body(req, k.config.limits.maxUploadBytes),
-    );
-    return {
-      data: { ...asset, download: `/v1/assets/${asset.id}/content` },
-      status: 201,
-    };
+    const request = requestSignal(req, res);
+    try {
+      const asset = await k.assets.createStream(
+        projectId,
+        name,
+        req,
+        "upload",
+        undefined,
+        request.signal,
+        req.headers["content-length"] === undefined
+          ? undefined
+          : Number(req.headers["content-length"]),
+      );
+      return {
+        data: { ...asset, download: `/v1/assets/${asset.id}/content` },
+        status: 201,
+      };
+    } finally {
+      request.close();
+    }
   }
   if (parts.length === 4 && parts[3] === "content" && method === "GET") {
     const asset = k.store.asset(parts[2]);
-    const bytes = await k.assets.read(asset.id, asset.projectId);
-    res.writeHead(200, {
-      "Content-Type": asset.mime,
-      "Content-Length": asset.size,
-      "X-Content-Type-Options": "nosniff",
-      "Content-Disposition": `attachment; filename="download"; filename*=UTF-8''${encodeURIComponent(asset.name)}`,
-    });
-    res.end(bytes);
-    return true;
+    const request = requestSignal(req, res);
+    try {
+      const download = await k.assets.openVerified(
+        asset.id,
+        asset.projectId,
+        request.signal,
+      );
+      try {
+        res.writeHead(200, {
+          "Content-Type": asset.mime,
+          "Content-Length": asset.size,
+          "X-Content-Type-Options": "nosniff",
+          "Content-Disposition": `attachment; filename="download"; filename*=UTF-8''${encodeURIComponent(asset.name)}`,
+        });
+        await pipeline(createReadStream(download.file), res, {
+          signal: request.signal,
+        });
+        return true;
+      } finally {
+        await download.close();
+      }
+    } finally {
+      request.close();
+    }
   }
   return routes(context);
 }

@@ -1,3 +1,4 @@
+import { keyDocument } from "./support/payloads.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, writeFile } from "node:fs/promises";
@@ -168,7 +169,7 @@ test("CIMD private key JWT uses public JWKS and a short audience-bound assertion
       two = clientAssertion(config, "https://as.example/token"),
       [header, payload, signature] = one.split("."),
       claims = JSON.parse(Buffer.from(payload, "base64url").toString());
-    assert.equal(document.jwks.keys[0].d, undefined);
+    assert.equal(keyDocument(document).jwks.keys[0].d, undefined);
     assert.equal(claims.iss, config.clientId);
     assert.equal(claims.sub, config.clientId);
     assert.equal(claims.aud, "https://as.example/token");
@@ -178,7 +179,10 @@ test("CIMD private key JWT uses public JWKS and a short audience-bound assertion
       verify(
         "sha256",
         Buffer.from(header + "." + payload),
-        createPublicKey({ key: document.jwks.keys[0], format: "jwk" }),
+        createPublicKey({
+          key: keyDocument(document).jwks.keys[0],
+          format: "jwk",
+        }),
         Buffer.from(signature, "base64url"),
       ),
     );
@@ -272,7 +276,11 @@ test("CIMD can export a document for external HTTPS hosting without exposing a l
     );
     assert.equal(document.client_id, "https://metadata.example/app.json");
     assert.equal(
-      (await x.client.mcpRegistration("external")).publicationConfigured,
+      (
+        (await x.client.mcpRegistration("external")) as {
+          publicationConfigured: boolean;
+        }
+      ).publicationConfigured,
       false,
     );
   } finally {

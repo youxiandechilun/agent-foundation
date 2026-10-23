@@ -12,7 +12,7 @@ src/
 ├─ contracts.ts               跨模块公开数据契约
 ├─ version.ts                 运行时版本
 ├─ core/                      内核组装、配置、权限、上下文、Agent 定义
-│  └─ kernel/                 输入构造、历史修复、运行装配、MCP 宿主、授权、路由持久化与进程控制运行
+│  └─ kernel/                 引擎装配、输入构造、历史修复、运行装配、MCP 宿主、授权、路由持久化与进程控制运行
 ├─ api/                       HTTP 生命周期、认证、SSE 和通用请求处理
 │  └─ routes/                 按配置、会话、资源、记忆、扩展、MCP 分组
 ├─ runtime/                   执行循环、工具注册、调度、钩子、费用与结果
@@ -56,7 +56,7 @@ src/
 3. 理解 HTTP 接入：从 `api/server.ts` 的认证和分发进入 `api/routes/`；SSE 输出位于 `api/events.ts`。
 4. 调整某类能力：优先进入相应模块。工具定义在 `tools/`，团队在 `collaboration/`，服务器在 `servers/`，可选应用在 `host/`。
 
-`core/kernel.ts` 负责组装各能力，不要求所有依赖机械地单向指向 core。其他模块对 Kernel 的上下文引用尽量使用类型导入；实际跨模块交互通过已有公开方法、注册接口和明确依赖完成。
+`core/kernel.ts` 负责生命周期与能力组装，`core/kernel/engine.ts` 接收明确输入并装配执行引擎。`extensions/mcp/declaration.ts` 单独维护连接声明校验。模块依赖不要求机械地单向指向 core。其他模块对 Kernel 的上下文引用尽量使用类型导入；实际跨模块交互通过已有公开方法、注册接口和明确依赖完成。
 
 运行状态由 `core/kernel/lifecycle.ts` 集中维护，工具授权约束由 `core/kernel/authorization.ts` 合并；`runtime/engine.ts` 负责对话循环和检查点，`runtime/tool-execution.ts` 负责校验、授权、hook 与外部效果记录。调度器、Schema 校验器和持久化语句分别维护自己的有界或固定集合缓存，不缓存权限判定或数据库记录。具体优化和复现方式见 [OPTIMIZATION.md](OPTIMIZATION.md)。
 
@@ -72,7 +72,7 @@ HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优
 - 宿主计费通过 `KernelOptions.billing`（`runtime/billing.ts` 的 `BillingProvider`）接入：每次模型、embedding 和媒体调用发出前调用 `authorize`，宿主可抛错拒绝（如积分不足），内核作废预留并以 `billing_refused` 失败；最终结果经 `record` 报告不含缓存的输入、输出、缓存读写 token 或媒体计费单位，按 `charge.id` 幂等，未确认的结果在重启后重新投递。项目的 `billingAccount` 随每笔费用传给宿主；媒体单位按标准化请求估算，适配器或插件可在 `billing.units` 中报告实际值。内核的 USD 账本和预算保持原样。
 - Agent 定义的 `systemPrompt` 替换默认身份与工作规则；运行事实、模式说明、Skill 和三条安全规则（不可信数据、不泄露凭据、宿主审批）始终保留。未设置时提示词与此前逐字节一致。
 - 上下文压缩的保留与省略选择不变；缓存未命中时，若会话上一次的摘要覆盖当前省略内容的前缀，只总结“上一摘要 + 新省略的消息”，不再每步重新总结全部旧历史。省略内容与前缀的哈希在一次序列化中求出。token 估算按消息对象缓存序列化长度（历史消息提交后不再修改），整段历史的估算变为求和。
-- 凭据脱敏由配置 `redaction.mode` 控制（进程级，内核构造时应用）：`full`（默认）在每次操作时加入已注册凭据和所有名称像凭据的环境变量；`registered` 只用已注册凭据（路由密钥、鉴权请求头等）和 `redaction.environment` 列出的变量，不枚举环境，开销很低；`off` 完全关闭，包括进程输出脱敏，凭据可能以明文写入数据库和发给模型。服务器插件保险库对自身 SSH 凭据的脱敏不受此开关影响。
+- 凭据脱敏由配置 `redaction.mode` 控制（每 Kernel 的异步作用域，内核构造时建立）：`full`（默认）在每次操作时加入已注册凭据和所有名称像凭据的环境变量；`registered` 只用已注册凭据（路由密钥、鉴权请求头等）和 `redaction.environment` 列出的变量，不枚举环境，开销很低；`off` 完全关闭，包括进程输出脱敏，凭据可能以明文写入数据库和发给模型。服务器插件保险库对自身 SSH 凭据的脱敏不受此开关影响。
 - 脱敏在没有凭据时直接序列化，短于最短凭据的字符串跳过逐值替换，环境变量值的 JSON 转义形式按值缓存；每次操作仍重新枚举环境变量。事件写入复用脱敏后的数据文本，不再重复序列化。
 - 实体按类型存放在 `e_<kind>` 表中，只为实际使用的过滤字段建立表达式索引；旧数据库打开时在一个事务内从 `entities` 迁移，未知类型的行保存在 `entities_legacy`。会话历史替换只重写变化之后的消息。
 - 存储热点进一步优化包括 `effects.projectId` 索引、同步历史替换内的脱敏上下文、数据库触发器维护的历史计数、内部数组行读取和按缺失对象修复 schema；设计与验证边界见 [STORAGE-PERFORMANCE.md](STORAGE-PERFORMANCE.md)。
@@ -99,3 +99,5 @@ HTTP JSON 管理路由通过 `api/route-table.ts` 统一分发，精确路径优
 - 历史 CommonJS Worker 在本轮只调整所在目录，保持实现内容；新增和重构的模块使用 ESM。
 
 0.12.1 的结构整理与重复代码精简保持原有产品能力；当前源码另外加入可选安全审计，行为和验证以专门说明为准。大内核的运行编排仍是后续可继续改善的部分；提取有明确输入输出的逻辑，不为满足文件行数机械拆散状态机。结构指标与实际回归结果由对应验证报告记录。
+
+当前活动历史检查点、流式资产、API 分页、容量预算、异步保留清理与质量检查见 [CAPACITY-OPTIMIZATION.md](CAPACITY-OPTIMIZATION.md)。原始会话保持完整，活动上下文只恢复有效摘要和后续消息；生产入口、测试和 TypeScript 示例均纳入严格类型检查。

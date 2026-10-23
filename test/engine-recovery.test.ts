@@ -23,8 +23,8 @@ function reply(content: AssistantMessage["content"]): AssistantMessage {
     usage: emptyUsage(),
   };
 }
-async function harness(
-  tool: ToolDefinition,
+async function harness<A>(
+  tool: ToolDefinition<A>,
   complete: () => Promise<AssistantMessage>,
 ) {
   const root = await mkdtemp(path.join(tmpdir(), "foundation-effects-"));
@@ -63,7 +63,7 @@ test("conflicting duplicate tool IDs preserve the completed audit record and nev
         required: ["value"],
       },
       risk: "write",
-      async execute(_id, args) {
+      async execute(_id, args: { value: string }) {
         count++;
         await writeFile(target, args.value);
         return { content: [{ type: "text", text: "persisted" }] };

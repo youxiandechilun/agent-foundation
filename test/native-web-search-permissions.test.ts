@@ -1,3 +1,4 @@
+import { wireMember } from "../src/core/wire.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Approval } from "../src/contracts.js";
@@ -132,7 +133,7 @@ test("native search waits for approval before HTTP and handles approval, refusal
           })[0],
       );
       assert.equal(approval.tool, "web_search");
-      assert.equal(approval.args.native, true);
+      assert.equal(wireMember(approval, "args", "native"), true);
       assert.equal(x.wire.requests.length, 0);
       if (action === "cancel") x.kernel.cancel(runId);
       else x.kernel.permissions.resolve(approval.id, action === "approve");

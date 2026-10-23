@@ -12,6 +12,7 @@ import { hash, now } from "../src/core/util.js";
 import {
   emptyUsage,
   type AssistantMessage,
+  type Message,
   type ToolDefinition,
 } from "../src/runtime/types.js";
 import type { InboxEntry, ToolEffect } from "../src/contracts.js";
@@ -90,6 +91,93 @@ async function harness(
   return { engine, store, events };
 }
 
+test("compaction retains one copy of context across tool turns and keeps durable message limits", async (t) => {
+  const history: Message[] = Array.from({ length: 8 }, (_, timestamp) => ({
+    role: "user",
+    content: `old-${timestamp}`,
+    timestamp,
+  }));
+  let prepares = 0,
+    calls = 0;
+  const x = await harness(t, {
+    history,
+    compactHistory: true,
+    maxMessages: 12,
+    contextMessages: [
+      { role: "user", content: "retrieved context", timestamp: 0 },
+      { role: "system", content: "memory policy", timestamp: 0 },
+    ],
+    tools: [tool("continue", async () => ({ content: [] }))],
+    prepare: async (messages) => {
+      assert.equal(
+        messages.filter((message) => message.content === "retrieved context")
+          .length,
+        1,
+      );
+      assert.equal(
+        messages.filter((message) => message.content === "memory policy")
+          .length,
+        1,
+      );
+      return ++prepares === 1
+        ? [
+            ...messages.filter((message) => !history.includes(message)),
+            { role: "user", content: "summary", timestamp: 1 },
+          ]
+        : messages;
+    },
+    provider: {
+      complete: async () =>
+        ++calls === 1
+          ? reply([
+              { type: "toolCall", id: "next", name: "continue", arguments: {} },
+            ])
+          : reply([{ type: "text", text: "done" }]),
+    },
+  });
+  const result = await x.engine.run(input);
+  assert.equal(result.status, "completed");
+  assert.equal(calls, 2);
+  assert.equal(prepares, 2);
+  assert.equal(
+    x.engine.history.some((message) => history.includes(message)),
+    false,
+  );
+  assert.equal(x.store.transcriptCount("session_invariants"), 4);
+  const exhausted = await x.engine.run(input);
+  assert.equal(exhausted.status, "failed");
+  assert.match(exhausted.error ?? "", /message budget/);
+  assert.equal(calls, 2);
+});
+
+test("history byte limits reject oversized initial and prepared contexts before a model request", async (t) => {
+  const oversized: Message = {
+    role: "user",
+    content: "x".repeat(4096),
+    timestamp: 0,
+  };
+  await assert.rejects(
+    harness(t, { history: [oversized], maxHistoryBytes: 1024 }),
+    /history byte budget/,
+  );
+  let calls = 0;
+  const x = await harness(t, {
+    compactHistory: true,
+    maxHistoryBytes: 1024,
+    prepare: async (messages) => [...messages, oversized],
+    provider: {
+      complete: async () => {
+        calls++;
+        return reply([{ type: "text", text: "unexpected" }]);
+      },
+    },
+  });
+  const result = await x.engine.run(input);
+  assert.equal(result.status, "failed");
+  assert.match(result.error ?? "", /history byte budget/);
+  assert.equal(calls, 0);
+});
+
 test("a failed checkpoint rolls back durable input and leaves no phantom in-memory message", async (t) => {
   const x = await harness(t);
   const message = { ...input, inputId: "input_failed" };
@@ -101,7 +189,7 @@ test("a failed checkpoint rolls back durable input and leaves no phantom in-memo
     status: "pending",
     createdAt: now(),
   } satisfies InboxEntry);
-  x.engine.options.checkpoint = (message, id) => {
+  x.engine.options.checkpoint = (message, id, _text) => {
     x.store.appendTranscript("session_invariants", {
       id,
       runId: "run_invariants",
@@ -270,12 +358,12 @@ test("a checkpoint failure waits for already-running sibling tools before the ru
   });
   let failures = 0;
   const checkpoint = x.engine.options.checkpoint;
-  x.engine.options.checkpoint = (message, id) => {
+  x.engine.options.checkpoint = (message, id, text) => {
     if (message.role === "toolResult" && message.toolCallId === "fast") {
       if (++failures === 2) checkpointFailed.resolve();
       throw new Error("result checkpoint unavailable");
     }
-    checkpoint(message, id);
+    checkpoint(message, id, text);
   };
   let settled = false;
   const run = x.engine.run(input).then((outcome) => {

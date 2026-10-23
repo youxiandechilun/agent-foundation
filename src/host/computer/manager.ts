@@ -1,3 +1,4 @@
+import { captureRedaction } from "../../core/util.js";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { readFile, mkdir, rm } from "node:fs/promises";
@@ -53,7 +54,8 @@ export const computerActionSchema = z
     delta: z.number().int().min(-10000).max(10000).optional(),
   })
   .strict();
-type Action = z.infer<typeof computerActionSchema>;
+export type ComputerAction = z.infer<typeof computerActionSchema>;
+type Action = ComputerAction;
 interface Lease {
   runId: string;
   projectId: string;
@@ -71,7 +73,9 @@ export class ComputerController {
     readonly config: Config,
     readonly assets: Assets,
     private authorize?: (projectId: string, action: Action) => void,
-  ) {}
+  ) {
+    captureRedaction(this);
+  }
   status() {
     if (this.owner && this.owner.expires <= Date.now())
       this.release(this.owner.runId, this.owner.projectId);
@@ -172,6 +176,18 @@ export class ComputerController {
         403,
       );
   }
+  action<A extends Action["action"]>(
+    runId: string,
+    projectId: string,
+    input: Record<string, unknown> & { action: A },
+    signal?: AbortSignal,
+  ): Promise<ComputerActionResult<A>>;
+  action(
+    runId: string,
+    projectId: string,
+    input: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<ComputerActionResult>;
   async action(
     runId: string,
     projectId: string,
@@ -284,6 +300,18 @@ export class ComputerController {
           );
           stop.throwIfAborted();
           this.allowed(projectId, action);
+          if (action.action === "windows")
+            invariant(
+              parsed.windows,
+              "Computer adapter omitted window list",
+              502,
+            );
+          if (action.action === "tree")
+            invariant(
+              parsed.window && parsed.elements,
+              "Computer adapter omitted accessibility tree",
+              502,
+            );
           if (action.action !== "screenshot") return parsed;
           const bytes = await readFile(output, { signal: stop });
           invariant(

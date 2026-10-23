@@ -2,6 +2,28 @@ import type { ServerResponse } from "node:http";
 import type { FoundationEvent } from "../contracts.js";
 import { terminalStatuses } from "../contracts.js";
 import { Store } from "../storage/store.js";
+import { invariant } from "../core/util.js";
+import type { Config } from "../core/config.js";
+
+type StreamLimits = Pick<
+  Config["limits"],
+  | "maxSseSubscribers"
+  | "maxSseSubscribersPerRun"
+  | "maxSseBufferBytes"
+  | "maxSseConnectionBytes"
+  | "sseDrainTimeoutMs"
+>;
+const defaults: StreamLimits = {
+  maxSseSubscribers: 128,
+  maxSseSubscribersPerRun: 16,
+  maxSseBufferBytes: 64 * 1024 * 1024,
+  maxSseConnectionBytes: 16 * 1024 * 1024,
+  sseDrainTimeoutMs: 30000,
+};
+const budgets = new WeakMap<
+  Store,
+  { count: number; bytes: number; runs: Map<string, number> }
+>();
 
 /** Backpressure-aware delivery with a fixed replay watermark and a bounded live queue. */
 export async function streamRunEvents(
@@ -9,7 +31,23 @@ export async function streamRunEvents(
   runId: string,
   after: number,
   res: ServerResponse,
+  limits: StreamLimits = defaults,
 ) {
+  let budget = budgets.get(store);
+  if (!budget) {
+    budget = { count: 0, bytes: 0, runs: new Map() };
+    budgets.set(store, budget);
+  }
+  const runCount = budget.runs.get(runId) ?? 0;
+  invariant(
+    budget.count < limits.maxSseSubscribers &&
+      runCount < limits.maxSseSubscribersPerRun,
+    "Event subscription capacity reached",
+    429,
+    "stream_capacity",
+  );
+  budget.count++;
+  budget.runs.set(runId, runCount + 1);
   res.writeHead(200, {
     "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
@@ -20,7 +58,7 @@ export async function streamRunEvents(
     replaying = true,
     draining = false,
     overflow = false,
-    queuedBytes = 0,
+    reservedBytes = 0,
     head = 0,
     last = after,
     blocked = false;
@@ -29,24 +67,59 @@ export async function streamRunEvents(
   )[] = [];
   const payload = (event: FoundationEvent) =>
     `${event.seq !== null ? `id: ${event.seq}\n` : ""}event: ${event.type}\ndata: ${store.eventJson(event)}\n\n`;
-  const write = async (event: FoundationEvent, data = payload(event)) => {
+  const releaseBytes = (bytes: number) => {
+    const released = Math.min(bytes, reservedBytes);
+    reservedBytes -= released;
+    budget.bytes -= released;
+  };
+  const reserveBytes = (bytes: number) => {
+    if (
+      reservedBytes + bytes > limits.maxSseConnectionBytes ||
+      budget.bytes + bytes > limits.maxSseBufferBytes
+    )
+      return false;
+    reservedBytes += bytes;
+    budget.bytes += bytes;
+    return true;
+  };
+  const write = async (
+    event: FoundationEvent,
+    data = payload(event),
+    reserved = false,
+  ) => {
     if (closed || res.destroyed || res.writableEnded) return;
     if (event.seq !== null && event.seq <= last) return;
-    if (!res.write(data)) {
-      blocked = true;
-      await new Promise<void>((resolve) => {
-        const finish = () => {
-          res.off("drain", finish);
-          res.off("close", finish);
-          resolve();
-        };
-        res.once("drain", finish);
-        res.once("close", finish);
-      });
-      blocked = false;
+    const bytes = Buffer.byteLength(data);
+    if (!reserved && !reserveBytes(bytes)) {
+      overflow = true;
+      res.end();
+      return false;
     }
-    if (event.seq !== null) last = event.seq;
-    if (event.type === "run.completed" && !res.writableEnded) res.end();
+    try {
+      if (!res.write(data)) {
+        blocked = true;
+        await new Promise<void>((resolve) => {
+          const finish = () => {
+            res.off("drain", finish);
+            res.off("close", finish);
+            clearTimeout(timer);
+            resolve();
+          };
+          res.once("drain", finish);
+          res.once("close", finish);
+          const timer = setTimeout(() => {
+            res.destroy();
+            finish();
+          }, limits.sseDrainTimeoutMs).unref();
+        });
+        blocked = false;
+      }
+      if (event.seq !== null) last = event.seq;
+      if (event.type === "run.completed" && !res.writableEnded) res.end();
+      return true;
+    } finally {
+      if (!reserved) releaseBytes(bytes);
+    }
   };
   const drain = async () => {
     if (draining || closed) return;
@@ -55,13 +128,16 @@ export async function streamRunEvents(
       while (head < queue.length && !closed && !res.writableEnded) {
         const item = queue[head]!;
         queue[head++] = undefined;
-        queuedBytes -= item.bytes;
         // Release payloads immediately; moving the remaining half amortizes to linear work.
         if (head >= 1024 && head * 2 >= queue.length) {
           queue.splice(0, head);
           head = 0;
         }
-        await write(item.event, item.payload);
+        try {
+          await write(item.event, item.payload, true);
+        } finally {
+          releaseBytes(item.bytes);
+        }
       }
       if (overflow && !closed && !res.writableEnded) res.end();
     } finally {
@@ -76,35 +152,43 @@ export async function streamRunEvents(
     if (closed || overflow || res.writableEnded) return;
     const data = payload(event),
       bytes = Buffer.byteLength(data);
-    if (queuedBytes + bytes > 16 * 1024 * 1024) {
+    if (!reserveBytes(bytes)) {
       overflow = true;
       if (!replaying) void drain().catch(() => res.destroy());
       return;
     }
     queue.push({ event, payload: data, bytes });
-    queuedBytes += bytes;
     if (!replaying) void drain().catch(() => res.destroy());
   };
   store.events.on(runId, receive);
   const heartbeat = setInterval(() => {
     if (!closed && !blocked && !res.writableEnded && head === queue.length)
-      res.write(": heartbeat\n\n");
+      if (!res.write(": heartbeat\n\n")) res.destroy();
   }, 15000);
-  res.once("close", () => {
+  const cleanup = () => {
+    if (closed) return;
     closed = true;
     clearInterval(heartbeat);
     store.events.off(runId, receive);
     queue.length = 0;
-    head = queuedBytes = 0;
-  });
+    head = 0;
+    releaseBytes(reservedBytes);
+    budget.count--;
+    const remaining = (budget.runs.get(runId) ?? 1) - 1;
+    if (remaining) budget.runs.set(runId, remaining);
+    else budget.runs.delete(runId);
+  };
+  res.once("close", cleanup);
+  res.once("finish", cleanup);
   const watermark = store.eventCursor(runId);
   try {
     let cursor = after;
     while (!closed && !res.writableEnded && cursor < watermark) {
-      const batch = store.replay(runId, cursor, 256, watermark);
+      const batch = store.replay(runId, cursor, 256, watermark, 1024 * 1024);
       if (!batch.length) break;
       for (const event of batch) {
-        await write(event);
+        const written = await write(event);
+        if (!written) break;
         cursor = event.seq!;
         if (closed || res.writableEnded || overflow) break;
       }
@@ -125,6 +209,7 @@ export async function streamRunEvents(
     )
       res.end();
   } catch (e) {
+    cleanup();
     res.destroy();
     throw e;
   }

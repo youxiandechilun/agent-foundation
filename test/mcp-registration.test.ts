@@ -50,7 +50,7 @@ for (const method of ["none", "client_secret_basic", "client_secret_post"])
       );
       assert.ok(values.every((v) => v === values[0]));
       assert.equal(peer.counts().refreshes, 1);
-      const status = await x.client.mcpRegistration("dynamic");
+      const status = await x.client.dynamicRegistration("dynamic");
       assert.equal(status.state, "registered");
       assert.equal(status.authMethod, method);
       assert.ok(!JSON.stringify(status).includes("registration-secret"));
@@ -151,7 +151,7 @@ test("OAuth DCR uncertain network outcome survives restart and requires explicit
       /fetch|socket|failed/,
     );
     assert.equal(
-      (await x.client.mcpRegistration("dynamic")).state,
+      (await x.client.dynamicRegistration("dynamic")).state,
       "outcome_unknown",
     );
     x.kernel.mcp.oauth!.close();
@@ -200,7 +200,7 @@ for (const mismatch of ["redirect", "auth", "grant", "missing-secret"])
         /Registration|secret|authentication/,
       );
       assert.equal(
-        (await x.client.mcpRegistration("dynamic")).state,
+        (await x.client.dynamicRegistration("dynamic")).state,
         "outcome_unknown",
       );
       await assert.rejects(
@@ -252,14 +252,17 @@ test("OAuth DCR known rejection permits an explicit retry and local reset preser
       x.client.registerMCPOAuth("dynamic"),
       /registration failed/,
     );
-    assert.equal((await x.client.mcpRegistration("dynamic")).state, "rejected");
+    assert.equal(
+      (await x.client.dynamicRegistration("dynamic")).state,
+      "rejected",
+    );
     peer.controls.status = 201;
     await x.client.registerMCPOAuth("dynamic");
     assert.equal(peer.counts().registrations, 2);
     const reset = await x.client.resetMCPRegistration("dynamic");
     assert.equal(reset.remoteRegistrationDeleted, false);
     assert.equal(
-      (await x.client.mcpRegistration("dynamic")).state,
+      (await x.client.dynamicRegistration("dynamic")).state,
       "unregistered",
     );
   } finally {
@@ -336,7 +339,7 @@ test("OAuth DCR server failure is not replayed and expired client secrets requir
       client_secret_expires_at: Math.floor(Date.now() / 1000) - 1,
     });
     await x.client.registerMCPOAuth("dynamic");
-    assert.equal((await x.client.mcpRegistration("dynamic")).expired, true);
+    assert.equal((await x.client.dynamicRegistration("dynamic")).expired, true);
     await assert.rejects(x.client.beginMCPOAuth("dynamic"), /expired/);
     assert.equal(peer.counts().registrations, 2);
   } finally {
