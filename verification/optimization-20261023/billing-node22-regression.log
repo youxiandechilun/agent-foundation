@@ -1,0 +1,136 @@
+TAP version 13
+# (node:38756) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: host billing authorizes each model call with the project account and receives normalized tokens
+ok 1 - host billing authorizes each model call with the project account and receives normalized tokens
+  ---
+  duration_ms: 272.344
+  type: 'test'
+  ...
+# Subtest: a billing refusal voids the reservation before any provider request
+ok 2 - a billing refusal voids the reservation before any provider request
+  ---
+  duration_ms: 80.826
+  type: 'test'
+  ...
+# Subtest: undelivered outcomes are retried after restart and media units reach the host
+ok 3 - undelivered outcomes are retried after restart and media units reach the host
+  ---
+  duration_ms: 35.7451
+  type: 'test'
+  ...
+# Subtest: a custom system prompt replaces the default persona and keeps safety rules
+ok 4 - a custom system prompt replaces the default persona and keeps safety rules
+  ---
+  duration_ms: 0.3555
+  type: 'test'
+  ...
+# (node:48080) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: host billing keeps hosted search unknown until the actual charge is reconciled
+ok 5 - host billing keeps hosted search unknown until the actual charge is reconciled
+  ---
+  duration_ms: 48.86
+  type: 'test'
+  ...
+# Subtest: ordinary unpriced text still reports settled tokens to host billing
+ok 6 - ordinary unpriced text still reports settled tokens to host billing
+  ---
+  duration_ms: 22.023
+  type: 'test'
+  ...
+# Subtest: reconciliation waits for the earlier outcome without marking its newer delivery complete
+ok 7 - reconciliation waits for the earlier outcome without marking its newer delivery complete
+  ---
+  duration_ms: 24.5583
+  type: 'test'
+  ...
+# Subtest: a blocked billing delivery does not prevent another charge from reaching the host
+ok 8 - a blocked billing delivery does not prevent another charge from reaching the host
+  ---
+  duration_ms: 26.344
+  type: 'test'
+  ...
+# Subtest: failed hosted search without requestSent still notifies the reconciled charge
+ok 9 - failed hosted search without requestSent still notifies the reconciled charge
+  ---
+  duration_ms: 25.3146
+  type: 'test'
+  ...
+# Subtest: failed hosted search with requestSent still notifies the reconciled charge
+ok 10 - failed hosted search with requestSent still notifies the reconciled charge
+  ---
+  duration_ms: 25.4112
+  type: 'test'
+  ...
+# Subtest: a persisted hosted search reservation retains reconciliation after recovery
+ok 11 - a persisted hosted search reservation retains reconciliation after recovery
+  ---
+  duration_ms: 34.2462
+  type: 'test'
+  ...
+# (node:37596) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: billing recovery keeps backlog in SQLite and bounds callback concurrency
+ok 12 - billing recovery keeps backlog in SQLite and bounds callback concurrency
+  ---
+  duration_ms: 470.89
+  type: 'test'
+  ...
+# Subtest: billing latest outcomes remain ordered per charge while other charges can progress
+ok 13 - billing latest outcomes remain ordered per charge while other charges can progress
+  ---
+  duration_ms: 24.5369
+  type: 'test'
+  ...
+# Subtest: billing timeouts preserve slots for callbacks ignoring abort and close leaves recoverable work
+ok 14 - billing timeouts preserve slots for callbacks ignoring abort and close leaves recoverable work
+  ---
+  duration_ms: 112.1831
+  type: 'test'
+  ...
+# Subtest: FTS upgrade preserves old rows and updates/deletes use indexed rowid mappings
+ok 15 - FTS upgrade preserves old rows and updates/deletes use indexed rowid mappings
+  ---
+  duration_ms: 28.7184
+  type: 'test'
+  ...
+# Subtest: global budget totals follow raw SQL, replacement, rollback, overflow and trigger repair
+ok 16 - global budget totals follow raw SQL, replacement, rollback, overflow and trigger repair
+  ---
+  duration_ms: 43.6618
+  type: 'test'
+  ...
+# Subtest: media idempotency lookup tolerates historical duplicates but rejects any conflicting hash and new duplicates
+ok 17 - media idempotency lookup tolerates historical duplicates but rejects any conflicting hash and new duplicates
+  ---
+  duration_ms: 36.9982
+  type: 'test'
+  ...
+# Subtest: queued media cancellation releases only an unsubmitted unauthorized reservation
+ok 18 - queued media cancellation releases only an unsubmitted unauthorized reservation
+  ---
+  duration_ms: 22.1199
+  type: 'test'
+  ...
+# Subtest: cancelled authorization waits for the host result before delivering an uncertain outcome
+ok 19 - cancelled authorization waits for the host result before delivering an uncertain outcome
+  ---
+  duration_ms: 32.0509
+  type: 'test'
+  ...
+# Subtest: late authorization resolution or rejection cannot access a closed store and is recovered as unknown
+ok 20 - late authorization resolution or rejection cannot access a closed store and is recovered as unknown
+  ---
+  duration_ms: 51.149
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2427.3866

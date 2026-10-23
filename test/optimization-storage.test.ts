@@ -68,6 +68,11 @@ test("billing recovery keeps backlog in SQLite and bounds callback concurrency",
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
+  let completed!: () => void;
+  const allDelivered = new Promise<void>((resolve) => {
+    completed = resolve;
+  });
+  const deliveredIds = new Set<string>();
   let active = 0,
     peak = 0,
     delivered = 0;
@@ -76,12 +81,14 @@ test("billing recovery keeps backlog in SQLite and bounds callback concurrency",
     config,
     {
       authorize() {},
-      async record() {
+      async record(charge) {
         active++;
         peak = Math.max(peak, active);
         await gate;
         delivered++;
+        deliveredIds.add(charge.id);
         active--;
+        if (delivered === 400) completed();
       },
     },
     { concurrency: 3, timeoutMs: 10000 },
@@ -90,25 +97,45 @@ test("billing recovery keeps backlog in SQLite and bounds callback concurrency",
   store.selectJson = () => {
     throw new Error("Recovery must not materialize a backlog");
   };
-  ledger.recover();
-  await turn();
-  assert.equal(active, 3);
-  assert.equal(
-    store.prepare("SELECT COUNT(*) AS count FROM billing_deliveries").get()!
-      .count,
-    400,
-  );
-  store.selectJson = selectJson;
-  release();
-  await ledger.drain(10000);
-  assert.equal(delivered, 400);
-  assert.equal(peak, 3);
-  assert.equal(
-    store.prepare("SELECT COUNT(*) AS count FROM billing_deliveries").get()!
-      .count,
-    0,
-  );
-  await ledger.close();
+  try {
+    ledger.recover();
+    await turn();
+    assert.equal(active, 3);
+    await ledger.drain(0);
+    assert.equal(delivered, 0);
+    assert.equal(
+      store.prepare("SELECT COUNT(*) AS count FROM billing_deliveries").get()!
+        .count,
+      400,
+    );
+    store.selectJson = selectJson;
+    release();
+    // A bounded shutdown drain does not promise to finish a backlog by its deadline.
+    // Observe host completion independently of filesystem/CI speed before draining.
+    await allDelivered;
+    await ledger.drain();
+    assert.equal(delivered, 400);
+    assert.equal(deliveredIds.size, 400);
+    assert.equal(active, 0);
+    assert.equal(peak, 3);
+    assert.equal(
+      store.prepare("SELECT COUNT(*) AS count FROM billing_deliveries").get()!
+        .count,
+      0,
+    );
+    assert.equal(
+      store
+        .prepare(
+          "SELECT COUNT(*) AS count FROM e_cost_ledger WHERE json_extract(body,'$.billing.state')='recorded'",
+        )
+        .get()!.count,
+      400,
+    );
+  } finally {
+    store.selectJson = selectJson;
+    release();
+    await ledger.close();
+  }
 });
 
 test("billing latest outcomes remain ordered per charge while other charges can progress", async (t) => {

@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T04:16:12.529Z",
+  "checkedAt": "2026-10-23T04:32:53.852Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -1769,8 +1769,8 @@
     },
     {
       "path": "test/optimization-storage.test.ts",
-      "bytes": 15517,
-      "sha256": "38391bad51660e11d9f2b4167bf9ecf262cfdac063d89a612565bddbef5f81b2"
+      "bytes": 16407,
+      "sha256": "4091374a7a77d3c3371b5bde6e4680aa60819d4494020e793ed96eb92cbda24b"
     },
     {
       "path": "test/process-refactor.test.ts",

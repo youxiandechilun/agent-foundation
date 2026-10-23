@@ -182,8 +182,31 @@
       "packageReport": "sdk-package.json",
       "consumerReport": "sdk-consumer.json"
     },
-    "remoteRevalidation": "A new full Node 22/24 CI run will validate the follow-up commit.",
+    "remoteRevalidation": "Run 39899567131: Node 22 passed every step (core 642/642, host 35 passed and 1 capability skip). Node 24 passed the SSE regression and 641/642 core tests; its billing backlog test exceeded a test-only drain deadline, detailed below.",
     "checkedAt": "2026-10-23T04:17:41.289Z",
     "sourceVerification": "passed; source-final.log"
+  },
+  "billingTestFollowup": {
+    "checkedAt": "2026-10-23T04:32:53.326Z",
+    "observedRun": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39899567131",
+    "observedCommit": "d9d947b6ecd3909f120a4f4750fd30d944d14391",
+    "cause": "The test expected all 400 deliveries after drain(10000), but drain returns at its deadline while remaining work stays durable. The slower CI run completed 300 before this deadline; this is not a completion guarantee.",
+    "change": "Test-only: await the 400th callback completion before the final drain. Assert 400 unique IDs, 400 recorded rows, zero queued/active deliveries, peak concurrency 3, and durable work after drain(0). Always release and close in finally. Product deadlines and SDK implementation are unchanged.",
+    "regressions": [
+      {
+        "node": "v22.23.2",
+        "passed": 20,
+        "failed": 0,
+        "log": "billing-node22-regression.log"
+      },
+      {
+        "node": "v24.22.1",
+        "passed": 20,
+        "failed": 0,
+        "log": "billing-node24-regression.log"
+      }
+    ],
+    "staticChecks": "strict test types, ESLint and Prettier passed",
+    "remoteRevalidation": "A new full Node 22/24 CI run will validate this test follow-up."
   }
 }
