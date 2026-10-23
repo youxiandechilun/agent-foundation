@@ -1,0 +1,4 @@
+
+> @local/agent-foundation@0.12.1 check:tests
+> tsc -p tsconfig.test.json --noEmit
+

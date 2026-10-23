@@ -6,6 +6,7 @@ import { setup, until } from "./support/wire-server.js";
 test("canonical media requests support image bytes, async video, mapped fields, cancellation and unknown-job recovery without resubmission", async () => {
   const submissions: any[] = [];
   let complete = false;
+  let failNextPoll = true;
   const provider = http.createServer(async (req, res) => {
     let body: any = {};
     const chunks = [];
@@ -33,7 +34,13 @@ test("canonical media requests support image bytes, async video, mapped fields, 
       res.end(JSON.stringify({ id: "remote-1", status: "queued" }));
     else if (req.url === "/video/remote-1/cancel")
       res.end(JSON.stringify({ id: "remote-1", status: "cancelled" }));
-    else if (req.url === "/video/remote-1")
+    else if (req.url === "/video/remote-1" && failNextPoll) {
+      // Produce an uncertain remote effect deterministically. A tiny wall-clock
+      // timeout also constrains recovery and flakes on a busy Windows runner.
+      failNextPoll = false;
+      res.statusCode = 503;
+      res.end(JSON.stringify({ error: "Temporary polling outage" }));
+    } else if (req.url === "/video/remote-1")
       res.end(
         JSON.stringify({
           id: "remote-1",
@@ -79,7 +86,7 @@ test("canonical media requests support image bytes, async video, mapped fields, 
       pollPath: "/video/{id}",
       cancelPath: "/video/{id}/cancel",
       pollIntervalMs: 10,
-      timeoutMs: 120,
+      timeoutMs: 10000,
     };
     x.config.defaultRoutes.image = "image";
     x.config.defaultRoutes.video = "video";
@@ -122,11 +129,13 @@ test("canonical media requests support image bytes, async video, mapped fields, 
     const unknown = await x.kernel.media.wait(video.id);
     assert.equal(unknown.status, "unknown");
     assert.equal(unknown.remoteId, "remote-1");
+    assert.match(unknown.error || "", /503/);
     complete = true;
     const videoRoute = x.config.routes.video;
     x.config.routes.video = { ...videoRoute, baseUrl: "http://127.0.0.1:1" };
     x.kernel.media.recover(video.id);
-    assert.equal((await x.kernel.media.wait(video.id)).status, "completed");
+    const recovered = await x.kernel.media.wait(video.id);
+    assert.equal(recovered.status, "completed", recovered.error);
     assert.equal(submissions.filter((s) => s.url === "/video").length, 1);
     x.config.routes.video = videoRoute;
     complete = false;

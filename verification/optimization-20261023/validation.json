@@ -107,5 +107,21 @@
     "migration": "v1 format and integrity retained; complete JSON/Base64 objects remain, import parsing and commit are synchronous.",
     "footprint": "Five fresh idle Node processes; RSS remains approximately 116 MiB. Heap deltas in lookup benchmarks are not retained heap or peak memory.",
     "publication": "Source update to GitHub main; SDK package built and verified locally, not published to npm."
+  },
+  "ciFollowup": {
+    "observedRun": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39895998975",
+    "observedCommit": "fc902b045e0db2b6ae67f2c1fcd9abd5971171fc",
+    "node24": "All steps passed; core 641/641, host 35 passed and 1 capability skip.",
+    "node22": "Core 640 passed, 1 failed: media-nodes recovery expected completed but returned unknown. Recovery reused a fragile 120 ms route deadline; the original assertion did not record job.error, so that CI log alone cannot prove the exact cause.",
+    "change": "Test-only: inject one explicit HTTP 503 polling failure to create the unknown state, use a normal 10000 ms fixture deadline for recovery, assert the 503 cause and successful recovery without resubmission. Product timeout/capacity behavior is unchanged.",
+    "localRegression": {
+      "command": "node scripts/run-core-tests.mjs --filter=media --filter=optimization-migration",
+      "passed": 12,
+      "failed": 0,
+      "log": "media-ci-regression.log"
+    },
+    "strictTestTypes": "passed; ci-test-types.log",
+    "lintAndFormat": "passed for test/media-nodes.test.ts",
+    "remoteRevalidation": "A new full Node 22/24 CI run is required for this follow-up commit; see GitHub."
   }
 }

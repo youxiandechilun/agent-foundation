@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T03:34:54.535Z",
+  "checkedAt": "2026-10-23T03:53:48.961Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -1694,8 +1694,8 @@
     },
     {
       "path": "test/media-nodes.test.ts",
-      "bytes": 5687,
-      "sha256": "729f656887d03d8e487a608a1ef3e9f625d29cc899e7348fb3bb265ca975c943"
+      "bytes": 6160,
+      "sha256": "12a8d3a3afa3011a5f54c6fb1745b31eb09431d2a6db01612f8ba7e446a3e622"
     },
     {
       "path": "test/memory-ranking.test.ts",
