@@ -154,6 +154,14 @@ test("real PDF generation and bounded text extraction", async () => {
   }
 });
 test("Windows native controller compiles its input helpers and reads actual desktop state without sending input", async (t) => {
+  if (
+    process.env.FOUNDATION_TEST_EXCLUDE_CAPABILITIES?.split(",").includes(
+      "interactive-desktop",
+    )
+  ) {
+    t.skip("Interactive desktop capability excluded");
+    return;
+  }
   if (process.platform !== "win32") {
     t.skip("Windows adapter host required");
     return;

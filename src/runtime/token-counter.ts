@@ -1,6 +1,7 @@
 import type { Route } from "../core/config.js";
 import type { Message, ToolDefinition } from "./types.js";
 import { invariant } from "../core/util.js";
+import { anthropicMessages, responsesInput } from "../providers/serialize.js";
 export const estimateTextTokens = (text: string) =>
   Math.ceil(Buffer.byteLength(text, "utf8") / 2);
 export function estimateTokens(messages: Message[]): number {
@@ -13,7 +14,17 @@ function messageWeight(message: Message): number {
   let bytes = messageBytes.get(message);
   if (bytes === undefined) {
     let images = 0;
-    const serialized = JSON.stringify(message, (_key, value) => {
+    // Native replay state describes the same content, plus required opaque blocks.
+    // Count the protocol projection once, for both legacy and compact histories.
+    const native =
+      message.role === "assistant" ? message.providerState : undefined;
+    const projection =
+      native?.protocol === "anthropic-messages"
+        ? (anthropicMessages([message], native.routeId)[0] ?? message)
+        : native?.protocol === "openai-responses"
+          ? responsesInput([message], native.routeId)
+          : message;
+    const serialized = JSON.stringify(projection, (_key, value) => {
       if (value?.type === "image") {
         images++;
         return { type: "image" };
@@ -27,7 +38,7 @@ function messageWeight(message: Message): number {
 }
 /**
  * Unrounded weight lets context selection combine groups without rounding drift.
- * Equals the UTF-8 length of the serialized array: brackets, commas and elements.
+ * Adds array brackets/commas to the serialized per-message protocol projections.
  */
 export function estimateTokenBytes(messages: Message[]): number {
   let bytes = 1;

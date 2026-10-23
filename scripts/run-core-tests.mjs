@@ -22,6 +22,14 @@ const tests = [];
 const filters = process.argv
   .filter((arg) => arg.startsWith("--filter="))
   .map((arg) => arg.slice(9));
+// Host suites run by default. Only files declaring a required capability are
+// excluded, so adding a new ordinary integration suite automatically covers CI.
+// Mixed suites may skip only their hardware-dependent cases using the same env.
+const excludedCapabilities = process.argv
+  .filter((arg) => arg.startsWith("--exclude-capability="))
+  .map((arg) => arg.slice("--exclude-capability=".length));
+if (excludedCapabilities.some((value) => value !== "interactive-desktop"))
+  throw Error("Unknown test capability");
 async function compile(directory) {
   for (const entry of await readdir(path.join(root, directory), {
     withFileTypes: true,
@@ -43,7 +51,12 @@ async function compile(directory) {
     const target = path.join(output, relative.replace(/\.ts$/, ".js"));
     await mkdir(path.dirname(target), { recursive: true });
     if (entry.name.endsWith(".ts")) {
-      const result = ts.transpileModule(await readFile(source, "utf8"), {
+      const sourceText = await readFile(source, "utf8");
+      const capabilities =
+        sourceText
+          .match(/^\/\/ @test-capabilities: (.+)$/m)?.[1]
+          .split(/\s*,\s*/) ?? [];
+      const result = ts.transpileModule(sourceText, {
         fileName: relative,
         reportDiagnostics: true,
         compilerOptions: {
@@ -66,6 +79,9 @@ async function compile(directory) {
       await writeFile(target, result.outputText);
       if (
         directory === "test" &&
+        !excludedCapabilities.some((capability) =>
+          capabilities.includes(capability),
+        ) &&
         (browserOnly
           ? entry.name === "browser.integration.ts"
           : host
@@ -113,7 +129,14 @@ const result = spawnSync(
     `--test-concurrency=${concurrency}`,
     ...tests,
   ],
-  { cwd: root, stdio: "inherit" },
+  {
+    cwd: root,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      FOUNDATION_TEST_EXCLUDE_CAPABILITIES: excludedCapabilities.join(","),
+    },
+  },
 );
 // Compiled copies are only needed while tests run; --keep retains them for debugging.
 if (!process.argv.includes("--keep"))

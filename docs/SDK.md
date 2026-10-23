@@ -153,6 +153,52 @@ node http-client.mjs <会话ID> "根据已确认需求完成工作"
 
 已有模型协议、工具与扩展足够时，配置可以完成组合。新增业务系统接口通常需要编写独立 Plugin、MCP 服务或宿主集成；这部分代码位于调用方或扩展中，内核可以保持不变。私有且不兼容的模型协议需要兼容网关或相应适配。SDK 是单用户可信宿主内核，多租户身份和账号隔离由上层系统实现。
 
+## 每个 Kernel 的文本协议
+
+根入口公开 `TextProtocolRegistry` 与 `TextProtocol`。注册协议后，先用同一 registry 校验配置，再传入 Kernel；以下为接入片段，`customProtocol` 是宿主实现的 `TextProtocol`：
+
+```typescript
+import { Kernel, TextProtocolRegistry, loadConfig, parseConfig } from "@local/agent-foundation";
+
+const protocols = new TextProtocolRegistry();
+const unregister = protocols.register(customProtocol);
+const config = await loadConfig("./config.json", protocols);
+// 内存配置的对应形式：parseConfig(input, baseDir, protocols)
+const kernel = new Kernel(config, { textProtocols: protocols });
+unregister(); // 只改变原 registry；已构造的 kernel 保留自己的注册表快照。
+await kernel.init();
+// 宿主退出时：await kernel.close()
+```
+
+`parseConfig(input, baseDir?, protocols?)` 的 registry 是第三参数，`loadConfig(file, protocols?)` 是第二参数。每个 registry 自带内置协议，内置 ID 及保留的媒体/embedding ID 不能被覆盖。不同 Kernel 可以在各自 registry 中使用相同的自定义 ID；Kernel 构造时复制注册表，之后注销原 registry 的条目不会改变该 Kernel。运行时路由更新、持久化路由恢复、文本请求、上下文压缩、MCP sampling 和计费 token 语义都使用所属实例的协议。
+
+注册时复制并冻结协议声明与静态 headers，固定所注册的方法；类实例方法保留接收者。宿主仍应自行管理回调闭包或类实例中的可变状态，注册表快照不是深度隔离任意外部对象。既有 `registerTextProtocol()` 与 `textProtocolIds()` 保留进程级默认注册方式；未指定 `textProtocols` 的 Kernel 在构造时取得该默认表的快照。自定义协议应在解析配置和构造 Kernel 之前注册。
+
+## 计费投递与容量
+
+`BillingProvider.record(charge, outcome, signal?)` 增加可选取消信号，既有两参数实现仍可使用。根入口导出 `BillingDeliveryOptions`，通过 Kernel 选项配置：
+
+```typescript
+const kernel = new Kernel(config, {
+  billing,
+  billingDelivery: {
+    concurrency: 8,
+    timeoutMs: 30_000,
+    shutdownTimeoutMs: 5_000,
+  },
+});
+```
+
+以上也是默认值，针对结果投递 `record`，不限制授权回调 `authorize`。待投递结果保存在 SQLite，最多按并发数取出执行，同一 `charge.id` 顺序投递；宿主按该 ID 幂等更新，不能把重投当成第二次扣款。超时发出取消信号并记录失败；如果回调忽略信号，在它真正结束前保留槽位，避免超时重叠导致无限并发。关闭最多等待 `shutdownTimeoutMs` 的投递收尾并取消剩余投递，尚未完成的状态可在重启后恢复。这个时限只限定内核等待，不会强制停止宿主 I/O，也不是整个 `Kernel.close()` 的总时限。
+
+`limits` 另外提供媒体并发/队列字节与迁移并发约束。媒体默认同时执行 2 个、额外等待 16 个，运行中与等待任务的序列化元数据共用 4 MiB 预算；迁移默认同时 1 个操作。`kernel.exportMigration(sessionId, signal?)` 可取消异步附件读取；迁移仍返回完整的 v1 包对象。默认值、内存口径及取消边界见 [容量与效率](CAPACITY-OPTIMIZATION.md)。
+
+## 宿主集成生命周期
+
+每个 Kernel 应独立创建有状态的 application/server 集成。应用集成重复安装到同一 Kernel 会复用安装结果，安装到另一个 Kernel 会拒绝；第二个实例的初始化失败与关闭不能关闭第一个实例持有的服务。集成已关闭后不再允许安装，重复注册同名应用服务会明确失败。`KernelIntegration.close(kernel?: Kernel)` 接收发起关闭的所属实例，已有无参实现兼容；自定义有状态集成也应遵守所有权和幂等关闭约束。
+
+浏览器 context 意外关闭、连接断开和主动关闭共用幂等清理，释放会话、profile 占用、网络资源与监听器；清理完成后才允许复用占用的 profile。CDP 接入外部浏览器时仅断开本集成连接，保留原浏览器与用户标签页。Office 提取器随所属集成注销。宿主相关工具与 HTTP 路由契约保持不变，实际平台依赖见 [APPLICATIONS.md](APPLICATIONS.md)。
+
 ## 打包与本地验收
 
 维护者在工程根运行：

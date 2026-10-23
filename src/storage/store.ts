@@ -130,6 +130,7 @@ export class Store {
       if (options.exclusiveKernel) this.acquireKernelLease();
       const schema = this.transaction(() => ensureEntitySchema(this.db));
       this.splitEntities();
+      this.ensureAuxiliarySchema();
       if (!this.prepare("SELECT 1 FROM migrations WHERE version=3").get())
         this.transaction(() => {
           for (const row of this.prepare(
@@ -146,6 +147,53 @@ export class Store {
       this.close();
       throw error;
     }
+  }
+  /** Add derived structures after legacy entity migration has completed. */
+  private ensureAuxiliarySchema() {
+    this.transaction(() => {
+      const exists = (name: string) =>
+        Boolean(
+          this.db.prepare("SELECT 1 FROM sqlite_schema WHERE name=?").get(name),
+        );
+      const hadMemoryMap = exists("memory_fts_map");
+      const costObjects = [
+        "cost_ledger_total",
+        "cost_total_insert",
+        "cost_total_update",
+        "cost_total_delete",
+      ];
+      const rebuildCost =
+        costObjects.some((name) => !exists(name)) ||
+        !this.db.prepare("SELECT 1 FROM cost_ledger_total WHERE slot=1").get();
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS memory_fts_map(fts_rowid INTEGER PRIMARY KEY,memory_id TEXT NOT NULL);
+        CREATE INDEX IF NOT EXISTS memory_fts_map_id ON memory_fts_map(memory_id);
+        CREATE TABLE IF NOT EXISTS billing_deliveries(seq INTEGER PRIMARY KEY AUTOINCREMENT,charge_id TEXT NOT NULL UNIQUE,delivery_id TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS cost_ledger_total(slot INTEGER PRIMARY KEY CHECK(slot=1),total INTEGER NOT NULL,dirty INTEGER NOT NULL DEFAULT 0);
+        INSERT OR IGNORE INTO cost_ledger_total VALUES(1,0,0);
+        CREATE TRIGGER IF NOT EXISTS jobs_idempotency_insert BEFORE INSERT ON e_jobs
+          WHEN json_extract(new.body,'$.idempotencyKey') IS NOT NULL
+            AND NOT EXISTS(SELECT 1 FROM e_jobs WHERE id=new.id)
+            AND EXISTS(SELECT 1 FROM e_jobs WHERE json_extract(body,'$.projectId')=json_extract(new.body,'$.projectId') AND json_extract(body,'$.idempotencyKey')=json_extract(new.body,'$.idempotencyKey'))
+          BEGIN SELECT RAISE(ABORT,'Media idempotency key already exists'); END;
+      `);
+      if (!hadMemoryMap)
+        this.db.exec(
+          "INSERT INTO memory_fts_map SELECT rowid,id FROM memory_fts WHERE id IS NOT NULL",
+        );
+      const amount = (row: "old" | "new") =>
+        `COALESCE((${committedCostExpression.replaceAll("json_extract(body,", `json_extract(${row}.body,`)}),0)`;
+      for (const [operation, change] of [
+        ["INSERT", `total+${amount("new")}`],
+        ["UPDATE", `total-${amount("old")}+${amount("new")}`],
+        ["DELETE", `total-${amount("old")}`],
+      ])
+        this.db
+          .exec(`CREATE TRIGGER IF NOT EXISTS cost_total_${operation.toLowerCase()} AFTER ${operation}${operation === "UPDATE" ? " OF body" : ""} ON e_cost_ledger${operation === "UPDATE" ? ` WHEN ${amount("old")} IS NOT ${amount("new")}` : ""} BEGIN
+          UPDATE cost_ledger_total SET dirty=dirty OR typeof(${change})<>'integer',total=${change} WHERE slot=1;
+        END`);
+      if (rebuildCost) this.rebuildCommittedCostTotal();
+    });
   }
   // Only share statements for synchronous operations; active iterators use db.prepare.
   // Queries never retain entity values. Bound the cache as filters add query shapes.
@@ -381,6 +429,26 @@ export class Store {
       [...where.values, ...order.values],
     );
   }
+  /** Indexed lookup also rejects conflicting historical duplicates without loading their bodies. */
+  findMediaJob(
+    projectId: string,
+    idempotencyKey: string,
+    requestHash: string,
+  ): Job | undefined {
+    const values = [projectId, idempotencyKey];
+    invariant(
+      !this.prepare(
+        "SELECT 1 FROM e_jobs WHERE json_extract(body,'$.projectId')=? AND json_extract(body,'$.idempotencyKey')=? AND json_extract(body,'$.requestHash') IS NOT ? LIMIT 1",
+      ).get(...values, requestHash),
+      "Media idempotency key reused with different input",
+      409,
+      "idempotency_conflict",
+    );
+    return this.selectJsonOne<Job>(
+      "SELECT body FROM e_jobs WHERE json_extract(body,'$.projectId')=? AND json_extract(body,'$.idempotencyKey')=? ORDER BY rowid LIMIT 1",
+      values,
+    );
+  }
   /** Stable rowid cursor: updates do not move existing records to a different page. */
   page<T>(kind: Table, filter: EntityFilter = {}, after = 0, limit = 100) {
     const where = entityWhere(filter);
@@ -455,12 +523,21 @@ export class Store {
       day === undefined
         ? ""
         : `${where.sql ? " AND" : " WHERE"} substr(json_extract(body,'$.createdAt'),1,10)=?`;
-    const row = this.prepare(
-      `SELECT TOTAL(${committedCostExpression}) AS total
+    const cached =
+      !where.sql && day === undefined
+        ? (this.prepare(
+            "SELECT CAST(total AS REAL) AS total,dirty FROM cost_ledger_total WHERE slot=1",
+          ).get() as { total: number; dirty: number })
+        : undefined;
+    const row =
+      cached && !cached.dirty
+        ? cached
+        : (this.prepare(
+            `SELECT TOTAL(${committedCostExpression}) AS total
       FROM e_cost_ledger${where.sql}${dayClause}`,
-    ).get(...where.values, ...(day === undefined ? [] : [day])) as {
-      total: number;
-    };
+          ).get(...where.values, ...(day === undefined ? [] : [day])) as {
+            total: number;
+          });
     // TOTAL avoids SQLite's signed-integer overflow; accepted sums must stay exact in JS.
     invariant(
       Number.isSafeInteger(row.total) && row.total >= 0,
@@ -469,6 +546,33 @@ export class Store {
       "cost_budget_exhausted",
     );
     return row.total;
+  }
+  /** Rebuild after an administrative import/repair; triggers normally keep the total exact. */
+  rebuildCommittedCostTotal() {
+    return this.transaction(() => {
+      const { total } = this.prepare(
+        `SELECT TOTAL(${committedCostExpression}) AS total FROM e_cost_ledger`,
+      ).get() as { total: number };
+      const exact = Number.isSafeInteger(total);
+      this.prepare(
+        "INSERT INTO cost_ledger_total VALUES(1,?,?) ON CONFLICT(slot) DO UPDATE SET total=excluded.total,dirty=excluded.dirty",
+      ).run(exact ? total : 0, exact ? 0 : 1);
+      return total;
+    });
+  }
+  /** Offline consistency check; does not replace the constant-time budget read. */
+  verifyCommittedCostTotal() {
+    const stored = this.prepare(
+      "SELECT CAST(total AS REAL) AS total,dirty FROM cost_ledger_total WHERE slot=1",
+    ).get() as { total: number; dirty: number };
+    const { total } = this.prepare(
+      `SELECT TOTAL(${committedCostExpression}) AS total FROM e_cost_ledger`,
+    ).get() as { total: number };
+    return {
+      stored: stored.total,
+      calculated: total,
+      valid: !stored.dirty && stored.total === total,
+    };
   }
   /** Ledger totals as CostLedger.summary reports them, without loading the entries. */
   costTotals(filter: EntityFilter = {}) {
@@ -1003,6 +1107,9 @@ export class Store {
     // Refresh planner statistics after large deletions; cheap when nothing changed.
     this.db.exec("PRAGMA optimize");
     return deleted;
+  }
+  get isClosed() {
+    return this.closed;
   }
   close() {
     if (this.closed) return;

@@ -5,6 +5,7 @@ import { textOf } from "../../runtime/types.js";
 import { ProviderError } from "../sse.js";
 import { anthropicMessages as serializeMessages } from "../serialize.js";
 import { parseArgs, wantsReasoning, type TextProtocol } from "../protocol.js";
+import { compactAnthropicItems } from "../replay-state.js";
 
 const CACHEABLE = new Set([
   "text",
@@ -258,9 +259,12 @@ export const anthropicMessages: TextProtocol = {
     response.output.providerState = {
       protocol: response.protocol,
       routeId: response.routeId,
-      items: [...response.nativeBlocks]
-        .sort(([a], [b]) => a - b)
-        .map(([, value]) => value),
+      items: compactAnthropicItems(
+        response.output,
+        [...response.nativeBlocks]
+          .sort(([a], [b]) => a - b)
+          .map(([, value]) => value),
+      ),
     };
   },
 };

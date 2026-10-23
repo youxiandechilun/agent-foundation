@@ -40,6 +40,11 @@ import { ProcessManager } from "../execution/sessions.js";
 import { CommandRunner } from "../execution/process.js";
 import { recoverWindowsSandboxes } from "../execution/windows-sandbox.js";
 import { RouteRouter, type RouteRouterOptions } from "../providers/text.js";
+import {
+  defaultTextProtocols,
+  type TextProtocolRegistry,
+} from "../providers/registry.js";
+import type { BillingDeliveryOptions } from "../runtime/billing.js";
 import { textOf, type Message, type UserMessage } from "../runtime/types.js";
 import { ToolRegistry, type KernelIntegration } from "../runtime/registry.js";
 import { bindHooks, commandHooks, type RunHooks } from "../runtime/hooks.js";
@@ -83,6 +88,9 @@ import {
 } from "../security/index.js";
 
 export interface KernelOptions {
+  /** Snapshot this registry for independent embedded kernel lifecycles. */
+  textProtocols?: TextProtocolRegistry;
+  billingDelivery?: BillingDeliveryOptions;
   integrations?: KernelIntegration[];
   /** Trusted, in-process audit extensions. Inactive while securityAudit.mode is off. */
   securityAuditRules?: readonly SecurityAuditRule[];
@@ -90,6 +98,7 @@ export interface KernelOptions {
   billing?: BillingProvider;
 }
 export class Kernel {
+  readonly textProtocols: TextProtocolRegistry;
   readonly redaction: RedactionScope;
   readonly modes = new ModeRegistry();
   readonly toolRegistry = new ToolRegistry();
@@ -162,6 +171,9 @@ export class Kernel {
     readonly config: Config,
     options: KernelOptions = {},
   ) {
+    this.textProtocols = (
+      options.textProtocols ?? defaultTextProtocols
+    ).clone();
     this.redaction = new RedactionScope(config.redaction);
     this.redaction.bind(this);
     const create = <T extends object>(factory: () => T): T =>
@@ -189,7 +201,14 @@ export class Kernel {
     }
     this.store.recover();
     this.costs = create(
-      () => new CostLedger(this.store, config, options.billing),
+      () =>
+        new CostLedger(
+          this.store,
+          config,
+          options.billing,
+          options.billingDelivery,
+          this.textProtocols,
+        ),
     );
     this.web = create(() => new WebClient(config.web));
     this.checkpoints = create(
@@ -212,11 +231,18 @@ export class Kernel {
       () => new Permissions(this.store, config, this.modes),
     );
     this.mcp.setHost(
-      new McpHost(config, this.store, this.permissions, this.costs),
+      new McpHost(
+        config,
+        this.store,
+        this.permissions,
+        this.costs,
+        this.textProtocols,
+      ),
     );
     this.memory = create(() => new MemoryStore(this.store, config, this.costs));
     this.context = create(
-      () => new ContextManager(this.store, config, this.costs),
+      () =>
+        new ContextManager(this.store, config, this.costs, this.textProtocols),
     );
     this.agents = create(() => new AgentManager(this.store));
     this.teams = create(() => new TeamManager(this));
@@ -260,7 +286,7 @@ export class Kernel {
       503,
       "isolation_cleanup_failed",
     );
-    await loadPersistedRoutes(this.config);
+    await loadPersistedRoutes(this.config, this.textProtocols);
     for (const root of [
       ...this.config.workspaceRoots,
       ...this.config.extensions.allowedRoots,
@@ -366,15 +392,19 @@ export class Kernel {
     );
     this.changingRoutes = true;
     try {
-      return await changeRoutes(this.config, change, (name) =>
-        this.agents.list().some((agent) => agent.routeId === name) ||
-        this.modes.list().some((mode) => mode.defaultRouteId === name)
-          ? "Route is referenced by an agent or mode profile"
-          : this.store
-                .list<Session>("sessions", { routeId: name })
-                .some((s) => !s.archived)
-            ? "Route is used by a session; change its route or archive it first"
-            : undefined,
+      return await changeRoutes(
+        this.config,
+        change,
+        (name) =>
+          this.agents.list().some((agent) => agent.routeId === name) ||
+          this.modes.list().some((mode) => mode.defaultRouteId === name)
+            ? "Route is referenced by an agent or mode profile"
+            : this.store
+                  .list<Session>("sessions", { routeId: name })
+                  .some((s) => !s.archived)
+              ? "Route is used by a session; change its route or archive it first"
+              : undefined,
+        this.textProtocols,
       );
     } finally {
       this.changingRoutes = false;
@@ -561,14 +591,15 @@ export class Kernel {
       } satisfies Session);
     });
   }
-  async exportMigration(sessionId: string) {
+  async exportMigration(sessionId: string, signal?: AbortSignal) {
     invariant(
       !this.lifecycle.isBusy(sessionId),
       "Migration requires an idle session",
       409,
     );
     const before = this.store.transcriptVersion(sessionId);
-    const result = await this.migrations.export(sessionId);
+    const result = await this.migrations.export(sessionId, signal);
+    signal?.throwIfAborted();
     invariant(
       !this.lifecycle.isBusy(sessionId) &&
         before === this.store.transcriptVersion(sessionId),
@@ -1010,6 +1041,7 @@ export class Kernel {
     return this.redaction.bind(
       RouteRouter.create(this.config, {
         ...options,
+        protocols: this.textProtocols,
         billing: { ledger: this.costs, scope },
       }),
     );
@@ -1170,12 +1202,12 @@ export class Kernel {
           close: () =>
             integration.close &&
             abortable(
-              Promise.resolve(integration.close()),
+              Promise.resolve(integration.close(this)),
               AbortSignal.timeout(this.config.extensions.timeoutMs),
             ),
         })),
         // Outcomes still in flight are persisted before the store closes.
-        { close: () => this.costs.drain() },
+        { close: () => this.costs.close() },
         this.mcp,
         this.assets,
         this.store,

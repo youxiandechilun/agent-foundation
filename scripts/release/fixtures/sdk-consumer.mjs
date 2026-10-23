@@ -46,10 +46,36 @@ const provider = http.createServer(async (request, response) => {
             },
           ],
         }
-      : { content: "SDK completed" };
+      : calls === 2
+        ? {
+            tool_calls: [
+              {
+                index: 0,
+                id: "sdk-search",
+                type: "function",
+                function: {
+                  name: "file_search",
+                  arguments: JSON.stringify({
+                    query: "SDK.*file write",
+                    regex: true,
+                  }),
+                },
+              },
+            ],
+          }
+        : { content: "SDK completed" };
+  if (calls === 3) {
+    const search = body.messages.find(
+      (message) =>
+        message.role === "tool" && message.tool_call_id === "sdk-search",
+    );
+    assert.ok(search, "Packaged regex search did not return a tool result");
+    assert.match(search.content, /sdk-result\.txt/);
+    assert.match(search.content, /SDK real file write/);
+  }
   response.writeHead(200, { "Content-Type": "text/event-stream" });
   response.end(
-    `data: ${JSON.stringify({ id: "sdk", choices: [{ index: 0, delta, finish_reason: calls === 1 ? "tool_calls" : "stop" }] })}\n\ndata: [DONE]\n\n`,
+    `data: ${JSON.stringify({ id: "sdk", choices: [{ index: 0, delta, finish_reason: calls <= 2 ? "tool_calls" : "stop" }] })}\n\ndata: [DONE]\n\n`,
   );
 });
 await new Promise((resolve) => provider.listen(0, "127.0.0.1", resolve));
@@ -94,6 +120,7 @@ try {
     instructions: "根据请求实现，并运行必要检查。",
     toolAllowlist: [
       "file_write",
+      "file_search",
       "exec_start",
       "exec_read",
       "exec_write",
@@ -115,10 +142,11 @@ try {
     await readFile(path.join(project.root, "sdk-result.txt"), "utf8"),
     "SDK real file write\n",
   );
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
   assert(events.some((event) => event.type === "tool.started"));
   evidence.checks.modelAndFileWrite = true;
   evidence.checks.httpAndSseClient = true;
+  evidence.checks.packagedRegexWorker = true;
 
   const plugin = await kernel.plugins.install(
     {

@@ -56,7 +56,7 @@ directory 必须存在并在 workspaceRoots 内。默认模式 chat/code/office�
 
 自定义模式在空闲时修改并持久化。autonomy 为 plan / assist / autonomous；新会话默认 assist。plan 允许可信只读工具和内部 plan_update 状态记录，MCP/原生 Plugin 即使自称 read 也禁止执行。autonomous 仍不能覆盖 deny/ask。
 
-消息分页游标是 SQLite 消息序号；只用于 after，不是消息数组下标。导出是完整会话快照，导入当前限 8 MiB 与 maxSessionMessages，且只允许同项目，避免悄悄丢失附件归属。跨主机/跨项目资产搬迁需单独实现。导入拒绝 system 角色、重复消息、孤立/缺失/重复工具结果；移除不可移植的供应商延续状态/签名，历史工具绝不在导入时运行。运行/审批/效果日志不会被伪造成新会话的执行记录。
+消息分页游标是 SQLite 消息序号；只用于 after，不是消息数组下标。导出是完整会话快照，导入当前限 8 MiB 与 maxSessionMessages，且只允许同项目，避免悄悄丢失附件归属。跨主机/跨项目资产搬迁使用下文的 migration 接口。导入拒绝 system 角色、重复消息、孤立/缺失/重复工具结果；移除不可移植的供应商延续状态/签名，历史工具绝不在导入时运行。运行/审批/效果日志不会被伪造成新会话的执行记录。
 
 ## 列表分页与容量
 
@@ -144,9 +144,13 @@ input.accepted → run.status(running) → input.applied
 
 单资产默认 50 MiB，每条输入附件合计默认 50 MiB，最多 20 个；文本摘录共享 maxAttachmentText。原始字节保留为资产。默认解析文本，其他格式返回 supported=false，可用 ExtractorRegistry 注册解析器。上传任意文件不等于自动具备 OCR、音视频理解或 Office 格式引擎。
 
+内置纯文本摘录分块读取并校验完整资产，只保留允许长度的文本前缀。前缀后的损坏或二进制 NUL 字节也会被检查；内容 SHA-256/大小与元数据不符时仍返回完整性错误，不会因为只展示前缀而跳过校验。SDK 资产读取仍可返回完整 Buffer。
+
 acceptsImages=true 的文本路由可接收 5 MiB 内 PNG/JPEG/WebP/GIF 图像块；其他附件保留元数据/资产引用。跨项目引用拒绝。文件工具拒绝绝对路径、逃逸、符号链接及 Windows ADS/设备路径。
 
 MediaRequest 的 operation/inputAssets/parameters 见 MEDIA-ADAPTERS.md。同项目+幂等键复用原任务，同键不同输入冲突。新任务保存路由配置快照，修改路由后恢复/取消仍用旧地址与模型；凭据只保存变量引用。旧版未保存快照的 Job 只能使用现存路由，不构成跨版本恢复保证。
+
+媒体任务受 `limits.maxConcurrentMediaJobs`（默认 2）、`maxQueuedMediaJobs`（默认 16）与 `maxMediaQueueBytes`（默认 4194304 字节）约束。字节预算计算运行中与等待任务的 job/route 序列化元数据；不是附件或输出大小上限。准入失败在新 job 与费用预留写入前返回 429 `resource_capacity`，已有幂等任务复用不额外占位。尚未开始的任务取消后释放容量与未提交的费用预留；无法确认远端取消时仍保留 `unknown`。新写入不能新增同项目同键重复行，旧库历史重复行保留；其中任何一条请求哈希冲突都会拒绝复用。
 
 ## 路由与审批
 
@@ -162,6 +166,8 @@ MediaRequest 的 operation/inputAssets/parameters 见 MEDIA-ADAPTERS.md。同项
 | POST       | /v1/approvals/{id}/resolve | {allow:boolean}，只可结算一次                       |
 
 Route 的文本 adapter 为 openai-completions / openai-responses / anthropic-messages；可配置 baseUrl/model/apiKeyEnv/headersEnv/contextWindow/maxOutputTokens/acceptsImages/nativeWebSearch/reasoning/tokenCounterId/requestDefaults/compat/fallbackRouteIds/toolAllowlist/mediaRouteAllowlist/capabilityPolicies。
+
+宿主也可在创建 Kernel 前通过 `TextProtocolRegistry` 注入自定义文本 adapter；HTTP 路由修改只接受该 Kernel 已装配的协议，不能通过 JSON 上传可执行协议实现。运行时更新与重启加载持久化路由均使用实例协议表。进程内接入方法见 [SDK](SDK.md#每个-kernel-的文本协议)。
 
 `nativeWebSearch` 默认 false，仅用于 text + openai-responses。配置查询和路由列表返回该能力；Agent 每次请求仍需网络权限与工具白名单许可。搜索调用、引用、会话回放和费用约束见 [NATIVE-WEB-SEARCH.md](NATIVE-WEB-SEARCH.md)。
 
@@ -265,6 +271,10 @@ AgentDefinition 包含 id/name/instructions/mode/routeId/skillIds/toolAllowlist/
 事件新增 `mcp.input_requested`、`mcp.input_resolved`。它们使用原运行的 SSE，可在回复与工具执行之间请求用户输入，确认后继续当前工具与运行。GET 待处理记录也适用于 UI 尚未接入的宿主程序。未来 Electron/网页客户端可使用 FoundationClient 的 exportMigration/importMigration/mcpInteractions/resolveMCPInteraction/beginMCPOAuth/completeMCPOAuth 方法。
 
 MCP 声明新增 protocol、clientFeatures、isolation、oauth；默认执行仍为 native，Docker 仅在显式选用时启动。旧 `/sessions/{id}/export` 和 `/sessions/import` 保持同项目轻量快照语义，跨主机请使用新的 migration 接口。迁移默认合计 128 MiB；完整配置、真实测试和未完成 profile 见 [CORE-INTEROPERABILITY.md](CORE-INTEROPERABILITY.md)。
+
+迁移包继续使用 `foundation-migration-v1`，既有规范化 JSON 摘要保持兼容。导出逐资产读取并校验，导入逐资产解码、验证、暂存，全部通过后才提交会话、映射和资产；原有归属检查、脱敏、历史工具不重放与失败回滚继续生效。HTTP 导出响应使用带背压的 JSON 分片，客户端仍按普通 JSON 读取，不依赖 `Content-Length`。
+
+`limits.maxConcurrentMigrations` 默认 1。内核限制同时进行的迁移操作，HTTP 入口另以相同数量限制从读取请求体到发送完响应的完整传输，超限返回 429 `resource_capacity`。导出时客户端断开会取消附件读取并释放操作和传输名额；进程内对应方法为 `kernel.exportMigration(sessionId, signal?)`。迁移的同步解析、校验和提交阶段不是可抢占任务；导入仍保留完整请求与包对象，Base64 和解析对象使内存开销可能高于原始迁移字节数。容量与完整性边界见 [容量与效率](CAPACITY-OPTIMIZATION.md#迁移与大-json)。
 
 ## 0.7.0 sampling.tools、任务回调与动态注册
 

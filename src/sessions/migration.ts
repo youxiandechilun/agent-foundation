@@ -16,6 +16,8 @@ import { Store } from "../storage/store.js";
 import { Assets } from "../storage/assets.js";
 import { decodeSessionSnapshot } from "./codec.js";
 import { hash, id, invariant, now } from "../core/util.js";
+import { Capacity } from "../runtime/capacity.js";
+import { canonicalDigest, jsonBytes } from "./json-stream.js";
 
 const assetId = z.string().regex(/^asset_[a-f0-9-]{36}$/);
 const digest = z.string().regex(/^[a-f0-9]{64}$/);
@@ -64,31 +66,26 @@ export interface MigrationReceipt {
   requestedRouteId?: string;
 }
 /** Stable JSON digest, independent of the JSON object's incoming key order. */
-function canonical(value: unknown, depth = 0): string {
-  invariant(depth <= 100, "Migration JSON exceeds nesting limit");
-  if (Array.isArray(value))
-    return "[" + value.map((v) => canonical(v, depth + 1)).join(",") + "]";
-  if (value && typeof value === "object")
-    return (
-      "{" +
-      Object.keys(value)
-        .sort()
-        .map(
-          (key) =>
-            JSON.stringify(key) +
-            ":" +
-            canonical((value as Record<string, unknown>)[key], depth + 1),
-        )
-        .join(",") +
-      "}"
-    );
-  return JSON.stringify(value);
-}
 export function migrationDigest(payload: unknown) {
-  return hash(canonical(payload));
+  return canonicalDigest(payload);
 }
 function references(value: unknown) {
-  return new Set(JSON.stringify(value).match(/\basset_[a-f0-9-]{36}\b/g) || []);
+  const found = new Set<string>();
+  function visit(item: unknown, depth = 0) {
+    invariant(depth <= 100, "Migration JSON exceeds nesting limit");
+    if (typeof item === "string")
+      for (const match of item.matchAll(/\basset_[a-f0-9-]{36}\b/g))
+        found.add(match[0]);
+    else if (Array.isArray(item))
+      for (const child of item) visit(child, depth + 1);
+    else if (item && typeof item === "object")
+      for (const [key, child] of Object.entries(item)) {
+        visit(key, depth + 1);
+        visit(child, depth + 1);
+      }
+  }
+  visit(value);
+  return found;
 }
 function replaceIds<T>(
   value: T,
@@ -121,12 +118,16 @@ function replaceIds<T>(
 /** Portable evidence and bytes. Never imports executable extensions, policies, tokens or effects. */
 export class SessionMigration {
   private root: string;
+  private readonly operations: Capacity;
+  private readonly transfers: Capacity;
   constructor(
     readonly store: Store,
     readonly assets: Assets,
     readonly config: Config,
   ) {
     this.root = path.join(config.dataDir, "migration-staging");
+    this.operations = new Capacity(config.limits.maxConcurrentMigrations);
+    this.transfers = new Capacity(config.limits.maxConcurrentMigrations);
   }
   recover() {
     mkdirSync(this.root, { recursive: true });
@@ -154,13 +155,30 @@ export class SessionMigration {
       rmSync(directory, { recursive: true, force: true });
     }
   }
-  async export(sessionId: string) {
+  async export(sessionId: string, signal?: AbortSignal) {
+    const release = this.operations.reserve();
+    try {
+      return await this.exportBundle(sessionId, signal);
+    } finally {
+      release();
+    }
+  }
+  /** Hold admission across HTTP request parsing and response streaming. */
+  reserveTransfer() {
+    return this.transfers.reserve();
+  }
+  private async exportBundle(sessionId: string, signal?: AbortSignal) {
+    signal?.throwIfAborted();
     const source = this.store.session(sessionId);
     const decoded = decodeSessionSnapshot(
       {
         format: "foundation-session-v1",
         session: source,
-        messages: this.store.transcript(sessionId),
+        messages: this.store.transcriptWindow(
+          sessionId,
+          undefined,
+          this.config.limits.maxMigrationBytes,
+        ),
       },
       this.config.limits.maxSessionMessages,
       this.config.limits.maxMigrationBytes,
@@ -176,18 +194,19 @@ export class SessionMigration {
       messages: decoded.messages,
     };
     const assets = [];
-    let size = Buffer.byteLength(JSON.stringify(snapshot));
+    let size = jsonBytes(snapshot);
     const dependencies = references(snapshot.messages);
     invariant(dependencies.size <= 2000, "Too many migration assets", 413);
     for (const ref of dependencies) {
-      const meta = this.assets.owned(ref, source.projectId),
-        bytes = await this.assets.read(ref, source.projectId);
-      size += bytes.length;
+      signal?.throwIfAborted();
+      const meta = this.assets.owned(ref, source.projectId);
+      size += meta.size;
       invariant(
         size <= this.config.limits.maxMigrationBytes,
         "Migration byte budget exceeded",
         413,
       );
+      const bytes = await this.assets.read(ref, source.projectId, signal);
       assets.push({
         id: meta.id,
         name: meta.name,
@@ -212,16 +231,35 @@ export class SessionMigration {
     createSession: (name: string, mode: string) => Session,
     requestedRouteId?: string,
   ) {
+    const release = this.operations.reserve();
+    try {
+      return this.importBundle(
+        projectId,
+        input,
+        key,
+        createSession,
+        requestedRouteId,
+      );
+    } finally {
+      release();
+    }
+  }
+  private importBundle(
+    projectId: string,
+    input: unknown,
+    key: string,
+    createSession: (name: string, mode: string) => Session,
+    requestedRouteId?: string,
+  ) {
     this.store.project(projectId);
     invariant(
       typeof key === "string" && key.length >= 1 && key.length <= 180,
       "Migration import key required",
     );
-    const encoded = JSON.stringify(input);
+    const maximum =
+      this.config.limits.maxMigrationBytes * 1.4 + 9 * 1024 * 1024;
     invariant(
-      encoded &&
-        Buffer.byteLength(encoded) <=
-          this.config.limits.maxMigrationBytes * 1.4 + 9 * 1024 * 1024,
+      jsonBytes(input, maximum) <= maximum,
       "Migration package too large",
       413,
     );
@@ -258,9 +296,8 @@ export class SessionMigration {
       this.config.limits.maxSessionMessages,
       this.config.limits.maxMigrationBytes,
     );
-    const sourceIds = new Set<string>(),
-      bytes = new Map<string, Buffer>();
-    let total = Buffer.byteLength(JSON.stringify(bundle.payload.snapshot));
+    const sourceIds = new Set<string>();
+    let total = jsonBytes(bundle.payload.snapshot);
     for (const asset of bundle.payload.assets) {
       invariant(!sourceIds.has(asset.id), "Duplicate migration asset");
       sourceIds.add(asset.id);
@@ -278,22 +315,12 @@ export class SessionMigration {
         413,
       );
       invariant(asset.data.length % 4 === 0, "Non-canonical base64 asset");
-      const data = Buffer.from(asset.data, "base64");
-      invariant(
-        data.toString("base64") === asset.data &&
-          data.length === asset.size &&
-          hash(data) === asset.sha256,
-        "Migration asset digest mismatch",
-        409,
-        "migration_integrity_failed",
-      );
-      total += data.length;
+      total += asset.size;
       invariant(
         total <= this.config.limits.maxMigrationBytes,
         "Migration byte budget exceeded",
         413,
       );
-      bytes.set(asset.id, data);
     }
     const refs = references(decoded.messages);
     invariant(
@@ -353,11 +380,23 @@ export class SessionMigration {
     );
     let committed = false;
     try {
-      for (const [oldId, data] of bytes)
-        writeFileSync(path.join(stage, receipt.assetMap[oldId]), data, {
+      // Decode and stage one asset at a time. No promoted state exists until
+      // every item passes canonical Base64 and full digest verification.
+      for (const asset of bundle.payload.assets) {
+        const data = Buffer.from(asset.data, "base64");
+        invariant(
+          data.length === asset.size &&
+            data.toString("base64") === asset.data &&
+            hash(data) === asset.sha256,
+          "Migration asset digest mismatch",
+          409,
+          "migration_integrity_failed",
+        );
+        writeFileSync(path.join(stage, receipt.assetMap[asset.id]), data, {
           flag: "wx",
           flush: true,
         });
+      }
       this.store.transaction(() => {
         const session = createSession(
           decoded.session.name + " (migrated)",

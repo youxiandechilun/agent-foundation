@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type { StoredMessage } from "../contracts.js";
 import type { NativeWebSearchResult } from "../runtime/types.js";
-import { invariant, redactSecrets } from "../core/util.js";
+import { invariant, redactJson } from "../core/util.js";
+import { jsonBytes } from "./json-stream.js";
 import { modeIdSchema } from "../modes/registry.js";
 
 const identity = z.string().min(1).max(200);
@@ -158,13 +159,18 @@ export function decodeSessionSnapshot(
   maxMessages: number,
   maxBytes = 8 * 1024 * 1024,
 ) {
-  const encoded = JSON.stringify(input);
   invariant(
-    encoded && Buffer.byteLength(encoded) <= maxBytes,
+    jsonBytes(input, maxBytes) <= maxBytes,
     "Session snapshot exceeds byte limit",
     413,
   );
-  const decoded = snapshot.parse(JSON.parse(redactSecrets(encoded)));
+  const decoded = snapshot.parse(input);
+  // Redact independently validated records so a long transcript does not need
+  // an additional complete serialized string and parsed object tree.
+  decoded.session = snapshot.shape.session.parse(redactJson(decoded.session));
+  decoded.messages = decoded.messages.map((item) =>
+    snapshot.shape.messages.element.parse(redactJson(item)),
+  );
   invariant(
     decoded.messages.length <= maxMessages,
     "Session snapshot exceeds message limit",

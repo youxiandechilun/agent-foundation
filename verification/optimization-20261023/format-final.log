@@ -1,0 +1,6 @@
+
+> @local/agent-foundation@0.12.1 format:check
+> prettier --check "src/**/*.ts" "test/**/*.ts" "examples/**/*.{ts,mts}" "scripts/**/*.mjs"
+
+Checking formatting...
+All matched files use Prettier code style!

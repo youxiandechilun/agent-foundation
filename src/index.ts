@@ -78,6 +78,11 @@ export {
 } from "./providers/text.js";
 export type { RetryPolicy, RetryNotice } from "./providers/text.js";
 export { registerTextProtocol, textProtocolIds } from "./providers/registry.js";
+export {
+  TextProtocolRegistry,
+  defaultTextProtocols,
+} from "./providers/registry.js";
+export type { BillingDeliveryOptions } from "./runtime/billing.js";
 export { ResponseBuilder, parseArgs } from "./providers/protocol.js";
 export type {
   TextProtocol,

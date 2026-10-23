@@ -56,7 +56,19 @@ export interface BillingOutcome {
  */
 export interface BillingProvider {
   authorize(charge: BillingCharge, signal?: AbortSignal): void | Promise<void>;
-  record(charge: BillingCharge, outcome: BillingOutcome): void | Promise<void>;
+  /** Honor cancellation to release a timed-out delivery; retries remain idempotent by charge.id. */
+  record(
+    charge: BillingCharge,
+    outcome: BillingOutcome,
+    signal?: AbortSignal,
+  ): void | Promise<void>;
+}
+
+/** Bounded host callback delivery; queued outcomes remain in SQLite across shutdown. */
+export interface BillingDeliveryOptions {
+  concurrency?: number;
+  timeoutMs?: number;
+  shutdownTimeoutMs?: number;
 }
 
 const positive = (value: unknown) =>

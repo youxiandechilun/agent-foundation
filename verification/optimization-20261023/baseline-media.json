@@ -1,0 +1,70 @@
+{
+  "node": "v22.23.2",
+  "scope": "Local synthetic SQLite and mocked media adapter; no network requests",
+  "limits": {
+    "maxMigrationBytes": 134217728,
+    "maxUploadBytes": 52428800,
+    "maxInputAssetBytes": 52428800,
+    "maxSteps": 64,
+    "maxToolCalls": 150,
+    "maxRepeatedToolResults": 6,
+    "maxSearchEntries": 3000,
+    "maxRunMs": 900000,
+    "maxConcurrentRuns": 1,
+    "maxConcurrentTools": 1,
+    "maxHistoryBytes": 134217728,
+    "maxQueuedInputs": 32,
+    "maxQueuedInputBytes": 16777216,
+    "maxConcurrentUploads": 4,
+    "maxConcurrentDownloads": 8,
+    "maxInFlightAssetBytes": 104857600,
+    "maxSseSubscribers": 128,
+    "maxSseSubscribersPerRun": 16,
+    "maxSseBufferBytes": 67108864,
+    "maxSseConnectionBytes": 16777216,
+    "sseDrainTimeoutMs": 30000,
+    "maxAttachmentText": 20000,
+    "compactAtRatio": 0.7,
+    "maxOutputBytes": 64000,
+    "maxSessionMessages": 20000,
+    "maxOutputContinuations": 3,
+    "maxAgentDepth": 1
+  },
+  "media": {
+    "acceptedJobs": 32,
+    "simultaneouslyActiveAdapters": 32,
+    "peak": 32
+  },
+  "lookup": [
+    {
+      "label": "32 jobs",
+      "durationMs": 0.3521000000000072,
+      "allocatedHeapBytes": 61680
+    },
+    {
+      "label": "32 jobs",
+      "durationMs": 0.24239999999997508,
+      "allocatedHeapBytes": 61648
+    },
+    {
+      "label": "32 jobs",
+      "durationMs": 0.21989999999999554,
+      "allocatedHeapBytes": 61648
+    },
+    {
+      "label": "20,032 jobs",
+      "durationMs": 60.629999999999995,
+      "allocatedHeapBytes": 52070088
+    },
+    {
+      "label": "20,032 jobs",
+      "durationMs": 54.10029999999995,
+      "allocatedHeapBytes": 52066768
+    },
+    {
+      "label": "20,032 jobs",
+      "durationMs": 56.54550000000006,
+      "allocatedHeapBytes": 52055592
+    }
+  ]
+}

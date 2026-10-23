@@ -22,7 +22,7 @@ import type { CostLedger, CostScope } from "../runtime/cost.js";
 import { isOutputTool } from "../runtime/structured-output.js";
 import { applyReasoning } from "./reasoning.js";
 import { ResponseBuilder } from "./protocol.js";
-import { findTextProtocol, textProtocol } from "./registry.js";
+import { defaultTextProtocols, type TextProtocolRegistry } from "./registry.js";
 import { nativeWebSearchEnabled } from "./responses-search.js";
 import type {
   AssistantMessage,
@@ -33,8 +33,11 @@ import type {
 
 export { applyCacheBreakpoints } from "./protocols/anthropic-messages.js";
 
-export function routeHeaders(route: Route): Record<string, string> {
-  const protocol = findTextProtocol(route.adapter);
+export function routeHeaders(
+  route: Route,
+  protocols: TextProtocolRegistry = defaultTextProtocols,
+): Record<string, string> {
+  const protocol = protocols.find(route.adapter);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "text/event-stream, application/json",
@@ -67,6 +70,7 @@ export class HttpTextProvider implements TextProvider {
   constructor(
     readonly routeId: string,
     readonly route: Route,
+    readonly protocols: TextProtocolRegistry = defaultTextProtocols,
   ) {
     invariant(route.kind === "text", "Not a text route");
   }
@@ -76,7 +80,7 @@ export class HttpTextProvider implements TextProvider {
     signal?: AbortSignal,
   ): Promise<AssistantMessage> {
     const r = this.route,
-      protocol = textProtocol(r.adapter),
+      protocol = this.protocols.get(r.adapter),
       input = {
         request,
         route: r,
@@ -107,9 +111,9 @@ export class HttpTextProvider implements TextProvider {
         ? protocol.toolChoice(request.toolChoice, input)
         : request.toolChoice;
     }
-    applyReasoning(body, r, request, input.budget);
+    applyReasoning(body, r, request, input.budget, this.protocols);
     try {
-      const headers = routeHeaders(r),
+      const headers = routeHeaders(r, this.protocols),
         payload = redactJsonText(body);
       requestSent = true;
       const reply = await fetch(protocol.url(r.baseUrl.replace(/\/$/, "")), {
@@ -188,6 +192,7 @@ export class HttpTextProvider implements TextProvider {
 }
 /** Named form of the RouteRouter constructor arguments, for RouteRouter.create. */
 export interface RouteRouterOptions {
+  protocols?: TextProtocolRegistry;
   onRoute?: (routeId: string, fallback: boolean) => void;
   prepareRoute?: (
     request: ModelRequest,
@@ -215,6 +220,7 @@ export class RouteRouter implements TextProvider {
       options.billing,
       options.onRetry,
       options.beforeRequest,
+      options.protocols,
     );
   }
   constructor(
@@ -234,6 +240,7 @@ export class RouteRouter implements TextProvider {
       request: ModelRequest,
       signal?: AbortSignal,
     ) => Promise<ModelRequest>,
+    readonly protocols: TextProtocolRegistry = defaultTextProtocols,
   ) {}
   async complete(
     request: ModelRequest,
@@ -289,7 +296,7 @@ export class RouteRouter implements TextProvider {
             413,
           );
         }
-        const provider = new HttpTextProvider(routeId, route);
+        const provider = new HttpTextProvider(routeId, route, this.protocols);
         const complete = async (request: ModelRequest) => {
           const req = this.beforeRequest
             ? await this.beforeRequest(request, signal)

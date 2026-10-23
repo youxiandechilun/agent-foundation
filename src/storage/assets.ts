@@ -8,11 +8,13 @@ import {
   readdir,
 } from "node:fs/promises";
 import { createReadStream } from "node:fs";
+import { createHash } from "node:crypto";
+import { StringDecoder } from "node:string_decoder";
 import path from "node:path";
 import type { Asset } from "../contracts.js";
 import type { Config } from "../core/config.js";
 import { Store } from "./store.js";
-import { hash, id, now, invariant, truncate } from "../core/util.js";
+import { hash, id, now, invariant } from "../core/util.js";
 
 const mimes: Record<string, string> = {
   ".txt": "text/plain",
@@ -367,6 +369,10 @@ export class Assets {
     limit = this.config.limits.maxAttachmentText,
     signal?: AbortSignal,
   ): Promise<{ text: string; supported: boolean; truncated: boolean }> {
+    invariant(
+      Number.isSafeInteger(limit) && limit >= 0,
+      "Invalid excerpt limit",
+    );
     const asset = this.owned(assetId, projectId);
     const parser = this.extractors.find(asset);
     if (parser) {
@@ -405,24 +411,88 @@ export class Assets {
         ".css",
       ].includes(ext)
     ) {
-      const bytes = await this.read(assetId, projectId, signal);
-      const text = bytes.toString("utf8");
-      if (text.includes("\0"))
-        return {
-          text: "[Binary content; use a matching parser]",
-          supported: false,
-          truncated: false,
-        };
-      return {
-        text: truncate(text, limit),
-        supported: true,
-        truncated: text.length > limit,
-      };
+      return this.track(() =>
+        this.textExcerpt(asset, limit, this.signal(signal)),
+      );
     }
     return {
       text: `[${asset.mime}, ${asset.size} bytes. Stored as asset ${asset.id}; native text extraction unavailable.]`,
       supported: false,
       truncated: false,
     };
+  }
+  private async textExcerpt(asset: Asset, limit: number, signal: AbortSignal) {
+    signal.throwIfAborted();
+    const release = this.reserve(this.downloads, asset.size);
+    try {
+      const file = this.file(asset.id),
+        info = await lstat(file);
+      invariant(
+        info.isFile() && !info.isSymbolicLink(),
+        "Asset file changed or is linked",
+        409,
+      );
+      invariant(
+        info.size <= this.config.limits.maxUploadBytes,
+        "Asset exceeds read limit",
+      );
+      const digest = createHash("sha256"),
+        decoder = new StringDecoder("utf8");
+      let size = 0,
+        characters = 0,
+        prefix = "",
+        binary = false;
+      const append = (text: string) => {
+        characters += text.length;
+        if (prefix.length < limit)
+          prefix += text.slice(0, limit - prefix.length);
+      };
+      const source = createReadStream(file, {
+        highWaterMark: 64 * 1024,
+        signal,
+      });
+      try {
+        for await (const value of source) {
+          const chunk = value as Buffer;
+          size += chunk.length;
+          invariant(
+            size <= this.config.limits.maxUploadBytes,
+            "Asset exceeds read limit",
+            413,
+          );
+          digest.update(chunk);
+          binary ||= chunk.includes(0);
+          append(decoder.write(chunk));
+        }
+        append(decoder.end());
+      } finally {
+        source.destroy();
+      }
+      invariant(
+        size === asset.size && digest.digest("hex") === asset.sha256,
+        "Asset integrity digest changed",
+        409,
+        "asset_integrity_failed",
+      );
+      if (binary)
+        return {
+          text: "[Binary content; use a matching parser]",
+          supported: false,
+          truncated: false,
+        };
+      const truncated = characters > limit;
+      // Avoid returning half of a surrogate pair when the excerpt cuts an emoji.
+      if (truncated && /[\uD800-\uDBFF]$/.test(prefix))
+        prefix = prefix.slice(0, -1);
+      return {
+        text: truncated
+          ? prefix + "\n[truncated; read a smaller range]"
+          : prefix,
+        supported: true,
+        truncated,
+      };
+    } finally {
+      release();
+    }
   }
 }

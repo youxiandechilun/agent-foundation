@@ -4,7 +4,10 @@ import { z } from "zod";
 import { invariant } from "./util.js";
 import { CAPABILITIES } from "../runtime/types.js";
 import { securityAuditSchema } from "../security/config.js";
-import { findTextProtocol } from "../providers/registry.js";
+import {
+  defaultTextProtocols,
+  type TextProtocolRegistry,
+} from "../providers/registry.js";
 
 const endpoint = z
   .string()
@@ -436,6 +439,14 @@ export const configSchema = z
         maxRunMs: z.number().int().min(100).default(900_000),
         maxConcurrentRuns: z.number().int().min(1).default(4),
         maxConcurrentTools: z.number().int().min(1).max(64).default(4),
+        maxConcurrentMediaJobs: z.number().int().min(1).max(64).default(2),
+        maxQueuedMediaJobs: z.number().int().min(0).max(1000).default(16),
+        maxMediaQueueBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(4 * 1024 * 1024),
+        maxConcurrentMigrations: z.number().int().min(1).max(16).default(1),
         maxHistoryBytes: z
           .number()
           .int()
@@ -481,7 +492,11 @@ export const configSchema = z
   .strict();
 export type Config = z.infer<typeof configSchema>;
 export type Route = Config["routes"][string];
-export function parseConfig(input: unknown, baseDir = process.cwd()): Config {
+export function parseConfig(
+  input: unknown,
+  baseDir = process.cwd(),
+  protocols: TextProtocolRegistry = defaultTextProtocols,
+): Config {
   const config = configSchema.parse(input);
   config.dataDir = path.resolve(baseDir, config.dataDir);
   config.workspaceRoots = config.workspaceRoots.map((p) =>
@@ -534,7 +549,7 @@ export function parseConfig(input: unknown, baseDir = process.cwd()): Config {
               : "text";
     invariant(r.kind === expected, `Route adapter kind mismatch: ${name}`);
     invariant(
-      r.kind !== "text" || findTextProtocol(r.adapter),
+      r.kind !== "text" || protocols.find(r.adapter),
       `Unknown text protocol ${r.adapter} for route ${name}`,
     );
     if (r.kind === "text")
@@ -556,10 +571,14 @@ export function parseConfig(input: unknown, baseDir = process.cwd()): Config {
   }
   return config;
 }
-export async function loadConfig(file = "config.json") {
+export async function loadConfig(
+  file = "config.json",
+  protocols: TextProtocolRegistry = defaultTextProtocols,
+) {
   return parseConfig(
     JSON.parse(await readFile(file, "utf8")),
     path.dirname(path.resolve(file)),
+    protocols,
   );
 }
 export function publicConfig(config: Config) {

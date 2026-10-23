@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "files": ["src/index.ts", "src/cli.ts"],
+  "files": ["src/index.ts", "src/cli.ts", "src/runtime/regex-worker.ts"],
   "include": [],
   "exclude": ["src/host/**"]
 }

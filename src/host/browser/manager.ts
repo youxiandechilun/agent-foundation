@@ -94,12 +94,16 @@ interface BrowserSession {
   network?: BrowserNetwork;
   controller: AbortController;
   pageListener: (page: Page) => void;
+  endListener: () => void;
+  connection?: Browser;
+  releasing?: Promise<void>;
 }
 /** Optional application service. The core does not import Chromium or this module. */
 export class BrowserManager {
   private sessions = new Map<string, BrowserSession>();
   private queues = new Map<string, Promise<unknown>>();
   private profiles = new Set<string>();
+  private closeCompletion?: Promise<void>;
   private opening = 0;
   private lifetime = new AbortController();
   constructor(
@@ -261,6 +265,8 @@ export class BrowserManager {
         network,
         controller: new AbortController(),
         pageListener: () => undefined,
+        endListener: () => undefined,
+        connection: browser ?? context.browser() ?? undefined,
       };
       const register = (page: Page) => {
         if ([...session!.tabs.values()].some((t) => t.page === page)) return;
@@ -278,6 +284,8 @@ export class BrowserManager {
         };
         tab.closeListener = () => {
           session!.tabs.delete(tab.id);
+          page.off("dialog", tab.dialogListener);
+          tab.frames.clear();
           void this.clearRefs(tab);
         };
         tab.dialogListener = (dialog) => {
@@ -298,6 +306,12 @@ export class BrowserManager {
         session!.tabs.set(tab.id, tab);
       };
       session.pageListener = register;
+      const opened = session;
+      session.endListener = () => {
+        void this.releaseSession(opened, false).catch(() => undefined);
+      };
+      context.once("close", session.endListener);
+      session.connection?.once("disconnected", session.endListener);
       if (!session.external || this.config.browser.cdpAllowExistingTabs) {
         context.pages().forEach(register);
         context.on("page", register);
@@ -318,10 +332,11 @@ export class BrowserManager {
           stop,
         );
       stop.throwIfAborted();
+      session.controller.signal.throwIfAborted();
       return this.list(projectId).find((s) => s.id === session!.id)!;
     } catch (error) {
       if (session)
-        await this.closeSession(session.id, projectId).catch(() => undefined);
+        await this.releaseSession(session, true).catch(() => undefined);
       else {
         if (browser) await browser.close().catch(() => undefined);
         else await context?.close().catch(() => undefined);
@@ -660,31 +675,52 @@ export class BrowserManager {
   }
   async closeSession(browserId: string, projectId: string, owner?: string) {
     const session = this.get(browserId, projectId, owner);
-    this.sessions.delete(browserId);
-    session.controller.abort(new Error("Browser session released"));
+    await this.releaseSession(session, true);
+    return { released: true };
+  }
+  private releaseSession(session: BrowserSession, closeContext: boolean) {
+    if (session.releasing) return session.releasing;
+    // Publish the shared completion before aborting actions: their abort handlers
+    // may request the same cleanup synchronously.
+    const completion = Promise.resolve().then(async () => {
+      try {
+        const tabs = [...session.tabs.values()];
+        session.tabs.clear();
+        await Promise.all(tabs.map((tab) => this.clearRefs(tab)));
+        // Closing a CDP Browser disconnects this client; never close its context
+        // or pages, which belong to the user's browser.
+        if (session.external) await session.browser?.close();
+        else if (closeContext) await session.context.close();
+      } finally {
+        try {
+          await session.network?.close();
+        } finally {
+          if (session.profile) this.profiles.delete(session.profile);
+          this.sessions.delete(session.id);
+        }
+      }
+    });
+    session.releasing = completion;
+    session.context.off("close", session.endListener);
+    session.connection?.off("disconnected", session.endListener);
     session.context.off("page", session.pageListener);
+    session.controller.abort(new Error("Browser session released"));
     for (const tab of session.tabs.values()) {
       tab.page.off("close", tab.closeListener);
       tab.page.off("dialog", tab.dialogListener);
-      await this.clearRefs(tab);
+      tab.frames.clear();
     }
-    try {
-      if (session.external) await session.browser?.close();
-      else await session.context.close();
-    } finally {
-      await session.network?.close();
-      if (session.profile) this.profiles.delete(session.profile);
-    }
-    return { released: true };
+    return completion;
   }
   async close() {
-    if (this.lifetime.signal.aborted) return;
+    if (this.closeCompletion) return this.closeCompletion;
     this.lifetime.abort(new Error("Browser host closed"));
-    await Promise.allSettled(
-      [...this.sessions.values()].map((s) =>
-        this.closeSession(s.id, s.projectId),
+    this.closeCompletion = Promise.allSettled(
+      [...this.sessions.values()].map((session) =>
+        this.releaseSession(session, true),
       ),
-    );
+    ).then(() => undefined);
+    return this.closeCompletion;
   }
 }
 type Performed = Awaited<ReturnType<BrowserManager["perform"]>>;

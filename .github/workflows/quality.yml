@@ -30,4 +30,4 @@ jobs:
       - run: npm run verify:sdk
       - run: npx playwright install chromium
       - run: npm run build:host
-      - run: npm run test:host -- --filter=browser-app --filter=browser-bridge-app --filter=office-app --filter=host-route-boundaries --filter=host-nodes
+      - run: npm run test:host -- --exclude-capability=interactive-desktop

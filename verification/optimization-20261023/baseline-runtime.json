@@ -1,0 +1,56 @@
+{
+  "reviewDate": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "node": "v22.23.2",
+  "platform": "win32",
+  "probeScript": ".agent-data-tests/review-runtime-probe.mjs",
+  "provenance": "Original tool outputs transcribed after the review. The archived script reconstructs the original probes; probes were not rerun when archiving.",
+  "regex": {
+    "method": "Each input runs in a fresh isolated Node subprocess with a 2000 ms parent timeout. Measures /^(a+)+$/.test(line.slice(0,4000)), the same synchronous matching operation used by file_search.",
+    "input": "line = 'a'.repeat(n) + '!', n = 18, 22, 26",
+    "results": [
+      { "chars": 19, "found": false, "ms": 40.676100000000005 },
+      { "chars": 23, "found": false, "ms": 644.3383 },
+      { "chars": 27, "killedAfterMs": 2000, "error": "ETIMEDOUT" }
+    ],
+    "sourceLocations": [
+      "src/tools/project.ts:150",
+      "src/tools/project.ts:155"
+    ],
+    "limits": "Microprobe of the actual matching expression, not an end-to-end file_search/HTTP test. One measurement per input; timings are machine-specific. Timeout establishes a lower bound, not the full completion time."
+  },
+  "anthropicDuplicateState": {
+    "method": "Create ResponseBuilder, feed one Anthropic content_block_start with 65536 ASCII x characters, finish and finalize, then compare stored message JSON, the same object without providerState, default estimateTokens, and anthropicMessages wire serialization. Uses existing compiled dist modules.",
+    "results": {
+      "storedBytes": 131388,
+      "semanticBytes": 65749,
+      "estimatedTokens": 65695,
+      "semanticEstimate": 32876,
+      "wireMessagesBytes": 65596
+    },
+    "sourceLocations": [
+      "src/providers/protocols/anthropic-messages.ts:157",
+      "src/providers/protocols/anthropic-messages.ts:180",
+      "src/providers/protocols/anthropic-messages.ts:258",
+      "src/runtime/token-counter.ts:16"
+    ],
+    "limits": "No external provider call. Serialized bytes and default heuristic token counts are measured; these are not actual provider tokenizer counts or process RSS. This probe covers Anthropic text only, not Responses or signed reasoning."
+  },
+  "redaction": {
+    "method": "Independent RedactionScope(mode=registered) for each count. Register synthetic dummy-key-{i}- plus 24 k characters. Redact 128 KiB of ASCII z with no matches five times and report the median. Close every scope.",
+    "results": [
+      { "registered": 0, "payloadKiB": 128, "medianMs": 0.003600000000002268 },
+      { "registered": 1000, "payloadKiB": 128, "medianMs": 2.7109999999999985 },
+      { "registered": 10000, "payloadKiB": 128, "medianMs": 26.5621 }
+    ],
+    "sourceLocations": [
+      "src/core/redaction.ts:114",
+      "src/core/redaction.ts:118",
+      "src/core/redaction.ts:178",
+      "src/extensions/mcp/auth/oauth.ts:246",
+      "src/extensions/mcp/auth/oauth.ts:1084"
+    ],
+    "limits": "Synthetic scaling probe, not a claim about current production credential counts, refresh rates, or retained heap. No real credentials are printed."
+  },
+  "scope": "Read-only product-source review. No external model/network/desktop operations. No additional stress testing during evidence archival."
+}

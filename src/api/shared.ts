@@ -2,6 +2,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Kernel } from "../core/kernel.js";
 import { AppError, invariant } from "../core/util.js";
 import type { EntityFilter, Table } from "../storage/entity-query.js";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { jsonChunks } from "../sessions/json-stream.js";
 
 export interface ApiResult {
   data: unknown;
@@ -12,6 +15,7 @@ export interface ApiResult {
 export type HttpResult = ApiResult | true | undefined;
 
 export interface ApiContext {
+  signal?: AbortSignal;
   k: Kernel;
   url: URL;
   method: string | undefined;
@@ -85,6 +89,36 @@ export function respond(res: ServerResponse, data: unknown, status = 200) {
     "X-Content-Type-Options": "nosniff",
   });
   res.end(JSON.stringify(data));
+}
+/** Large portable bundles retain the v1 wire format without a second whole JSON string. */
+export async function respondJsonStream(
+  req: IncomingMessage,
+  res: ServerResponse,
+  data: unknown,
+  status = 200,
+) {
+  const transfer = requestSignal(req, res);
+  function* chunks() {
+    let buffer = "";
+    for (const part of jsonChunks(data)) {
+      buffer += part;
+      if (buffer.length >= 65536) {
+        yield buffer;
+        buffer = "";
+      }
+    }
+    if (buffer) yield buffer;
+  }
+  try {
+    res.writeHead(status, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    });
+    await pipeline(Readable.from(chunks()), res, { signal: transfer.signal });
+  } finally {
+    transfer.close();
+  }
 }
 export function cursor(value: string | null | undefined) {
   const n = Number(value || 0);

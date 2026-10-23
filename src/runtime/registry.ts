@@ -45,7 +45,7 @@ export interface KernelIntegration {
   settled?: (runId: string, signal?: AbortSignal) => void | Promise<void>;
   /** Lifecycle hooks applied to every run, after config command hooks. */
   hooks?: RunHooks;
-  close?: () => void | Promise<void>;
+  close?: (kernel?: Kernel) => void | Promise<void>;
 }
 /** Source-level extension registry. Unregistration revokes previously resolved tool closures. */
 export class ToolRegistry {

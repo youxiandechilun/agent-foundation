@@ -1,6 +1,36 @@
-import { readdir, readFile } from "node:fs/promises";
+import { opendir, open } from "node:fs/promises";
+import type { Dirent } from "node:fs";
 import path from "node:path";
-import { safePath } from "../core/util.js";
+import { safePath, invariant } from "../core/util.js";
+
+/** Never materialize an entire large directory just to apply a result limit. */
+export async function boundedDirectory(
+  directory: string,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<{ entries: Dirent[]; truncated: boolean }> {
+  signal?.throwIfAborted();
+  const entries: Dirent[] = [];
+  const handle = await opendir(directory, {
+    bufferSize: Math.min(32, limit + 1),
+  });
+  try {
+    for await (const entry of handle) {
+      signal?.throwIfAborted();
+      if (entries.length >= limit) return { entries, truncated: true };
+      entries.push(entry);
+    }
+  } finally {
+    // for-await closes on exhaustion, error and an early return.
+    await handle.close().catch(() => undefined);
+  }
+  return { entries, truncated: false };
+}
+
+const MAX_IGNORE_BYTES = 256 * 1024;
+const MAX_IGNORE_RULES = 4096;
+const MAX_ACTIVE_IGNORE_RULES = 16384;
+const MAX_WALK_DEPTH = 128;
 
 /**
  * Glob to RegExp over "/"-separated relative paths: `**` spans directories, `*` and `?` stay
@@ -55,7 +85,11 @@ interface IgnoreRule {
   test: (relative: string) => boolean;
 }
 /** Parse one .gitignore located at `base` (relative to the walk root, "" for root). */
-export function parseGitignore(text: string, base = ""): IgnoreRule[] {
+export function parseGitignore(
+  text: string,
+  base = "",
+  maxRules = Infinity,
+): IgnoreRule[] {
   const rules: IgnoreRule[] = [];
   for (let line of text.split(/\r?\n/)) {
     if (!line.trim() || line.startsWith("#")) continue;
@@ -66,6 +100,12 @@ export function parseGitignore(text: string, base = ""): IgnoreRule[] {
     const directoryOnly = line.endsWith("/");
     if (directoryOnly) line = line.slice(0, -1);
     if (!line) continue;
+    invariant(
+      rules.length < maxRules,
+      "Ignore rule capacity exceeded",
+      413,
+      "search_capacity",
+    );
     const anchored = line.includes("/");
     const regex = globToRegExp(line.replace(/^\//, ""));
     rules.push({
@@ -111,24 +151,58 @@ const ALWAYS_SKIPPED = new Set([".git", "node_modules", ".agent-data"]);
 /** Bounded, symlink-free traversal within the project root using "/" separators. */
 export async function walkProject(root: string, options: WalkOptions) {
   let visited = 0,
-    stopped = false;
+    stopped = false,
+    truncated = false,
+    pendingEntries = 0;
   const rules: IgnoreRule[] = [];
   const load = async (relative: string, file: string) => {
+    let handle: Awaited<ReturnType<typeof open>> | undefined;
     try {
-      rules.push(
-        ...parseGitignore(
-          await readFile(
-            await safePath(root, path.join(relative, file)),
-            "utf8",
-          ),
-          relative,
-        ),
+      options.signal?.throwIfAborted();
+      handle = await open(await safePath(root, path.join(relative, file)), "r");
+      invariant(
+        (await handle.stat()).isFile(),
+        "Ignore path must be a regular file",
       );
+      const buffer = Buffer.alloc(MAX_IGNORE_BYTES + 1);
+      let bytes = 0;
+      while (bytes < buffer.length) {
+        options.signal?.throwIfAborted();
+        const { bytesRead } = await handle.read(
+          buffer,
+          bytes,
+          buffer.length - bytes,
+          null,
+        );
+        if (!bytesRead) break;
+        bytes += bytesRead;
+      }
+      invariant(
+        bytes <= MAX_IGNORE_BYTES,
+        "Ignore file exceeds 256 KiB limit",
+        413,
+        "search_capacity",
+      );
+      const parsed = parseGitignore(
+        buffer.subarray(0, bytes).toString("utf8"),
+        relative,
+        MAX_IGNORE_RULES,
+      );
+      invariant(
+        parsed.length <= MAX_IGNORE_RULES &&
+          rules.length + parsed.length <= MAX_ACTIVE_IGNORE_RULES,
+        "Ignore rule capacity exceeded",
+        413,
+        "search_capacity",
+      );
+      rules.push(...parsed);
     } catch (error) {
       if (
         !["ENOENT", "EISDIR"].includes((error as NodeJS.ErrnoException).code!)
       )
         throw error;
+    } finally {
+      await handle?.close();
     }
   };
   if (options.respectGitignore) {
@@ -141,26 +215,51 @@ export async function walkProject(root: string, options: WalkOptions) {
     for (let i = 0; i < parts.length; i++)
       await load(parts.slice(0, i).join("/"), ".gitignore");
   }
-  const walk = async (relative: string): Promise<void> => {
-    if (options.respectGitignore) await load(relative, ".gitignore");
-    const entries = await readdir(await safePath(root, relative), {
-      withFileTypes: true,
-    });
-    entries.sort((a, b) => a.name.localeCompare(b.name));
-    for (const entry of entries) {
-      options.signal?.throwIfAborted();
-      if (stopped || visited >= options.maxEntries) return;
-      visited++;
-      if (entry.isSymbolicLink() || ALWAYS_SKIPPED.has(entry.name)) continue;
-      const child = relative ? `${relative}/${entry.name}` : entry.name;
-      const directory = entry.isDirectory();
-      if (options.respectGitignore && ignored(rules, child, directory))
-        continue;
-      if (directory) await walk(child);
-      else if (entry.isFile())
-        stopped = !(await options.onFile(child, await safePath(root, child)));
+  const walk = async (relative: string, depth = 0): Promise<void> => {
+    options.signal?.throwIfAborted();
+    if (stopped || visited + pendingEntries >= options.maxEntries) {
+      truncated = true;
+      return;
+    }
+    invariant(
+      depth <= MAX_WALK_DEPTH,
+      "Project directory nesting limit exceeded",
+      413,
+      "search_capacity",
+    );
+    const ruleStart = rules.length;
+    try {
+      if (options.respectGitignore) await load(relative, ".gitignore");
+      const listing = await boundedDirectory(
+        await safePath(root, relative),
+        options.maxEntries - visited - pendingEntries,
+        options.signal,
+      );
+      truncated ||= listing.truncated;
+      const entries = listing.entries;
+      pendingEntries += entries.length;
+      entries.sort((a, b) => a.name.localeCompare(b.name));
+      for (const entry of entries) {
+        options.signal?.throwIfAborted();
+        if (stopped || visited >= options.maxEntries) return;
+        pendingEntries--;
+        visited++;
+        if (entry.isSymbolicLink() || ALWAYS_SKIPPED.has(entry.name)) continue;
+        const child = relative ? `${relative}/${entry.name}` : entry.name;
+        const directory = entry.isDirectory();
+        if (options.respectGitignore && ignored(rules, child, directory))
+          continue;
+        if (directory) await walk(child, depth + 1);
+        else if (entry.isFile())
+          stopped = !(await options.onFile(child, await safePath(root, child)));
+      }
+    } finally {
+      rules.length = ruleStart;
     }
   };
   await walk((options.start || "").replace(/\\/g, "/").replace(/\/$/, ""));
-  return { visited, truncated: visited >= options.maxEntries || stopped };
+  return {
+    visited,
+    truncated: truncated || visited >= options.maxEntries || stopped,
+  };
 }

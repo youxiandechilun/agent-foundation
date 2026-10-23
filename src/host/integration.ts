@@ -33,56 +33,96 @@ export function createApplicationIntegration(
   );
   let services: Partial<DesktopServices> = {},
     disposed = false;
+  let owner: Kernel | undefined;
+  let installation: Promise<void> | undefined;
+  let closing: Promise<void> | undefined;
+  let unregisterExtractor: (() => unknown) | undefined;
+  const requireOwner = (kernel: Kernel) => {
+    invariant(!disposed, "Application plugins have closed", 503);
+    invariant(
+      owner === kernel,
+      "Application plugins belong to another kernel",
+      409,
+    );
+  };
   return {
     id: reference ? profile : "applications-" + features.join("-"),
     async install(kernel) {
-      invariant(features.length > 0, "No application plugins selected");
-      const [browser, computer, office, bridge, nodes] = await Promise.all([
-        enabled.browser ? import("./browser/manager.js") : undefined,
-        enabled.computer ? import("./computer/manager.js") : undefined,
-        enabled.office ? import("./office/manager.js") : undefined,
-        enabled.browser && !reference
-          ? import("./browser/bridge.js")
-          : undefined,
-        reference ? import("./nodes.js") : undefined,
-      ]);
-      const created: Partial<DesktopServices> = {};
-      if (browser)
-        created.browser = new browser.BrowserManager(
-          kernel.config,
-          kernel.store,
-          kernel.assets,
-          (projectId, action) => browserAccess(kernel, projectId, action),
+      invariant(!disposed, "Application plugins have closed", 503);
+      invariant(
+        !owner || owner === kernel,
+        "An application integration instance belongs to one kernel",
+        409,
+      );
+      if (installation) return installation;
+      owner = kernel;
+      installation = (async () => {
+        invariant(features.length > 0, "No application plugins selected");
+        const [browser, computer, office, bridge, nodes] = await Promise.all([
+          enabled.browser ? import("./browser/manager.js") : undefined,
+          enabled.computer ? import("./computer/manager.js") : undefined,
+          enabled.office ? import("./office/manager.js") : undefined,
+          enabled.browser && !reference
+            ? import("./browser/bridge.js")
+            : undefined,
+          reference ? import("./nodes.js") : undefined,
+        ]);
+        requireOwner(kernel);
+        const serviceNames = [
+          ...features,
+          ...(reference || enabled.browser ? ["nodes"] : []),
+          ...(enabled.browser && !reference ? ["browserBridge"] : []),
+        ];
+        invariant(
+          serviceNames.every((name) => !(name in kernel)),
+          "Application service is already installed on this kernel",
+          409,
         );
-      if (computer)
-        created.computer = new computer.ComputerController(
-          kernel.config,
-          kernel.assets,
-          (projectId, action) => computerAccess(kernel, projectId, action),
-        );
-      if (office)
-        created.office = new office.Office(
-          kernel.assets,
-          kernel.config,
-          (projectId, write, toolName) =>
-            officeAccess(kernel, projectId, write, toolName),
-        );
-      services = created;
-      if (nodes) services.nodes = new nodes.NodeManager(kernel.store);
-      if (bridge) {
-        const browserBridge = new bridge.BrowserBridge(kernel);
-        Object.assign(services, { browserBridge, nodes: browserBridge.nodes });
-      }
-      Object.assign(kernel, services);
-      if (office) {
-        const { officeExtractor } = await import("./office/extractor.js");
-        kernel.assets.extractors.register(
-          officeExtractor(kernel.assets, services.office),
-        );
-      }
+        const created: Partial<DesktopServices> = {};
+        // Keep partially created services reachable if construction or extractor
+        // registration fails, so Kernel.close can release them.
+        services = created;
+        if (browser)
+          created.browser = new browser.BrowserManager(
+            kernel.config,
+            kernel.store,
+            kernel.assets,
+            (projectId, action) => browserAccess(kernel, projectId, action),
+          );
+        if (computer)
+          created.computer = new computer.ComputerController(
+            kernel.config,
+            kernel.assets,
+            (projectId, action) => computerAccess(kernel, projectId, action),
+          );
+        if (office)
+          created.office = new office.Office(
+            kernel.assets,
+            kernel.config,
+            (projectId, write, toolName) =>
+              officeAccess(kernel, projectId, write, toolName),
+          );
+        if (nodes) services.nodes = new nodes.NodeManager(kernel.store);
+        if (bridge) {
+          const browserBridge = new bridge.BrowserBridge(kernel);
+          Object.assign(services, {
+            browserBridge,
+            nodes: browserBridge.nodes,
+          });
+        }
+        Object.assign(kernel, services);
+        if (office) {
+          const { officeExtractor } = await import("./office/extractor.js");
+          requireOwner(kernel);
+          unregisterExtractor = kernel.assets.extractors.register(
+            officeExtractor(kernel.assets, services.office),
+          );
+        }
+      })();
+      return installation;
     },
     async tools(context) {
-      invariant(!disposed, "Application plugins have closed", 503);
+      requireOwner(context.kernel);
       const tools = await desktopTools(
         context as ToolContext & { kernel: DesktopKernel },
         reference ? undefined : features,
@@ -98,6 +138,7 @@ export function createApplicationIntegration(
           }));
     },
     async authorize(context, tool, args) {
+      requireOwner(context.kernel);
       const browserArgs =
         reference && tool.name === "browser_action" && args.nodeId
           ? args
@@ -116,6 +157,7 @@ export function createApplicationIntegration(
       return { ...tool, capabilities: applicationCapabilities(tool, args) };
     },
     async handle(kernel, req, url, json) {
+      requireOwner(kernel);
       const request = requestSignal(req);
       try {
         if (reference)
@@ -240,7 +282,8 @@ export function createApplicationIntegration(
       }
     },
     settled: (runId) => services.computer?.release(runId),
-    async handlePublic(_kernel, req, url, json) {
+    async handlePublic(kernel, req, url, json) {
+      requireOwner(kernel);
       if (!reference) return;
       const p = url.pathname.split("/").filter(Boolean);
       if (
@@ -282,18 +325,26 @@ export function createApplicationIntegration(
       nodes.upgrade(req, socket, head);
       return true;
     },
-    async close() {
+    async close(kernel?: Kernel) {
+      // A different Kernel may be unwinding a rejected shared installation.
+      if (kernel && owner && kernel !== owner) return;
+      if (closing) return closing;
       disposed = true;
-      await closeResources(
-        [
-          services.browser,
-          services.office,
-          services.computer,
-          services.browserBridge,
-          reference ? services.nodes : undefined,
-        ],
-        "Application cleanup reported errors",
-      );
+      closing = (async () => {
+        await installation?.catch(() => undefined);
+        unregisterExtractor?.();
+        await closeResources(
+          [
+            services.browser,
+            services.office,
+            services.computer,
+            services.browserBridge,
+            reference ? services.nodes : undefined,
+          ],
+          "Application cleanup reported errors",
+        );
+      })();
+      return closing;
     },
   };
 }

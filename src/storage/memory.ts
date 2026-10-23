@@ -133,24 +133,40 @@ export class MemoryStore {
     };
     this.store.transaction(() => {
       this.store.put("memories", entry);
-      this.unindex(entry.id);
-      this.store
+      const position = this.store
         .prepare(
-          "INSERT INTO memory_fts(id,project_id,namespace,terms) VALUES(?,?,?,?)",
+          "SELECT fts_rowid FROM memory_fts_map WHERE memory_id=? ORDER BY fts_rowid LIMIT 1",
+        )
+        .get(entry.id) as { fts_rowid: number } | undefined;
+      this.unindex(entry.id);
+      const indexed = this.store
+        .prepare(
+          "INSERT INTO memory_fts(rowid,id,project_id,namespace,terms) VALUES(?,?,?,?,?)",
         )
         .run(
+          position?.fts_rowid ?? null,
           entry.id,
           entry.projectId,
           entry.namespace,
           terms(entry.content + " " + entry.tags.join(" ")).join(" "),
         );
+      this.store
+        .prepare("INSERT INTO memory_fts_map(fts_rowid,memory_id) VALUES(?,?)")
+        .run(indexed.lastInsertRowid, entry.id);
       this.record(entry, existing ? "updated" : "created");
     });
     return entry;
   }
   private unindex(memoryId: string) {
-    for (const table of ["memory_fts", "memory_vectors"])
-      this.store.prepare(`DELETE FROM ${table} WHERE id=?`).run(memoryId);
+    this.store
+      .prepare(
+        "DELETE FROM memory_fts WHERE rowid IN (SELECT fts_rowid FROM memory_fts_map WHERE memory_id=?)",
+      )
+      .run(memoryId);
+    this.store
+      .prepare("DELETE FROM memory_fts_map WHERE memory_id=?")
+      .run(memoryId);
+    this.store.prepare("DELETE FROM memory_vectors WHERE id=?").run(memoryId);
   }
   private record(entry: MemoryEntry, action: string) {
     this.store.put("memory-revisions", {

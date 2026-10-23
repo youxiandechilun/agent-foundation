@@ -55,6 +55,7 @@ demo-output/
 !/verification/capacity-host-integration.log
 !/verification/capacity-validation.json
 !/verification/optimization-report.json
+!/verification/optimization-20261023/
 !/verification/optimization-runtime-benchmark.json
 !/verification/production-dependency-audit.log
 !/verification/refactor-benchmark.json

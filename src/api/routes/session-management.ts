@@ -18,7 +18,8 @@ export const sessionManagementRoutes = apiRoutes({
       ({ k, id }, value) => k.processAction(id, value.action, value.arguments),
     ),
   ),
-  "GET sessions/:id/migration": ({ k, id }) => k.exportMigration(id),
+  "GET sessions/:id/migration": ({ k, id, signal }) =>
+    k.exportMigration(id, signal),
   "POST migrations/import": status(
     201,
     input(

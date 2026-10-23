@@ -146,6 +146,10 @@
   },
   "limits": {
     "maxConcurrentTools": 4,
+    "maxConcurrentMediaJobs": 2,
+    "maxQueuedMediaJobs": 16,
+    "maxMediaQueueBytes": 4194304,
+    "maxConcurrentMigrations": 1,
     "maxHistoryBytes": 134217728,
     "maxQueuedInputs": 32,
     "maxQueuedInputBytes": 16777216,

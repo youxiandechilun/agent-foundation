@@ -1,0 +1,76 @@
+{
+  "measuredAt": "2026-10-23T03:28:06.950Z",
+  "node": "v22.23.2",
+  "platform": "win32",
+  "arch": "x64",
+  "regex": {
+    "pattern": "^(a+)+$",
+    "chars": 101,
+    "initializationMs": 25.773599999999995,
+    "matchTimeoutMs": 500,
+    "elapsedMs": 503.1391,
+    "hostTimerIntervalMs": 10,
+    "hostTimerTicks": 32,
+    "timedOut": true,
+    "error": {
+      "code": "search_timeout",
+      "message": "Regex matching timed out"
+    }
+  },
+  "anthropic": {
+    "textBytes": 65536,
+    "storedBytes": 65940,
+    "legacyStoredBytes": 131388,
+    "estimatedTokens": 32798,
+    "legacyWholeMessageEstimate": 65695,
+    "wireMessagesBytes": 65596,
+    "replayUnchanged": true
+  },
+  "redaction": [
+    {
+      "registered": 0,
+      "payloadKiB": 128,
+      "samplesMs": [
+        0.227800000000002,
+        0.003100000000017644,
+        0.002200000000016189,
+        0.04759999999998854,
+        0.0028999999999541615
+      ],
+      "coldMs": 0.227800000000002,
+      "medianMs": 0.003100000000017644
+    },
+    {
+      "registered": 1000,
+      "payloadKiB": 128,
+      "samplesMs": [
+        10.298900000000003,
+        0.5089000000000397,
+        0.5001999999999498,
+        0.63250000000005,
+        0.5134000000000469
+      ],
+      "coldMs": 10.298900000000003,
+      "medianMs": 0.5134000000000469
+    },
+    {
+      "registered": 10000,
+      "payloadKiB": 128,
+      "samplesMs": [
+        38.23509999999999,
+        0.5943999999999505,
+        0.5635999999999513,
+        0.5804000000000542,
+        0.4893000000000711
+      ],
+      "coldMs": 38.23509999999999,
+      "medianMs": 0.5804000000000542
+    }
+  ],
+  "limits": [
+    "Synthetic single-process measurements; RSS, retained heap, real providers and production throughput are not measured.",
+    "The regex result tests isolation, timeout and host responsiveness. It is not a speedup ratio against the prior main-thread probe, which used different input lengths and a 2000 ms parent timeout.",
+    "Anthropic sizes cover one 64 KiB ASCII text block. Replay equality is checked; heuristic token counts are not actual model tokenizer counts.",
+    "Redaction uses no-match text and synthetic keys. Five samples include one cold matcher compilation and four warm calls; cold time is reported separately. Cross-run timing varies with machine load and JIT state."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "version": "0.12.1",
+  "checkedAt": "2026-10-23T03:34:13.889Z",
+  "node": "v22.23.2",
+  "platform": "win32",
+  "status": "passed",
+  "published": false,
+  "tarball": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+  "sha256": "dc20e9f3c0ea6292011164bc385161c894781a8a75f547f950162ab57380a01e",
+  "bytes": 592942,
+  "unpackedBytes": 2326697,
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "entryChecks": {
+    "files": 399,
+    "exportTargets": [
+      "./dist/index.d.ts",
+      "./dist/index.js",
+      "./dist/client.d.ts",
+      "./dist/client.js",
+      "./dist/host/index.d.ts",
+      "./dist/host/index.js"
+    ],
+    "runtimeFiles": [
+      "dist/execution/process-broker.mjs",
+      "dist/execution/native/ConPtyHost.cs",
+      "dist/execution/native/AppContainerHost.cs",
+      "dist/execution/native/node-appcontainer-guard.cjs",
+      "dist/execution/native/pty_host.py",
+      "dist/extensions/plugins/worker.mjs",
+      "dist/host/office/format-worker.cjs",
+      "dist/host/office/office-archive.cjs",
+      "dist/host/computer/native/windows-computer.ps1",
+      "dist/host/computer/native/windows-computer.cs"
+    ]
+  },
+  "sourcePolicy": "Compiled ESM JavaScript and declarations; no TypeScript implementation or source maps. JavaScript remains readable.",
+  "license": "UNLICENSED"
+}

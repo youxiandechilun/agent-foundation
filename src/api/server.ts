@@ -13,7 +13,13 @@ import {
   invariant,
   registerSecret,
 } from "../core/util.js";
-import { json, respond, type HttpContext } from "./shared.js";
+import {
+  json,
+  respond,
+  respondJsonStream,
+  requestSignal,
+  type HttpContext,
+} from "./shared.js";
 import { sessionRoutes } from "./routes/sessions.js";
 import { resourceRoutes } from "./routes/resources.js";
 import { listenHttp } from "../transport/http-listener.js";
@@ -185,13 +191,33 @@ export async function serve(kernel: Kernel, token?: string) {
             : 8 * 1024 * 1024,
         ),
     };
-    for (const route of [management, sessionRoutes, resourceRoutes]) {
-      const result = await route(context);
-      if (result === undefined) continue;
-      if (result !== true) respond(res, result.data, result.status);
-      return;
+    const isMigration =
+      url.pathname === "/v1/migrations/import" ||
+      (method === "GET" &&
+        parts.length === 4 &&
+        parts[1] === "sessions" &&
+        parts[3] === "migration");
+    const releaseTransfer = isMigration
+      ? kernel.migrations.reserveTransfer()
+      : undefined;
+    const migrationSignal = isMigration ? requestSignal(req, res) : undefined;
+    context.signal = migrationSignal?.signal;
+    try {
+      for (const route of [management, sessionRoutes, resourceRoutes]) {
+        const result = await route(context);
+        if (result === undefined) continue;
+        if (result !== true) {
+          if (isMigration)
+            await respondJsonStream(req, res, result.data, result.status);
+          else respond(res, result.data, result.status);
+        }
+        return;
+      }
+      throw new AppError(404, "not_found", "Endpoint not found");
+    } finally {
+      migrationSignal?.close();
+      releaseTransfer?.();
     }
-    throw new AppError(404, "not_found", "Endpoint not found");
   }
   server.on("upgrade", (req, socket, head) => {
     kernel.redaction.run(() => {

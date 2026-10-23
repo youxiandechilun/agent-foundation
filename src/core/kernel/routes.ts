@@ -9,6 +9,10 @@ import {
   type Route,
 } from "../config.js";
 import { atomicWrite, invariant } from "../util.js";
+import {
+  defaultTextProtocols,
+  type TextProtocolRegistry,
+} from "../../providers/registry.js";
 
 export interface RouteChange {
   set?: Record<string, Route>;
@@ -20,7 +24,10 @@ const routesFile = (config: Config) =>
   path.join(config.dataDir, "runtime-routes.json");
 
 /** Apply routes saved by an earlier updateRoutes; a missing file keeps the configuration. */
-export async function loadPersistedRoutes(config: Config): Promise<void> {
+export async function loadPersistedRoutes(
+  config: Config,
+  protocols: TextProtocolRegistry = defaultTextProtocols,
+): Promise<void> {
   let text: string;
   try {
     text = await readFile(routesFile(config), "utf8");
@@ -31,11 +38,15 @@ export async function loadPersistedRoutes(config: Config): Promise<void> {
   const persisted = z
     .object({ routes: z.unknown(), defaultRoutes: z.unknown() })
     .parse(JSON.parse(text));
-  const updated = parseConfig({
-    ...config,
-    routes: persisted.routes,
-    defaultRoutes: persisted.defaultRoutes,
-  });
+  const updated = parseConfig(
+    {
+      ...config,
+      routes: persisted.routes,
+      defaultRoutes: persisted.defaultRoutes,
+    },
+    undefined,
+    protocols,
+  );
   config.routes = updated.routes;
   config.defaultRoutes = updated.defaultRoutes;
 }
@@ -48,6 +59,7 @@ export async function changeRoutes(
   config: Config,
   change: RouteChange,
   inUse: (routeId: string) => string | undefined,
+  protocols: TextProtocolRegistry = defaultTextProtocols,
 ) {
   const routes = { ...config.routes, ...change.set },
     defaultRoutes: Record<string, string | undefined> = {
@@ -71,7 +83,11 @@ export async function changeRoutes(
       delete defaultRoutes[slot];
     } else defaultRoutes[slot] = value;
   }
-  const validated = parseConfig({ ...config, routes, defaultRoutes });
+  const validated = parseConfig(
+    { ...config, routes, defaultRoutes },
+    undefined,
+    protocols,
+  );
   await atomicWrite(
     routesFile(config),
     JSON.stringify(

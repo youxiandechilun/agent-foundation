@@ -1,4 +1,5 @@
 import type { Route } from "../core/config.js";
+import { anthropicReplayItems } from "./replay-state.js";
 import {
   textOf,
   type ContentPart,
@@ -189,7 +190,7 @@ export function anthropicMessages(messages: Message[], routeId: string) {
         m.providerState?.protocol === "anthropic-messages" &&
         m.providerState.routeId === routeId &&
         m.providerState.items.length
-          ? m.providerState.items.slice()
+          ? anthropicReplayItems(m)
           : parts(m.content)
               .filter(
                 (p) =>

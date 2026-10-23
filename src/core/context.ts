@@ -3,6 +3,10 @@ import { now, invariant } from "./util.js";
 import { Store } from "../storage/store.js";
 import type { Config } from "./config.js";
 import { RouteRouter } from "../providers/text.js";
+import {
+  defaultTextProtocols,
+  type TextProtocolRegistry,
+} from "../providers/registry.js";
 import { contextSummary } from "../prompts/agent.js";
 import type { CostLedger } from "../runtime/cost.js";
 import { textOf, type Message } from "../runtime/types.js";
@@ -92,6 +96,7 @@ export class ContextManager {
     readonly store: Store,
     readonly config: Config,
     readonly costs?: CostLedger,
+    readonly protocols: TextProtocolRegistry = defaultTextProtocols,
   ) {}
   async prepare(
     runId: string,
@@ -241,6 +246,7 @@ export class ContextManager {
           ? this.store.session(this.store.run(runId).sessionId)
           : undefined,
         provider = RouteRouter.create(this.config, {
+          protocols: this.protocols,
           billing:
             this.costs && session
               ? {

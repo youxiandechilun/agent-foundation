@@ -1,10 +1,15 @@
 import { Type } from "typebox";
-import { readFile, readdir, mkdir, stat } from "node:fs/promises";
+import { readFile, mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { atomicWrite, safePath, invariant } from "../core/util.js";
 import { processTools } from "../execution/tools.js";
 import { executionCapabilities } from "../execution/process.js";
-import { globMatcher, walkProject } from "../runtime/project-walk.js";
+import {
+  boundedDirectory,
+  globMatcher,
+  walkProject,
+} from "../runtime/project-walk.js";
+import { RegexSearch } from "../runtime/regex-search.js";
 import type { BuiltinTools } from "./builtin.js";
 import { sentences } from "../prompts/sentences.js";
 
@@ -25,12 +30,14 @@ export function registerProject({
     Type.Object({ path: Type.Optional(Type.String()) }),
     "read",
     ["files.read"],
-    async (args) => {
-      const entries = await readdir(await safePath(root, args.path || ""), {
-        withFileTypes: true,
-      });
+    async (args, signal) => {
+      const { entries, truncated } = await boundedDirectory(
+        await safePath(root, args.path || ""),
+        1000,
+        signal,
+      );
       return {
-        entries: entries.slice(0, 1000).map((e) => ({
+        entries: entries.map((e) => ({
           name: e.name,
           kind: e.isSymbolicLink()
             ? "link"
@@ -38,7 +45,7 @@ export function registerProject({
               ? "directory"
               : "file",
         })),
-        truncated: entries.length > 1000,
+        truncated,
       };
     },
   );
@@ -147,37 +154,52 @@ export function registerProject({
     async (args, signal) => {
       const matches: { path: string; line: number; text: string }[] = [];
       const pattern = args.regex
-        ? new RegExp(args.query, args.ignoreCase ? "i" : "")
+        ? new RegexSearch(args.query, args.ignoreCase, signal)
         : undefined;
       const needle = args.ignoreCase ? args.query.toLowerCase() : args.query;
       const hit = (line: string) =>
-        pattern
-          ? pattern.test(line.slice(0, 4000))
-          : (args.ignoreCase ? line.toLowerCase() : line).includes(needle);
+        (args.ignoreCase ? line.toLowerCase() : line).includes(needle);
       const keep = args.glob ? globMatcher(args.glob) : () => true;
-      const walk = await walkProject(root, {
-        start: args.path,
-        signal,
-        maxEntries: k.config.limits.maxSearchEntries,
-        respectGitignore: !args.includeIgnored,
-        onFile: async (relative, file) => {
-          if (!keep(relative) || (await stat(file)).size > 500000) return true;
-          const text = await readFile(file, { encoding: "utf8", signal });
-          if (text.includes("\0")) return true;
-          const lines = text.split(/\r?\n/);
-          for (let index = 0; index < lines.length; index++)
-            if (hit(lines[index])) {
+      try {
+        if (pattern) await pattern.match([]);
+        const walk = await walkProject(root, {
+          start: args.path,
+          signal,
+          maxEntries: k.config.limits.maxSearchEntries,
+          respectGitignore: !args.includeIgnored,
+          onFile: async (relative, file) => {
+            if (!keep(relative) || (await stat(file)).size > 500000)
+              return true;
+            const text = await readFile(file, { encoding: "utf8", signal });
+            if (text.includes("\0")) return true;
+            const lines = text.split(/\r?\n/);
+            const indexes = pattern
+              ? await pattern.match(lines, 200 - matches.length)
+              : undefined;
+            const addMatch = (index: number) => {
               matches.push({
                 path: relative,
                 line: index + 1,
                 text: lines[index].slice(0, 600),
               });
+            };
+            if (indexes) {
+              for (const index of indexes) addMatch(index);
               if (matches.length >= 200) return false;
+            } else {
+              for (let index = 0; index < lines.length; index++) {
+                if (hit(lines[index])) addMatch(index);
+                if (matches.length >= 200) return false;
+              }
             }
-          return true;
-        },
-      });
-      return { matches, visited: walk.visited, truncated: walk.truncated };
+            return true;
+          },
+        });
+        if (pattern) await pattern.match([]);
+        return { matches, visited: walk.visited, truncated: walk.truncated };
+      } finally {
+        await pattern?.close();
+      }
     },
   );
   add(

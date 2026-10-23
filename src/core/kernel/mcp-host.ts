@@ -13,6 +13,10 @@ import {
   estimateToolTokens,
 } from "../../runtime/token-counter.js";
 import { RouteRouter } from "../../providers/text.js";
+import {
+  defaultTextProtocols,
+  type TextProtocolRegistry,
+} from "../../providers/registry.js";
 import type { ToolDefinition } from "../../runtime/types.js";
 import { invariant } from "../util.js";
 
@@ -23,6 +27,7 @@ export class McpHost {
     private readonly store: Store,
     private readonly permissions: Permissions,
     private readonly costs: CostLedger,
+    private readonly protocols: TextProtocolRegistry = defaultTextProtocols,
   ) {}
   authorize(
     serverId: string,
@@ -94,6 +99,7 @@ export class McpHost {
     const { messages, data, tools } = decoded;
     const session = this.store.session(origin.sessionId);
     const provider = RouteRouter.create(this.config, {
+      protocols: this.protocols,
       prepareRoute: async (request) => {
         this.authorize(serverId, origin, "sampling", request.routeId);
         const route = this.config.routes[request.routeId];

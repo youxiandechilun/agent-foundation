@@ -1,3 +1,4 @@
+// @test-capabilities: interactive-desktop
 import { required } from "./support/payloads.js";
 import { z } from "zod";
 import type { ComputerAction } from "../src/host/computer/manager.js";

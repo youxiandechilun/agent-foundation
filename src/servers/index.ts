@@ -126,7 +126,8 @@ export function serverIntegration(
       }
       invariant(false, "Server endpoint or method not found", 404, "not_found");
     },
-    close: () => {
+    close: (kernel) => {
+      if (kernel && owner && kernel !== owner) return;
       manager?.close();
     },
   };

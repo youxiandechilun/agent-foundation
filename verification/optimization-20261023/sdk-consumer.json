@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-10-23T03:34:37.052Z",
+  "status": "passed",
+  "published": false,
+  "checks": [
+    {
+      "binary": "E:\\nodejs\\node.exe",
+      "node": "v22.23.2",
+      "consumer": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1",
+      "status": "passed",
+      "portableClientWithoutNodeBuiltins": true,
+      "exampleSyntaxChecks": [
+        "embedded.mjs",
+        "http-client.mjs",
+        "team-service.mjs"
+      ],
+      "strictTypes": true,
+      "runtime": {
+        "node": "v22.23.2",
+        "version": "0.12.1",
+        "packageRoot": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1\\node_modules\\@local\\agent-foundation\\",
+        "checks": {
+          "modelAndFileWrite": true,
+          "httpAndSseClient": true,
+          "packagedRegexWorker": true,
+          "sourcePluginWorker": true,
+          "persistentExecTools": [
+            "exec_start",
+            "exec_write",
+            "exec_read",
+            "exec_stop"
+          ],
+          "packagedOfficeWorkerCsv": true,
+          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1\\node_modules\\@local\\agent-foundation\\package.json",
+          "cli": {
+            "started": true,
+            "runtime": "v22.23.2",
+            "command": "agent-foundation serve --config <file>",
+            "installedBin": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy\\1\\node_modules\\.bin\\agent-foundation.cmd"
+          }
+        },
+        "status": "passed"
+      }
+    }
+  ],
+  "package": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+  "sha256": "dc20e9f3c0ea6292011164bc385161c894781a8a75f547f950162ab57380a01e",
+  "version": "0.12.1",
+  "consumerDirectory": "C:\\Users\\chilun\\AppData\\Local\\Temp\\agent-foundation-sdk-L6KXXy",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "validationBoundary": {
+    "supportedRuntimeVersions": [
+      "v22.23.2"
+    ],
+    "unsupportedRuntimeVersions": [],
+    "minimumExactRuntimeTested": false,
+    "externalProviders": false,
+    "remoteServers": false,
+    "dockerRuntime": false,
+    "optionalDependencies": "Deliberately omitted; core, lazy host import, CSV worker and missing DOCX dependency diagnostic checked locally.",
+    "typescriptCompiler": "Repository development compiler; package and all referenced declaration dependencies resolved from isolated consumer node_modules."
+  }
+}

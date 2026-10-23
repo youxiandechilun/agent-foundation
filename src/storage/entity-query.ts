@@ -115,6 +115,9 @@ export const committedCostExpression = `CASE json_extract(body,'$.status')
 const pendingEffect = "json_extract(body,'$.status') IN ('running','prepared')";
 // Query shapes used by memory, cost and event lookups beyond plain field filters.
 const special: Partial<Record<Table, readonly string[]>> = {
+  jobs: [
+    "CREATE INDEX IF NOT EXISTS jobs_idempotency ON e_jobs(json_extract(body,'$.projectId'),json_extract(body,'$.idempotencyKey'))",
+  ],
   effects: [
     `CREATE INDEX IF NOT EXISTS e_effects_status ON e_effects(json_extract(body,'$.status')) WHERE ${pendingEffect}`,
   ],
@@ -133,6 +136,8 @@ const special: Partial<Record<Table, readonly string[]>> = {
   "cost-ledger": [
     "CREATE INDEX IF NOT EXISTS cost_ledger_day ON e_cost_ledger(substr(json_extract(body,'$.createdAt'),1,10))",
     `CREATE INDEX IF NOT EXISTS cost_ledger_project_budget ON e_cost_ledger(json_extract(body,'$.projectId'),seq,substr(json_extract(body,'$.createdAt'),1,10),${committedCostExpression})`,
+    "CREATE INDEX IF NOT EXISTS cost_ledger_reserved ON e_cost_ledger(seq) WHERE json_extract(body,'$.status')='reserved'",
+    "CREATE INDEX IF NOT EXISTS cost_ledger_delivery ON e_cost_ledger(seq) WHERE json_extract(body,'$.billing.state') IN ('authorizing','authorized','failed') AND json_extract(body,'$.status')<>'reserved'",
   ],
 };
 

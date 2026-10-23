@@ -2,7 +2,7 @@ import type { Route } from "../core/config.js";
 import type { ModelRequest } from "../runtime/types.js";
 import { invariant } from "../core/util.js";
 import { wantsReasoning } from "./protocol.js";
-import { findTextProtocol } from "./registry.js";
+import { defaultTextProtocols, type TextProtocolRegistry } from "./registry.js";
 
 export { wantsReasoning } from "./protocol.js";
 
@@ -12,6 +12,7 @@ export function applyReasoning(
   route: Route,
   request: ModelRequest,
   outputBudget: number,
+  protocols: TextProtocolRegistry = defaultTextProtocols,
 ): void {
   const effort = request.reasoningEffort ?? route.reasoningEffort;
   const budget = request.reasoningBudgetTokens ?? route.reasoningBudgetTokens;
@@ -21,7 +22,7 @@ export function applyReasoning(
       `Model route does not support reasoning effort ${effort}`,
       400,
     );
-  const protocol = findTextProtocol(route.adapter);
+  const protocol = protocols.find(route.adapter);
   if (effort === "none") {
     delete body.reasoning;
     delete body.reasoning_effort;

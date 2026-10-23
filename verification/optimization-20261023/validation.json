@@ -1,0 +1,111 @@
+{
+  "status": "passed",
+  "checkedAt": "2026-10-23T03:36:06.9517643Z",
+  "baseCommit": "86c5707",
+  "version": "0.12.1",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "win32",
+    "architecture": "x64"
+  },
+  "checks": [
+    {
+      "command": "npm run check:quality",
+      "status": "passed",
+      "log": "quality.log"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "log": "build-core.log"
+    },
+    {
+      "command": "npm run build:host",
+      "status": "passed",
+      "log": "build-host.log"
+    },
+    {
+      "command": "npm test",
+      "status": "passed",
+      "tests": 641,
+      "passed": 641,
+      "failed": 0,
+      "skipped": 0,
+      "log": "core-tests.log"
+    },
+    {
+      "command": "npm run test:host -- --exclude-capability=interactive-desktop",
+      "status": "passed",
+      "tests": 36,
+      "passed": 35,
+      "failed": 0,
+      "skipped": 1,
+      "log": "host-tests.log"
+    },
+    {
+      "command": "node test/smoke.compiled.mjs",
+      "status": "passed",
+      "log": "core-smoke.log"
+    },
+    {
+      "command": "node test/smoke-host.compiled.mjs",
+      "status": "passed",
+      "log": "host-smoke.log"
+    },
+    {
+      "command": "npm run format:check",
+      "status": "passed",
+      "log": "format-final.log"
+    },
+    {
+      "command": "npm run verify:source",
+      "status": "passed",
+      "log": "source.log",
+      "manifest": "../source-manifest.json"
+    },
+    {
+      "command": "npm audit --omit=dev --omit=optional --json",
+      "status": "passed",
+      "vulnerabilities": 0,
+      "report": "core-audit.json"
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "status": "passed",
+      "vulnerabilities": 0,
+      "report": "host-audit.json"
+    },
+    {
+      "command": "npm run pack:sdk",
+      "status": "passed",
+      "report": "sdk-package.json"
+    },
+    {
+      "command": "npm run verify:sdk",
+      "status": "passed",
+      "report": "sdk-consumer.json",
+      "packagedRegexWorker": true
+    }
+  ],
+  "benchmarks": [
+    "runtime-benchmark.json",
+    "storage-benchmark.json",
+    "kernel-footprint.json"
+  ],
+  "validationBoundary": {
+    "fullInteractiveDesktopSuite": false,
+    "actualChromiumContextAndCdpLifecycle": true,
+    "compiledWindowsDesktopInspect": true,
+    "livePaidModelProviders": false,
+    "productionLoadOrLongTermLeakTest": false,
+    "crossOsMigration": false,
+    "sdkRuntimeVersionsTestedLocally": [
+      "v22.23.2"
+    ],
+    "minimumExactNode2219Tested": false,
+    "githubCi": "Node 22/24 workflow runs after pushing this commit; see GitHub for the remote result.",
+    "migration": "v1 format and integrity retained; complete JSON/Base64 objects remain, import parsing and commit are synchronous.",
+    "footprint": "Five fresh idle Node processes; RSS remains approximately 116 MiB. Heap deltas in lookup benchmarks are not retained heap or peak memory.",
+    "publication": "Source update to GitHub main; SDK package built and verified locally, not published to npm."
+  }
+}

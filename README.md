@@ -40,27 +40,29 @@
 - **缓存有范围和生命周期**：SQL 语句、schema 编译和 token 估算使用固定集合、有界缓存或对象生命周期缓存，不缓存权限判定。
 - **让 SQLite 处理筛选与汇总**：常用查询使用定向 SQL 和索引，费用汇总在数据库中聚合，明细与消息分页读取，减少全量记录进入 JavaScript 堆。
 - **把附加能力留到需要时**：浏览器、桌面和办公库按需安装和装配；办公解析 worker 限制并发、时间与堆大小。可配置历史事件及缓存保留期限。
+- **限制异步工作积压**：媒体任务按并发、待处理数量和请求元数据字节数准入；计费结果留在 SQLite 中，由有限数量的宿主回调投递。取消不合作的外部回调仍占用原槽位，避免超时后不断叠加工作。
+- **缩小大输入的瞬时副本**：文本附件分块校验并保留有限摘录，迁移逐资产暂存、增量计算摘要与发送 JSON；正则匹配在可终止的 worker 内运行。完整迁移对象、浏览器进程与原生库仍有独立开销。
 
 本机最小核心与 HTTP 服务空闲实测为**百 MiB 级进程占用**：
 
 | 指标                     | 五个独立进程的中位数                    |
 | ------------------------ | --------------------------------------- |
-| 整进程 RSS               | **115.3 MiB**，五次范围 115.1–115.6 MiB |
-| JavaScript `heapUsed`    | **31.6 MiB**                            |
-| 动态导入内核至 HTTP 就绪 | **0.340 秒**                            |
+| 整进程 RSS               | **116.34 MiB**，五次范围 115.85–116.48 MiB |
+| JavaScript `heapUsed`    | **31.85 MiB**                            |
+| 动态导入内核至 HTTP 就绪 | **0.337 秒**                             |
 
 测量于 **2026-10-23**，Windows x64 10.0.26200、Intel i5-14600KF、Node.js v22.23.2；五个进程串行启动，各用全新 SQLite，服务就绪后空闲 500ms 并显式 GC。启动时间不含 Node 进程创建和脚本静态导入；未创建项目、会话或调用工具与模型，可选宿主未启用。
 
-结果只描述这个空闲场景，不能外推到浏览器、Office、大数据或并发任务，也没有与竞品做同条件比较。构建后运行 `node scripts/benchmark-kernel-footprint.mjs` 可复现，见 [测量脚本](scripts/benchmark-kernel-footprint.mjs) 与 [原始报告](verification/kernel-footprint.json)。历史 [优化说明](docs/OPTIMIZATION.md) 中的 2026-10-18 模块增量堆数据是另一种口径；存储设计与复现入口见 [存储性能文档](docs/STORAGE-PERFORMANCE.md)。
+结果只描述这个空闲场景，不能外推到浏览器、Office、大数据或并发任务，也没有与竞品做同条件比较；本轮没有证明空闲 RSS 下降。构建后运行 `node scripts/benchmark-kernel-footprint.mjs` 可复现，见 [测量脚本](scripts/benchmark-kernel-footprint.mjs) 与 [本轮原始报告](verification/optimization-20261023/kernel-footprint.json)。历史 [优化说明](docs/OPTIMIZATION.md) 中的 2026-10-18 模块增量堆数据是另一种口径；存储设计与复现入口见 [存储性能文档](docs/STORAGE-PERFORMANCE.md)。
 
-活动历史、上传/下载、输入队列和 SSE 的容量约束，以及列表分页迁移见 [容量与效率](docs/CAPACITY-OPTIMIZATION.md)。完整开发质量检查为 `npm run check:quality`，包含测试和示例的严格类型检查。
+活动历史、上传/下载、媒体、迁移、输入队列和 SSE 的容量约束，以及列表分页迁移见 [容量与效率](docs/CAPACITY-OPTIMIZATION.md)。2026-10-23 的协议实例隔离、计费投递、搜索、存储及宿主生命周期优化，兼容边界和复现命令集中在 [本轮优化说明](docs/OPTIMIZATION-20261023.md)。完整开发质量检查为 `npm run check:quality`，包含测试和示例的严格类型检查；它与运行时测试分别执行。
 
 ## 多账户用量与计费接入
 
 已有的 `Project.billingAccount` 与 `KernelOptions.billing` 可把不同项目的模型费用关联到宿主的业务账户。宿主实现 `BillingProvider`，按自己的余额、积分或套餐规则处理每次调用：
 
 1. **调用前授权**：`authorize(charge, signal)` 在文本、embedding 和媒体请求发出前执行。宿主可检查或预留额度；拒绝时内核返回 `billing_refused`。
-2. **调用后记录**：`record(charge, outcome)` 接收 `settled`、`void` 或 `unknown`，以及已确认的 token、媒体单位和可用的费用信息。内核另有 USD 费用账本与预算限制。
+2. **调用后记录**：`record(charge, outcome, signal?)` 接收 `settled`、`void` 或 `unknown`，以及已确认的 token、媒体单位和可用的费用信息。内核另有 USD 费用账本与预算限制；既有两参数实现继续兼容。
 3. **按同一笔费用幂等更新**：使用稳定的 `charge.id` 作为键；相同费用可能再次报告最新状态，记录失败后可在重启时重投，不能每收到一次回调就重复扣费。
 
 ```typescript
@@ -74,6 +76,8 @@ const project = await kernel.createProject("客户项目", workspace, {
 ```
 
 无用量、请求中断或供应商原生搜索费用不明确时，需要保留待对账状态，再依据实际账单处理。供应商成本与向客户收取的价格可以不同，换算和最终扣款由宿主决定；回调契约见 [计费接口](src/runtime/billing.ts) 与 [架构说明](docs/ARCHITECTURE.md)。
+
+`KernelOptions.billingDelivery` 默认最多同时投递 8 个 `record` 回调，单次超时 30 秒，关闭时最多等待投递 5 秒。宿主应将 `signal` 传给自己的 I/O；超时无法强制终止不合作的回调，该回调在真正结束前继续占用槽位。尚未完成的投递可在重启后恢复，具体配置与关闭语义见 [SDK](docs/SDK.md)。
 
 **内置 HTTP 服务仍使用统一的 host token。** 它是可信宿主入口；终端用户登录、充值、套餐管理，以及每个账户可以读取哪些项目和数据，由上层应用实现。多账户费用归属与回调已经具备，完整多租户身份和数据隔离需要在产品层继续建设。
 

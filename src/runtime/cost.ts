@@ -5,14 +5,17 @@ import { Store } from "../storage/store.js";
 import type { EntityPage } from "../storage/entity-query.js";
 import { AppError, errorText, id, invariant, now } from "../core/util.js";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { findTextProtocol } from "../providers/registry.js";
+import {
+  defaultTextProtocols,
+  type TextProtocolRegistry,
+} from "../providers/registry.js";
 import { nativeWebSearchEnabled } from "../providers/responses-search.js";
-import { KeyedQueue } from "./keyed-queue.js";
 import type {
   BillingCharge,
   BillingOutcome,
   BillingProvider,
   BillingTokens,
+  BillingDeliveryOptions,
   MediaUnits,
 } from "./billing.js";
 
@@ -34,7 +37,7 @@ export interface CostEntry extends CostScope {
   units?: MediaUnits;
   /** Delivery to the host billing provider; absent when none is installed. */
   billing?: {
-    state: "authorized" | "recorded" | "failed";
+    state: "authorizing" | "authorized" | "recorded" | "failed";
     error?: string;
     deliveryId?: string;
   };
@@ -60,10 +63,14 @@ const micros = (usd: number) => {
   return Math.ceil(usd * 1e6);
 };
 /** Provider usage with input excluding cache tokens, per the route's wire protocol. */
-export function billingTokens(adapter: string, u: Usage): BillingTokens {
+export function billingTokens(
+  adapter: string,
+  u: Usage,
+  protocols: TextProtocolRegistry = defaultTextProtocols,
+): BillingTokens {
   return {
     input:
-      findTextProtocol(adapter)?.inputIncludesCache === false
+      protocols.find(adapter)?.inputIncludesCache === false
         ? u.input
         : Math.max(0, u.input - u.cacheRead - u.cacheWrite),
     output: u.output,
@@ -73,34 +80,90 @@ export function billingTokens(adapter: string, u: Usage): BillingTokens {
 }
 export class CostLedger {
   private scopes = new AsyncLocalStorage<CostScope>();
-  private deliveries = new Set<Promise<void>>();
-  private readonly deliveryQueue = new KeyedQueue<string>();
+  private readonly deliveries = new Map<
+    string,
+    {
+      done: Promise<void>;
+      controller: AbortController;
+      timer: ReturnType<typeof setTimeout>;
+    }
+  >();
+  private readonly deliveryOptions: Required<BillingDeliveryOptions>;
+  private pumpScheduled = false;
+  private closed = false;
   constructor(
     readonly store: Store,
     readonly config: Config,
     readonly billing?: BillingProvider,
-  ) {}
+    deliveryOptions: BillingDeliveryOptions = {},
+    readonly protocols: TextProtocolRegistry = defaultTextProtocols,
+  ) {
+    this.deliveryOptions = {
+      concurrency: deliveryOptions.concurrency ?? 8,
+      timeoutMs: deliveryOptions.timeoutMs ?? 30000,
+      shutdownTimeoutMs: deliveryOptions.shutdownTimeoutMs ?? 5000,
+    };
+    for (const [name, value] of Object.entries(this.deliveryOptions))
+      invariant(
+        Number.isSafeInteger(value) &&
+          value > 0 &&
+          value <= (name === "concurrency" ? 128 : 3600000),
+        "Invalid billing delivery option",
+      );
+  }
   withScope<T>(scope: CostScope, operation: () => T): T {
     return this.scopes.run(scope, operation);
   }
   recover() {
-    for (const e of this.store.list<CostEntry>("cost-ledger", {
-      status: "reserved",
-    }))
-      this.update(e.id, {
-        status: "unknown",
-        error: "Interrupted request; charge requires reconciliation",
-      });
+    this.store
+      .prepare(
+        "UPDATE e_cost_ledger SET body=json_set(body,'$.status','unknown','$.error','Interrupted request; charge requires reconciliation','$.updatedAt',?) WHERE json_extract(body,'$.status')='reserved'",
+      )
+      .run(now());
     if (!this.billing) return;
-    // Outcomes the host has not acknowledged are delivered again after a restart.
-    for (const entry of this.store.selectJson<CostEntry>(
-      "SELECT body FROM e_cost_ledger WHERE json_extract(body,'$.billing.state') IN ('authorized','failed') AND json_extract(body,'$.status')<>'reserved' ORDER BY seq",
-    ))
-      this.deliver(entry);
+    // Rebuild durable work in SQL; a backlog never becomes an array of JS records.
+    this.store
+      .prepare(
+        "INSERT INTO billing_deliveries(charge_id,delivery_id) SELECT id,COALESCE(json_extract(body,'$.billing.deliveryId'),lower(hex(randomblob(16)))) FROM e_cost_ledger WHERE json_extract(body,'$.billing.state') IN ('authorizing','authorized','failed') AND json_extract(body,'$.status')<>'reserved' ORDER BY seq ON CONFLICT(charge_id) DO NOTHING",
+      )
+      .run();
+    this.scheduleDeliveries();
   }
-  /** Wait for in-flight outcome deliveries before the store closes. */
-  async drain() {
-    while (this.deliveries.size) await Promise.all([...this.deliveries]);
+  /** Wait up to the configured shutdown deadline; unfinished work remains durable. */
+  async drain(timeoutMs = this.deliveryOptions.shutdownTimeoutMs) {
+    invariant(
+      Number.isSafeInteger(timeoutMs) && timeoutMs >= 0 && timeoutMs <= 3600000,
+      "Invalid billing drain timeout",
+    );
+    const deadline = Date.now() + timeoutMs;
+    while (!this.closed && !this.store.isClosed) {
+      this.pumpDeliveries();
+      if (!this.deliveries.size || Date.now() >= deadline) return;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          Promise.allSettled(
+            [...this.deliveries.values()].map((item) => item.done),
+          ),
+          new Promise<void>((resolve) => {
+            timer = setTimeout(resolve, Math.max(1, deadline - Date.now()));
+          }),
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+  }
+  /** Stop scheduling before the store closes; callbacks that ignore abort cannot delay shutdown. */
+  async close() {
+    if (this.closed) return;
+    await this.drain();
+    this.closed = true;
+    for (const delivery of this.deliveries.values()) {
+      clearTimeout(delivery.timer);
+      delivery.controller.abort(new Error("Billing delivery is closing"));
+    }
   }
   private update(key: string, patch: Partial<CostEntry>) {
     return this.store.put("cost-ledger", {
@@ -333,7 +396,7 @@ export class CostLedger {
       "Invalid provider usage",
       502,
     );
-    const uncached = billingTokens(route.adapter, u).input;
+    const uncached = billingTokens(route.adapter, u, this.protocols).input;
     const chargedMicros =
       Math.ceil(
         uncached * p.inputPerMillion +
@@ -406,6 +469,19 @@ export class CostLedger {
     this.deliver(marked);
     return marked;
   }
+  /** Only cancel a queued reservation before host authorization/provider submission. */
+  voidUnsubmitted(
+    key: string,
+    reason = "Queued request cancelled before submission",
+  ) {
+    const entry = this.store.get<CostEntry>("cost-ledger", key);
+    invariant(
+      entry.status === "reserved" && !entry.billing,
+      "Cannot void an authorized or submitted charge",
+      409,
+    );
+    return this.update(key, { status: "void", error: reason });
+  }
   /**
    * Ask the host billing provider before the call is sent. A refusal voids the
    * reservation and surfaces as `billing_refused`.
@@ -414,24 +490,54 @@ export class CostLedger {
     charge: CostEntry | string,
     signal?: AbortSignal,
   ): Promise<CostEntry> {
+    signal?.throwIfAborted();
+    invariant(
+      !this.closed && !this.store.isClosed,
+      "Billing delivery is closed",
+      503,
+    );
     const entry =
       typeof charge === "string"
         ? this.store.get<CostEntry>("cost-ledger", charge)
         : charge;
     if (!this.billing) return entry;
+    this.update(entry.id, { billing: { state: "authorizing" } });
+    const uncertain = () =>
+      this.deliver(
+        this.update(entry.id, {
+          status: "unknown",
+          billing: { state: "authorized" },
+          error:
+            "Host authorization was interrupted; provider request was not submitted",
+        }),
+      );
     try {
       await this.billing.authorize(this.charge(entry), signal);
     } catch (error) {
+      // The callback may ignore cancellation and settle after its owner/store closes.
+      if (this.closed || this.store.isClosed) throw error;
+      if (signal?.aborted) {
+        uncertain();
+        signal.throwIfAborted();
+      }
       this.update(entry.id, {
         status: "void",
+        billing: undefined,
         error: `Billing refused: ${errorText(error)}`,
       });
-      if (signal?.aborted) throw error;
       throw new AppError(
         402,
         "billing_refused",
         `Billing refused: ${errorText(error)}`,
       );
+    }
+    if (this.closed || this.store.isClosed) {
+      signal?.throwIfAborted();
+      throw new AppError(503, "billing_closed", "Billing delivery is closed");
+    }
+    if (signal?.aborted) {
+      uncertain();
+      signal.throwIfAborted();
     }
     return this.update(entry.id, { billing: { state: "authorized" } });
   }
@@ -453,13 +559,71 @@ export class CostLedger {
   }
   /** Report a final outcome to the host; failures stay marked for redelivery on restart. */
   private deliver(entry: CostEntry) {
-    const billing = this.billing;
-    if (!billing || !entry.billing || entry.status === "reserved") return;
+    if (
+      !this.billing ||
+      !entry.billing ||
+      entry.status === "reserved" ||
+      entry.billing.state === "authorizing"
+    )
+      return;
     const deliveryId = id("billing-delivery");
+    this.store.transaction(() => {
+      this.update(entry.id, { billing: { state: "authorized", deliveryId } });
+      this.store
+        .prepare(
+          "INSERT INTO billing_deliveries(charge_id,delivery_id) VALUES(?,?) ON CONFLICT(charge_id) DO UPDATE SET delivery_id=excluded.delivery_id",
+        )
+        .run(entry.id, deliveryId);
+    });
+    this.scheduleDeliveries();
+  }
+  private scheduleDeliveries() {
+    if (
+      this.closed ||
+      this.store.isClosed ||
+      this.pumpScheduled ||
+      !this.billing
+    )
+      return;
+    this.pumpScheduled = true;
+    setImmediate(() => {
+      this.pumpScheduled = false;
+      this.pumpDeliveries();
+    });
+  }
+  private pumpDeliveries() {
+    if (this.closed || this.store.isClosed || !this.billing) return;
+    const available = this.deliveryOptions.concurrency - this.deliveries.size;
+    if (available <= 0) return;
+    const active = [...this.deliveries.keys()];
+    const rows = this.store
+      .prepare(
+        `SELECT charge_id,delivery_id FROM billing_deliveries${active.length ? ` WHERE charge_id NOT IN (${active.map(() => "?").join(",")})` : ""} ORDER BY seq LIMIT ?`,
+      )
+      .all(...active, available) as {
+      charge_id: string;
+      delivery_id: string;
+    }[];
+    for (const row of rows) {
+      const entry = this.store.find<CostEntry>("cost-ledger", row.charge_id);
+      if (!entry?.billing || entry.status === "reserved") {
+        this.store
+          .prepare(
+            "DELETE FROM billing_deliveries WHERE charge_id=? AND delivery_id=?",
+          )
+          .run(row.charge_id, row.delivery_id);
+        this.scheduleDeliveries();
+        continue;
+      }
+      this.startDelivery(entry, row.delivery_id);
+    }
+  }
+  private startDelivery(entry: CostEntry, deliveryId: string) {
     this.update(entry.id, { billing: { state: "authorized", deliveryId } });
     const markDelivery = (state: "recorded" | "failed", error?: string) => {
-      const current = this.store.get<CostEntry>("cost-ledger", entry.id);
-      if (current.billing?.deliveryId === deliveryId)
+      if (this.closed || this.store.isClosed) return;
+      const current = this.store.find<CostEntry>("cost-ledger", entry.id);
+      if (current?.billing?.deliveryId === deliveryId)
         this.update(entry.id, {
           billing: { state, deliveryId, ...(error ? { error } : {}) },
         });
@@ -472,9 +636,9 @@ export class CostLedger {
         entry.usage?.reported &&
         !entry.requiresReconciliation
           ? "settled"
-          : entry.status,
+          : (entry.status as BillingOutcome["status"]),
       ...(entry.usage?.reported
-        ? { tokens: billingTokens(entry.adapter, entry.usage) }
+        ? { tokens: billingTokens(entry.adapter, entry.usage, this.protocols) }
         : {}),
       ...(entry.units ? { units: entry.units } : {}),
       ...(entry.chargedMicros === undefined
@@ -482,24 +646,58 @@ export class CostLedger {
         : { chargedMicros: entry.chargedMicros }),
       ...(entry.reference === undefined ? {} : { reference: entry.reference }),
     };
-    const delivery = this.deliveryQueue
-      .run(entry.id, async () => {
+    const controller = new AbortController();
+    let timedOut = false;
+    const fail = (error: unknown) => {
+      if (this.closed || this.store.isClosed) return;
+      markDelivery("failed", errorText(error));
+      if (entry.runId)
+        this.store.emit(entry.runId, "billing.record.failed", {
+          chargeId: entry.id,
+          error: errorText(error),
+        });
+    };
+    const timer = setTimeout(() => {
+      timedOut = true;
+      const error = new Error("Billing delivery timed out");
+      controller.abort(error);
+      try {
+        fail(error);
+      } catch {
+        // A failed audit/storage callback must not escape a timer. Durable work remains.
+      }
+      // Keep an uncooperative callback in its slot and preserve same-charge ordering.
+      // Releasing the slot here would allow unlimited timed-out callbacks to pile up.
+    }, this.deliveryOptions.timeoutMs);
+    timer.unref();
+    const done = Promise.resolve()
+      .then(async () => {
         try {
-          await billing.record(this.charge(entry), outcome);
-          markDelivery("recorded");
+          await this.billing!.record(
+            this.charge(entry),
+            outcome,
+            controller.signal,
+          );
+          if (!timedOut) markDelivery("recorded");
         } catch (error) {
-          markDelivery("failed", errorText(error));
-          if (entry.runId)
-            this.store.emit(entry.runId, "billing.record.failed", {
-              chargeId: entry.id,
-              error: errorText(error),
-            });
+          if (!timedOut) fail(error);
         }
       })
-      // The store may already be closed; redelivery happens on the next start.
       .catch(() => undefined)
-      .finally(() => this.deliveries.delete(delivery));
-    this.deliveries.add(delivery);
+      .finally(() => {
+        clearTimeout(timer);
+        this.deliveries.delete(entry.id);
+        if (!this.closed && !this.store.isClosed) {
+          this.store
+            .prepare(
+              "DELETE FROM billing_deliveries WHERE charge_id=? AND delivery_id=?",
+            )
+            .run(entry.id, deliveryId);
+          this.scheduleDeliveries();
+        }
+      })
+      .catch(() => undefined);
+    this.deliveries.set(entry.id, { done, controller, timer });
   }
   settleMedia(
     key: string,
