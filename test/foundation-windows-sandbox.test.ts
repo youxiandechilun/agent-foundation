@@ -1029,7 +1029,7 @@ test(
       await writeFile(outside, "private");
       await writeFile(path.join(x.project.root, "input.txt"), "source");
       const child = `try{require('node:fs').readFileSync(${JSON.stringify(outside)});process.stdout.write(JSON.stringify({child:'escaped'})+'\\n')}catch(e){process.stdout.write(JSON.stringify({child:e.code})+'\\n')}`;
-      const script = `const fs=require('node:fs');let write;try{fs.writeFileSync('blocked.txt','denied');write=false}catch(e){write=e.code}const child=require('node:child_process').spawn(process.execPath,['-e',${JSON.stringify(child)}],{stdio:['ignore','inherit','inherit']});child.once('error',e=>{process.stderr.write(String(e));process.exitCode=1});child.once('close',status=>console.log(JSON.stringify({read:fs.readFileSync('input.txt','utf8'),write,status})));`;
+      const script = `const fs=require('node:fs');let write;try{fs.writeFileSync('blocked.txt','denied');write=false}catch(e){write=e.code}const child=require('node:child_process').spawn(process.execPath,['-e',${JSON.stringify(child)}],{stdio:'inherit'});child.once('error',e=>{process.stderr.write(String(e));process.exitCode=1});child.once('close',status=>console.log(JSON.stringify({read:fs.readFileSync('input.txt','utf8'),write,status})));`;
       const result = await new CommandRunner(x.config).run(
           {
             command: process.execPath,
@@ -1041,10 +1041,13 @@ test(
         ),
         values = result.stdout
           .trim()
-          .split("\n")
+          .split(/\r?\n/)
+          .filter((line) => line.trim())
           .map((line) => JSON.parse(line)),
         value = values.find((row) => row.read),
         childValue = values.find((row) => row.child);
+      assert.equal(result.exitCode, 0, JSON.stringify(result));
+      assert.ok(value, JSON.stringify(result));
       assert.equal(value.read, "source");
       assert.match(value.write, /EPERM|EACCES/);
       assert.ok(childValue, JSON.stringify({ values, result }));

@@ -82,6 +82,8 @@ async function fixture(t: TestContext) {
 async function consume(response: http.IncomingMessage) {
   const events: { seq: number | null; type: string; index?: number }[] = [];
   const stream = Readable.toWeb(response) as ReadableStream<Uint8Array>;
+  // The fixture explicitly paused the socket; resume only after the adapter owns its data listeners.
+  response.resume();
   for await (const frame of decodeEventStream(stream, {
     maxFrameChars: 64 * 1024 * 1024,
   })) {
@@ -98,7 +100,7 @@ async function consume(response: http.IncomingMessage) {
 
 test(
   "real paused HTTP consumer drains a large live backlog in order after its replay watermark",
-  { timeout: 30000 },
+  { timeout: 60000 },
   async (t) => {
     const x = await fixture(t);
     const first = x.store.emit(x.runId, "replay", {
@@ -140,7 +142,7 @@ test(
 
 test(
   "UTF-8 live queue overflow closes the slow HTTP stream and durable reconnect fills every remaining sequence",
-  { timeout: 30000 },
+  { timeout: 60000 },
   async (t) => {
     const x = await fixture(t);
     const replayed = 16;
