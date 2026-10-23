@@ -83,6 +83,7 @@ export interface EngineOptions {
     callId: string,
     signal: AbortSignal,
     effectiveRoute: string,
+    retain?: (operation: Promise<unknown>) => void,
   ) => Promise<void>;
 }
 /** Model steps are sequential; explicitly independent tools may execute concurrently. */
@@ -549,7 +550,7 @@ ${feedback}
           continue;
         }
         let release: (() => void) | undefined;
-        let pending: Promise<unknown> | undefined;
+        const pending = new Set<Promise<unknown>>();
         try {
           const tool = this.tools.get(call.name);
           release = tool?.scheduling?.detached
@@ -568,7 +569,9 @@ ${feedback}
             continue;
           }
           await this.execute(call, route, (operation) => {
-            pending = operation;
+            pending.add(operation);
+            const settled = () => pending.delete(operation);
+            void operation.then(settled, settled);
           });
         } catch (error) {
           failure ??= { error };
@@ -581,7 +584,8 @@ ${feedback}
           // Preserve both capacity and resource locks for callbacks that ignore
           // cancellation, while allowing the cancelled run to finish promptly.
           if (release) {
-            if (pending) void pending.then(release, release);
+            if (pending.size)
+              void Promise.allSettled([...pending]).then(release);
             else release();
           }
         }

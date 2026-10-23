@@ -34,7 +34,11 @@ import { ModeRegistry } from "../modes/registry.js";
 import { decodeSessionSnapshot } from "../sessions/codec.js";
 import { SessionMigration } from "../sessions/migration.js";
 import { ToolScheduler } from "../runtime/scheduler.js";
-import { CostLedger, type CostScope } from "../runtime/cost.js";
+import {
+  billingDeliveryOptions,
+  CostLedger,
+  type CostScope,
+} from "../runtime/cost.js";
 import type { BillingProvider } from "../runtime/billing.js";
 import { ProcessManager } from "../execution/sessions.js";
 import { CommandRunner } from "../execution/process.js";
@@ -172,14 +176,11 @@ export class Kernel {
     readonly config: Config,
     options: KernelOptions = {},
   ) {
+    // Reject host options before acquiring the exclusive data-directory lease.
+    const delivery = billingDeliveryOptions(options.billingDelivery);
     this.textProtocols = (
       options.textProtocols ?? defaultTextProtocols
     ).clone();
-    this.redaction = new RedactionScope(config.redaction);
-    this.redaction.bind(this);
-    const create = <T extends object>(factory: () => T): T =>
-      this.redaction.run(() => this.redaction.bind(factory()));
-    this.registerRouteSecrets();
     this.integrations = Object.freeze([...(options.integrations || [])]);
     for (const integration of this.integrations) {
       invariant(
@@ -197,10 +198,20 @@ export class Kernel {
           integration.tools.bind(integration),
         );
     }
-    this.store = create(
-      () => new Store(config.dataDir, { exclusiveKernel: true }),
-    );
+    this.redaction = new RedactionScope(config.redaction);
+    const rollback: (() => void)[] = [() => this.redaction.close()];
     try {
+      this.redaction.bind(this);
+      const create = <T extends object>(factory: () => T): T =>
+        this.redaction.run(() => this.redaction.bind(factory()));
+      this.registerRouteSecrets();
+      // Service constructors are passive. Store and redaction own the resources
+      // until assembly completes; no billing callbacks start during assembly.
+      this.store = this.redaction.run(
+        () => new Store(config.dataDir, { exclusiveKernel: true }),
+      );
+      rollback.push(() => this.store.close());
+      this.redaction.bind(this.store);
       this.securityAudit = create(
         () =>
           new SecurityAudit(
@@ -209,62 +220,83 @@ export class Kernel {
             options.securityAuditRules,
           ),
       );
-    } catch (error) {
-      this.store.close();
-      throw error;
-    }
-    this.store.recover();
-    this.costs = create(
-      () =>
-        new CostLedger(
-          this.store,
+      this.costs = create(
+        () =>
+          new CostLedger(
+            this.store,
+            config,
+            options.billing,
+            delivery,
+            this.textProtocols,
+          ),
+      );
+      this.web = create(() => new WebClient(config.web));
+      this.checkpoints = create(
+        () => new Checkpoints(this.store, config.dataDir),
+      );
+      this.assets = create(() => new Assets(this.store, config));
+      this.migrations = create(
+        () => new SessionMigration(this.store, this.assets, config),
+      );
+      this.plugins = create(() => new PluginManager(this.store, config));
+      this.skills = create(() => new SkillManager(this.store, config));
+      this.buildInput = createInputBuilder(config, this.assets, this.skills);
+      this.mcp = create(() => new MCPManager(this.store, config));
+      this.media = create(
+        () =>
+          new Media(this.store, this.assets, config, this.plugins, this.costs),
+      );
+      this.permissions = create(
+        () => new Permissions(this.store, config, this.modes),
+      );
+      this.mcp.setHost(
+        new McpHost(
           config,
-          options.billing,
-          options.billingDelivery,
+          this.store,
+          this.permissions,
+          this.costs,
           this.textProtocols,
         ),
-    );
-    this.web = create(() => new WebClient(config.web));
-    this.checkpoints = create(
-      () => new Checkpoints(this.store, config.dataDir),
-    );
-    this.costs.recover();
-    this.assets = create(() => new Assets(this.store, config));
-    this.migrations = create(
-      () => new SessionMigration(this.store, this.assets, config),
-    );
-    this.plugins = create(() => new PluginManager(this.store, config));
-    this.skills = create(() => new SkillManager(this.store, config));
-    this.buildInput = createInputBuilder(config, this.assets, this.skills);
-    this.mcp = create(() => new MCPManager(this.store, config));
-    this.media = create(
-      () =>
-        new Media(this.store, this.assets, config, this.plugins, this.costs),
-    );
-    this.permissions = create(
-      () => new Permissions(this.store, config, this.modes),
-    );
-    this.mcp.setHost(
-      new McpHost(
-        config,
-        this.store,
-        this.permissions,
-        this.costs,
-        this.textProtocols,
-      ),
-    );
-    this.memory = create(() => new MemoryStore(this.store, config, this.costs));
-    this.context = create(
-      () =>
-        new ContextManager(this.store, config, this.costs, this.textProtocols),
-    );
-    this.agents = create(() => new AgentManager(this.store));
-    this.teams = create(() => new TeamManager(this));
-    this.scheduler = create(
-      () => new ToolScheduler(config.limits.maxConcurrentTools),
-    );
-    this.processes = create(() => new ProcessManager(this.store, config));
-    this.commands = create(() => new CommandRunner(config));
+      );
+      this.memory = create(
+        () => new MemoryStore(this.store, config, this.costs),
+      );
+      this.context = create(
+        () =>
+          new ContextManager(
+            this.store,
+            config,
+            this.costs,
+            this.textProtocols,
+          ),
+      );
+      this.agents = create(() => new AgentManager(this.store));
+      this.teams = create(() => new TeamManager(this));
+      this.scheduler = create(
+        () => new ToolScheduler(config.limits.maxConcurrentTools),
+      );
+      this.processes = create(() => new ProcessManager(this.store, config));
+      this.commands = create(() => new CommandRunner(config));
+      this.store.recover();
+      // Keep this last: recover schedules host billing callbacks in a microtask.
+      this.costs.recover();
+    } catch (error) {
+      const failures: unknown[] = [];
+      for (const dispose of rollback.reverse()) {
+        try {
+          dispose();
+        } catch (failure) {
+          failures.push(failure);
+        }
+      }
+      if (failures.length)
+        throw new AggregateError(
+          [error, ...failures],
+          "Kernel construction failed and resource rollback reported errors",
+          { cause: error },
+        );
+      throw error;
+    }
   }
   // Route credentials never expire once registered; skip values already known.
   private readonly routeSecrets = new Set<string>();
@@ -437,12 +469,10 @@ export class Kernel {
         this.config,
         change,
         (name) =>
-          this.agents.list().some((agent) => agent.routeId === name) ||
+          this.store.hasAgentForRoute(name) ||
           this.modes.list().some((mode) => mode.defaultRouteId === name)
             ? "Route is referenced by an agent or mode profile"
-            : this.store
-                  .list<Session>("sessions", { routeId: name })
-                  .some((s) => !s.archived)
+            : this.store.hasActiveSessionForRoute(name)
               ? "Route is used by a session; change its route or archive it first"
               : undefined,
         this.textProtocols,
@@ -722,8 +752,9 @@ export class Kernel {
   private async checkSecurityAudit(
     request: SecurityAuditRequest,
     signal: AbortSignal,
+    retain?: (operation: Promise<unknown>) => void,
   ): Promise<void> {
-    const record = await this.securityAudit.check(request, signal);
+    const record = await this.securityAudit.check(request, signal, retain);
     signal.throwIfAborted();
     if (record && request.stage === "tool")
       this.store.emit(request.runId, "security.audit", {
@@ -1068,8 +1099,8 @@ export class Kernel {
       },
       {
         hooks: this.hooksFor(runId, session, root),
-        checkSecurityAudit: (request, signal) =>
-          this.checkSecurityAudit(request, signal),
+        checkSecurityAudit: (request, signal, retain) =>
+          this.checkSecurityAudit(request, signal, retain),
       },
     );
   }
@@ -1269,7 +1300,8 @@ export class Kernel {
     return startProcessAction(
       this,
       this.lifecycle,
-      (request, signal) => this.checkSecurityAudit(request, signal),
+      (request, signal, retain) =>
+        this.checkSecurityAudit(request, signal, retain),
       sessionId,
       action,
       args,

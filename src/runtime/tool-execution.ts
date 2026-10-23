@@ -106,7 +106,16 @@ export class ToolExecution {
       );
       const authorize = (args: ToolCall["arguments"]) =>
         options.authorize &&
-        wait(options.authorize(tool, args, call.id, signal, effectiveRoute));
+        wait(
+          options.authorize(
+            tool,
+            args,
+            call.id,
+            signal,
+            effectiveRoute,
+            retain,
+          ),
+        );
       const previous = store.find<ToolEffect>("effects", effectId);
       if (previous) {
         await authorize(call.arguments);
@@ -148,7 +157,7 @@ export class ToolExecution {
         let args = call.arguments;
         if (options.hooks) {
           const decision = await wait(
-            options.hooks.preToolUse(call, tool, signal),
+            options.hooks.preToolUse(call, tool, signal, retain),
           );
           if (decision.deny) {
             publish("hook.denied", {
@@ -228,6 +237,7 @@ export class ToolExecution {
               { ...call, arguments: args },
               result,
               signal,
+              retain,
             ),
           );
         invariant(

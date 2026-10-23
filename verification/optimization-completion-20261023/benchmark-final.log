@@ -1,0 +1,19 @@
+json-admission baseline: sample 1/3 passed
+json-admission current: sample 1/3 passed
+json-admission current: sample 2/3 passed
+json-admission baseline: sample 2/3 passed
+json-admission baseline: sample 3/3 passed
+json-admission current: sample 3/3 passed
+session-export baseline: sample 1/3 passed
+session-export current: sample 1/3 passed
+session-export current: sample 2/3 passed
+session-export baseline: sample 2/3 passed
+session-export baseline: sample 3/3 passed
+session-export current: sample 3/3 passed
+memory-prune baseline: sample 1/3 passed
+memory-prune current: sample 1/3 passed
+memory-prune current: sample 2/3 passed
+memory-prune baseline: sample 2/3 passed
+memory-prune baseline: sample 3/3 passed
+memory-prune current: sample 3/3 passed
+E:\agent-foundation-main\verification\optimization-completion-20261023\benchmark.json

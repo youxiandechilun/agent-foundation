@@ -14,6 +14,8 @@ export async function management(
   const { k, method, parts } = context;
   if (parts[0] !== "v1" || parts.length > 4) return;
   const [, key, entity, op] = parts;
+  if (key === "storage" && entity === "stats" && !op && method === "GET")
+    return { data: await k.store.storageStats(context.signal) };
   switch (key) {
     case "memories":
     case "memory-proposals":

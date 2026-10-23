@@ -1,0 +1,10 @@
+
+> @local/agent-foundation@0.12.1 pack:sdk
+> node scripts/release/package-sdk.mjs
+
+Building complete SDK and optional host entry...
+{
+  "tarball": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+  "sha256": "b10bb0586a6c7cb1cef70b4bd498fafbd6ca5b5a2da05d5edae2f4467c89da90",
+  "files": 409
+}

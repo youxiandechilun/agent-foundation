@@ -5,6 +5,7 @@ import type { EntityFilter, Table } from "../storage/entity-query.js";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { jsonChunks } from "../sessions/json-stream.js";
+import type { Capacity } from "../runtime/capacity.js";
 
 export interface ApiResult {
   data: unknown;
@@ -63,7 +64,7 @@ export interface HttpContext extends ApiContext {
   res: ServerResponse;
 }
 
-export async function body(req: IncomingMessage, max: number) {
+function declaredLength(req: IncomingMessage, max: number) {
   const declared =
     req.headers["content-length"] === undefined
       ? undefined
@@ -74,6 +75,65 @@ export async function body(req: IncomingMessage, max: number) {
     "Request too large",
     413,
   );
+  return declared;
+}
+
+/** One parser lease covers both incoming bytes and the handler using the decoded object. */
+export function jsonReader(
+  req: IncomingMessage,
+  res: ServerResponse,
+  max: number,
+  capacity: Capacity,
+) {
+  let pending: ReturnType<typeof json> | undefined;
+  let release: (() => void) | undefined;
+  let handlerSettled = false,
+    parserSettled = true,
+    transportSettled = req.aborted || res.destroyed || res.writableFinished;
+  const cleanup = () => {
+    if (!handlerSettled || !parserSettled || !transportSettled) return;
+    req.off("aborted", transportDone);
+    res.off("finish", transportDone);
+    res.off("close", transportDone);
+    release?.();
+    release = undefined;
+    pending = undefined;
+  };
+  const transportDone = () => {
+    transportSettled = true;
+    cleanup();
+  };
+  const read = () => {
+    if (pending) return pending;
+    // Chunked requests conservatively reserve their complete per-route limit.
+    // Admission happens before body() allocates a declared-length Buffer.
+    invariant(
+      !handlerSettled && !req.aborted && !res.destroyed,
+      "HTTP transfer cancelled",
+      400,
+    );
+    release = capacity.reserve(declaredLength(req, max) ?? max);
+    req.once("aborted", transportDone);
+    res.once("finish", transportDone);
+    res.once("close", transportDone);
+    parserSettled = false;
+    pending = json(req, max).finally(() => {
+      parserSettled = true;
+      cleanup();
+    });
+    return pending;
+  };
+  return Object.assign(read, {
+    /** Disconnect ends transport waiting, but cannot release a live host callback. */
+    settle() {
+      handlerSettled = true;
+      cleanup();
+    },
+  });
+}
+
+export async function body(req: IncomingMessage, max: number) {
+  const declared = declaredLength(req, max);
   const chunks: Buffer[] = [];
   const target =
     declared === undefined ? undefined : Buffer.allocUnsafe(declared);

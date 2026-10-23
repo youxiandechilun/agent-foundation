@@ -139,6 +139,33 @@ test("dimension-mismatched vectors still yield and observe cancellation during s
   );
 });
 
+test("semantic scan diagnostics count scoped vectors without changing exact ranking", async (t) => {
+  const { store, memory, add } = await fixture(t);
+  store.transaction(() => {
+    add("first", [1, 0]);
+    add("second", [1, 0]);
+    add("wrong-dimensions", [1]);
+    add("foreign", [1, 0], { projectId: "another-project" });
+  });
+  const detailed = await memory.semanticSearchWithStats("project", "query", 2);
+  assert.deepEqual(
+    detailed.memories,
+    await memory.semanticSearch("project", "query", 2),
+  );
+  assert.deepEqual(
+    detailed.memories.map(({ id }) => id),
+    ["first", "second"],
+  );
+  assert.equal(detailed.stats.scannedRows, 3);
+  assert.equal(detailed.stats.scoredRows, 2);
+  assert.equal(detailed.stats.dimensions, 2);
+  assert.equal(
+    detailed.stats.vectorBytes,
+    2 * Buffer.byteLength("[1,0]") + Buffer.byteLength("[1]"),
+  );
+  assert.ok(detailed.stats.elapsedMs >= 0);
+});
+
 test("concurrent semantic scans retain independent cursors while synchronous queries reuse statements", async (t) => {
   const { store, memory, add } = await fixture(t);
   store.transaction(() => {

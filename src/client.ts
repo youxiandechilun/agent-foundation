@@ -375,6 +375,15 @@ export class FoundationClient {
       signal,
     );
   }
+  /** Explicit, cancellable diagnostics; directory sizes are sampled separately from SQL. */
+  storageStats(signal?: AbortSignal) {
+    return this.request<import("./storage/metrics.js").StorageStats>(
+      "GET",
+      "/v1/storage/stats",
+      undefined,
+      signal,
+    );
+  }
   importMigration(
     projectId: string,
     bundle: unknown,

@@ -14,7 +14,7 @@ import {
   registerSecret,
 } from "../core/util.js";
 import {
-  json,
+  jsonReader,
   respond,
   respondJsonStream,
   respondChunkStream,
@@ -25,6 +25,9 @@ import {
 import { sessionRoutes } from "./routes/sessions.js";
 import { resourceRoutes } from "./routes/resources.js";
 import { listenHttp } from "../transport/http-listener.js";
+import { Capacity } from "../runtime/capacity.js";
+
+const jsonCapacities = new WeakMap<Kernel, Capacity>();
 
 export async function apiToken(kernel: Kernel) {
   const configured = process.env[kernel.config.server.tokenEnv];
@@ -51,6 +54,15 @@ export async function serve(kernel: Kernel, token?: string) {
   const secret = token || (await apiToken(kernel));
   kernel.redaction.run(() => registerSecret(secret));
   const expected = Buffer.from(secret);
+  let jsonCapacity = jsonCapacities.get(kernel);
+  if (!jsonCapacity) {
+    jsonCapacity = new Capacity(
+      kernel.config.limits.maxConcurrentJsonRequests,
+      kernel.config.limits.maxInFlightJsonBytes,
+    );
+    jsonCapacities.set(kernel, jsonCapacity);
+  }
+  const bodyCapacity = jsonCapacity;
   const server = http.createServer((req, res) => {
     void kernel.redaction.run(() =>
       handle(req, res).catch((error: unknown) => {
@@ -95,134 +107,146 @@ export async function serve(kernel: Kernel, token?: string) {
     const url = new URL(req.url || "/", "http://localhost");
     const parts = url.pathname.split("/").filter(Boolean),
       method = req.method || "GET";
-    const origin = req.headers.origin;
-    if (origin) {
-      invariant(
-        kernel.config.server.allowedOrigins.includes(origin),
-        "Origin is not allowed",
-        403,
-        "origin_denied",
-      );
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Vary", "Origin");
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Authorization, Content-Type, Last-Event-ID",
-      );
-      res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-      );
-      if (method === "OPTIONS") {
-        res.writeHead(204);
-        res.end();
-        return;
-      }
-    }
-    if (url.pathname === "/health" && method === "GET") {
-      respond(res, { ok: true, version: VERSION, protocol: 1 });
-      return;
-    }
-    if (method === "GET" || method === "HEAD") {
-      const metadata = await kernel.mcp.publicMetadata(
-        url.pathname,
-        method === "GET",
-      );
-      if (metadata) {
-        const headers = {
-          "Content-Type": "application/json; charset=utf-8",
-          "Cache-Control": metadata.cacheControl,
-          ETag: metadata.etag,
-          "X-Content-Type-Options": "nosniff",
-        };
-        if (req.headers["if-none-match"] === metadata.etag) {
-          res.writeHead(304, headers);
+    const maxJsonBytes =
+      url.pathname === "/v1/migrations/import"
+        ? Math.ceil(kernel.config.limits.maxMigrationBytes * 1.4) +
+          9 * 1024 * 1024
+        : (parts[0] === "v1" &&
+              parts.length === 2 &&
+              ["projects", "sessions"].includes(parts[1])) ||
+            (parts[0] === "v1" &&
+              parts[1] === "sessions" &&
+              parts.length === 3 &&
+              method === "PATCH")
+          ? 64 * 1024
+          : 8 * 1024 * 1024;
+    const readJson = jsonReader(req, res, maxJsonBytes, bodyCapacity);
+    try {
+      const origin = req.headers.origin;
+      if (origin) {
+        invariant(
+          kernel.config.server.allowedOrigins.includes(origin),
+          "Origin is not allowed",
+          403,
+          "origin_denied",
+        );
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Vary", "Origin");
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Authorization, Content-Type, Last-Event-ID",
+        );
+        res.setHeader(
+          "Access-Control-Allow-Methods",
+          "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+        );
+        if (method === "OPTIONS") {
+          res.writeHead(204);
           res.end();
           return;
         }
-        res.writeHead(200, headers);
-        res.end(
-          method === "HEAD" ? undefined : JSON.stringify(metadata.document),
+      }
+      if (url.pathname === "/health" && method === "GET") {
+        respond(res, { ok: true, version: VERSION, protocol: 1 });
+        return;
+      }
+      if (method === "GET" || method === "HEAD") {
+        const metadata = await kernel.mcp.publicMetadata(
+          url.pathname,
+          method === "GET",
         );
-        return;
-      }
-    }
-    for (const integration of kernel.integrations) {
-      const handled = await integration.handlePublic?.(kernel, req, url, () =>
-        json(req),
-      );
-      if (handled) {
-        respond(res, handled.data, handled.status);
-        return;
-      }
-    }
-    const given = Buffer.from(
-      req.headers.authorization?.replace(/^Bearer /, "") || "",
-    );
-    invariant(
-      given.length === expected.length && timingSafeEqual(given, expected),
-      "Bearer token required",
-      401,
-      "unauthorized",
-    );
-    invariant(parts[0] === "v1", "Unknown API version", 404);
-    if (url.pathname === "/v1/config" && method === "GET") {
-      respond(res, publicConfig(kernel.config));
-      return;
-    }
-    for (const integration of kernel.integrations) {
-      const handled = await integration.handle?.(kernel, req, url, () =>
-        json(req),
-      );
-      if (handled) {
-        respond(res, handled.data, handled.status);
-        return;
-      }
-    }
-    const context: HttpContext = {
-      k: kernel,
-      req,
-      res,
-      url,
-      parts,
-      method,
-      json: () =>
-        json(
-          req,
-          url.pathname === "/v1/migrations/import"
-            ? Math.ceil(kernel.config.limits.maxMigrationBytes * 1.4) +
-                9 * 1024 * 1024
-            : 8 * 1024 * 1024,
-        ),
-    };
-    const isMigration =
-      url.pathname === "/v1/migrations/import" ||
-      (method === "GET" &&
-        parts.length === 4 &&
-        parts[1] === "sessions" &&
-        parts[3] === "migration");
-    const releaseTransfer = isMigration
-      ? kernel.migrations.reserveTransfer()
-      : undefined;
-    const transferSignal = requestSignal(req, res);
-    context.signal = transferSignal.signal;
-    try {
-      for (const route of [management, sessionRoutes, resourceRoutes]) {
-        const result = await route(context);
-        if (result === undefined) continue;
-        if (result !== true) {
-          if (result.data instanceof JsonStreamResponse)
-            await respondChunkStream(req, res, result.data, result.status);
-          else if (isMigration)
-            await respondJsonStream(req, res, result.data, result.status);
-          else respond(res, result.data, result.status);
+        if (metadata) {
+          const headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": metadata.cacheControl,
+            ETag: metadata.etag,
+            "X-Content-Type-Options": "nosniff",
+          };
+          if (req.headers["if-none-match"] === metadata.etag) {
+            res.writeHead(304, headers);
+            res.end();
+            return;
+          }
+          res.writeHead(200, headers);
+          res.end(
+            method === "HEAD" ? undefined : JSON.stringify(metadata.document),
+          );
+          return;
         }
+      }
+      for (const integration of kernel.integrations) {
+        const handled = await integration.handlePublic?.(
+          kernel,
+          req,
+          url,
+          readJson,
+        );
+        if (handled) {
+          respond(res, handled.data, handled.status);
+          return;
+        }
+      }
+      const given = Buffer.from(
+        req.headers.authorization?.replace(/^Bearer /, "") || "",
+      );
+      invariant(
+        given.length === expected.length && timingSafeEqual(given, expected),
+        "Bearer token required",
+        401,
+        "unauthorized",
+      );
+      invariant(parts[0] === "v1", "Unknown API version", 404);
+      if (url.pathname === "/v1/config" && method === "GET") {
+        respond(res, publicConfig(kernel.config));
         return;
       }
-      throw new AppError(404, "not_found", "Endpoint not found");
+      for (const integration of kernel.integrations) {
+        const handled = await integration.handle?.(kernel, req, url, readJson);
+        if (handled) {
+          respond(res, handled.data, handled.status);
+          return;
+        }
+      }
+      const context: HttpContext = {
+        k: kernel,
+        req,
+        res,
+        url,
+        parts,
+        method,
+        json: readJson,
+      };
+      const isMigration =
+        url.pathname === "/v1/migrations/import" ||
+        (method === "GET" &&
+          parts.length === 4 &&
+          parts[1] === "sessions" &&
+          parts[3] === "migration");
+      const releaseTransfer = isMigration
+        ? kernel.migrations.reserveTransfer()
+        : undefined;
+      const transferSignal = requestSignal(req, res);
+      context.signal = transferSignal.signal;
+      try {
+        for (const route of [management, sessionRoutes, resourceRoutes]) {
+          const result = await route(context);
+          if (result === undefined) continue;
+          if (result !== true) {
+            if (result.data instanceof JsonStreamResponse)
+              await respondChunkStream(req, res, result.data, result.status);
+            else if (isMigration)
+              await respondJsonStream(req, res, result.data, result.status);
+            else respond(res, result.data, result.status);
+          }
+          return;
+        }
+        throw new AppError(404, "not_found", "Endpoint not found");
+      } finally {
+        transferSignal.close();
+        releaseTransfer?.();
+      }
     } finally {
-      transferSignal.close();
-      releaseTransfer?.();
+      readJson.settle();
     }
   }
   server.on("upgrade", (req, socket, head) => {

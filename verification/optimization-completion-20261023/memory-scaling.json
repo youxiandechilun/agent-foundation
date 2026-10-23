@@ -1,0 +1,390 @@
+{
+  "node": "v22.23.2",
+  "platform": "win32",
+  "architecture": "x64",
+  "cpu": "Intel(R) Core(TM) i5-14600KF",
+  "samplesPerScenario": 3,
+  "scriptSha256": "e620931974b89a415fdd26ec420878c1795b8c7c4e21569f769fd946c7076350",
+  "memoryRuntimeSha256": "815f757850d61d1a80b6aa00ec34659a1c69f6d8cb7747e01ad5f15a4e772bdb",
+  "method": "Fresh processes and SQLite databases; Float64 BLOB vectors, cached norms and identical vectors to verify stable tie ordering. Embedding response comes from a local HTTP fixture; exact scan timing excludes that request. No paid or external providers.",
+  "limitation": "Exact scanning remains O(N×D). These are corpus-size diagnostics, not an ANN comparison or production latency guarantee. SQLite cache, JIT, GC, filesystem and host load affect timings; sampled memory deltas are not exact peaks or evidence about long-term leaks.",
+  "records": [
+    {
+      "rows": 1000,
+      "dimensions": 128,
+      "runs": [
+        {
+          "rows": 1000,
+          "dimensions": 128,
+          "scannedRows": 1000,
+          "scoredRows": 1000,
+          "vectorBytes": 1024000,
+          "elapsedMs": 8.468399999999974,
+          "totalElapsedMs": 12.654800000000023,
+          "maximumPauseMs": 2.7846999999999866,
+          "sampledRssDeltaBytes": 6647808,
+          "sampledHeapDeltaBytes": 9813672,
+          "sampledArrayBufferDeltaBytes": 1029207,
+          "sampleCount": 5
+        },
+        {
+          "rows": 1000,
+          "dimensions": 128,
+          "scannedRows": 1000,
+          "scoredRows": 1000,
+          "vectorBytes": 1024000,
+          "elapsedMs": 8.579799999999977,
+          "totalElapsedMs": 12.027000000000044,
+          "maximumPauseMs": 2.5679000000000087,
+          "sampledRssDeltaBytes": 6332416,
+          "sampledHeapDeltaBytes": 9812728,
+          "sampledArrayBufferDeltaBytes": 1029207,
+          "sampleCount": 4
+        },
+        {
+          "rows": 1000,
+          "dimensions": 128,
+          "scannedRows": 1000,
+          "scoredRows": 1000,
+          "vectorBytes": 1024000,
+          "elapsedMs": 8.785499999999956,
+          "totalElapsedMs": 12.040699999999958,
+          "maximumPauseMs": 2.5235000000000127,
+          "sampledRssDeltaBytes": 5881856,
+          "sampledHeapDeltaBytes": 9812728,
+          "sampledArrayBufferDeltaBytes": 1029207,
+          "sampleCount": 4
+        }
+      ],
+      "medians": {
+        "rows": 1000,
+        "dimensions": 128,
+        "scannedRows": 1000,
+        "scoredRows": 1000,
+        "vectorBytes": 1024000,
+        "elapsedMs": 8.579799999999977,
+        "totalElapsedMs": 12.040699999999958,
+        "maximumPauseMs": 2.5679000000000087,
+        "sampledRssDeltaBytes": 6332416,
+        "sampledHeapDeltaBytes": 9812728,
+        "sampledArrayBufferDeltaBytes": 1029207,
+        "sampleCount": 4
+      }
+    },
+    {
+      "rows": 1000,
+      "dimensions": 512,
+      "runs": [
+        {
+          "rows": 1000,
+          "dimensions": 512,
+          "scannedRows": 1000,
+          "scoredRows": 1000,
+          "vectorBytes": 4096000,
+          "elapsedMs": 20.088499999999954,
+          "totalElapsedMs": 23.659299999999973,
+          "maximumPauseMs": 7.062700000000007,
+          "sampledRssDeltaBytes": 13422592,
+          "sampledHeapDeltaBytes": 10278424,
+          "sampledArrayBufferDeltaBytes": 2136835,
+          "sampleCount": 4
+        },
+        {
+          "rows": 1000,
+          "dimensions": 512,
+          "scannedRows": 1000,
+          "scoredRows": 1000,
+          "vectorBytes": 4096000,
+          "elapsedMs": 21.259500000000003,
+          "totalElapsedMs": 24.985000000000014,
+          "maximumPauseMs": 7.711399999999969,
+          "sampledRssDeltaBytes": 13455360,
+          "sampledHeapDeltaBytes": 10245456,
+          "sampledArrayBufferDeltaBytes": 2136835,
+          "sampleCount": 4
+        },
+        {
+          "rows": 1000,
+          "dimensions": 512,
+          "scannedRows": 1000,
+          "scoredRows": 1000,
+          "vectorBytes": 4096000,
+          "elapsedMs": 20.089699999999993,
+          "totalElapsedMs": 23.94029999999998,
+          "maximumPauseMs": 7.931899999999985,
+          "sampledRssDeltaBytes": 12464128,
+          "sampledHeapDeltaBytes": 10803576,
+          "sampledArrayBufferDeltaBytes": 2136835,
+          "sampleCount": 4
+        }
+      ],
+      "medians": {
+        "rows": 1000,
+        "dimensions": 512,
+        "scannedRows": 1000,
+        "scoredRows": 1000,
+        "vectorBytes": 4096000,
+        "elapsedMs": 20.089699999999993,
+        "totalElapsedMs": 23.94029999999998,
+        "maximumPauseMs": 7.711399999999969,
+        "sampledRssDeltaBytes": 13422592,
+        "sampledHeapDeltaBytes": 10278424,
+        "sampledArrayBufferDeltaBytes": 2136835,
+        "sampleCount": 4
+      }
+    },
+    {
+      "rows": 5000,
+      "dimensions": 128,
+      "runs": [
+        {
+          "rows": 5000,
+          "dimensions": 128,
+          "scannedRows": 5000,
+          "scoredRows": 5000,
+          "vectorBytes": 5120000,
+          "elapsedMs": 25.72429999999997,
+          "totalElapsedMs": 30.458399999999983,
+          "maximumPauseMs": 3.2414999999999736,
+          "sampledRssDeltaBytes": 11567104,
+          "sampledHeapDeltaBytes": 14250184,
+          "sampledArrayBufferDeltaBytes": 2888791,
+          "sampleCount": 14
+        },
+        {
+          "rows": 5000,
+          "dimensions": 128,
+          "scannedRows": 5000,
+          "scoredRows": 5000,
+          "vectorBytes": 5120000,
+          "elapsedMs": 27.288299999999992,
+          "totalElapsedMs": 31.05250000000001,
+          "maximumPauseMs": 3.0899,
+          "sampledRssDeltaBytes": 13549568,
+          "sampledHeapDeltaBytes": 14510912,
+          "sampledArrayBufferDeltaBytes": 4985943,
+          "sampleCount": 13
+        },
+        {
+          "rows": 5000,
+          "dimensions": 128,
+          "scannedRows": 5000,
+          "scoredRows": 5000,
+          "vectorBytes": 5120000,
+          "elapsedMs": 25.17489999999998,
+          "totalElapsedMs": 29.126899999999978,
+          "maximumPauseMs": 3.030300000000011,
+          "sampledRssDeltaBytes": 10571776,
+          "sampledHeapDeltaBytes": 13948000,
+          "sampledArrayBufferDeltaBytes": 2626647,
+          "sampleCount": 13
+        }
+      ],
+      "medians": {
+        "rows": 5000,
+        "dimensions": 128,
+        "scannedRows": 5000,
+        "scoredRows": 5000,
+        "vectorBytes": 5120000,
+        "elapsedMs": 25.72429999999997,
+        "totalElapsedMs": 30.458399999999983,
+        "maximumPauseMs": 3.0899,
+        "sampledRssDeltaBytes": 11567104,
+        "sampledHeapDeltaBytes": 14250184,
+        "sampledArrayBufferDeltaBytes": 2888791,
+        "sampleCount": 13
+      }
+    },
+    {
+      "rows": 5000,
+      "dimensions": 512,
+      "runs": [
+        {
+          "rows": 5000,
+          "dimensions": 512,
+          "scannedRows": 5000,
+          "scoredRows": 5000,
+          "vectorBytes": 20480000,
+          "elapsedMs": 55.49489999999997,
+          "totalElapsedMs": 59.5437,
+          "maximumPauseMs": 7.634200000000021,
+          "sampledRssDeltaBytes": 28905472,
+          "sampledHeapDeltaBytes": 10279624,
+          "sampledArrayBufferDeltaBytes": 17604608,
+          "sampleCount": 20
+        },
+        {
+          "rows": 5000,
+          "dimensions": 512,
+          "scannedRows": 5000,
+          "scoredRows": 5000,
+          "vectorBytes": 20480000,
+          "elapsedMs": 55.6379,
+          "totalElapsedMs": 59.46039999999999,
+          "maximumPauseMs": 6.874899999999968,
+          "sampledRssDeltaBytes": 29515776,
+          "sampledHeapDeltaBytes": 10477568,
+          "sampledArrayBufferDeltaBytes": 17625088,
+          "sampleCount": 20
+        },
+        {
+          "rows": 5000,
+          "dimensions": 512,
+          "scannedRows": 5000,
+          "scoredRows": 5000,
+          "vectorBytes": 20480000,
+          "elapsedMs": 55.06140000000005,
+          "totalElapsedMs": 59.1755,
+          "maximumPauseMs": 7.720300000000009,
+          "sampledRssDeltaBytes": 28966912,
+          "sampledHeapDeltaBytes": 10115240,
+          "sampledArrayBufferDeltaBytes": 17584128,
+          "sampleCount": 20
+        }
+      ],
+      "medians": {
+        "rows": 5000,
+        "dimensions": 512,
+        "scannedRows": 5000,
+        "scoredRows": 5000,
+        "vectorBytes": 20480000,
+        "elapsedMs": 55.49489999999997,
+        "totalElapsedMs": 59.46039999999999,
+        "maximumPauseMs": 7.634200000000021,
+        "sampledRssDeltaBytes": 28966912,
+        "sampledHeapDeltaBytes": 10279624,
+        "sampledArrayBufferDeltaBytes": 17604608,
+        "sampleCount": 20
+      }
+    },
+    {
+      "rows": 20000,
+      "dimensions": 128,
+      "runs": [
+        {
+          "rows": 20000,
+          "dimensions": 128,
+          "scannedRows": 20000,
+          "scoredRows": 20000,
+          "vectorBytes": 20480000,
+          "elapsedMs": 103.73519999999996,
+          "totalElapsedMs": 107.39930000000004,
+          "maximumPauseMs": 3.776100000000042,
+          "sampledRssDeltaBytes": 20385792,
+          "sampledHeapDeltaBytes": 15894896,
+          "sampledArrayBufferDeltaBytes": 13372416,
+          "sampleCount": 49
+        },
+        {
+          "rows": 20000,
+          "dimensions": 128,
+          "scannedRows": 20000,
+          "scoredRows": 20000,
+          "vectorBytes": 20480000,
+          "elapsedMs": 101.94569999999999,
+          "totalElapsedMs": 107.0394,
+          "maximumPauseMs": 4.434700000000021,
+          "sampledRssDeltaBytes": 22036480,
+          "sampledHeapDeltaBytes": 16195696,
+          "sampledArrayBufferDeltaBytes": 13634560,
+          "sampleCount": 46
+        },
+        {
+          "rows": 20000,
+          "dimensions": 128,
+          "scannedRows": 20000,
+          "scoredRows": 20000,
+          "vectorBytes": 20480000,
+          "elapsedMs": 104.2462999999999,
+          "totalElapsedMs": 108.10389999999995,
+          "maximumPauseMs": 2.9833999999999605,
+          "sampledRssDeltaBytes": 20516864,
+          "sampledHeapDeltaBytes": 15898352,
+          "sampledArrayBufferDeltaBytes": 13372416,
+          "sampleCount": 48
+        }
+      ],
+      "medians": {
+        "rows": 20000,
+        "dimensions": 128,
+        "scannedRows": 20000,
+        "scoredRows": 20000,
+        "vectorBytes": 20480000,
+        "elapsedMs": 103.73519999999996,
+        "totalElapsedMs": 107.39930000000004,
+        "maximumPauseMs": 3.776100000000042,
+        "sampledRssDeltaBytes": 20516864,
+        "sampledHeapDeltaBytes": 15898352,
+        "sampledArrayBufferDeltaBytes": 13372416,
+        "sampleCount": 48
+      }
+    },
+    {
+      "rows": 20000,
+      "dimensions": 512,
+      "runs": [
+        {
+          "rows": 20000,
+          "dimensions": 512,
+          "scannedRows": 20000,
+          "scoredRows": 20000,
+          "vectorBytes": 81920000,
+          "elapsedMs": 193.8936000000001,
+          "totalElapsedMs": 197.62159999999994,
+          "maximumPauseMs": 7.086999999999989,
+          "sampledRssDeltaBytes": 39989248,
+          "sampledHeapDeltaBytes": 14672848,
+          "sampledArrayBufferDeltaBytes": 32890880,
+          "sampleCount": 79
+        },
+        {
+          "rows": 20000,
+          "dimensions": 512,
+          "scannedRows": 20000,
+          "scoredRows": 20000,
+          "vectorBytes": 81920000,
+          "elapsedMs": 213.44040000000007,
+          "totalElapsedMs": 218.22079999999994,
+          "maximumPauseMs": 7.509900000000016,
+          "sampledRssDeltaBytes": 39727104,
+          "sampledHeapDeltaBytes": 14137128,
+          "sampledArrayBufferDeltaBytes": 32800768,
+          "sampleCount": 80
+        },
+        {
+          "rows": 20000,
+          "dimensions": 512,
+          "scannedRows": 20000,
+          "scoredRows": 20000,
+          "vectorBytes": 81920000,
+          "elapsedMs": 203.52750000000003,
+          "totalElapsedMs": 207.5166999999999,
+          "maximumPauseMs": 7.168300000000045,
+          "sampledRssDeltaBytes": 39788544,
+          "sampledHeapDeltaBytes": 14114696,
+          "sampledArrayBufferDeltaBytes": 32784384,
+          "sampleCount": 80
+        }
+      ],
+      "medians": {
+        "rows": 20000,
+        "dimensions": 512,
+        "scannedRows": 20000,
+        "scoredRows": 20000,
+        "vectorBytes": 81920000,
+        "elapsedMs": 203.52750000000003,
+        "totalElapsedMs": 207.5166999999999,
+        "maximumPauseMs": 7.168300000000045,
+        "sampledRssDeltaBytes": 39788544,
+        "sampledHeapDeltaBytes": 14137128,
+        "sampledArrayBufferDeltaBytes": 32800768,
+        "sampleCount": 80
+      }
+    }
+  ],
+  "compilation": {
+    "source": "current TypeScript snapshot",
+    "temporaryRuntime": "C:\\Users\\chilun\\AppData\\Local\\Temp\\foundation-storage-scaling-compile-ZVRs29",
+    "modules": 33
+  }
+}

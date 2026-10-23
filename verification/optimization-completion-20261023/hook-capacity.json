@@ -1,0 +1,117 @@
+{
+  "node": "v22.23.2",
+  "results": [
+    {
+      "event": "preToolUse",
+      "resourceLocks": false,
+      "afterCancellation": {
+        "result": "cancelled",
+        "activeHook": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 0,
+          "limit": 1
+        }
+      },
+      "beforeReleasingFirstCallback": {
+        "started": 1,
+        "activeHook": 1,
+        "peak": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 1,
+          "limit": 1
+        }
+      },
+      "secondResult": {
+        "status": "completed",
+        "steps": 2
+      },
+      "finalActiveHook": 0
+    },
+    {
+      "event": "preToolUse",
+      "resourceLocks": true,
+      "afterCancellation": {
+        "result": "cancelled",
+        "activeHook": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 0,
+          "limit": 2
+        }
+      },
+      "beforeReleasingFirstCallback": {
+        "started": 1,
+        "activeHook": 1,
+        "peak": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 1,
+          "limit": 2
+        }
+      },
+      "secondResult": {
+        "status": "completed",
+        "steps": 2
+      },
+      "finalActiveHook": 0
+    },
+    {
+      "event": "postToolUse",
+      "resourceLocks": false,
+      "afterCancellation": {
+        "result": "cancelled",
+        "activeHook": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 0,
+          "limit": 1
+        }
+      },
+      "beforeReleasingFirstCallback": {
+        "started": 1,
+        "activeHook": 1,
+        "peak": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 1,
+          "limit": 1
+        }
+      },
+      "secondResult": {
+        "status": "completed",
+        "steps": 2
+      },
+      "finalActiveHook": 0
+    },
+    {
+      "event": "postToolUse",
+      "resourceLocks": true,
+      "afterCancellation": {
+        "result": "cancelled",
+        "activeHook": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 0,
+          "limit": 2
+        }
+      },
+      "beforeReleasingFirstCallback": {
+        "started": 1,
+        "activeHook": 1,
+        "peak": 1,
+        "scheduler": {
+          "active": 1,
+          "queued": 1,
+          "limit": 2
+        }
+      },
+      "secondResult": {
+        "status": "completed",
+        "steps": 2
+      },
+      "finalActiveHook": 0
+    }
+  ]
+}

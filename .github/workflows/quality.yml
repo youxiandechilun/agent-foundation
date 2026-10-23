@@ -28,6 +28,9 @@ jobs:
       - run: npm test
       - run: npm run pack:sdk
       - run: npm run verify:sdk
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:host
+      - run: npm run test:host -- --exclude-capability=interactive-desktop
   windows:
     runs-on: windows-2025
     timeout-minutes: 25

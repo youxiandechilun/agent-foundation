@@ -6,6 +6,7 @@ import { test } from "node:test";
 import type { ToolEffect } from "../src/contracts.js";
 import { ExecutionEngine } from "../src/runtime/engine.js";
 import { ToolScheduler } from "../src/runtime/scheduler.js";
+import { bindHooks, type RunHooks } from "../src/runtime/hooks.js";
 import {
   emptyUsage,
   type AssistantMessage,
@@ -33,6 +34,7 @@ function engine(
   runId: string,
   execute: ToolDefinition["execute"],
   resource?: string,
+  hooks?: RunHooks,
 ) {
   let requests = 0;
   return new ExecutionEngine({
@@ -56,6 +58,20 @@ function engine(
       },
     ],
     scheduler,
+    hooks: hooks
+      ? bindHooks(
+          {
+            runId,
+            sessionId: "session",
+            projectId: "project",
+            projectRoot: ".",
+            mode: "code",
+            routeId: "text",
+          },
+          [hooks],
+          () => {},
+        )
+      : undefined,
     provider: {
       async complete(): Promise<AssistantMessage> {
         const first = requests++ === 0;
@@ -88,6 +104,86 @@ function engine(
     prepare: async (messages) => messages,
   });
 }
+
+for (const event of ["preToolUse", "postToolUse"] as const)
+  for (const resourceLocks of [false, true])
+    for (const lateFailure of [false, true])
+      test(
+        `cancelled ${event} callbacks retain ${resourceLocks ? "resource locks" : "execution capacity"} until late ${lateFailure ? "rejection" : "completion"}`,
+        { timeout: 10000 },
+        async (t) => {
+          const directory = await mkdtemp(
+            path.join(tmpdir(), "foundation-hook-lease-"),
+          );
+          const store = new Store(directory);
+          const scheduler = new ToolScheduler(resourceLocks ? 2 : 1);
+          const pending = deferred<void>();
+          const entered = deferred<void>();
+          const resource = resourceLocks ? "same-resource" : undefined;
+          let active = 0,
+            peak = 0,
+            started = 0;
+          const first = engine(
+            store,
+            scheduler,
+            "run_first",
+            async () => result,
+            resource,
+            {
+              [event]: async () => {
+                started++;
+                active++;
+                peak = Math.max(peak, active);
+                entered.resolve();
+                try {
+                  await pending.promise;
+                } finally {
+                  active--;
+                }
+              },
+            },
+          );
+          const second = engine(
+            store,
+            scheduler,
+            "run_second",
+            async () => result,
+            resource,
+            {
+              [event]: async () => {
+                started++;
+                active++;
+                peak = Math.max(peak, active);
+                active--;
+              },
+            },
+          );
+          t.after(async () => {
+            first.abort();
+            second.abort();
+            pending.resolve();
+            await until(() => scheduler.state.active === 0 || undefined);
+            store.close();
+            await rm(directory, { recursive: true, force: true });
+          });
+          const firstRun = first.run(input);
+          await entered.promise;
+          first.abort();
+          assert.equal((await firstRun).status, "cancelled");
+          assert.equal(active, 1);
+          assert.equal(scheduler.state.active, 1);
+          const secondRun = second.run(input);
+          await until(() => scheduler.state.queued === 1 || undefined);
+          assert.equal(started, 1);
+          if (lateFailure) pending.reject(new Error("late hook failure"));
+          else pending.resolve();
+          assert.equal((await secondRun).status, "completed");
+          assert.equal(started, 2);
+          assert.equal(peak, 1);
+          assert.equal(active, 0);
+          assert.equal(scheduler.state.active, 0);
+        },
+      );
 
 const input = { role: "user" as const, content: "test", timestamp: 1 };
 

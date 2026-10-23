@@ -10,11 +10,28 @@ export default tseslint.config(
       "releases/**",
       "verification/**",
       ".agent-data*/**",
-      "extensions/browser-bridge/**",
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    files: ["extensions/browser-bridge/**/*.js"],
+    languageOptions: {
+      globals: Object.fromEntries(
+        [
+          "chrome",
+          "document",
+          "FormData",
+          "URL",
+          "WebSocket",
+          "AbortController",
+          "setTimeout",
+          "clearTimeout",
+        ].map((name) => [name, "readonly"]),
+      ),
+    },
+    rules: { "no-empty": ["error", { allowEmptyCatch: true }] },
+  },
   {
     files: ["src/**/*.mjs", "src/**/*.cjs"],
     languageOptions: {

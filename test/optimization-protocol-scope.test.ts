@@ -13,6 +13,7 @@ import {
 } from "../src/providers/registry.js";
 import type { TextProtocol } from "../src/providers/protocol.js";
 import { textOf } from "../src/runtime/types.js";
+import { serve } from "../src/api/server.js";
 
 const adapter = "isolated-host-json";
 const requestSchema = z.object({ variant: z.string(), model: z.string() });
@@ -102,6 +103,43 @@ async function complete(kernel: Kernel, routeId = "text") {
   assert.equal(reply.role, "assistant");
   return textOf(reply);
 }
+
+test("HTTP capabilities report each Kernel's actual protocol snapshot", async (t) => {
+  const x = await fixture(t);
+  const leftRegistry = new TextProtocolRegistry();
+  const rightRegistry = new TextProtocolRegistry();
+  const remove = leftRegistry.register(protocol("left"));
+  rightRegistry.register({ ...protocol("right"), id: "right-only" });
+  const left = x.kernel("capabilities-left", leftRegistry);
+  // The fixture route uses adapter, so give the right Kernel that route as well.
+  rightRegistry.register(protocol("right"));
+  const right = x.kernel("capabilities-right", rightRegistry);
+  remove();
+  for (const kernel of [left, right]) kernel.config.server.port = 0;
+  const apis = await Promise.all(
+    [left, right].map((kernel) =>
+      serve(kernel, "protocol-capabilities-token-12345"),
+    ),
+  );
+  try {
+    for (const [index, api] of apis.entries()) {
+      const response = await fetch(`${api.url}/v1/capabilities`, {
+        headers: { Authorization: "Bearer protocol-capabilities-token-12345" },
+      });
+      assert.equal(response.status, 200);
+      const value: unknown = await response.json();
+      assert.deepEqual(
+        z.object({ textProtocols: z.array(z.string()) }).parse(value)
+          .textProtocols,
+        [left, right][index].textProtocols.ids(),
+      );
+    }
+    assert.equal(left.textProtocols.ids().includes("right-only"), false);
+    assert.equal(right.textProtocols.ids().includes("right-only"), true);
+  } finally {
+    await Promise.all(apis.map((api) => api.close()));
+  }
+});
 
 test("same-name protocols remain independent across Kernels after the assembly registries are unregistered", async (t) => {
   const x = await fixture(t);

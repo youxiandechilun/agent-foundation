@@ -23,7 +23,11 @@ import type { RunLifecycle } from "./lifecycle.js";
 export function startProcessAction(
   kernel: Kernel,
   lifecycle: RunLifecycle,
-  audit: (request: SecurityAuditRequest, signal: AbortSignal) => Promise<void>,
+  audit: (
+    request: SecurityAuditRequest,
+    signal: AbortSignal,
+    retain?: (operation: Promise<unknown>) => void,
+  ) => Promise<void>,
   sessionId: string,
   action: string,
   args: Record<string, unknown>,
@@ -64,54 +68,67 @@ export function startProcessAction(
     ]);
   const done = Promise.resolve().then(async () => {
     kernel.store.status(runId, "running");
+    const pending = new Set<Promise<unknown>>();
+    const retain = (operation: Promise<unknown>) => {
+      pending.add(operation);
+      const settled = () => pending.delete(operation);
+      void operation.then(settled, settled);
+    };
+    const wait = <T>(operation: Promise<T>) => {
+      retain(operation);
+      return abortable(operation, signal);
+    };
+    let release: (() => void) | undefined;
     try {
+      release = await kernel.scheduler.acquire(tool, args, signal);
       if (kernel.securityAudit.enabled)
-        await audit(
-          {
-            stage: "tool",
-            projectId: session.projectId,
-            sessionId,
-            routeId: session.routeId,
-            runId,
-            toolCallId: "control",
-            toolName: tool.name,
-            arguments: z.record(z.string(), z.json()).parse(args),
-          },
-          signal,
+        await wait(
+          audit(
+            {
+              stage: "tool",
+              projectId: session.projectId,
+              sessionId,
+              routeId: session.routeId,
+              runId,
+              toolCallId: "control",
+              toolName: tool.name,
+              arguments: z.record(z.string(), z.json()).parse(args),
+            },
+            signal,
+            retain,
+          ),
         );
-      const policyTool = await resolveToolPolicy(
-        { kernel, session, runId, routeId: session.routeId },
-        tool,
-        args,
-        signal,
-        "control",
+      const policyTool = await wait(
+        resolveToolPolicy(
+          { kernel, session, runId, routeId: session.routeId },
+          tool,
+          args,
+          signal,
+          "control",
+          retain,
+        ),
       );
-      const release = await kernel.scheduler.acquire(tool, args, signal);
-      let normalized;
-      try {
-        await kernel.permissions.check(
+      await wait(
+        kernel.permissions.check(
           runId,
           session.routeId,
           policyTool,
           args,
           "control",
           signal,
-        );
-        signal.throwIfAborted();
-        const result = await abortable(
-          tool.execute("control", args, signal),
-          signal,
-        );
-        normalized = await normalizeToolResult(
+        ),
+      );
+      signal.throwIfAborted();
+      const result = await wait(tool.execute("control", args, signal));
+      const normalized = await wait(
+        normalizeToolResult(
           result,
           kernel.assets,
           session.projectId,
           kernel.config.limits.maxOutputBytes,
           signal,
-        );
-      } finally {
-        release();
-      }
+        ),
+      );
       kernel.store.emit(runId, "process.action.completed", {
         action,
         result: normalized,
@@ -124,6 +141,10 @@ export function startProcessAction(
         errorText(error),
       );
     } finally {
+      if (release) {
+        if (pending.size) void Promise.allSettled([...pending]).then(release);
+        else release();
+      }
       kernel.store.emit(runId, "run.completed", {
         status: kernel.store.run(runId).status,
       });

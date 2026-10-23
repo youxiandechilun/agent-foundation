@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "checkedAt": "2026-10-23T09:24:52.495Z",
+  "baselineCommit": "6b1a109aa6d5ab19611165bd9218077598a50a78",
+  "packageVersion": "0.12.1",
+  "sourceManifestSha256": "6cfbafe7fd7312ba3ca52a8882ee447d4e2cd88c15bb4c321b6eddbf7583ee70",
+  "benchmarkSourceSha256": "2f4fe29b19b42585a6bd6c6e5dc0b2a06985c3e1463eb6bddfc08b8f3b37b746",
+  "checks": {
+    "quality": {
+      "status": "passed",
+      "command": "npm run check:quality",
+      "includes": [
+        "host and public TypeScript",
+        "test TypeScript",
+        "ESLint including browser bridge JavaScript",
+        "Prettier"
+      ],
+      "log": "quality-final.log"
+    },
+    "hostBuild": {
+      "status": "passed",
+      "command": "npm run build:host",
+      "log": "build-host-final.log"
+    },
+    "core": [
+      {
+        "status": "passed",
+        "node": "v22.23.2",
+        "platform": "win32",
+        "tests": 738,
+        "passed": 738,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 300368.1244,
+        "log": "core-node22.log"
+      },
+      {
+        "status": "passed",
+        "node": "v24.20.0",
+        "platform": "win32",
+        "tests": 738,
+        "passed": 738,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 297028.8132,
+        "log": "core-node24.log"
+      }
+    ],
+    "host": {
+      "command": "npm run test:host -- --exclude-capability=interactive-desktop",
+      "excludedCapability": "interactive-desktop",
+      "runtimes": [
+        {
+          "status": "passed",
+          "node": "v22.23.2",
+          "platform": "win32",
+          "tests": 42,
+          "passed": 41,
+          "failed": 0,
+          "cancelled": 0,
+          "skipped": 1,
+          "durationMs": 31783.1842,
+          "log": "host-node22.log"
+        },
+        {
+          "status": "passed",
+          "node": "v24.20.0",
+          "platform": "win32",
+          "tests": 42,
+          "passed": 41,
+          "failed": 0,
+          "cancelled": 0,
+          "skipped": 1,
+          "durationMs": 30567.4381,
+          "log": "host-node24.log"
+        }
+      ]
+    },
+    "sdkPackage": {
+      "status": "passed",
+      "published": false,
+      "files": 409,
+      "bytes": 621892,
+      "sha256": "b10bb0586a6c7cb1cef70b4bd498fafbd6ca5b5a2da05d5edae2f4467c89da90",
+      "report": "../sdk-package.json",
+      "log": "sdk-pack.log"
+    },
+    "isolatedSdkConsumers": {
+      "status": "passed",
+      "runtimes": [
+        {
+          "node": "v22.23.2",
+          "status": "passed",
+          "strictTypes": true,
+          "publicContractCompatibility": true
+        },
+        {
+          "node": "v24.20.0",
+          "status": "passed",
+          "strictTypes": true,
+          "publicContractCompatibility": true
+        }
+      ],
+      "report": "../sdk-consumer.json",
+      "log": "sdk-consumers.log"
+    },
+    "source": {
+      "status": "passed",
+      "files": 444,
+      "report": "../source-manifest.json",
+      "log": "source.log"
+    },
+    "compiledCoreSmoke": {
+      "status": "passed",
+      "compiledPluginWorker": true,
+      "log": "compiled-core-smoke.log"
+    },
+    "compiledHostSmoke": {
+      "status": "passed",
+      "actualChromium": true,
+      "windowsBridge": true,
+      "pairing": true,
+      "optionalFormatWorker": true,
+      "log": "compiled-host-smoke.log"
+    },
+    "jsonSessionPruneBenchmark": {
+      "status": "passed",
+      "samplesPerVariant": 3,
+      "report": "benchmark.json"
+    },
+    "mcpRetentionBenchmark": {
+      "status": "passed",
+      "report": "mcp-memory.json"
+    },
+    "memoryScalingBenchmark": {
+      "report": "memory-scaling.json",
+      "independentProcesses": 18,
+      "purpose": "Exact O(N*D) scan diagnostics; no ANN implementation or claimed acceleration."
+    },
+    "idleKernelFootprint": {
+      "report": "kernel-footprint.json",
+      "independentProcesses": 5
+    }
+  },
+  "validationBoundary": {
+    "localPlatform": "Windows x64",
+    "paidOrExternalModelCalls": false,
+    "npmPublication": false,
+    "interactiveDesktop": "Excluded explicitly; one skip per host runtime.",
+    "remoteLinuxHostCi": "Configured in Quality workflow; remote result is tracked on GitHub after push.",
+    "productionLoadOrLongTermLeakProof": false,
+    "minimumExactSupportedNodeVersionTested": false,
+    "performance": "Local synthetic fresh-process medians only. Report heap, Buffer/external and RSS separately. Batched prune improves event-loop responsiveness and increases total elapsed time in this fixture."
+  }
+}

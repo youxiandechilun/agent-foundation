@@ -107,7 +107,8 @@ export const memoryRoutes = apiRoutes({
   ),
   "POST memories/prune": input(
     z.object({ projectId: z.string() }).strict(),
-    ({ k }, value) => k.memory.pruneExpired(value.projectId),
+    ({ k, signal }, value) =>
+      k.memory.pruneExpiredAsync(value.projectId, { signal }),
   ),
   "POST memories/semantic-search": async (context) => {
     const { k, json, signal } = context;

@@ -92,6 +92,8 @@ export interface MCPClientOptions {
   taskExtension?: boolean;
   onTask?: (event: ModernTaskEvent) => void;
   maxInputRounds?: number;
+  /** Serialized modern task snapshots plus reservations; full capacity requires reconnecting. Default 64 MiB. */
+  maxTaskSnapshotBytes?: number;
   authorization?: () => Promise<string>;
   onAuthChallenge?: (header: string, status: number) => void;
 }
@@ -126,7 +128,10 @@ export class MCPClient {
       stderr: options.maxStderrBytes || 64000,
       timeout: options.timeoutMs || 30000,
     };
-    this.modernTasks = new ModernMCPTasks(options.onTask);
+    this.modernTasks = new ModernMCPTasks(options.onTask, {
+      maxBytes: options.maxTaskSnapshotBytes,
+      maxMessageBytes: this.limits.message,
+    });
     this.catalog = new MCPToolCatalog((method, params) =>
       this.record(method, params),
     );
@@ -433,6 +438,7 @@ export class MCPClient {
             p.context,
             p.modernTaskOptions.signal,
             p.modernTaskOptions.deadline,
+            p.modernTaskOptions.reservation,
           );
         }
         if (this.modern && p.context.method === "tasks/get") {
@@ -475,7 +481,16 @@ export class MCPClient {
     options?: MCPRequestOptions,
     initializing = false,
   ): Promise<WireObject> {
-    return this.requests.request(method, params, options, initializing);
+    let reservation: ReturnType<ModernMCPTasks["reserve"]> | undefined;
+    try {
+      if (this.modern && method === "tools/call" && this.tasksNegotiated())
+        reservation = this.modernTasks.reserve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return this.requests
+      .request(method, params, options, initializing, reservation)
+      .finally(() => reservation?.release());
   }
   async notify(method: string, params?: unknown) {
     await this.send(
@@ -511,40 +526,81 @@ export class MCPClient {
     // onclose error preserve the failure without an unhandled rejection.
     await this.close().catch(() => undefined);
   }
-  async close() {
+  close(): Promise<void> {
     if (this.closeCompletion) return this.closeCompletion;
-    if (this.closed) return;
+    let resolveClose!: () => void;
+    let rejectClose!: (error: unknown) => void;
+    // Install the shared completion before invoking any host callback. A callback
+    // may throw or reenter close(), and both callers must observe the same work.
+    this.closeCompletion = new Promise<void>((resolve, reject) => {
+      resolveClose = resolve;
+      rejectClose = reject;
+    });
     this.closed = true;
     this.initialized = false;
-    this.background?.abort();
-    this.lifetime.abort();
-    this.receiver?.close();
-    this.modernTasks.close();
-    this.taskContexts.close();
-    this.catalog.clear();
-    this.requests.reject(
-      new MCPProtocolError(
-        "MCP connection closed; pending effects may be unknown",
-      ),
-    );
-    this.closeCompletion = (async () => {
-      let cleanupFailure: unknown;
-      await this.stdio.close();
-      await this.options.cleanup?.().catch((error) => {
-        cleanupFailure = error;
-        this.record("transport/cleanup_error", { message: errorText(error) });
-      });
-      if (this.options.transport === "http") await this.http.close();
-      const error = cleanupFailure
-        ? new MCPProtocolError(
-            "MCP execution cleanup unconfirmed: " + errorText(cleanupFailure),
-            "isolation_cleanup_failed",
-          )
-        : undefined;
-      this.onclose?.(error);
-      this.http.clearAuthorization();
+    const failures: unknown[] = [];
+    const attempt = (operation: () => void) => {
+      try {
+        operation();
+      } catch (error) {
+        failures.push(error);
+      }
+    };
+    const completionError = () => {
+      if (!failures.length) return undefined;
+      const error = new MCPProtocolError(
+        "MCP execution cleanup unconfirmed: " +
+          failures.map(errorText).join("; "),
+        "isolation_cleanup_failed",
+      );
+      error.cause =
+        failures.length === 1
+          ? failures[0]
+          : new AggregateError(failures, "MCP close failures");
+      return error;
+    };
+    const work = async () => {
+      for (const operation of [
+        () => this.background?.abort(),
+        () => this.lifetime.abort(),
+        () => this.receiver?.close(),
+        () => this.modernTasks.close(),
+        () => this.taskContexts.close(),
+        () => this.catalog.clear(),
+        () =>
+          this.requests.reject(
+            new MCPProtocolError(
+              "MCP connection closed; pending effects may be unknown",
+            ),
+          ),
+      ])
+        attempt(operation);
+      try {
+        await this.stdio.close();
+      } catch (error) {
+        failures.push(error);
+      }
+      try {
+        await this.options.cleanup?.();
+      } catch (error) {
+        failures.push(error);
+        attempt(() =>
+          this.record("transport/cleanup_error", { message: errorText(error) }),
+        );
+      }
+      if (this.options.transport === "http") {
+        try {
+          await this.http.close();
+        } catch (error) {
+          failures.push(error);
+        }
+      }
+      attempt(() => this.http.clearAuthorization());
+      attempt(() => this.onclose?.(completionError()));
+      const error = completionError();
       if (error) throw error;
-    })();
+    };
+    void work().then(resolveClose, rejectClose);
     return this.closeCompletion;
   }
   private async toolPage(

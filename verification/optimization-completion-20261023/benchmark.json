@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "startedAt": "2026-10-23T09:15:44.566Z",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "win32",
+    "architecture": "x64",
+    "osRelease": "10.0.26200",
+    "cpu": "Intel(R) Core(TM) i5-14600KF",
+    "logicalCpus": 20,
+    "totalMemoryBytes": 16924135424
+  },
+  "source": {
+    "gitHead": "6b1a109aa6d5ab19611165bd9218077598a50a78",
+    "source": {
+      "sha256": "2f4fe29b19b42585a6bd6c6e5dc0b2a06985c3e1463eb6bddfc08b8f3b37b746",
+      "files": 186
+    },
+    "benchmarkSha256": "a9aa10ed42bc1d7ed373c5740aca6838254067c962f5a0548e3d64114dee9d4d",
+    "variants": [
+      {
+        "name": "baseline",
+        "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-complete-baseline-dist",
+        "fingerprint": {
+          "sha256": "231c6822f2a2c7ae7163a7a8acbd2e22b4db041e97ff3552302034d929454e50",
+          "files": 529
+        }
+      },
+      {
+        "name": "current",
+        "runtime": "E:\\agent-foundation-main\\dist",
+        "fingerprint": {
+          "sha256": "0464d174079df670c621babcb54e599d9323910026c4771ff0d53828e809882f",
+          "files": 538
+        }
+      }
+    ]
+  },
+  "samplesPerVariant": 3,
+  "method": "Independent sequential processes and fresh SQLite fixtures; alternating baseline/current order each round. Explicit GC before the measured operation. Memory sampled every 2 ms plus identical result-boundary checkpoints. Continuous setImmediate heartbeat includes the final synchronous pause. Local HTTP only; no model, browser, Office or external server calls.",
+  "limitations": [
+    "JSON admission sends one byte of each declared 8 MiB body. External/ArrayBuffer allocations include reserved body buffers; RSS need not grow in proportion because most allocated pages remain untouched. This measures admission, not successful JSON parsing throughput.",
+    "Export consumes the current native stream without accumulating chunks. Baseline materializes route data and JSON.stringify text. Both byte counting and SHA-256 are included. Property order differs across formats, so wire byte length and the seeded ordered-message digest establish fixture equivalence; wire hashes may differ.",
+    "A timer cannot sample the interior of synchronous baseline work. Explicit end-of-stage samples retain its result and serialized string, but reported peaks are sampled observations, not allocation totals or exact transient peaks.",
+    "Memory cleanup compares the existing synchronous maintenance path with the online batch API. It preserves revision/FTS semantics; better responsiveness does not imply lower total elapsed time. Filesystem, JIT, GC and system load affect all timings.",
+    "Fresh-fixture synthetic results do not establish production throughput, total process memory caps, long-term leak absence or cross-product rankings. Runtime tree hashes identify the measured builds; source HEAD alone may include uncommitted current changes."
+  ],
+  "scenarios": [
+    {
+      "scenario": "json-admission",
+      "executionOrder": [
+        {
+          "round": 1,
+          "variant": "baseline"
+        },
+        {
+          "round": 1,
+          "variant": "current"
+        },
+        {
+          "round": 2,
+          "variant": "current"
+        },
+        {
+          "round": 2,
+          "variant": "baseline"
+        },
+        {
+          "round": 3,
+          "variant": "baseline"
+        },
+        {
+          "round": 3,
+          "variant": "current"
+        }
+      ],
+      "variants": [
+        {
+          "name": "baseline",
+          "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-complete-baseline-dist",
+          "samples": [
+            {
+              "pid": 38372,
+              "result": {
+                "requestCount": 16,
+                "declaredBytesPerRequest": 8388608,
+                "sentBytesPerRequest": 1,
+                "arrivedRequests": 16,
+                "bodyReaders": 16,
+                "rejected429": 0,
+                "observationMs": 266.9538,
+                "heldExternalDeltaBytes": 134217584,
+                "heldArrayBuffersDeltaBytes": 134217544,
+                "heldRssDeltaBytes": 962560,
+                "heldArrayBuffersBytes": 134293902,
+                "heldExternalBytes": 138206254,
+                "heldRssBytes": 125014016,
+                "sampledPeakHeapDeltaBytes": 14446608,
+                "sampledPeakRssDeltaBytes": 2387968,
+                "sampledPeakExternalDeltaBytes": 134217784,
+                "sampledPeakArrayBuffersDeltaBytes": 134217744,
+                "maxEventLoopGapMs": 10.411200000000008,
+                "memorySampleCount": 130
+              }
+            },
+            {
+              "pid": 15292,
+              "result": {
+                "requestCount": 16,
+                "declaredBytesPerRequest": 8388608,
+                "sentBytesPerRequest": 1,
+                "arrivedRequests": 16,
+                "bodyReaders": 16,
+                "rejected429": 0,
+                "observationMs": 266.6479,
+                "heldExternalDeltaBytes": 134217584,
+                "heldArrayBuffersDeltaBytes": 134217544,
+                "heldRssDeltaBytes": 724992,
+                "heldArrayBuffersBytes": 134293902,
+                "heldExternalBytes": 138206254,
+                "heldRssBytes": 124809216,
+                "sampledPeakHeapDeltaBytes": 14198072,
+                "sampledPeakRssDeltaBytes": 2105344,
+                "sampledPeakExternalDeltaBytes": 134217784,
+                "sampledPeakArrayBuffersDeltaBytes": 134217744,
+                "maxEventLoopGapMs": 10.312000000000012,
+                "memorySampleCount": 130
+              }
+            },
+            {
+              "pid": 54652,
+              "result": {
+                "requestCount": 16,
+                "declaredBytesPerRequest": 8388608,
+                "sentBytesPerRequest": 1,
+                "arrivedRequests": 16,
+                "bodyReaders": 16,
+                "rejected429": 0,
+                "observationMs": 266.6095,
+                "heldExternalDeltaBytes": 134217584,
+                "heldArrayBuffersDeltaBytes": 134217544,
+                "heldRssDeltaBytes": 614400,
+                "heldArrayBuffersBytes": 134293902,
+                "heldExternalBytes": 138206254,
+                "heldRssBytes": 125304832,
+                "sampledPeakHeapDeltaBytes": 14398888,
+                "sampledPeakRssDeltaBytes": 2408448,
+                "sampledPeakExternalDeltaBytes": 134217784,
+                "sampledPeakArrayBuffersDeltaBytes": 134217744,
+                "maxEventLoopGapMs": 9.430499999999995,
+                "memorySampleCount": 130
+              }
+            }
+          ],
+          "medians": {
+            "requestCount": 16,
+            "declaredBytesPerRequest": 8388608,
+            "sentBytesPerRequest": 1,
+            "arrivedRequests": 16,
+            "bodyReaders": 16,
+            "rejected429": 0,
+            "observationMs": 266.6479,
+            "heldExternalDeltaBytes": 134217584,
+            "heldArrayBuffersDeltaBytes": 134217544,
+            "heldRssDeltaBytes": 724992,
+            "heldArrayBuffersBytes": 134293902,
+            "heldExternalBytes": 138206254,
+            "heldRssBytes": 125014016,
+            "sampledPeakHeapDeltaBytes": 14398888,
+            "sampledPeakRssDeltaBytes": 2387968,
+            "sampledPeakExternalDeltaBytes": 134217784,
+            "sampledPeakArrayBuffersDeltaBytes": 134217744,
+            "maxEventLoopGapMs": 10.312000000000012,
+            "memorySampleCount": 130
+          }
+        },
+        {
+          "name": "current",
+          "runtime": "E:\\agent-foundation-main\\dist",
+          "samples": [
+            {
+              "pid": 32208,
+              "result": {
+                "requestCount": 16,
+                "declaredBytesPerRequest": 8388608,
+                "sentBytesPerRequest": 1,
+                "arrivedRequests": 16,
+                "bodyReaders": 8,
+                "rejected429": 8,
+                "observationMs": 277.08480000000003,
+                "heldExternalDeltaBytes": 67109878,
+                "heldArrayBuffersDeltaBytes": 67109838,
+                "heldRssDeltaBytes": 524288,
+                "heldArrayBuffersBytes": 67186196,
+                "heldExternalBytes": 71098548,
+                "heldRssBytes": 125358080,
+                "sampledPeakHeapDeltaBytes": 14463648,
+                "sampledPeakRssDeltaBytes": 2179072,
+                "sampledPeakExternalDeltaBytes": 67112656,
+                "sampledPeakArrayBuffersDeltaBytes": 67112616,
+                "maxEventLoopGapMs": 11.564900000000023,
+                "memorySampleCount": 132
+              }
+            },
+            {
+              "pid": 33904,
+              "result": {
+                "requestCount": 16,
+                "declaredBytesPerRequest": 8388608,
+                "sentBytesPerRequest": 1,
+                "arrivedRequests": 16,
+                "bodyReaders": 8,
+                "rejected429": 8,
+                "observationMs": 273.7134,
+                "heldExternalDeltaBytes": 67109878,
+                "heldArrayBuffersDeltaBytes": 67109838,
+                "heldRssDeltaBytes": 1056768,
+                "heldArrayBuffersBytes": 67186196,
+                "heldExternalBytes": 71098548,
+                "heldRssBytes": 125427712,
+                "sampledPeakHeapDeltaBytes": 14578496,
+                "sampledPeakRssDeltaBytes": 3072000,
+                "sampledPeakExternalDeltaBytes": 67112656,
+                "sampledPeakArrayBuffersDeltaBytes": 67112616,
+                "maxEventLoopGapMs": 9.785300000000007,
+                "memorySampleCount": 131
+              }
+            },
+            {
+              "pid": 36192,
+              "result": {
+                "requestCount": 16,
+                "declaredBytesPerRequest": 8388608,
+                "sentBytesPerRequest": 1,
+                "arrivedRequests": 16,
+                "bodyReaders": 8,
+                "rejected429": 8,
+                "observationMs": 273.65450000000004,
+                "heldExternalDeltaBytes": 67109878,
+                "heldArrayBuffersDeltaBytes": 67109838,
+                "heldRssDeltaBytes": 581632,
+                "heldArrayBuffersBytes": 67186196,
+                "heldExternalBytes": 71098548,
+                "heldRssBytes": 124719104,
+                "sampledPeakHeapDeltaBytes": 14630216,
+                "sampledPeakRssDeltaBytes": 2547712,
+                "sampledPeakExternalDeltaBytes": 67112656,
+                "sampledPeakArrayBuffersDeltaBytes": 67112616,
+                "maxEventLoopGapMs": 10.56450000000001,
+                "memorySampleCount": 132
+              }
+            }
+          ],
+          "medians": {
+            "requestCount": 16,
+            "declaredBytesPerRequest": 8388608,
+            "sentBytesPerRequest": 1,
+            "arrivedRequests": 16,
+            "bodyReaders": 8,
+            "rejected429": 8,
+            "observationMs": 273.7134,
+            "heldExternalDeltaBytes": 67109878,
+            "heldArrayBuffersDeltaBytes": 67109838,
+            "heldRssDeltaBytes": 581632,
+            "heldArrayBuffersBytes": 67186196,
+            "heldExternalBytes": 71098548,
+            "heldRssBytes": 125358080,
+            "sampledPeakHeapDeltaBytes": 14578496,
+            "sampledPeakRssDeltaBytes": 2547712,
+            "sampledPeakExternalDeltaBytes": 67112656,
+            "sampledPeakArrayBuffersDeltaBytes": 67112616,
+            "maxEventLoopGapMs": 10.56450000000001,
+            "memorySampleCount": 132
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "session-export",
+      "executionOrder": [
+        {
+          "round": 1,
+          "variant": "baseline"
+        },
+        {
+          "round": 1,
+          "variant": "current"
+        },
+        {
+          "round": 2,
+          "variant": "current"
+        },
+        {
+          "round": 2,
+          "variant": "baseline"
+        },
+        {
+          "round": 3,
+          "variant": "baseline"
+        },
+        {
+          "round": 3,
+          "variant": "current"
+        }
+      ],
+      "variants": [
+        {
+          "name": "baseline",
+          "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-complete-baseline-dist",
+          "samples": [
+            {
+              "pid": 56648,
+              "result": {
+                "messages": 19900,
+                "contentBytesPerMessage": 1024,
+                "wireBytes": 22086865,
+                "expectedBytes": 22086865,
+                "fixtureMessagesSha256": "9ffcb27736052799c52dceb32a0dd8cd3a7ecd34b059628036ece8403399fc65",
+                "wireSha256": "96a6db4a1d381677ddf5ee6d607e366dea4d831ea9d92a7e8e77de8ce7d31aa3",
+                "streamed": false,
+                "chunkCount": 1,
+                "elapsedMs": 132.17150000000004,
+                "sampledPeakHeapDeltaBytes": 53340392,
+                "sampledPeakRssDeltaBytes": 49356800,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 132.89260000000002,
+                "memorySampleCount": 4
+              }
+            },
+            {
+              "pid": 36716,
+              "result": {
+                "messages": 19900,
+                "contentBytesPerMessage": 1024,
+                "wireBytes": 22086865,
+                "expectedBytes": 22086865,
+                "fixtureMessagesSha256": "9ffcb27736052799c52dceb32a0dd8cd3a7ecd34b059628036ece8403399fc65",
+                "wireSha256": "96a6db4a1d381677ddf5ee6d607e366dea4d831ea9d92a7e8e77de8ce7d31aa3",
+                "streamed": false,
+                "chunkCount": 1,
+                "elapsedMs": 124.09309999999999,
+                "sampledPeakHeapDeltaBytes": 53340392,
+                "sampledPeakRssDeltaBytes": 49725440,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 125.06669999999997,
+                "memorySampleCount": 4
+              }
+            },
+            {
+              "pid": 39064,
+              "result": {
+                "messages": 19900,
+                "contentBytesPerMessage": 1024,
+                "wireBytes": 22086865,
+                "expectedBytes": 22086865,
+                "fixtureMessagesSha256": "9ffcb27736052799c52dceb32a0dd8cd3a7ecd34b059628036ece8403399fc65",
+                "wireSha256": "96a6db4a1d381677ddf5ee6d607e366dea4d831ea9d92a7e8e77de8ce7d31aa3",
+                "streamed": false,
+                "chunkCount": 1,
+                "elapsedMs": 122.95739999999995,
+                "sampledPeakHeapDeltaBytes": 53383128,
+                "sampledPeakRssDeltaBytes": 49786880,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 123.54710000000006,
+                "memorySampleCount": 4
+              }
+            }
+          ],
+          "medians": {
+            "messages": 19900,
+            "contentBytesPerMessage": 1024,
+            "wireBytes": 22086865,
+            "expectedBytes": 22086865,
+            "chunkCount": 1,
+            "elapsedMs": 124.09309999999999,
+            "sampledPeakHeapDeltaBytes": 53340392,
+            "sampledPeakRssDeltaBytes": 49725440,
+            "sampledPeakExternalDeltaBytes": 40,
+            "sampledPeakArrayBuffersDeltaBytes": 0,
+            "maxEventLoopGapMs": 125.06669999999997,
+            "memorySampleCount": 4
+          }
+        },
+        {
+          "name": "current",
+          "runtime": "E:\\agent-foundation-main\\dist",
+          "samples": [
+            {
+              "pid": 49276,
+              "result": {
+                "messages": 19900,
+                "contentBytesPerMessage": 1024,
+                "wireBytes": 22086865,
+                "expectedBytes": 22086865,
+                "fixtureMessagesSha256": "9ffcb27736052799c52dceb32a0dd8cd3a7ecd34b059628036ece8403399fc65",
+                "wireSha256": "4ae5d9a357a92714be5eaa38031b03e5090b4f3cad5107749c879f4061a40fc1",
+                "streamed": true,
+                "chunkCount": 19902,
+                "elapsedMs": 104.17160000000001,
+                "sampledPeakHeapDeltaBytes": 15723152,
+                "sampledPeakRssDeltaBytes": 8982528,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 30.851200000000006,
+                "memorySampleCount": 40
+              }
+            },
+            {
+              "pid": 49900,
+              "result": {
+                "messages": 19900,
+                "contentBytesPerMessage": 1024,
+                "wireBytes": 22086865,
+                "expectedBytes": 22086865,
+                "fixtureMessagesSha256": "9ffcb27736052799c52dceb32a0dd8cd3a7ecd34b059628036ece8403399fc65",
+                "wireSha256": "4ae5d9a357a92714be5eaa38031b03e5090b4f3cad5107749c879f4061a40fc1",
+                "streamed": true,
+                "chunkCount": 19902,
+                "elapsedMs": 105.72880000000004,
+                "sampledPeakHeapDeltaBytes": 15878000,
+                "sampledPeakRssDeltaBytes": 8826880,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 34.46039999999999,
+                "memorySampleCount": 40
+              }
+            },
+            {
+              "pid": 55932,
+              "result": {
+                "messages": 19900,
+                "contentBytesPerMessage": 1024,
+                "wireBytes": 22086865,
+                "expectedBytes": 22086865,
+                "fixtureMessagesSha256": "9ffcb27736052799c52dceb32a0dd8cd3a7ecd34b059628036ece8403399fc65",
+                "wireSha256": "4ae5d9a357a92714be5eaa38031b03e5090b4f3cad5107749c879f4061a40fc1",
+                "streamed": true,
+                "chunkCount": 19902,
+                "elapsedMs": 106.91649999999993,
+                "sampledPeakHeapDeltaBytes": 16332928,
+                "sampledPeakRssDeltaBytes": 9613312,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 33.3356,
+                "memorySampleCount": 41
+              }
+            }
+          ],
+          "medians": {
+            "messages": 19900,
+            "contentBytesPerMessage": 1024,
+            "wireBytes": 22086865,
+            "expectedBytes": 22086865,
+            "chunkCount": 19902,
+            "elapsedMs": 105.72880000000004,
+            "sampledPeakHeapDeltaBytes": 15878000,
+            "sampledPeakRssDeltaBytes": 8982528,
+            "sampledPeakExternalDeltaBytes": 40,
+            "sampledPeakArrayBuffersDeltaBytes": 0,
+            "maxEventLoopGapMs": 33.3356,
+            "memorySampleCount": 40
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "memory-prune",
+      "executionOrder": [
+        {
+          "round": 1,
+          "variant": "baseline"
+        },
+        {
+          "round": 1,
+          "variant": "current"
+        },
+        {
+          "round": 2,
+          "variant": "current"
+        },
+        {
+          "round": 2,
+          "variant": "baseline"
+        },
+        {
+          "round": 3,
+          "variant": "baseline"
+        },
+        {
+          "round": 3,
+          "variant": "current"
+        }
+      ],
+      "variants": [
+        {
+          "name": "baseline",
+          "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-complete-baseline-dist",
+          "samples": [
+            {
+              "pid": 28060,
+              "result": {
+                "memories": 1000,
+                "contentBytesPerMemory": 1024,
+                "removed": 1000,
+                "revisions": 2000,
+                "batchSize": 1000,
+                "elapsedMs": 92.14929999999998,
+                "sampledPeakHeapDeltaBytes": 1617560,
+                "sampledPeakRssDeltaBytes": 622592,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 92.3614,
+                "memorySampleCount": 2
+              }
+            },
+            {
+              "pid": 54556,
+              "result": {
+                "memories": 1000,
+                "contentBytesPerMemory": 1024,
+                "removed": 1000,
+                "revisions": 2000,
+                "batchSize": 1000,
+                "elapsedMs": 90.17089999999996,
+                "sampledPeakHeapDeltaBytes": 1614592,
+                "sampledPeakRssDeltaBytes": 0,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 90.39050000000003,
+                "memorySampleCount": 2
+              }
+            },
+            {
+              "pid": 57888,
+              "result": {
+                "memories": 1000,
+                "contentBytesPerMemory": 1024,
+                "removed": 1000,
+                "revisions": 2000,
+                "batchSize": 1000,
+                "elapsedMs": 88.44489999999996,
+                "sampledPeakHeapDeltaBytes": 1622240,
+                "sampledPeakRssDeltaBytes": 401408,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 88.66889999999995,
+                "memorySampleCount": 2
+              }
+            }
+          ],
+          "medians": {
+            "memories": 1000,
+            "contentBytesPerMemory": 1024,
+            "removed": 1000,
+            "revisions": 2000,
+            "batchSize": 1000,
+            "elapsedMs": 90.17089999999996,
+            "sampledPeakHeapDeltaBytes": 1617560,
+            "sampledPeakRssDeltaBytes": 401408,
+            "sampledPeakExternalDeltaBytes": 40,
+            "sampledPeakArrayBuffersDeltaBytes": 0,
+            "maxEventLoopGapMs": 90.39050000000003,
+            "memorySampleCount": 2
+          }
+        },
+        {
+          "name": "current",
+          "runtime": "E:\\agent-foundation-main\\dist",
+          "samples": [
+            {
+              "pid": 12496,
+              "result": {
+                "memories": 1000,
+                "contentBytesPerMemory": 1024,
+                "removed": 1000,
+                "revisions": 2000,
+                "batchSize": 100,
+                "elapsedMs": 113.58350000000002,
+                "sampledPeakHeapDeltaBytes": 14285848,
+                "sampledPeakRssDeltaBytes": 335872,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 18.634200000000078,
+                "memorySampleCount": 11
+              }
+            },
+            {
+              "pid": 10820,
+              "result": {
+                "memories": 1000,
+                "contentBytesPerMemory": 1024,
+                "removed": 1000,
+                "revisions": 2000,
+                "batchSize": 100,
+                "elapsedMs": 111.49710000000005,
+                "sampledPeakHeapDeltaBytes": 14285848,
+                "sampledPeakRssDeltaBytes": 438272,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 17.65889999999996,
+                "memorySampleCount": 11
+              }
+            },
+            {
+              "pid": 34880,
+              "result": {
+                "memories": 1000,
+                "contentBytesPerMemory": 1024,
+                "removed": 1000,
+                "revisions": 2000,
+                "batchSize": 100,
+                "elapsedMs": 113.83830000000006,
+                "sampledPeakHeapDeltaBytes": 14285848,
+                "sampledPeakRssDeltaBytes": 647168,
+                "sampledPeakExternalDeltaBytes": 40,
+                "sampledPeakArrayBuffersDeltaBytes": 0,
+                "maxEventLoopGapMs": 17.806399999999996,
+                "memorySampleCount": 11
+              }
+            }
+          ],
+          "medians": {
+            "memories": 1000,
+            "contentBytesPerMemory": 1024,
+            "removed": 1000,
+            "revisions": 2000,
+            "batchSize": 100,
+            "elapsedMs": 113.58350000000002,
+            "sampledPeakHeapDeltaBytes": 14285848,
+            "sampledPeakRssDeltaBytes": 438272,
+            "sampledPeakExternalDeltaBytes": 40,
+            "sampledPeakArrayBuffersDeltaBytes": 0,
+            "maxEventLoopGapMs": 17.806399999999996,
+            "memorySampleCount": 11
+          }
+        }
+      ]
+    }
+  ],
+  "completedAt": "2026-10-23T09:15:56.414Z"
+}

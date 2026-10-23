@@ -176,6 +176,8 @@ await kernel.init();
 
 宿主扩展可选择 `KernelIntegration.serviceTools` / `ToolRegistry.registerServices()`，使用公开的 `ServiceToolContext` 与只读 `KernelServices` 门面，减少对完整 Kernel 的依赖；旧 `tools` 与 `context.kernel` 继续支持。`install(kernel, signal?)` 的可选信号在安装超时或内核关闭时中止；安装时限复用 `extensions.timeoutMs`。工具取消后仍未结束的实际 Promise 会继续持有调度槽与资源锁，工具实现应让其 Promise 覆盖实际 I/O 与清理的完整生命周期。记忆异步准备、流式导出及新增容量配置见 [后续优化说明](OPTIMIZATION-FOLLOWUP-20261023.md)。
 
+`kernel.memory.pruneExpiredAsync(projectId, { batchSize?, signal? })` 提供在线分批清理；`kernel.memory.semanticSearchWithStats(...)` 保持精确评分并返回扫描诊断；`kernel.store.storageStats(signal?)` / `client.storageStats(signal?)` 显式统计持久数据容量。`MCPClientOptions.maxTaskSnapshotBytes` 默认 64 MiB，约束现代任务结果及预留；达到容量会在新工具请求发送前拒绝，关闭后释放快照。完整边界与兼容验证见 [审查问题修复与容量优化](OPTIMIZATION-COMPLETION-20261023.md)。
+
 ## 计费投递与容量
 
 `BillingProvider.record(charge, outcome, signal?)` 增加可选取消信号，既有两参数实现仍可使用。根入口导出 `BillingDeliveryOptions`，通过 Kernel 选项配置：

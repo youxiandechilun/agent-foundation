@@ -76,11 +76,13 @@ export interface EngineHooks {
     call: ToolCall,
     tool: ToolDefinition,
     signal: AbortSignal,
+    retain?: (operation: Promise<unknown>) => void,
   ): Promise<PreToolHookResult>;
   postToolUse(
     call: ToolCall,
     result: ToolResult,
     signal: AbortSignal,
+    retain?: (operation: Promise<unknown>) => void,
   ): Promise<ToolResult>;
   stop(
     lastMessage: string,
@@ -104,10 +106,13 @@ export function bindHooks(
     event: string,
     signal: AbortSignal,
     work: () => Promise<T> | T,
+    retain?: (operation: Promise<unknown>) => void,
   ): Promise<T | undefined> => {
     signal.throwIfAborted();
     try {
-      const result = await abortable(Promise.resolve(work()), signal);
+      const operation = Promise.resolve(work());
+      retain?.(operation);
+      const result = await abortable(operation, signal);
       signal.throwIfAborted();
       return result;
     } catch (error) {
@@ -146,7 +151,7 @@ export function bindHooks(
         },
       };
     },
-    async preToolUse(call, tool, signal) {
+    async preToolUse(call, tool, signal, retain) {
       let args = call.arguments,
         updated = false;
       for (const hook of hooks) {
@@ -154,21 +159,20 @@ export function bindHooks(
         signal.throwIfAborted();
         let result: PreToolHookResult | void;
         try {
-          result = await abortable(
-            Promise.resolve(
-              hook.preToolUse(
-                context,
-                {
-                  id: call.id,
-                  name: call.name,
-                  arguments: structuredClone(args),
-                },
-                tool,
-                signal,
-              ),
+          const operation = Promise.resolve(
+            hook.preToolUse(
+              context,
+              {
+                id: call.id,
+                name: call.name,
+                arguments: structuredClone(args),
+              },
+              tool,
+              signal,
             ),
-            signal,
           );
+          retain?.(operation);
+          result = await abortable(operation, signal);
           signal.throwIfAborted();
         } catch (error) {
           signal.throwIfAborted();
@@ -183,17 +187,21 @@ export function bindHooks(
       }
       return updated ? { updatedInput: args } : {};
     },
-    async postToolUse(call, result, signal) {
+    async postToolUse(call, result, signal, retain) {
       const notes: string[] = [];
       for (const hook of hooks) {
         if (!hook.postToolUse) continue;
-        const output = await settle("PostToolUse", signal, () =>
-          hook.postToolUse!(
-            context,
-            { id: call.id, name: call.name, arguments: call.arguments },
-            result,
-            signal,
-          ),
+        const output = await settle(
+          "PostToolUse",
+          signal,
+          () =>
+            hook.postToolUse!(
+              context,
+              { id: call.id, name: call.name, arguments: call.arguments },
+              result,
+              signal,
+            ),
+          retain,
         );
         if (output?.additionalContext) notes.push(output.additionalContext);
       }
@@ -262,6 +270,9 @@ export function runHookCommand(
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, AGENT_PROJECT_DIR: cwd },
     });
+    const closed = new Promise<void>((complete) =>
+      child.once("close", complete),
+    );
     let stdout = "",
       stderr = "",
       done = false;
@@ -271,8 +282,22 @@ export function runHookCommand(
       clearTimeout(timer);
       signal.removeEventListener("abort", abort);
       if (error) {
-        void terminateProcessTree(child);
-        return reject(error);
+        // The caller may stop awaiting this hook on cancellation, but its actual
+        // completion owns the command until both termination and stream close.
+        void Promise.allSettled([
+          Promise.resolve().then(() => terminateProcessTree(child)),
+          closed,
+        ]).then(([termination]) =>
+          reject(
+            termination.status === "rejected"
+              ? new AggregateError(
+                  [error, termination.reason],
+                  "Hook process cleanup failed",
+                )
+              : error,
+          ),
+        );
+        return;
       }
       let json: Record<string, unknown> | undefined;
       const trimmed = stdout.trim();

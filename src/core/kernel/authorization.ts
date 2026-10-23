@@ -55,26 +55,28 @@ export async function resolveToolPolicy(
   args: unknown,
   signal: AbortSignal,
   origin: "model" | "control" = "model",
+  retain?: (operation: Promise<unknown>) => void,
 ): Promise<ToolDefinition> {
+  signal.throwIfAborted();
   invariant(isToolArguments(args), "Tool arguments must be an object");
   let policy = origin === "model" ? modelPolicyTool(context, tool, args) : tool;
   let frozenArgs: Record<string, unknown> | undefined;
   for (const integration of context.kernel.integrations) {
     if (!integration.authorize) continue;
+    signal.throwIfAborted();
     frozenArgs ??= deepFreeze(structuredClone(args));
-    const next = await abortable(
-      Promise.resolve(
-        integration.authorize(
-          context,
-          deepFreeze({
-            ...policy,
-            capabilities: [...(policy.capabilities || [])],
-          }),
-          frozenArgs,
-        ),
+    const operation = Promise.resolve(
+      integration.authorize(
+        { ...context, signal },
+        deepFreeze({
+          ...policy,
+          capabilities: [...(policy.capabilities || [])],
+        }),
+        frozenArgs,
       ),
-      signal,
     );
+    retain?.(operation);
+    const next = await abortable(operation, signal);
     if (!next) continue;
     invariant(
       next.name === tool.name,

@@ -1,0 +1,394 @@
+TAP version 13
+# (node:30452) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 278.9991
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 695.2423
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 485.4166
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1939.8985
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 466.7462
+  type: 'test'
+  ...
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 77.2431
+  type: 'test'
+  ...
+# Subtest: startup cancellation retries an unpublished endpoint before confirming real process termination
+ok 7 - startup cancellation retries an unpublished endpoint before confirming real process termination
+  ---
+  duration_ms: 465.9466
+  type: 'test'
+  ...
+# (node:47128) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a timed-out real audit rule retains its lease after the allowed run completes without publishing a late audit
+ok 8 - a timed-out real audit rule retains its lease after the allowed run completes without publishing a late audit
+  ---
+  duration_ms: 296.2979
+  type: 'test'
+  ...
+# Subtest: real Kernel integration authorization retains execution capacity after cancellation until late completion
+ok 9 - real Kernel integration authorization retains execution capacity after cancellation until late completion
+  ---
+  duration_ms: 168.8493
+  type: 'test'
+  ...
+# Subtest: real Kernel integration authorization retains execution capacity after cancellation until late rejection
+ok 10 - real Kernel integration authorization retains execution capacity after cancellation until late rejection
+  ---
+  duration_ms: 153.9633
+  type: 'test'
+  ...
+# Subtest: real Kernel integration authorization retains resource write locks after cancellation until late completion
+ok 11 - real Kernel integration authorization retains resource write locks after cancellation until late completion
+  ---
+  duration_ms: 168.9434
+  type: 'test'
+  ...
+# Subtest: real Kernel integration authorization retains resource write locks after cancellation until late rejection
+ok 12 - real Kernel integration authorization retains resource write locks after cancellation until late rejection
+  ---
+  duration_ms: 171.4835
+  type: 'test'
+  ...
+# Subtest: real Kernel audit authorization retains execution capacity after cancellation until late completion
+ok 13 - real Kernel audit authorization retains execution capacity after cancellation until late completion
+  ---
+  duration_ms: 169.647
+  type: 'test'
+  ...
+# Subtest: real Kernel audit authorization retains execution capacity after cancellation until late rejection
+ok 14 - real Kernel audit authorization retains execution capacity after cancellation until late rejection
+  ---
+  duration_ms: 138.9329
+  type: 'test'
+  ...
+# Subtest: real Kernel audit authorization retains resource write locks after cancellation until late completion
+ok 15 - real Kernel audit authorization retains resource write locks after cancellation until late completion
+  ---
+  duration_ms: 125.4909
+  type: 'test'
+  ...
+# Subtest: real Kernel audit authorization retains resource write locks after cancellation until late rejection
+ok 16 - real Kernel audit authorization retains resource write locks after cancellation until late rejection
+  ---
+  duration_ms: 140.6074
+  type: 'test'
+  ...
+# Subtest: real process control integration authorization retains its lease until late completion
+ok 17 - real process control integration authorization retains its lease until late completion
+  ---
+  duration_ms: 75.9271
+  type: 'test'
+  ...
+# Subtest: real process control integration authorization retains its lease until late rejection
+ok 18 - real process control integration authorization retains its lease until late rejection
+  ---
+  duration_ms: 61.4385
+  type: 'test'
+  ...
+# Subtest: real process control audit authorization retains its lease until late completion
+ok 19 - real process control audit authorization retains its lease until late completion
+  ---
+  duration_ms: 64.1018
+  type: 'test'
+  ...
+# Subtest: real process control audit authorization retains its lease until late rejection
+ok 20 - real process control audit authorization retains its lease until late rejection
+  ---
+  duration_ms: 63.7234
+  type: 'test'
+  ...
+# (node:51056) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: model context checks each route once per request and immediately observes policy changes
+ok 21 - model context checks each route once per request and immediately observes policy changes
+  ---
+  duration_ms: 1.1303
+  type: 'test'
+  ...
+# Subtest: model and process authorization preserve original execution and cumulative restrictions
+ok 22 - model and process authorization preserve original execution and cumulative restrictions
+  ---
+  duration_ms: 74.7366
+  type: 'test'
+  ...
+# Subtest: authorization hooks reject changed identities and abort uncooperative hook promises
+ok 23 - authorization hooks reject changed identities and abort uncooperative hook promises
+  ---
+  duration_ms: 45.0985
+  type: 'test'
+  ...
+# Subtest: cached process validators still validate every call and controls retain their own session
+ok 24 - cached process validators still validate every call and controls retain their own session
+  ---
+  duration_ms: 97.7972
+  type: 'test'
+  ...
+# (node:24100) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: native search honors host, route, project, mode, agent, ancestor and planning restrictions
+ok 25 - native search honors host, route, project, mode, agent, ancestor and planning restrictions
+  ---
+  duration_ms: 621.6114
+  type: 'test'
+  ...
+# Subtest: native search waits for approval before HTTP and handles approval, refusal and cancellation
+ok 26 - native search waits for approval before HTTP and handles approval, refusal and cancellation
+  ---
+  duration_ms: 165.5873
+  type: 'test'
+  ...
+# Subtest: approval cannot restore native search after permission is revoked while waiting
+ok 27 - approval cannot restore native search after permission is revoked while waiting
+  ---
+  duration_ms: 68.7969
+  type: 'test'
+  ...
+# Subtest: native search combines primary and fallback policies using the actual route capability
+ok 28 - native search combines primary and fallback policies using the actual route capability
+  ---
+  duration_ms: 232.6705
+  type: 'test'
+  ...
+# Subtest: a retry rechecks native search policies before the next HTTP attempt
+ok 29 - a retry rechecks native search policies before the next HTTP attempt
+  ---
+  duration_ms: 80.8432
+  type: 'test'
+  ...
+# Subtest: native search obeys integration authorization and does not swallow unrelated failures
+ok 30 - native search obeys integration authorization and does not swallow unrelated failures
+  ---
+  duration_ms: 137.7271
+  type: 'test'
+  ...
+# Subtest: native search is security audited before the HTTP request
+ok 31 - native search is security audited before the HTTP request
+  ---
+  duration_ms: 63.21
+  type: 'test'
+  ...
+# Subtest: internal compaction and memory extraction do not inherit native search capability
+ok 32 - internal compaction and memory extraction do not inherit native search capability
+  ---
+  duration_ms: 140.3545
+  type: 'test'
+  ...
+# Subtest: concurrent process tree cleanup shares one operation and stops the child
+ok 33 - concurrent process tree cleanup shares one operation and stops the child
+  ---
+  duration_ms: 309.663
+  type: 'test'
+  ...
+# Subtest: command cancellation stops output delivery and the running process
+ok 34 - command cancellation stops output delivery and the running process
+  ---
+  duration_ms: 343.8015
+  type: 'test'
+  ...
+# Subtest: an output observer failure rejects the command after terminating its process
+ok 35 - an output observer failure rejects the command after terminating its process
+  ---
+  duration_ms: 329.3456
+  type: 'test'
+  ...
+# Subtest: command output limits retain bounded output and terminate a flooding process
+ok 36 - command output limits retain bounded output and terminate a flooding process
+  ---
+  duration_ms: 352.9112
+  type: 'test'
+  ...
+# Subtest: command timeout terminates execution and pre-cancelled commands never start
+ok 37 - command timeout terminates execution and pre-cancelled commands never start
+  ---
+  duration_ms: 412.9905
+  type: 'test'
+  ...
+# Subtest: cancellation during abort listener registration is observed immediately
+ok 38 - cancellation during abort listener registration is observed immediately
+  ---
+  duration_ms: 286.6464
+  type: 'test'
+  ...
+# Subtest: successful commands preserve split UTF-8 output, streams and exit status
+ok 39 - successful commands preserve split UTF-8 output, streams and exit status
+  ---
+  duration_ms: 158.6684
+  type: 'test'
+  ...
+# (node:26084) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: security audit defaults off without evaluating rules or removing system instructions
+ok 40 - security audit defaults off without evaluating rules or removing system instructions
+  ---
+  duration_ms: 154.3101
+  type: 'test'
+  ...
+# Subtest: audit mode records deny findings without blocking and exposes scoped pagination
+ok 41 - audit mode records deny findings without blocking and exposes scoped pagination
+  ---
+  duration_ms: 137.4888
+  type: 'test'
+  ...
+# Subtest: enforced input rejection precedes run, inbox and provider work
+ok 42 - enforced input rejection precedes run, inbox and provider work
+  ---
+  duration_ms: 63.138
+  type: 'test'
+  ...
+# Subtest: input auditing includes an uploaded attachment excerpt
+ok 43 - input auditing includes an uploaded attachment excerpt
+  ---
+  duration_ms: 78.4136
+  type: 'test'
+  ...
+# Subtest: input auditing matches registered secrets before redacting text and attachment excerpts
+ok 44 - input auditing matches registered secrets before redacting text and attachment excerpts
+  ---
+  duration_ms: 77.6074
+  type: 'test'
+  ...
+# Subtest: tool auditing blocks direct and hook-rewritten arguments before file effects
+ok 45 - tool auditing blocks direct and hook-rewritten arguments before file effects
+  ---
+  duration_ms: 113.82
+  type: 'test'
+  ...
+# Subtest: default prompt-injection flag remains advisory in enforce mode
+ok 46 - default prompt-injection flag remains advisory in enforce mode
+  ---
+  duration_ms: 70.0313
+  type: 'test'
+  ...
+# Subtest: rejected steering and queued inputs leave the current run active
+ok 47 - rejected steering and queued inputs leave the current run active
+  ---
+  duration_ms: 124.4165
+  type: 'test'
+  ...
+# Subtest: client process actions pass tool auditing before starting a process
+ok 48 - client process actions pass tool auditing before starting a process
+  ---
+  duration_ms: 76.2649
+  type: 'test'
+  ...
+# Subtest: enabling enforcement audits old pending inbox entries before resume creates a run
+ok 49 - enabling enforcement audits old pending inbox entries before resume creates a run
+  ---
+  duration_ms: 47.8089
+  type: 'test'
+  ...
+# (node:48508) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: audit configuration defaults, strict fields, bounds and unique rule identifiers
+ok 50 - audit configuration defaults, strict fields, bounds and unique rule identifiers
+  ---
+  duration_ms: 3.7725
+  type: 'test'
+  ...
+# Subtest: off bypasses request extraction, rules, cancellation and storage
+ok 51 - off bypasses request extraction, rules, cancellation and storage
+  ---
+  duration_ms: 19.3851
+  type: 'test'
+  ...
+# Subtest: audit records denials without blocking; enforce flags allow and denials persist
+ok 52 - audit records denials without blocking; enforce flags allow and denials persist
+  ---
+  duration_ms: 18.7915
+  type: 'test'
+  ...
+# Subtest: text rules match literals, honor stage and case, and snapshot configuration
+ok 53 - text rules match literals, honor stage and case, and snapshot configuration
+  ---
+  duration_ms: 17.9174
+  type: 'test'
+  ...
+# Subtest: tool text rules inspect decoded values and keys without joining fields
+ok 54 - tool text rules inspect decoded values and keys without joining fields
+  ---
+  duration_ms: 22.6814
+  type: 'test'
+  ...
+# Subtest: prompt injection heuristics flag English and Chinese, with explicit enforcement only
+ok 55 - prompt injection heuristics flag English and Chinese, with explicit enforcement only
+  ---
+  duration_ms: 18.857
+  type: 'test'
+  ...
+# Subtest: registration validates identifiers and stages, preserves snapshots and supports safe unregister
+ok 56 - registration validates identifiers and stages, preserves snapshots and supports safe unregister
+  ---
+  duration_ms: 16.6962
+  type: 'test'
+  ...
+# Subtest: exceptions and invalid or oversized results are structured failures with mode policy
+ok 57 - exceptions and invalid or oversized results are structured failures with mode policy
+  ---
+  duration_ms: 17.4227
+  type: 'test'
+  ...
+# Subtest: one deadline bounds all concurrent rules and late completion cannot change records
+ok 58 - one deadline bounds all concurrent rules and late completion cannot change records
+  ---
+  duration_ms: 56.4867
+  type: 'test'
+  ...
+# Subtest: external cancellation propagates the original reason and leaves no audit record
+ok 59 - external cancellation propagates the original reason and leaves no audit record
+  ---
+  duration_ms: 31.099
+  type: 'test'
+  ...
+# Subtest: synchronous work exceeding the deadline prevents subsequent rules from starting
+ok 60 - synchronous work exceeding the deadline prevents subsequent rules from starting
+  ---
+  duration_ms: 35.8886
+  type: 'test'
+  ...
+# Subtest: frozen request snapshots protect original and subsequent rule data
+ok 61 - frozen request snapshots protect original and subsequent rule data
+  ---
+  duration_ms: 16.1708
+  type: 'test'
+  ...
+# Subtest: list uses matching project scope, validates pages and omits sensitive input and error data
+ok 62 - list uses matching project scope, validates pages and omits sensitive input and error data
+  ---
+  duration_ms: 17.599
+  type: 'test'
+  ...
+1..62
+# tests 62
+# suites 0
+# pass 62
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13340.5738

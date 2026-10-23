@@ -4,6 +4,7 @@ import type { ToolEffect, InboxEntry } from "../../contracts.js";
 import type { MigrationReceipt } from "../../sessions/migration.js";
 import { entityList } from "../shared.js";
 import { apiRoutes, input, status } from "../route-table.js";
+import { sessionExport } from "../session-export.js";
 
 export const sessionManagementRoutes = apiRoutes({
   "POST sessions/:id/process-actions": status(
@@ -85,11 +86,7 @@ export const sessionManagementRoutes = apiRoutes({
   "POST sessions/:id/fork": status(201, async ({ k, id, json }) =>
     k.forkSession(id, (await json()).throughMessageId),
   ),
-  "GET sessions/:id/export": ({ k, id }) => ({
-    session: k.store.session(id),
-    messages: k.store.transcript(id),
-    format: "foundation-session-v1",
-  }),
+  "GET sessions/:id/export": (context) => sessionExport(context, context.id),
   "GET runs/:id/context": ({ k, id }) => {
     k.store.run(id);
     return k.store.find("work-contexts", id) || { status: "not-prepared" };

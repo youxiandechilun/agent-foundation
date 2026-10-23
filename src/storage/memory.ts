@@ -26,6 +26,19 @@ export interface MemoryStoreOptions {
   maxConcurrentImports?: number;
   maxImportBytes?: number;
 }
+export interface MemoryPruneOptions {
+  /** Each batch commits independently, so cancellation retains completed work. */
+  batchSize?: number;
+  signal?: AbortSignal;
+}
+export interface MemorySearchStats {
+  scannedRows: number;
+  scoredRows: number;
+  vectorBytes: number;
+  dimensions: number;
+  /** Exact local scan, cache maintenance and yielding; excludes the embedding request. */
+  elapsedMs: number;
+}
 interface MemoryRevision {
   id: string;
   memoryId: string;
@@ -70,6 +83,7 @@ const requestedLimit = (limit = 8) => {
 export class MemoryStore {
   private readonly imports: Capacity;
   private readonly maxImportBytes: number;
+  private readonly pruningProjects = new Set<string>();
   constructor(
     readonly store: Store,
     readonly config: Config,
@@ -292,6 +306,47 @@ export class MemoryStore {
       for (const row of rows) this.remove(row.id, projectId, "expired");
     });
     return { removed: rows.length };
+  }
+  /** Online cleanup keeps each revision and deletion atomic, yielding between batches. */
+  async pruneExpiredAsync(projectId: string, options: MemoryPruneOptions = {}) {
+    const { batchSize = 100, signal } = options;
+    signal?.throwIfAborted();
+    this.store.project(projectId);
+    invariant(
+      Number.isSafeInteger(batchSize) && batchSize >= 1 && batchSize <= 1000,
+      "Invalid memory prune batch",
+    );
+    invariant(
+      !this.pruningProjects.has(projectId),
+      "Memory cleanup already running for this project",
+      429,
+      "memory_prune_capacity",
+    );
+    this.pruningProjects.add(projectId);
+    try {
+      const cutoff = now();
+      const upper = this.store
+        .prepare("SELECT COALESCE(MAX(rowid),0) AS cursor FROM e_memories")
+        .get()!.cursor as number;
+      let removed = 0;
+      for (;;) {
+        signal?.throwIfAborted();
+        const count = this.store.transaction(() => {
+          const rows = this.store
+            .prepare(
+              "SELECT id FROM e_memories WHERE json_extract(body,'$.projectId')=? AND json_extract(body,'$.expiresAt')<=? AND rowid<=? LIMIT ?",
+            )
+            .all(projectId, cutoff, upper, batchSize) as { id: string }[];
+          for (const row of rows) this.remove(row.id, projectId, "expired");
+          return rows.length;
+        });
+        removed += count;
+        if (count < batchSize) return { removed };
+        await new Promise<void>((resolve) => setImmediate(resolve));
+      }
+    } finally {
+      this.pruningProjects.delete(projectId);
+    }
   }
   merge(projectId: string, ids: string[], content: string) {
     invariant(
@@ -545,6 +600,24 @@ export class MemoryStore {
     namespace?: string,
     signal?: AbortSignal,
   ) {
+    return (
+      await this.semanticSearchWithStats(
+        projectId,
+        query,
+        limit,
+        namespace,
+        signal,
+      )
+    ).memories;
+  }
+  /** Exact scoring with per-call diagnostics; never retains corpus rows or prior scans. */
+  async semanticSearchWithStats(
+    projectId: string,
+    query: string,
+    limit = 8,
+    namespace?: string,
+    signal?: AbortSignal,
+  ) {
     signal?.throwIfAborted();
     this.store.project(projectId);
     requestedLimit(limit);
@@ -561,6 +634,9 @@ export class MemoryStore {
     const statement = this.store.db.prepare(
       "SELECT e.body,v.id,v.vector,n.norm FROM memory_vectors v JOIN e_memories e ON e.id=v.id LEFT JOIN memory_vector_norms n ON n.id=v.id WHERE v.model=? AND json_extract(e.body,'$.projectId')=? AND (? IS NULL OR json_extract(e.body,'$.namespace')=?) AND (json_extract(e.body,'$.expiresAt') IS NULL OR json_extract(e.body,'$.expiresAt')>?)",
     );
+    const started = performance.now();
+    let vectorBytes = 0;
+    let scoredRows = 0;
     let scanned = 0;
     const pendingNorms: [string, number, string | Uint8Array][] = [];
     let pendingNormBytes = 0;
@@ -598,8 +674,13 @@ export class MemoryStore {
         await new Promise<void>((r) => setImmediate(r));
       }
       signal?.throwIfAborted();
+      vectorBytes +=
+        typeof row.vector === "string"
+          ? Buffer.byteLength(row.vector)
+          : row.vector.byteLength;
       const v = decodeVector(row.vector);
       if (v.length !== q.length) continue;
+      scoredRows++;
       // Preserve exact Float64 scoring; older vectors lazily cache their norm.
       let dot = 0,
         squares = 0;
@@ -626,10 +707,18 @@ export class MemoryStore {
       }
     }
     flushNorms();
-    return best.map(({ body, score }) => {
+    const memories = best.map(({ body, score }) => {
       const entry: MemoryEntry = JSON.parse(body);
       return { ...entry, score };
     });
+    const stats: MemorySearchStats = {
+      scannedRows: scanned,
+      scoredRows,
+      vectorBytes,
+      dimensions: q.length,
+      elapsedMs: performance.now() - started,
+    };
+    return { memories, stats };
   }
   private cacheNorm(
     memoryId: string,

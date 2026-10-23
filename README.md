@@ -59,6 +59,8 @@
 
 后续全量审查的修复还覆盖工具与 MCP 取消后的真实容量、记忆内容索引和批量准备、流式检查点、设备任务索引与恢复、带快照的记忆流式导出、扩展安装取消、协议工厂和窄服务接口。生产 JavaScript worker 现已纳入静态检查，CI 增加 Linux 核心验证；配置、兼容边界和复现入口见 [后续优化说明](docs/OPTIMIZATION-FOLLOWUP-20261023.md)。
 
+进一步落实审查的优化包括 hook 真实完成前的资源持有、HTTP JSON 总量准入、会话流式导出、MCP 任务快照预算、分批记忆清理、单调实体游标与显式存储容量统计；浏览器桥接 JS、公开 SDK 类型契约和 Linux 宿主集成也纳入门禁。实现、默认值与优化前后实测见 [审查问题修复与容量优化](docs/OPTIMIZATION-COMPLETION-20261023.md)。
+
 ## 多账户用量与计费接入
 
 已有的 `Project.billingAccount` 与 `KernelOptions.billing` 可把不同项目的模型费用关联到宿主的业务账户。宿主实现 `BillingProvider`，按自己的余额、积分或套餐规则处理每次调用：

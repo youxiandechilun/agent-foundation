@@ -145,6 +145,11 @@
     "executionBoundary": "native"
   },
   "limits": {
+    "maxConcurrentJsonRequests": 8,
+    "maxInFlightJsonBytes": 268435456,
+    "maxConcurrentSessionExports": 2,
+    "maxSessionExportBytes": 134217728,
+    "sessionExportTimeoutMs": 60000,
     "maxConcurrentTools": 4,
     "maxPendingNodeTasks": 64,
     "maxNodeTaskBytes": 8388608,

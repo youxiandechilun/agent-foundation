@@ -86,6 +86,7 @@ export const entityTable = (kind: Table): string => {
 // An unindexed filter still answers correctly by scanning that kind's own table.
 const indexed: Partial<Record<Table, readonly EntityField[]>> = {
   sessions: ["projectId", "collaboration.teamId", "teamRootSessionId"],
+  agents: ["routeId"],
   runs: ["sessionId", "status"],
   assets: ["projectId"],
   jobs: ["projectId", "status"],
@@ -115,6 +116,9 @@ export const committedCostExpression = `CASE json_extract(body,'$.status')
 const pendingEffect = "json_extract(body,'$.status') IN ('running','prepared')";
 // Query shapes used by memory, cost and event lookups beyond plain field filters.
 const special: Partial<Record<Table, readonly string[]>> = {
+  sessions: [
+    "CREATE INDEX IF NOT EXISTS sessions_active_route ON e_sessions(json_extract(body,'$.routeId')) WHERE NOT COALESCE(json_extract(body,'$.archived'),0)",
+  ],
   "node-tasks": [
     "CREATE INDEX IF NOT EXISTS node_tasks_claim ON e_node_tasks(json_extract(body,'$.nodeId'),json_extract(body,'$.status'),json_extract(body,'$.deadline'))",
     "CREATE INDEX IF NOT EXISTS node_tasks_status ON e_node_tasks(json_extract(body,'$.status'))",
@@ -131,6 +135,7 @@ const special: Partial<Record<Table, readonly string[]>> = {
   memories: [
     "CREATE INDEX IF NOT EXISTS memories_project_namespace ON e_memories(json_extract(body,'$.projectId'),json_extract(body,'$.namespace'))",
     "CREATE INDEX IF NOT EXISTS memories_content_lookup ON e_memories(json_extract(body,'$.projectId'),json_extract(body,'$.namespace'),foundation_content_hash(json_extract(body,'$.content')))",
+    "CREATE INDEX IF NOT EXISTS memories_expiry ON e_memories(json_extract(body,'$.projectId'),json_extract(body,'$.expiresAt')) WHERE json_extract(body,'$.expiresAt') IS NOT NULL",
   ],
   "memory-revisions": [
     "CREATE INDEX IF NOT EXISTS memory_revisions_latest ON e_memory_revisions(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC)",
@@ -150,9 +155,7 @@ const special: Partial<Record<Table, readonly string[]>> = {
 const schemaStatements = tables.flatMap((kind) => {
   const table = entityTable(kind);
   return [
-    kind === "cost-ledger"
-      ? `CREATE TABLE IF NOT EXISTS ${table}(seq INTEGER PRIMARY KEY,id TEXT UNIQUE,body TEXT NOT NULL)`
-      : `CREATE TABLE IF NOT EXISTS ${table}(id TEXT PRIMARY KEY,body TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${table}(seq INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT UNIQUE,body TEXT NOT NULL)`,
     ...(indexed[kind] || []).map(
       (field) =>
         `CREATE INDEX IF NOT EXISTS ${table}_${field.replaceAll(".", "_")} ON ${table}(json_extract(body,'$.${field}'))`,
@@ -169,28 +172,70 @@ const schemaObjects = schemaStatements.map((sql) => ({
 /** Repair missing objects without parsing every CREATE statement on each open. */
 export function ensureEntitySchema(db: DatabaseSync): ReadonlySet<string> {
   // The caller holds a write transaction, including during the one-time upgrade.
-  const cost = db
+  const layouts = db
     .prepare(
-      "SELECT sql FROM sqlite_schema WHERE type='table' AND name='e_cost_ledger'",
+      "SELECT name,sql FROM sqlite_schema WHERE type='table' AND name LIKE 'e_%'",
     )
-    .get() as { sql: string } | undefined;
-  if (cost && !/\bseq\s+INTEGER\s+PRIMARY\s+KEY/i.test(cost.sql)) {
-    const extra = db
-      .prepare(
-        "SELECT name,sql FROM sqlite_schema WHERE tbl_name='e_cost_ledger' AND type IN ('index','trigger') AND sql IS NOT NULL",
-      )
-      .all() as { name: string; sql: string }[];
-    db.exec(`CREATE TABLE e_cost_ledger_layout(seq INTEGER PRIMARY KEY,id TEXT UNIQUE,body TEXT NOT NULL);
-      INSERT INTO e_cost_ledger_layout(seq,id,body) SELECT rowid,id,body FROM e_cost_ledger ORDER BY rowid;
-      DROP TABLE e_cost_ledger;
-      ALTER TABLE e_cost_ledger_layout RENAME TO e_cost_ledger;`);
-    for (const object of extra)
-      if (
-        !["e_cost_ledger_projectId", "cost_ledger_project_budget"].includes(
-          object.name,
-        )
-      )
-        db.exec(object.sql);
+    .all() as { name: string; sql: string }[];
+  const knownTables = new Set(names.values());
+  const legacy = layouts.filter(
+    ({ name, sql }) =>
+      knownTables.has(name) &&
+      !/\bseq\s+INTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT/i.test(sql),
+  );
+  if (legacy.length) {
+    invariant(
+      db.prepare("PRAGMA foreign_keys").get()!.foreign_keys === 0,
+      "Entity cursor migration requires foreign_keys=OFF before the transaction",
+    );
+    // Preserve existing numeric cursors. A named AUTOINCREMENT rowid also keeps
+    // the high-water mark after the last row (or all rows) are deleted.
+    // Legacy ALTER mode lets views retain their original table references while
+    // the replacement is renamed inside this same atomic schema transaction.
+    const prior = db.prepare("PRAGMA legacy_alter_table").get()!;
+    db.exec("PRAGMA legacy_alter_table=ON");
+    try {
+      for (const { name } of legacy) {
+        const columns = db.prepare(`PRAGMA table_xinfo(${name})`).all() as {
+          name: string;
+          type: string;
+          pk: number;
+        }[];
+        invariant(
+          columns.every(
+            (column) =>
+              column.name === "id" ||
+              column.name === "body" ||
+              (column.name === "seq" &&
+                column.type.toUpperCase() === "INTEGER" &&
+                column.pk === 1),
+          ),
+          `Unsupported custom columns in ${name}; migrate its layout explicitly before opening the Store`,
+          409,
+          "storage_schema_conflict",
+        );
+        const extra = db
+          .prepare(
+            "SELECT name,sql FROM sqlite_schema WHERE tbl_name=? AND type IN ('index','trigger') AND sql IS NOT NULL",
+          )
+          .all(name) as { name: string; sql: string }[];
+        db.exec(`CREATE TABLE ${name}_cursor_layout(seq INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT UNIQUE,body TEXT NOT NULL);
+          INSERT INTO ${name}_cursor_layout(seq,id,body) SELECT rowid,id,body FROM ${name} ORDER BY rowid;
+          DROP TABLE ${name};
+          ALTER TABLE ${name}_cursor_layout RENAME TO ${name};`);
+        for (const object of extra)
+          if (
+            !["e_cost_ledger_projectId", "cost_ledger_project_budget"].includes(
+              object.name,
+            )
+          )
+            db.exec(object.sql);
+      }
+    } finally {
+      db.exec(
+        `PRAGMA legacy_alter_table=${prior.legacy_alter_table ? "ON" : "OFF"}`,
+      );
+    }
   }
   const existing = new Set(
     (
@@ -213,6 +258,12 @@ export function ensureEntitySchema(db: DatabaseSync): ReadonlySet<string> {
   }
   const missing = schemaObjects.filter((object) => !existing.has(object.name));
   if (missing.length) db.exec(missing.map((object) => object.sql).join(";\n"));
+  if (legacy.length)
+    invariant(
+      !db.prepare("PRAGMA foreign_key_check").get(),
+      "Entity cursor migration failed foreign key integrity check",
+      500,
+    );
   return existing;
 }
 

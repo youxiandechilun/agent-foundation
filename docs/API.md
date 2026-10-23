@@ -27,6 +27,7 @@
 | GET        | /health                             | {ok,version,protocol}                                                                    |
 | GET        | /v1/config                          | 脱敏配置、默认路由、权限、限制                                                           |
 | GET        | /v1/capabilities                    | 实际协议、模式、工具包、已加载集成、媒体适配器、扩展能力                                 |
+| GET        | /v1/storage/stats                   | 显式、可取消的表行数与字节、数据库/WAL、资产/检查点目录容量统计                          |
 | GET / POST | /v1/projects                        | 列表 / {name,directory?}                                                                 |
 | GET / POST | /v1/modes                           | 列表 / 自定义模式定义                                                                    |
 | DELETE     | /v1/modes/{id}                      | 删除未被活跃会话引用的自定义模式；内置模式不可替换                                       |
@@ -67,6 +68,8 @@ directory 必须存在并在 workspaceRoots 内。默认模式 chat/code/office�
 `GET /v1/runs/{id}/events?format=json` 接受条数限制，并按约 1 MiB 的原始事件数据分批返回（单个事件保持完整），返回 `hasMore` 与 `cursor`。SSE 自动按相同字节窗口回放；慢连接超过积压、订阅或等待 drain 的限制时结束连接，客户端从最后收到的持久游标恢复。
 
 队列、上传/下载和 SSE 受 `limits` 的数量与字节预算共同约束。容量不足返回 429（`input_capacity`、`stream_capacity` 或 `resource_capacity`）；历史超出字节预算返回 413（`history_capacity`）。超限输入在写入 inbox 和 `input.accepted` 事件前拒绝。详细默认值和流式传输约束见 [容量与效率](CAPACITY-OPTIMIZATION.md)。
+
+JSON 请求在分配请求体前共享 `maxConcurrentJsonRequests`（默认 8）和 `maxInFlightJsonBytes`（默认 256 MiB），租约覆盖实际解析、处理函数和传输。会话 v1 导出采用一致性快照和背压，默认最多 2 项、单次 128 MiB、60 秒；`memories/prune` 按批提交并支持断连取消。存储统计只在显式调用时扫描，每 Store 最多一项；文件容量是扫描期间采样。接口格式、取消及迁移边界见 [审查问题修复与容量优化](OPTIMIZATION-COMPLETION-20261023.md)。
 
 ## 输入、运行与持续工作
 

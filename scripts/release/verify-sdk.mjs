@@ -137,6 +137,7 @@ try {
           "--types",
           "node",
           "sdk-types.mts",
+          "sdk-contracts.mts",
         ],
         { cwd: consumer },
       );
@@ -162,6 +163,7 @@ try {
       Object.assign(entry, {
         status: "passed",
         strictTypes: true,
+        publicContractCompatibility: true,
         runtime: evidence,
       });
     } catch (error) {

@@ -1,5 +1,7 @@
 # 源码结构与阅读顺序
 
+2026-10-23 审查问题的后续落地包括真实 hook 完成所有权、HTTP JSON 总量准入、会话流式快照、MCP 任务快照预算、实体单调游标和显式存储诊断，见 [OPTIMIZATION-COMPLETION-20261023.md](OPTIMIZATION-COMPLETION-20261023.md)。
+
 本工程是一个 TypeScript 单包 SDK。公开 npm 入口固定为根入口、`/client` 和 `/host`；源码内部按能力组织，不为每个目录建立独立包或转发入口。
 
 ## 目录职责

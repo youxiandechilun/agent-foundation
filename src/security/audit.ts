@@ -97,6 +97,7 @@ export class SecurityAudit {
   async check(
     request: SecurityAuditRequest,
     signal?: AbortSignal,
+    retain?: (operation: Promise<unknown>) => void,
   ): Promise<SecurityAuditRecord | undefined> {
     if (!this.enabled) return;
     signal?.throwIfAborted();
@@ -157,6 +158,7 @@ export class SecurityAudit {
             );
         }),
       );
+      retain?.(work);
       await Promise.race([work, interrupted]);
       signal?.throwIfAborted();
       if (performance.now() >= deadline) controller.abort();

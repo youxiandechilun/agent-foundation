@@ -15,6 +15,7 @@ import {
 } from "../protocol.js";
 import type { MCPClientOptions } from "../client.js";
 import type { HeaderBinding } from "../headers.js";
+import type { ModernTaskReservation } from "../tasks/modern.js";
 
 export interface Pending {
   resolve: (value: unknown) => void;
@@ -30,7 +31,11 @@ export interface Pending {
     progress?: (value: WireObject) => void;
     progressToken?: string;
   };
-  modernTaskOptions?: { signal?: AbortSignal; deadline: number };
+  modernTaskOptions?: {
+    signal?: AbortSignal;
+    deadline: number;
+    reservation?: ModernTaskReservation;
+  };
   subscription?: {
     filter: MCPNotificationFilter;
     acknowledged?: MCPNotificationFilter;
@@ -86,6 +91,7 @@ export class MCPClientRequests {
     params: WireObject = {},
     options?: MCPRequestOptions,
     initializing = false,
+    reservation?: ModernTaskReservation,
   ): Promise<WireObject> {
     const deadline = Date.now() + (options?.timeout || this.limits.timeout),
       seen = new Set<string>();
@@ -106,6 +112,7 @@ export class MCPClientRequests {
           { ...options, timeout: remaining },
           initializing,
           toolHeaders,
+          reservation,
         ),
       );
       // Every MCP result is a JSON object; anything else is a broken peer.
@@ -188,6 +195,7 @@ export class MCPClientRequests {
     options?: MCPRequestOptions,
     initializing = false,
     toolHeaders?: HeaderBinding[],
+    reservation?: ModernTaskReservation,
   ): Promise<unknown> {
     invariant(
       !this.host.closed() && (this.host.initialized() || initializing),
@@ -256,6 +264,7 @@ export class MCPClientRequests {
         this.options.taskExtension
           ? {
               modernTaskOptions: {
+                reservation,
                 signal: options?.signal,
                 deadline:
                   options?.taskDeadline ??

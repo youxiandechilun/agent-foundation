@@ -49,11 +49,7 @@ export const configurationRoutes = apiRoutes({
       managementAuthorization: "host-token",
       oauthPurpose: "optional-external-mcp-authorization",
     },
-    textProtocols: [
-      "openai-completions",
-      "openai-responses",
-      "anthropic-messages",
-    ],
+    textProtocols: k.textProtocols.ids(),
     mediaAdapters: k.media.adapters.list(),
     modes: k.modes.list(),
     transports: ["http-json", "sse"],

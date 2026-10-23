@@ -7,6 +7,7 @@ import { EventEmitter } from "node:events";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { hostname } from "node:os";
+import { collectStorageStats } from "./metrics.js";
 import type { Message } from "../runtime/types.js";
 import type {
   Approval,
@@ -93,18 +94,24 @@ export class Store {
   private transactionDepth = 0;
   private leaseOwner?: string;
   private closed = false;
-  constructor(dataDir: string, options: { exclusiveKernel?: boolean } = {}) {
+  private collectingStats = false;
+  private readonly statsAbort = new AbortController();
+  constructor(
+    private readonly dataDir: string,
+    options: { exclusiveKernel?: boolean } = {},
+  ) {
     mkdirSync(dataDir, { recursive: true });
     this.db = new DatabaseSync(path.join(dataDir, "foundation.sqlite"));
-    // Every writer registers this before opening an expression index. Keep the
-    // derived digest outside public memory JSON and avoid indexing large text.
-    this.db.function(
-      "foundation_content_hash",
-      { deterministic: true },
-      (value) => (typeof value === "string" ? hash(value) : null),
-    );
-    this.db
-      .exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=3000;
+    try {
+      // Every writer registers this before opening an expression index. Keep the
+      // derived digest outside public memory JSON and avoid indexing large text.
+      this.db.function(
+        "foundation_content_hash",
+        { deterministic: true },
+        (value) => (typeof value === "string" ? hash(value) : null),
+      );
+      this.db
+        .exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=3000;
       PRAGMA temp_store=MEMORY; PRAGMA recursive_triggers=ON; PRAGMA cache_size=-8192;
       CREATE TABLE IF NOT EXISTS events (seq INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT NOT NULL, body TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS events_run ON events(run_id,seq);
@@ -134,9 +141,19 @@ export class Store {
         INSERT INTO transcript_generations VALUES(new.session_id,1) ON CONFLICT(session_id) DO UPDATE SET generation=generation+1;
       END;
     `);
-    try {
       if (options.exclusiveKernel) this.acquireKernelLease();
-      const schema = this.transaction(() => ensureEntitySchema(this.db));
+      // SQLite ignores foreign_keys changes inside a transaction. Disable it
+      // before rebuilding tables so DROP cannot cascade into host-owned rows.
+      // The migration checks all references before committing the replacement.
+      const foreignKeys = this.db.prepare("PRAGMA foreign_keys").get()!
+        .foreign_keys;
+      let schema: ReadonlySet<string>;
+      this.db.exec("PRAGMA foreign_keys=OFF");
+      try {
+        schema = this.transaction(() => ensureEntitySchema(this.db));
+      } finally {
+        this.db.exec(`PRAGMA foreign_keys=${foreignKeys ? "ON" : "OFF"}`);
+      }
       this.splitEntities();
       this.ensureAuxiliarySchema();
       if (!this.prepare("SELECT 1 FROM migrations WHERE version=3").get())
@@ -446,6 +463,40 @@ export class Store {
       `SELECT body FROM ${entityTable(kind)}${where.sql}${order.sql}`,
       [...where.values, ...order.values],
     );
+  }
+  hasActiveSessionForRoute(routeId: string): boolean {
+    return Boolean(
+      this.prepare(
+        "SELECT 1 FROM e_sessions WHERE json_extract(body,'$.routeId')=? AND NOT COALESCE(json_extract(body,'$.archived'),0) LIMIT 1",
+      ).get(routeId),
+    );
+  }
+  hasAgentForRoute(routeId: string): boolean {
+    return Boolean(
+      this.prepare(
+        "SELECT 1 FROM e_agents WHERE json_extract(body,'$.routeId')=? LIMIT 1",
+      ).get(routeId),
+    );
+  }
+  /** Full diagnostics are opt-in, limited to one scan per Store and cancellable. */
+  async storageStats(signal?: AbortSignal) {
+    invariant(!this.closed, "Storage is closed", 503);
+    signal?.throwIfAborted();
+    invariant(
+      !this.collectingStats,
+      "Storage statistics scan already running",
+      429,
+      "storage_stats_capacity",
+    );
+    this.collectingStats = true;
+    try {
+      return await collectStorageStats(
+        this.dataDir,
+        AbortSignal.any([this.statsAbort.signal, ...(signal ? [signal] : [])]),
+      );
+    } finally {
+      this.collectingStats = false;
+    }
   }
   /** Indexed lookup also rejects conflicting historical duplicates without loading their bodies. */
   findMediaJob(
@@ -1139,6 +1190,7 @@ export class Store {
   }
   close() {
     if (this.closed) return;
+    this.statsAbort.abort(new Error("Storage is closing"));
     if (this.leaseOwner)
       this.prepare("DELETE FROM kernel_owner WHERE owner=?").run(
         this.leaseOwner,

@@ -130,7 +130,16 @@ export { SkillManager } from "./extensions/skills.js";
 export { PluginManager } from "./extensions/plugins/manager.js";
 export { MCPManager } from "./extensions/mcp/manager.js";
 export { MemoryStore } from "./storage/memory.js";
-export type { MemoryStoreOptions } from "./storage/memory.js";
+export type {
+  MemoryStoreOptions,
+  MemoryPruneOptions,
+  MemorySearchStats,
+} from "./storage/memory.js";
+export type {
+  StorageStats,
+  StorageTableStats,
+  StorageDirectoryStats,
+} from "./storage/metrics.js";
 export type { CheckpointReadOptions } from "./sessions/checkpoints.js";
 export { WebClient, htmlToText, proxyFor } from "./web/client.js";
 export type {

@@ -1,0 +1,687 @@
+{
+  "schemaVersion": 1,
+  "scenario": "mcp-task-retention",
+  "status": "passed",
+  "startedAt": "2026-10-23T09:15:56.477Z",
+  "completedAt": "2026-10-23T09:15:57.875Z",
+  "environment": {
+    "node": "v22.23.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "win32",
+    "architecture": "x64",
+    "osRelease": "10.0.26200",
+    "cpu": "Intel(R) Core(TM) i5-14600KF",
+    "logicalCpus": 20,
+    "totalMemoryBytes": 16924135424
+  },
+  "workload": {
+    "tasks": 128,
+    "resultBytesPerTask": 262144,
+    "argumentBytesPerTask": 65536,
+    "localContextBytesPerTask": 65536,
+    "expectedResultBytes": 33554432,
+    "discardedOriginBytes": 16777216
+  },
+  "samplesPerVariant": 3,
+  "method": "Each variant/sample runs in a fresh serial Node child process with --expose-gc and an allowlisted environment. Import each actual compiled runtime; alternate baseline/current order every round. At each phase yield one event-loop turn, run explicit GC three times, then sample process.memoryUsage(). Random hex payloads have fixed byte lengths and separate origins. No model/network calls, files or database are used by the workload.",
+  "limitations": [
+    "These are post-GC retained-memory snapshots, not allocation or transient peaks. GC, JIT, native allocators and host activity affect the observations; three samples do not prove absence of long-term leaks.",
+    "RSS covers the whole process. heapUsed, external and arrayBuffers describe different accounting domains; arrayBuffers is included in external and must not be added to it. None is a substitute for total RSS.",
+    "The current implementation retains necessary full task results in bounded Buffer snapshots, so a heapUsed decrease partly moves data to arrayBuffers. Report that retained output separately from the released argument/localContext data.",
+    "The baseline must be a separately saved/rebuilt compiled runtime. Runtime module SHA-256 values are recorded before and after each sample; this benchmark neither edits nor transpiles either implementation.",
+    "No peer, receiver, MCP manager persistence, model, browser or concurrent production load is included. Local measurements cannot be extrapolated to end-to-end Agent throughput or a process RSS hard limit."
+  ],
+  "scriptSha256": "32bcae76b7c37278a01372696337e7e1b9835454b1a358432a97372e7821c915",
+  "dependencyLockSha256": "fa2f1505fa2d2c03bb2e75ab5e7ae11f538e8f8d2e8caa7a95bee94041c96fa7",
+  "executionOrder": [
+    {
+      "round": 1,
+      "variant": "baseline",
+      "pid": 53672
+    },
+    {
+      "round": 1,
+      "variant": "current",
+      "pid": 37232
+    },
+    {
+      "round": 2,
+      "variant": "current",
+      "pid": 45020
+    },
+    {
+      "round": 2,
+      "variant": "baseline",
+      "pid": 51356
+    },
+    {
+      "round": 3,
+      "variant": "baseline",
+      "pid": 49108
+    },
+    {
+      "round": 3,
+      "variant": "current",
+      "pid": 51908
+    }
+  ],
+  "variants": [
+    {
+      "name": "baseline",
+      "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-complete-baseline-dist",
+      "hashes": {
+        "extensions/mcp/tasks/modern.js": "fe8af9e45a56cd4aa449425113e23e56e3cfd599a244b013f0bbb900121aefd1",
+        "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+        "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+      },
+      "samples": [
+        {
+          "pid": 53672,
+          "node": "v22.23.2",
+          "hashes": {
+            "extensions/mcp/tasks/modern.js": "fe8af9e45a56cd4aa449425113e23e56e3cfd599a244b013f0bbb900121aefd1",
+            "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+            "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+          },
+          "createUpdateReleaseMs": 50.771000000000015,
+          "memory": {
+            "before": {
+              "rssBytes": 51609600,
+              "heapUsedBytes": 7169600,
+              "externalBytes": 2300554,
+              "arrayBuffersBytes": 24815
+            },
+            "release": {
+              "rssBytes": 110653440,
+              "heapUsedBytes": 58103536,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "close": {
+              "rssBytes": 110669824,
+              "heapUsedBytes": 58105264,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "drop": {
+              "rssBytes": 76079104,
+              "heapUsedBytes": 7542792,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            }
+          },
+          "liveOriginRetainedAfterRelease": true,
+          "liveOriginRetainedAfterClose": true,
+          "cleanup": "tracker closed and reference dropped; no files or database created"
+        },
+        {
+          "pid": 51356,
+          "node": "v22.23.2",
+          "hashes": {
+            "extensions/mcp/tasks/modern.js": "fe8af9e45a56cd4aa449425113e23e56e3cfd599a244b013f0bbb900121aefd1",
+            "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+            "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+          },
+          "createUpdateReleaseMs": 46.552800000000005,
+          "memory": {
+            "before": {
+              "rssBytes": 51908608,
+              "heapUsedBytes": 7169552,
+              "externalBytes": 2300554,
+              "arrayBuffersBytes": 24815
+            },
+            "release": {
+              "rssBytes": 110198784,
+              "heapUsedBytes": 58103488,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "close": {
+              "rssBytes": 110223360,
+              "heapUsedBytes": 58105216,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "drop": {
+              "rssBytes": 75292672,
+              "heapUsedBytes": 7542744,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            }
+          },
+          "liveOriginRetainedAfterRelease": true,
+          "liveOriginRetainedAfterClose": true,
+          "cleanup": "tracker closed and reference dropped; no files or database created"
+        },
+        {
+          "pid": 49108,
+          "node": "v22.23.2",
+          "hashes": {
+            "extensions/mcp/tasks/modern.js": "fe8af9e45a56cd4aa449425113e23e56e3cfd599a244b013f0bbb900121aefd1",
+            "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+            "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+          },
+          "createUpdateReleaseMs": 50.408,
+          "memory": {
+            "before": {
+              "rssBytes": 52035584,
+              "heapUsedBytes": 7169624,
+              "externalBytes": 2300554,
+              "arrayBuffersBytes": 24815
+            },
+            "release": {
+              "rssBytes": 110862336,
+              "heapUsedBytes": 58103560,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "close": {
+              "rssBytes": 111017984,
+              "heapUsedBytes": 58105288,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "drop": {
+              "rssBytes": 76443648,
+              "heapUsedBytes": 7542816,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            }
+          },
+          "liveOriginRetainedAfterRelease": true,
+          "liveOriginRetainedAfterClose": true,
+          "cleanup": "tracker closed and reference dropped; no files or database created"
+        }
+      ],
+      "statistics": {
+        "before": {
+          "rssBytes": {
+            "median": 51908608,
+            "minimum": 51609600,
+            "maximum": 52035584
+          },
+          "heapUsedBytes": {
+            "median": 7169600,
+            "minimum": 7169552,
+            "maximum": 7169624
+          },
+          "externalBytes": {
+            "median": 2300554,
+            "minimum": 2300554,
+            "maximum": 2300554
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        },
+        "release": {
+          "rssBytes": {
+            "median": 110653440,
+            "minimum": 110198784,
+            "maximum": 110862336
+          },
+          "heapUsedBytes": {
+            "median": 58103536,
+            "minimum": 58103488,
+            "maximum": 58103560
+          },
+          "externalBytes": {
+            "median": 2340868,
+            "minimum": 2340868,
+            "maximum": 2340868
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        },
+        "close": {
+          "rssBytes": {
+            "median": 110669824,
+            "minimum": 110223360,
+            "maximum": 111017984
+          },
+          "heapUsedBytes": {
+            "median": 58105264,
+            "minimum": 58105216,
+            "maximum": 58105288
+          },
+          "externalBytes": {
+            "median": 2340868,
+            "minimum": 2340868,
+            "maximum": 2340868
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        },
+        "drop": {
+          "rssBytes": {
+            "median": 76079104,
+            "minimum": 75292672,
+            "maximum": 76443648
+          },
+          "heapUsedBytes": {
+            "median": 7542792,
+            "minimum": 7542744,
+            "maximum": 7542816
+          },
+          "externalBytes": {
+            "median": 2340868,
+            "minimum": 2340868,
+            "maximum": 2340868
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        }
+      },
+      "deltaStatistics": {
+        "before": {
+          "rssBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "heapUsedBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "externalBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        },
+        "release": {
+          "rssBytes": {
+            "median": 58826752,
+            "minimum": 58290176,
+            "maximum": 59043840
+          },
+          "heapUsedBytes": {
+            "median": 50933936,
+            "minimum": 50933936,
+            "maximum": 50933936
+          },
+          "externalBytes": {
+            "median": 40314,
+            "minimum": 40314,
+            "maximum": 40314
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        },
+        "close": {
+          "rssBytes": {
+            "median": 58982400,
+            "minimum": 58314752,
+            "maximum": 59060224
+          },
+          "heapUsedBytes": {
+            "median": 50935664,
+            "minimum": 50935664,
+            "maximum": 50935664
+          },
+          "externalBytes": {
+            "median": 40314,
+            "minimum": 40314,
+            "maximum": 40314
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        },
+        "drop": {
+          "rssBytes": {
+            "median": 24408064,
+            "minimum": 23384064,
+            "maximum": 24469504
+          },
+          "heapUsedBytes": {
+            "median": 373192,
+            "minimum": 373192,
+            "maximum": 373192
+          },
+          "externalBytes": {
+            "median": 40314,
+            "minimum": 40314,
+            "maximum": 40314
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "current",
+      "runtime": "E:\\agent-foundation-main\\dist",
+      "hashes": {
+        "extensions/mcp/tasks/modern.js": "51639b8dd803b28c3f568cce2673dd73899d0b15af7f2e39cb440ac67583d0f3",
+        "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+        "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+      },
+      "samples": [
+        {
+          "pid": 37232,
+          "node": "v22.23.2",
+          "hashes": {
+            "extensions/mcp/tasks/modern.js": "51639b8dd803b28c3f568cce2673dd73899d0b15af7f2e39cb440ac67583d0f3",
+            "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+            "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+          },
+          "createUpdateReleaseMs": 152.93009999999998,
+          "memory": {
+            "before": {
+              "rssBytes": 51945472,
+              "heapUsedBytes": 7181176,
+              "externalBytes": 2300554,
+              "arrayBuffersBytes": 24815
+            },
+            "release": {
+              "rssBytes": 88272896,
+              "heapUsedBytes": 7670224,
+              "externalBytes": 35918998,
+              "arrayBuffersBytes": 33602945
+            },
+            "close": {
+              "rssBytes": 53415936,
+              "heapUsedBytes": 7596568,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "drop": {
+              "rssBytes": 53522432,
+              "heapUsedBytes": 7595416,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            }
+          },
+          "liveOriginRetainedAfterRelease": false,
+          "liveOriginRetainedAfterClose": false,
+          "cleanup": "tracker closed and reference dropped; no files or database created"
+        },
+        {
+          "pid": 45020,
+          "node": "v22.23.2",
+          "hashes": {
+            "extensions/mcp/tasks/modern.js": "51639b8dd803b28c3f568cce2673dd73899d0b15af7f2e39cb440ac67583d0f3",
+            "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+            "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+          },
+          "createUpdateReleaseMs": 154.3717,
+          "memory": {
+            "before": {
+              "rssBytes": 51896320,
+              "heapUsedBytes": 7181272,
+              "externalBytes": 2300554,
+              "arrayBuffersBytes": 24815
+            },
+            "release": {
+              "rssBytes": 87805952,
+              "heapUsedBytes": 7670320,
+              "externalBytes": 35918998,
+              "arrayBuffersBytes": 33602945
+            },
+            "close": {
+              "rssBytes": 52764672,
+              "heapUsedBytes": 7596664,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "drop": {
+              "rssBytes": 52776960,
+              "heapUsedBytes": 7595512,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            }
+          },
+          "liveOriginRetainedAfterRelease": false,
+          "liveOriginRetainedAfterClose": false,
+          "cleanup": "tracker closed and reference dropped; no files or database created"
+        },
+        {
+          "pid": 51908,
+          "node": "v22.23.2",
+          "hashes": {
+            "extensions/mcp/tasks/modern.js": "51639b8dd803b28c3f568cce2673dd73899d0b15af7f2e39cb440ac67583d0f3",
+            "core/util.js": "98a07a22dc1a13f3531691806b857856f16fb78f3fceac0aa28009bd5758e326",
+            "core/redaction.js": "2b9dacdd377dc858b894ce4e6355cdbf05dcb5cd881ac5c1422b003ed7d6fe61"
+          },
+          "createUpdateReleaseMs": 160.459,
+          "memory": {
+            "before": {
+              "rssBytes": 52051968,
+              "heapUsedBytes": 7181464,
+              "externalBytes": 2300554,
+              "arrayBuffersBytes": 24815
+            },
+            "release": {
+              "rssBytes": 88317952,
+              "heapUsedBytes": 7670584,
+              "externalBytes": 35918998,
+              "arrayBuffersBytes": 33602945
+            },
+            "close": {
+              "rssBytes": 53223424,
+              "heapUsedBytes": 7596928,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            },
+            "drop": {
+              "rssBytes": 53227520,
+              "heapUsedBytes": 7595776,
+              "externalBytes": 2340868,
+              "arrayBuffersBytes": 24815
+            }
+          },
+          "liveOriginRetainedAfterRelease": false,
+          "liveOriginRetainedAfterClose": false,
+          "cleanup": "tracker closed and reference dropped; no files or database created"
+        }
+      ],
+      "statistics": {
+        "before": {
+          "rssBytes": {
+            "median": 51945472,
+            "minimum": 51896320,
+            "maximum": 52051968
+          },
+          "heapUsedBytes": {
+            "median": 7181272,
+            "minimum": 7181176,
+            "maximum": 7181464
+          },
+          "externalBytes": {
+            "median": 2300554,
+            "minimum": 2300554,
+            "maximum": 2300554
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        },
+        "release": {
+          "rssBytes": {
+            "median": 88272896,
+            "minimum": 87805952,
+            "maximum": 88317952
+          },
+          "heapUsedBytes": {
+            "median": 7670320,
+            "minimum": 7670224,
+            "maximum": 7670584
+          },
+          "externalBytes": {
+            "median": 35918998,
+            "minimum": 35918998,
+            "maximum": 35918998
+          },
+          "arrayBuffersBytes": {
+            "median": 33602945,
+            "minimum": 33602945,
+            "maximum": 33602945
+          }
+        },
+        "close": {
+          "rssBytes": {
+            "median": 53223424,
+            "minimum": 52764672,
+            "maximum": 53415936
+          },
+          "heapUsedBytes": {
+            "median": 7596664,
+            "minimum": 7596568,
+            "maximum": 7596928
+          },
+          "externalBytes": {
+            "median": 2340868,
+            "minimum": 2340868,
+            "maximum": 2340868
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        },
+        "drop": {
+          "rssBytes": {
+            "median": 53227520,
+            "minimum": 52776960,
+            "maximum": 53522432
+          },
+          "heapUsedBytes": {
+            "median": 7595512,
+            "minimum": 7595416,
+            "maximum": 7595776
+          },
+          "externalBytes": {
+            "median": 2340868,
+            "minimum": 2340868,
+            "maximum": 2340868
+          },
+          "arrayBuffersBytes": {
+            "median": 24815,
+            "minimum": 24815,
+            "maximum": 24815
+          }
+        }
+      },
+      "deltaStatistics": {
+        "before": {
+          "rssBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "heapUsedBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "externalBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        },
+        "release": {
+          "rssBytes": {
+            "median": 36265984,
+            "minimum": 35909632,
+            "maximum": 36327424
+          },
+          "heapUsedBytes": {
+            "median": 489048,
+            "minimum": 489048,
+            "maximum": 489120
+          },
+          "externalBytes": {
+            "median": 33618444,
+            "minimum": 33618444,
+            "maximum": 33618444
+          },
+          "arrayBuffersBytes": {
+            "median": 33578130,
+            "minimum": 33578130,
+            "maximum": 33578130
+          }
+        },
+        "close": {
+          "rssBytes": {
+            "median": 1171456,
+            "minimum": 868352,
+            "maximum": 1470464
+          },
+          "heapUsedBytes": {
+            "median": 415392,
+            "minimum": 415392,
+            "maximum": 415464
+          },
+          "externalBytes": {
+            "median": 40314,
+            "minimum": 40314,
+            "maximum": 40314
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        },
+        "drop": {
+          "rssBytes": {
+            "median": 1175552,
+            "minimum": 880640,
+            "maximum": 1576960
+          },
+          "heapUsedBytes": {
+            "median": 414240,
+            "minimum": 414240,
+            "maximum": 414312
+          },
+          "externalBytes": {
+            "median": 40314,
+            "minimum": 40314,
+            "maximum": 40314
+          },
+          "arrayBuffersBytes": {
+            "median": 0,
+            "minimum": 0,
+            "maximum": 0
+          }
+        }
+      }
+    }
+  ],
+  "errors": []
+}

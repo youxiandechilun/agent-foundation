@@ -412,6 +412,24 @@ export const configSchema = z
       .prefault({}),
     limits: z
       .object({
+        maxConcurrentJsonRequests: z.number().int().min(1).max(1024).default(8),
+        maxInFlightJsonBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(256 * 1024 * 1024),
+        maxConcurrentSessionExports: z.number().int().min(1).max(64).default(2),
+        maxSessionExportBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(128 * 1024 * 1024),
+        sessionExportTimeoutMs: z
+          .number()
+          .int()
+          .min(100)
+          .max(600000)
+          .default(60000),
         maxMigrationBytes: z
           .number()
           .int()

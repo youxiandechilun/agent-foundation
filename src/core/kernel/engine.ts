@@ -37,6 +37,7 @@ export function createRunEngine(
     checkSecurityAudit: (
       request: SecurityAuditRequest,
       signal: AbortSignal,
+      retain?: (operation: Promise<unknown>) => void,
     ) => Promise<void>;
   },
 ) {
@@ -87,6 +88,7 @@ export function createRunEngine(
     callId: string,
     signal: AbortSignal,
     effectiveRoute: string,
+    retain?: (operation: Promise<unknown>) => void,
   ) => {
     const current = kernel.store.session(session.id);
     if (kernel.securityAudit.enabled)
@@ -102,12 +104,15 @@ export function createRunEngine(
           arguments: args,
         },
         signal,
+        retain,
       );
     const policyTool = await resolveToolPolicy(
       { kernel, runId, session: current, routeId: effectiveRoute },
       tool,
       args,
       signal,
+      "model",
+      retain,
     );
     return kernel.permissions.check(
       runId,

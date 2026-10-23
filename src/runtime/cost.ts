@@ -78,6 +78,25 @@ export function billingTokens(
     cacheWrite: u.cacheWrite,
   };
 }
+
+/** Pure validation shared by standalone ledgers and Kernel's preflight. */
+export function billingDeliveryOptions(
+  options: BillingDeliveryOptions = {},
+): Required<BillingDeliveryOptions> {
+  const validated = {
+    concurrency: options.concurrency ?? 8,
+    timeoutMs: options.timeoutMs ?? 30000,
+    shutdownTimeoutMs: options.shutdownTimeoutMs ?? 5000,
+  };
+  for (const [name, value] of Object.entries(validated))
+    invariant(
+      Number.isSafeInteger(value) &&
+        value > 0 &&
+        value <= (name === "concurrency" ? 128 : 3600000),
+      "Invalid billing delivery option",
+    );
+  return validated;
+}
 export class CostLedger {
   private scopes = new AsyncLocalStorage<CostScope>();
   private readonly deliveries = new Map<
@@ -98,18 +117,7 @@ export class CostLedger {
     deliveryOptions: BillingDeliveryOptions = {},
     readonly protocols: TextProtocolRegistry = defaultTextProtocols,
   ) {
-    this.deliveryOptions = {
-      concurrency: deliveryOptions.concurrency ?? 8,
-      timeoutMs: deliveryOptions.timeoutMs ?? 30000,
-      shutdownTimeoutMs: deliveryOptions.shutdownTimeoutMs ?? 5000,
-    };
-    for (const [name, value] of Object.entries(this.deliveryOptions))
-      invariant(
-        Number.isSafeInteger(value) &&
-          value > 0 &&
-          value <= (name === "concurrency" ? 128 : 3600000),
-        "Invalid billing delivery option",
-      );
+    this.deliveryOptions = billingDeliveryOptions(deliveryOptions);
   }
   withScope<T>(scope: CostScope, operation: () => T): T {
     return this.scopes.run(scope, operation);

@@ -299,8 +299,8 @@ export class MCPManager {
                 ? "working"
                 : event.task.status,
           remoteStatus: event.task.status,
-          origin: event.context.localContext,
-          toolName: event.context.params.name,
+          origin: event.context.localContext ?? previous?.origin,
+          toolName: event.context.params.name ?? previous?.toolName,
           task: event.task,
           createdAt: previous?.createdAt || now(),
           updatedAt: now(),

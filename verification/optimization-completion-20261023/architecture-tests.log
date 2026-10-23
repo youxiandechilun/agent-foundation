@@ -1,0 +1,188 @@
+TAP version 13
+# (node:57252) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real protocol usage settles the configured model price and exposes durable cost APIs
+ok 1 - real protocol usage settles the configured model price and exposes durable cost APIs
+  ---
+  duration_ms: 158.5094
+  type: 'test'
+  ...
+# Subtest: cost ceilings and missing prices stop before any model HTTP request
+ok 2 - cost ceilings and missing prices stop before any model HTTP request
+  ---
+  duration_ms: 117.1264
+  type: 'test'
+  ...
+# Subtest: reservations are atomic across concurrent scopes and ambiguous charges stay held until reconciliation
+ok 3 - reservations are atomic across concurrent scopes and ambiguous charges stay held until reconciliation
+  ---
+  duration_ms: 28.363
+  type: 'test'
+  ...
+# Subtest: cache accounting distinguishes inclusive OpenAI usage from Anthropic cache token categories
+ok 4 - cache accounting distinguishes inclusive OpenAI usage from Anthropic cache token categories
+  ---
+  duration_ms: 26.0594
+  type: 'test'
+  ...
+# Subtest: fallback attempts keep distinct price snapshots and the failed attempt's reservation
+ok 5 - fallback attempts keep distinct price snapshots and the failed attempt's reservation
+  ---
+  duration_ms: 60.9607
+  type: 'test'
+  ...
+# Subtest: media requests reserve their configured maximum and idempotent replay does not reserve twice
+ok 6 - media requests reserve their configured maximum and idempotent replay does not reserve twice
+  ---
+  duration_ms: 29.9023
+  type: 'test'
+  ...
+# Subtest: embedding work inside a run inherits its financial scope and settles actual input usage
+ok 7 - embedding work inside a run inherits its financial scope and settles actual input usage
+  ---
+  duration_ms: 65.6467
+  type: 'test'
+  ...
+# Subtest: automatic memory extraction is charged to the same run with its own purpose
+ok 8 - automatic memory extraction is charged to the same run with its own purpose
+  ---
+  duration_ms: 74.6265
+  type: 'test'
+  ...
+# Subtest: media adapter billing settles the job reservation and keeps the configured price snapshot
+ok 9 - media adapter billing settles the job reservation and keeps the configured price snapshot
+  ---
+  duration_ms: 43.2643
+  type: 'test'
+  ...
+# Subtest: run, session, project, UTC-day and total ceilings account for outstanding reservations
+ok 10 - run, session, project, UTC-day and total ceilings account for outstanding reservations
+  ---
+  duration_ms: 172.6518
+  type: 'test'
+  ...
+# Subtest: cancelled model streams retain reservations instead of inventing zero-cost success
+ok 11 - cancelled model streams retain reservations instead of inventing zero-cost success
+  ---
+  duration_ms: 80.2464
+  type: 'test'
+  ...
+# Subtest: missing credentials release a provably unsent reservation and settlement overruns preserve the actual charge
+ok 12 - missing credentials release a provably unsent reservation and settlement overruns preserve the actual charge
+  ---
+  duration_ms: 2784.8219
+  type: 'test'
+  ...
+# Subtest: hierarchical compaction model calls are charged to the originating run
+ok 13 - hierarchical compaction model calls are charged to the originating run
+  ---
+  duration_ms: 95.4138
+  type: 'test'
+  ...
+# (node:3988) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: invalid billing options fail before the data directory is acquired and allow immediate retry
+ok 14 - invalid billing options fail before the data directory is acquired and allow immediate retry
+  ---
+  duration_ms: 34.6439
+  type: 'test'
+  ...
+# Subtest: a late service construction failure releases the lease before rethrowing
+ok 15 - a late service construction failure releases the lease before rethrowing
+  ---
+  duration_ms: 23.9024
+  type: 'test'
+  ...
+# Subtest: recovery failure closes the assembled store and preserves the original error
+ok 16 - recovery failure closes the assembled store and preserves the original error
+  ---
+  duration_ms: 20.4739
+  type: 'test'
+  ...
+# Subtest: construction rollback reports cleanup failures without losing the constructor error
+ok 17 - construction rollback reports cleanup failures without losing the constructor error
+  ---
+  duration_ms: 20.8758
+  type: 'test'
+  ...
+# (node:7160) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: route removal rejects active session references and permits archived references
+ok 18 - route removal rejects active session references and permits archived references
+  ---
+  duration_ms: 64.8212
+  type: 'test'
+  ...
+# (node:44200) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: HTTP capabilities report each Kernel's actual protocol snapshot
+ok 19 - HTTP capabilities report each Kernel's actual protocol snapshot
+  ---
+  duration_ms: 72.9751
+  type: 'test'
+  ...
+# Subtest: same-name protocols remain independent across Kernels after the assembly registries are unregistered
+ok 20 - same-name protocols remain independent across Kernels after the assembly registries are unregistered
+  ---
+  duration_ms: 127.9036
+  type: 'test'
+  ...
+# Subtest: configuration loading, route updates and restart restoration use the Kernel's custom protocol registry
+ok 21 - configuration loading, route updates and restart restoration use the Kernel's custom protocol registry
+  ---
+  duration_ms: 73.8063
+  type: 'test'
+  ...
+# Subtest: built-in declarations and custom this headers cannot mutate another registry
+ok 22 - built-in declarations and custom this headers cannot mutate another registry
+  ---
+  duration_ms: 0.5333
+  type: 'test'
+  ...
+# Subtest: plain protocol registration preserves own helper fields on immutable snapshots
+ok 23 - plain protocol registration preserves own helper fields on immutable snapshots
+  ---
+  duration_ms: 0.3343
+  type: 'test'
+  ...
+# Subtest: legacy class protocol registration keeps private fields and prototype helpers
+ok 24 - legacy class protocol registration keeps private fields and prototype helpers
+  ---
+  duration_ms: 0.193
+  type: 'test'
+  ...
+# Subtest: protocol factories give clones independent private and closure state
+ok 25 - protocol factories give clones independent private and closure state
+  ---
+  duration_ms: 0.3623
+  type: 'test'
+  ...
+# Subtest: protocol factories reject object reuse and inconsistent adapter IDs
+ok 26 - protocol factories reject object reuse and inconsistent adapter IDs
+  ---
+  duration_ms: 0.2
+  type: 'test'
+  ...
+# (node:26148) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: resource cleanup preserves dependency order and reports every failure
+ok 27 - resource cleanup preserves dependency order and reports every failure
+  ---
+  duration_ms: 1.2082
+  type: 'test'
+  ...
+# Subtest: failed integration cleanup still closes later integrations and releases the kernel lease
+ok 28 - failed integration cleanup still closes later integrations and releases the kernel lease
+  ---
+  duration_ms: 63.3894
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6057.7073

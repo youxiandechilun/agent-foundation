@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setImmediate } from "node:timers/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import {
   bindHooks,
+  runHookCommand,
   type EngineHooks,
   type RunHooks,
 } from "../src/runtime/hooks.js";
+import { until } from "./support/wire-server.js";
 
 type HookEvent = keyof RunHooks;
 function invoke(hooks: EngineHooks, event: HookEvent, signal: AbortSignal) {
@@ -116,3 +121,49 @@ for (const event of [
         "an already cancelled hook chain must not start",
       );
     });
+
+test(
+  "cancelled command hooks finish only after the real child process has exited",
+  { timeout: 15000 },
+  async () => {
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "foundation-hook-command-"),
+    );
+    const script = path.join(directory, "hook.cjs");
+    const pidFile = path.join(directory, "hook.pid");
+    const controller = new AbortController();
+    let pid: number | undefined;
+    await writeFile(
+      script,
+      "require('node:fs').writeFileSync(process.argv[2], String(process.pid)); setInterval(() => {}, 1000);",
+    );
+    const operation = runHookCommand(
+      {
+        command: `${process.platform === "win32" ? "" : "exec "}"${process.execPath}" "${script}" "${pidFile}"`,
+      },
+      directory,
+      {},
+      10000,
+      controller.signal,
+    );
+    const rejected = assert.rejects(operation, /Cancelled/);
+    try {
+      pid = await until(async () => {
+        const value = await readFile(pidFile, "utf8").catch(() => undefined);
+        return value ? Number(value) : undefined;
+      });
+      controller.abort();
+      await rejected;
+      assert.throws(() => process.kill(pid!, 0), { code: "ESRCH" });
+    } finally {
+      controller.abort();
+      await rejected;
+      if (pid) {
+        try {
+          process.kill(pid, "SIGKILL");
+        } catch {}
+      }
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+);

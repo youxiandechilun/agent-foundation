@@ -110,8 +110,42 @@ const fingerprint = (task: ModernTask) =>
     result: task.result,
     error: task.error,
   });
+/** JSON numeric spellings may be much shorter than JSON.stringify's decimals. */
+function shortNumber(value: number): string {
+  // Match native JSON semantics for negative zero and nonfinite passthrough data.
+  if (!Number.isFinite(value)) return "null";
+  const decimal = String(value),
+    exponential = value.toExponential().replace("e+", "e");
+  return exponential.length < decimal.length &&
+    Object.is(Number(exponential), value)
+    ? exponential
+    : decimal;
+}
+function taskSnapshot(task: ModernTask): Buffer {
+  const rawJSON = (
+    JSON as typeof JSON & { rawJSON?: (value: string) => unknown }
+  ).rawJSON;
+  if (rawJSON)
+    return Buffer.from(
+      JSON.stringify(task, (_key, value: unknown) =>
+        typeof value === "number" ? rawJSON(shortNumber(value)) : value,
+      ),
+    );
+  // Older runtimes serialize first, then scan whole quoted strings or JSON number
+  // tokens. Numeric-looking text and keys remain opaque; no placeholders occur.
+  return Buffer.from(
+    JSON.stringify(task).replace(
+      /"(?:\\.|[^"\\])*"|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/g,
+      (token) => (token[0] === '"' ? token : shortNumber(Number(token))),
+    ),
+  );
+}
 export interface ModernTaskEntry {
   task: ModernTask;
+  snapshot: Buffer;
+  createdAtHash: string;
+  updatedAt: number;
+  finalFingerprint?: string;
   context: MCPRequestContext;
   controller: AbortController;
   cleanup: () => void;
@@ -120,34 +154,100 @@ export interface ModernTaskEntry {
   rounds: number;
   inputController?: AbortController;
   finalValidated: boolean;
+  /** Worst-case snapshot reservation owned until the live context is released. */
+  reservedBytes: number;
 }
+export interface ModernTaskReservation {
+  /** Unclaimed reservations are returned after the originating RPC settles. */
+  release(): void;
+}
+interface RetainedTask {
+  snapshot: Buffer;
+  reservedBytes: number;
+  createdAtHash: string;
+  updatedAt: number;
+  context: MCPRequestContext;
+  finalFingerprint?: string;
+}
+const SNAPSHOT_METADATA_BYTES = 4096;
+const releasedSignal = AbortSignal.abort("Modern task host context ended");
 /** Tracks observable remote state; task handles never gain an unrelated host execution context. */
 export class ModernMCPTasks {
   private entries = new Map<string, ModernTaskEntry>();
-  constructor(private emit?: (event: ModernTaskEvent) => void) {}
+  private retained = new Map<string, RetainedTask>();
+  private reservations = new Set<ModernTaskReservation>();
+  private bytes = 0;
+  private closed = false;
+  private readonly maxBytes: number;
+  private readonly maxMessageBytes: number;
+  constructor(
+    private emit?: (event: ModernTaskEvent) => void,
+    options: { maxBytes?: number; maxMessageBytes?: number } = {},
+  ) {
+    this.maxBytes = options.maxBytes ?? 64 * 1024 * 1024;
+    this.maxMessageBytes = options.maxMessageBytes ?? 8 * 1024 * 1024;
+    invariant(
+      Number.isSafeInteger(this.maxBytes) &&
+        this.maxBytes > 0 &&
+        Number.isSafeInteger(this.maxMessageBytes) &&
+        this.maxMessageBytes > 0,
+      "Invalid modern task snapshot capacity",
+    );
+  }
+  /** Admit a possible task before tools/call can send a real remote effect. */
+  reserve(): ModernTaskReservation {
+    invariant(!this.closed, "Modern task tracker is closed", 503);
+    const bytes = this.maxMessageBytes + SNAPSHOT_METADATA_BYTES;
+    invariant(
+      this.entries.size + this.retained.size + this.reservations.size < 4096 &&
+        this.bytes + bytes <= this.maxBytes,
+      "Modern task snapshot capacity exceeded; reconnect before creating more tasks",
+      429,
+      "resource_capacity",
+    );
+    this.bytes += bytes;
+    const reservation: ModernTaskReservation = {
+      release: () => {
+        if (this.reservations.delete(reservation)) this.bytes -= bytes;
+      },
+    };
+    this.reservations.add(reservation);
+    return reservation;
+  }
   create(
     value: unknown,
     context: MCPRequestContext,
     signal: AbortSignal | undefined,
     deadline: number,
+    reservation?: ModernTaskReservation,
   ) {
     const task = modernTask(value, undefined, true);
+    const snapshot = taskSnapshot(task);
     invariant(
-      this.entries.size < 4096,
-      "Modern task tracking capacity exceeded; reconnect before creating more tasks",
-      429,
+      snapshot.length <= this.maxMessageBytes,
+      "Modern task snapshot exceeds message limit",
+      502,
     );
     invariant(
-      !this.entries.has(task.taskId),
+      !this.entries.has(task.taskId) && !this.retained.has(task.taskId),
       "Modern task ID reused by server",
       502,
     );
     signal?.throwIfAborted();
+    const lease = reservation ?? this.reserve();
+    invariant(
+      this.reservations.has(lease),
+      "Invalid modern task reservation",
+      500,
+    );
     const controller = new AbortController(),
       abort = () => controller.abort(new Error("Originating Agent task ended"));
     signal?.addEventListener("abort", abort, { once: true });
     const entry: ModernTaskEntry = {
       task,
+      snapshot,
+      createdAtHash: hash(task.createdAt),
+      updatedAt: Date.parse(task.lastUpdatedAt),
       context: { ...context, signal: controller.signal },
       controller,
       cleanup: () => signal?.removeEventListener("abort", abort),
@@ -155,14 +255,22 @@ export class ModernMCPTasks {
       inputs: new Map(),
       rounds: 0,
       finalValidated: false,
+      reservedBytes: this.maxMessageBytes + SNAPSHOT_METADATA_BYTES,
     };
     try {
       this.emit?.({ kind: "created", task, context: entry.context });
+      invariant(
+        !this.closed && this.reservations.has(lease),
+        "Modern task tracker closed during creation",
+        503,
+      );
     } catch (e) {
       entry.cleanup();
       controller.abort();
+      lease.release();
       throw e;
     }
+    this.reservations.delete(lease);
     this.entries.set(task.taskId, entry);
     return entry;
   }
@@ -171,36 +279,109 @@ export class ModernMCPTasks {
   }
   update(value: unknown, expected?: unknown) {
     const task = modernTask(value, expected),
-      entry = this.entries.get(task.taskId);
-    if (!entry) return task;
+      entry = this.entries.get(task.taskId),
+      retained = this.retained.get(task.taskId);
+    if (!entry && !retained) return task;
     invariant(
-      task.createdAt === entry.task.createdAt,
+      entry
+        ? task.createdAt === entry.task.createdAt
+        : hash(task.createdAt) === retained!.createdAtHash,
       "Modern task creation time changed",
       502,
     );
-    if (Date.parse(task.lastUpdatedAt) < Date.parse(entry.task.lastUpdatedAt))
-      return entry.task;
-    if (entry.finalValidated)
+    if (
+      Date.parse(task.lastUpdatedAt) <
+      (entry ? Date.parse(entry.task.lastUpdatedAt) : retained!.updatedAt)
+    )
+      return (
+        entry?.task ??
+        (JSON.parse(retained!.snapshot.toString("utf8")) as ModernTask)
+      );
+    if (entry?.finalValidated || retained?.finalFingerprint)
       invariant(
-        fingerprint(task) === fingerprint(entry.task),
+        fingerprint(task) ===
+          (retained?.finalFingerprint ?? entry!.finalFingerprint),
         "Modern task terminal state changed",
         502,
       );
-    this.emit?.({ kind: "updated", task, context: entry.context });
-    entry.task = task;
-    if (taskTerminal(task.status)) entry.finalValidated = true;
-    if (taskTerminal(task.status))
-      entry.inputController?.abort(
-        new Error("Remote task reached a terminal state"),
+    const snapshot = taskSnapshot(task);
+    invariant(
+      snapshot.length <= this.maxMessageBytes,
+      "Modern task snapshot exceeds message limit",
+      502,
+    );
+    const finalFingerprint = taskTerminal(task.status)
+      ? fingerprint(task)
+      : undefined;
+    let reservedBytes = 0;
+    if (retained) {
+      reservedBytes = taskTerminal(task.status)
+        ? snapshot.length + SNAPSHOT_METADATA_BYTES
+        : retained.reservedBytes;
+      invariant(
+        this.bytes - retained.reservedBytes + reservedBytes <= this.maxBytes,
+        "Modern task snapshot capacity exceeded",
+        429,
+        "resource_capacity",
       );
+    }
+    this.emit?.({
+      kind: "updated",
+      task,
+      context: entry?.context ?? retained!.context,
+    });
+    // Observers may synchronously close or release this owner. Never commit an
+    // update into a detached entry or adjust capacity after its maps were cleared.
+    if (
+      entry
+        ? this.entries.get(task.taskId) !== entry
+        : this.retained.get(task.taskId) !== retained
+    )
+      return task;
+    if (entry) {
+      entry.task = task;
+      entry.snapshot = snapshot;
+      entry.updatedAt = Date.parse(task.lastUpdatedAt);
+      entry.finalFingerprint = finalFingerprint;
+      if (taskTerminal(task.status)) entry.finalValidated = true;
+      if (taskTerminal(task.status))
+        entry.inputController?.abort(
+          new Error("Remote task reached a terminal state"),
+        );
+    } else if (retained) {
+      this.bytes += reservedBytes - retained.reservedBytes;
+      retained.snapshot = snapshot;
+      retained.reservedBytes = reservedBytes;
+      retained.updatedAt = Date.parse(task.lastUpdatedAt);
+      if (finalFingerprint) retained.finalFingerprint = finalFingerprint;
+    }
     return task;
   }
   release(taskId: string) {
     const entry = this.entries.get(taskId);
     if (!entry) return;
+    const snapshot = entry.snapshot;
+    this.entries.delete(taskId);
     entry.cleanup();
     entry.controller.abort(new Error("Modern task host context ended"));
     entry.inputs.clear();
+    const reservedBytes = entry.finalValidated
+      ? snapshot.length + SNAPSHOT_METADATA_BYTES
+      : entry.reservedBytes;
+    this.bytes += reservedBytes - entry.reservedBytes;
+    this.retained.set(taskId, {
+      snapshot,
+      reservedBytes,
+      createdAtHash: entry.createdAtHash,
+      updatedAt: entry.updatedAt,
+      context: {
+        requestId: entry.context.requestId,
+        method: "tools/call",
+        params: {},
+        signal: releasedSignal,
+      },
+      finalFingerprint: entry.finalFingerprint,
+    });
   }
   unknown(taskId: string, error: string) {
     const entry = this.entries.get(taskId);
@@ -214,13 +395,43 @@ export class ModernMCPTasks {
     this.release(taskId);
   }
   close() {
-    for (const [id, entry] of this.entries) {
-      if (!entry.finalValidated)
-        this.unknown(
-          id,
-          "MCP connection ended; inspect remote task explicitly",
-        );
-      else this.release(id);
+    if (this.closed) return;
+    this.closed = true;
+    const emit = this.emit;
+    this.emit = undefined;
+    const failures: unknown[] = [];
+    try {
+      for (const entry of this.entries.values()) {
+        try {
+          if (!entry.finalValidated)
+            emit?.({
+              kind: "unknown",
+              task: entry.task,
+              context: entry.context,
+              error: "MCP connection ended; inspect remote task explicitly",
+            });
+        } catch (error) {
+          failures.push(error);
+        }
+        for (const operation of [
+          () => entry.cleanup(),
+          () => entry.controller.abort(new Error("Modern task tracker closed")),
+          () => entry.inputs.clear(),
+        ]) {
+          try {
+            operation();
+          } catch (error) {
+            failures.push(error);
+          }
+        }
+      }
+    } finally {
+      this.entries.clear();
+      this.retained.clear();
+      this.reservations.clear();
+      this.bytes = 0;
     }
+    if (failures.length)
+      throw new AggregateError(failures, "Modern task tracker close failures");
   }
 }

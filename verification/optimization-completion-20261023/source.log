@@ -1,0 +1,11 @@
+
+> @local/agent-foundation@0.12.1 verify:source
+> node scripts/verify-source.mjs
+
+{
+  "version": "0.12.1",
+  "runtime": "foundation-owned",
+  "sourceFiles": 444,
+  "agentFrameworkDependencies": [],
+  "productionFixtureAdapters": []
+}
