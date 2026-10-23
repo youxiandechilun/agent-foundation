@@ -1,0 +1,140 @@
+Runtime: E:/nodejs/node.exe
+Command: scripts/run-core-tests.mjs --host --filter=browser --filter=optimization-host --exclude-capability=interactive-desktop
+TAP version 13
+# (node:49920) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: application browser pack independently exposes only browser tools and enforces API, owner and upload policies
+ok 1 - application browser pack independently exposes only browser tools and enforces API, owner and upload policies
+  ---
+  duration_ms: 1134.4964
+  type: 'test'
+  ...
+# Subtest: managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes
+ok 2 - managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes
+  ---
+  duration_ms: 1157.3845
+  type: 'test'
+  ...
+# Subtest: managed browser handles explicit dialogs and actual proxied WebSocket traffic
+ok 3 - managed browser handles explicit dialogs and actual proxied WebSocket traffic
+  ---
+  duration_ms: 618.1154
+  type: 'test'
+  ...
+# Subtest: managed browser cancellation destroys its context, stops queued work and releases profile capacity
+ok 4 - managed browser cancellation destroys its context, stops queued work and releases profile capacity
+  ---
+  duration_ms: 467.2234
+  type: 'test'
+  ...
+# Subtest: browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock
+ok 5 - browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock
+  ---
+  duration_ms: 179.0727
+  type: 'test'
+  ...
+# Subtest: browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials
+ok 6 - browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials
+  ---
+  duration_ms: 26.8727
+  type: 'test'
+  ...
+# Subtest: browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes
+ok 7 - browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes
+  ---
+  duration_ms: 244.248
+  type: 'test'
+  ...
+# Subtest: browser proxy terminates an actual open WebSocket when a project network grant is revoked
+ok 8 - browser proxy terminates an actual open WebSocket when a project network grant is revoked
+  ---
+  duration_ms: 624.4296
+  type: 'test'
+  ...
+# Subtest: aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context
+ok 9 - aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context
+  ---
+  duration_ms: 266.7691
+  type: 'test'
+  ...
+# (node:21992) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation
+ok 10 - independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation
+  ---
+  duration_ms: 5652.07
+  type: 'test'
+  ...
+# Subtest: browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller
+ok 11 - browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller
+  ---
+  duration_ms: 157.8636
+  type: 'test'
+  ...
+# (node:55476) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual Chromium navigation, DOM input/click, screenshots, file upload and download
+ok 12 - actual Chromium navigation, DOM input/click, screenshots, file upload and download
+  ---
+  duration_ms: 744.4851
+  type: 'test'
+  ...
+# Subtest: actual CDP attachment controls a separate browser and disconnect preserves its tabs
+ok 13 - actual CDP attachment controls a separate browser and disconnect preserves its tabs
+  ---
+  duration_ms: 387.2982
+  type: 'test'
+  ...
+# Subtest: real PDF generation and bounded text extraction
+ok 14 - real PDF generation and bounded text extraction
+  ---
+  duration_ms: 1863.1109
+  type: 'test'
+  ...
+# Subtest: Windows native controller compiles its input helpers and reads actual desktop state without sending input
+ok 15 - Windows native controller compiles its input helpers and reads actual desktop state without sending input # SKIP Interactive desktop capability excluded
+  ---
+  duration_ms: 0.2374
+  type: 'test'
+  ...
+# Subtest: actual Chrome extension bridge connects, inspects, fills and clicks only its allowed test tab
+ok 16 - actual Chrome extension bridge connects, inspects, fills and clicks only its allowed test tab
+  ---
+  duration_ms: 892.0547
+  type: 'test'
+  ...
+# (node:15164) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual managed context closure releases its profile, proxy and capacity before reopening
+ok 17 - actual managed context closure releases its profile, proxy and capacity before reopening
+  ---
+  duration_ms: 422.2048
+  type: 'test'
+  ...
+# Subtest: actual CDP disconnection releases capacity without closing the user's browser or tabs
+ok 18 - actual CDP disconnection releases capacity without closing the user's browser or tabs
+  ---
+  duration_ms: 288.115
+  type: 'test'
+  ...
+# Subtest: a failed second Kernel installation cannot close the first Kernel's application services
+ok 19 - a failed second Kernel installation cannot close the first Kernel's application services
+  ---
+  duration_ms: 82.7923
+  type: 'test'
+  ...
+# Subtest: overlapping application packs reject service replacement and retain the original cleanup owner
+ok 20 - overlapping application packs reject service replacement and retain the original cleanup owner
+  ---
+  duration_ms: 30.9003
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 17706.6296

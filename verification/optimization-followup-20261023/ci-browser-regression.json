@@ -1,0 +1,29 @@
+{
+  "status": "local-regression-passed",
+  "initialCommit": "4b8dbb8276a3962fd1ccd0d1aea25b952907e857",
+  "initialRun": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39909472655",
+  "initialWindowsNode24": {
+    "core": { "tests": 672, "pass": 672, "fail": 0, "skipped": 0 },
+    "sdkConsumer": "passed",
+    "host": { "tests": 42, "pass": 40, "fail": 1, "skipped": 1 },
+    "failedTest": "actual CDP attachment controls a separate browser and disconnect preserves its tabs",
+    "error": "page.goto: net::ERR_ABORTED on the manager-created page"
+  },
+  "otherInitialJobs": { "linuxNode22": "passed", "linuxNode24": "passed", "windowsNode22": "passed" },
+  "evidenceBoundary": "The raw fixture waited for DevToolsActivePort, which did not assert initial-target readiness. Five local runs of the original fixture passed. The CI error alone does not identify the exact Chromium navigation that caused the abort.",
+  "fix": {
+    "productionChanges": false,
+    "navigationRetriesAdded": false,
+    "skipsAdded": false,
+    "initialization": "A real external launchPersistentContext owner awaits and initializes its original page before the manager's independent CDP connection creates a new page.",
+    "assertions": ["external session", "exactly one managed new tab", "original page title unchanged", "original and managed pages survive disconnect"],
+    "cleanup": "Await external owner shutdown in finally"
+  },
+  "localChecks": {
+    "windowsNode22": { "tests": 20, "pass": 19, "fail": 0, "skipped": 1, "log": "ci-browser-node22.log" },
+    "windowsNode24": { "tests": 20, "pass": 19, "fail": 0, "skipped": 1, "log": "ci-browser-node24.log" },
+    "excludedCapability": "interactive-desktop",
+    "quality": "passed"
+  },
+  "scope": "Supplemental local regression after the second push; final remote CI belongs to the subsequent commit's GitHub Actions run."
+}

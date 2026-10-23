@@ -2,9 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import path from "node:path";
-import { spawn } from "node:child_process";
-import { readFile, mkdir } from "node:fs/promises";
-import { chromium } from "playwright";
+import { readFile } from "node:fs/promises";
+import { chromium, type BrowserContext } from "playwright";
 import { setupDesktop as setup, until } from "./support/wire-server.js";
 import { fileURLToPath } from "node:url";
 
@@ -86,27 +85,22 @@ test("actual CDP attachment controls a separate browser and disconnect preserves
   const x = await setup(),
     page = await pageServer();
   const profile = path.join(x.root, "cdp-profile");
-  await mkdir(profile, { recursive: true });
-  const child = spawn(
-    chromium.executablePath(),
-    [
-      "--headless=new",
-      "--remote-debugging-port=0",
-      `--user-data-dir=${profile}`,
-      "--no-first-run",
-      "--no-default-browser-check",
-      "about:blank",
-    ],
-    { windowsHide: true, stdio: "ignore" },
-  );
+  let owner: BrowserContext | undefined;
   try {
-    const active = await until(async () => {
-      try {
-        return await readFile(path.join(profile, "DevToolsActivePort"), "utf8");
-      } catch {
-        return undefined;
-      }
-    }, 15000);
+    // A written DevToolsActivePort only establishes the debugging endpoint.
+    // Await the external owner's initial target before the independent CDP
+    // connection creates and navigates its own tab during this test.
+    owner = await chromium.launchPersistentContext(profile, {
+      headless: true,
+      args: ["--remote-debugging-port=0"],
+    });
+    const original = owner.pages()[0] || (await owner.newPage());
+    await original.waitForLoadState("load");
+    await original.setContent("<title>Original owner tab</title>");
+    const active = await readFile(
+      path.join(profile, "DevToolsActivePort"),
+      "utf8",
+    );
     const endpoint = `http://127.0.0.1:${active.split("\n")[0]}`;
     x.config.browser.cdpEndpoints.push(endpoint);
     const browser = await x.kernel.browser.open(
@@ -115,6 +109,10 @@ test("actual CDP attachment controls a separate browser and disconnect preserves
       page.url,
       endpoint,
     );
+    assert.equal(browser.external, true);
+    assert.equal(browser.tabs.length, 1);
+    assert.equal(browser.tabs[0].url, page.url + "/");
+    assert.equal(await original.title(), "Original owner tab");
     const snapshot = await x.kernel.browser.action(browser.id, x.project.id, {
       action: "fill",
       selector: "#name",
@@ -122,18 +120,31 @@ test("actual CDP attachment controls a separate browser and disconnect preserves
     });
     assert.equal(snapshot.title, "Actual browser test");
     await x.kernel.browser.closeSession(browser.id, x.project.id);
-    const connected = await chromium.connectOverCDP(endpoint);
-    assert.ok(
-      connected
-        .contexts()[0]
-        .pages()
-        .some((p) => p.url() === page.url + "/"),
-    );
-    await connected.close();
+    assert.equal(original.isClosed(), false);
+    assert.equal(await original.title(), "Original owner tab");
+    const connected = await chromium.connectOverCDP(endpoint, {
+      noDefaults: true,
+    });
+    try {
+      assert.ok(
+        connected
+          .contexts()[0]
+          .pages()
+          .some((p) => p.url() === page.url + "/"),
+      );
+    } finally {
+      await connected.close();
+    }
   } finally {
-    child.kill();
-    await x.close();
-    await page.close();
+    try {
+      await x.close();
+    } finally {
+      try {
+        await owner?.close();
+      } finally {
+        await page.close();
+      }
+    }
   }
 });
 test("real PDF generation and bounded text extraction", async () => {

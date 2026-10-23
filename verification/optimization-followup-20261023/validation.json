@@ -85,7 +85,8 @@
     "benchmarkScriptSyntax": "passed",
     "linuxSummary": "linux-summary.json",
     "coreBuild": "passed",
-    "ciRedactionRegression": "ci-redaction-regression.json"
+    "ciRedactionRegression": "ci-redaction-regression.json",
+    "ciBrowserRegression": "ci-browser-regression.json"
   },
   "benchmarks": [
     "device-queue.json",

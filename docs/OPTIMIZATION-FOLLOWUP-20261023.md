@@ -83,3 +83,5 @@ Windows x64、Node v22.23.2 上的局部对照，每个变体三个独立进程�
 分块复用读取以一定 I/O 调度开销换取较小内存分配；该大文件场景没有证明耗时下降。五个独立空闲核心进程另测 RSS 中位数 119.08 MiB、heapUsed 32.07 MiB，动态导入至 HTTP 就绪约 405 ms（不含进程创建）。本轮没有证明空闲 RSS 下降；负载内存、可选宿主与长期泄漏仍需按实际业务测量。
 
 首次推送后的 GitHub Actions 在 Windows Node 24 暴露了既有脱敏回归的时间依赖：测试注册 1 ms 有效期的临时值，第一次断言前就可能自然过期。补充修复仅控制测试中的 `Date.now()`，显式验证注册后、到期前 1 ms 与到期瞬间的行为，并恢复时钟；生产脱敏逻辑和有效期语义未改。首次 CI 记录与本地补充验证保存在 `verification/optimization-followup-20261023/ci-redaction-regression.json`，最终远端结果以对应提交的 Actions 为准。
+
+后续 CI 的四组核心测试和 SDK 均通过，但 Windows Node 24 的真实 CDP 集成出现一次新页导航 `ERR_ABORTED`。原测试只等外部 Chromium 发布 `DevToolsActivePort`，未验证初始 target 就绪；单条日志无法确定 Chromium 内部的具体中止事件，本地原用例五轮也未复现。补充调整使用真实独立的浏览器 owner 完成初始页初始化，再由被测管理器建立独立 CDP 连接、创建并导航新页；同时断言原页内容不变、断开后原页和工作页均保留，并等待外部浏览器关闭。没有修改生产导航逻辑、添加导航重试或新增测试跳过。该次 CI 记录与本地验证见 `verification/optimization-followup-20261023/ci-browser-regression.json`。

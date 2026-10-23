@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T06:05:42.897Z",
+  "checkedAt": "2026-10-23T06:24:28.844Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -1354,8 +1354,8 @@
     },
     {
       "path": "docs/OPTIMIZATION-FOLLOWUP-20261023.md",
-      "bytes": 8910,
-      "sha256": "a1369d3b9f40976e220834ea55576a6f3874003c2ff6800a73adc6e04d6a3a10"
+      "bytes": 9674,
+      "sha256": "179adab0ce6e67b32b50674209c14e9a9657c8e917adbc763deed8e186d4b0cd"
     },
     {
       "path": "docs/OPTIMIZATION.md",
@@ -1484,8 +1484,8 @@
     },
     {
       "path": "test/browser.integration.ts",
-      "bytes": 8783,
-      "sha256": "efaa2220f33fffea436dd7354e8d5735d2febba9a901b25df361fcce43ad78bc"
+      "bytes": 9375,
+      "sha256": "a0272b453abae6dbe00a53189eb91a44f420c9a4df8dfc6321897f09707d9064"
     },
     {
       "path": "test/checkpoints.test.ts",
