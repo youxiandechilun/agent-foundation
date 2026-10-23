@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-23T00:38:37.707Z",
+  "checkedAt": "2026-10-23T01:20:55.679Z",
   "status": "passed",
   "environment": {
     "node": "v22.23.2",
@@ -7,9 +7,9 @@
     "architecture": "x64",
     "cpu": "Intel(R) Core(TM) i5-14600KF"
   },
-  "sourceSha256": "8f51f0cbb293b3979c1a640b38c3e885f26713f238dd6c8894300b0e542454e0",
-  "distSha256": "a108a5b09421a87131d29c135b5a403c14bf2bebe9ff3c5773d276c061992af4",
-  "gitHead": "7ca1f201d6f6b8504ebf2264c284182d7acf8518",
+  "sourceSha256": "56c5df1d653c5bc75174fc617939244d84af89949c73f130856dae2124f91954",
+  "distSha256": "3ad7c135fb20ac64f2dd338a433db09ce44deaf49fab6fa06d50a4d92c84c32e",
+  "gitHead": "9b8e5cf0db576d2758f2aa98129d2e36fc761b51",
   "samplesPerScenario": 3,
   "method": "Independent sequential child processes with explicit GC before each read; synthetic local data, no model calls. Read allocations and retained heaps are distinct. Upload tracks peak ArrayBuffer bytes over fresh 64 KiB chunks. Retention samples setImmediate gaps between transactions.",
   "limitations": [
@@ -24,29 +24,13 @@
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 91.06639999999999,
-          "allocatedHeapBytes": 36855104,
-          "retainedHeapBytes": 25943216
-        },
-        "checkpoint": {
-          "rows": 201,
-          "durationMs": 1.5308999999999742,
-          "allocatedHeapBytes": 664392,
-          "retainedHeapBytes": 261624
-        }
-      },
-      {
-        "sourceRows": 19900,
-        "textBytesPerRow": 1024,
-        "full": {
-          "rows": 19900,
-          "durationMs": 91.53789999999992,
-          "allocatedHeapBytes": 36880744,
+          "durationMs": 96.1807,
+          "allocatedHeapBytes": 36890600,
           "retainedHeapBytes": 25943144
         },
         "checkpoint": {
           "rows": 201,
-          "durationMs": 1.4923000000000002,
+          "durationMs": 1.7716999999998961,
           "allocatedHeapBytes": 664392,
           "retainedHeapBytes": 261624
         }
@@ -56,15 +40,31 @@
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 94.9649,
-          "allocatedHeapBytes": 36788864,
-          "retainedHeapBytes": 25942680
+          "durationMs": 95.38929999999999,
+          "allocatedHeapBytes": 36854848,
+          "retainedHeapBytes": 25942856
         },
         "checkpoint": {
           "rows": 201,
-          "durationMs": 1.5422999999999547,
+          "durationMs": 1.7069000000000187,
           "allocatedHeapBytes": 664392,
-          "retainedHeapBytes": 261672
+          "retainedHeapBytes": 261624
+        }
+      },
+      {
+        "sourceRows": 19900,
+        "textBytesPerRow": 1024,
+        "full": {
+          "rows": 19900,
+          "durationMs": 94.00510000000003,
+          "allocatedHeapBytes": 36855552,
+          "retainedHeapBytes": 25943144
+        },
+        "checkpoint": {
+          "rows": 201,
+          "durationMs": 1.6802000000000135,
+          "allocatedHeapBytes": 664392,
+          "retainedHeapBytes": 261624
         }
       }
     ],
@@ -74,27 +74,27 @@
         "activeRows": 202,
         "durableRows": 19902,
         "originalReleased": true,
-        "fullHeapBytes": 37084528,
-        "compactHeapBytes": 13061480,
+        "fullHeapBytes": 37084808,
+        "compactHeapBytes": 13062232,
+        "releasedHeapBytes": 24022576
+      },
+      {
+        "sourceRows": 19900,
+        "activeRows": 202,
+        "durableRows": 19902,
+        "originalReleased": true,
+        "fullHeapBytes": 37084832,
+        "compactHeapBytes": 13062256,
+        "releasedHeapBytes": 24022576
+      },
+      {
+        "sourceRows": 19900,
+        "activeRows": 202,
+        "durableRows": 19902,
+        "originalReleased": true,
+        "fullHeapBytes": 37084744,
+        "compactHeapBytes": 13061696,
         "releasedHeapBytes": 24023048
-      },
-      {
-        "sourceRows": 19900,
-        "activeRows": 202,
-        "durableRows": 19902,
-        "originalReleased": true,
-        "fullHeapBytes": 37084600,
-        "compactHeapBytes": 13062008,
-        "releasedHeapBytes": 24022592
-      },
-      {
-        "sourceRows": 19900,
-        "activeRows": 202,
-        "durableRows": 19902,
-        "originalReleased": true,
-        "fullHeapBytes": 37084440,
-        "compactHeapBytes": 13061848,
-        "releasedHeapBytes": 24022592
       }
     ],
     "lists": [
@@ -103,13 +103,13 @@
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 56.51390000000001,
-          "allocatedHeapBytes": 45771328,
-          "retainedHeapBytes": 22519184
+          "durationMs": 55.19010000000003,
+          "allocatedHeapBytes": 45766496,
+          "retainedHeapBytes": 22517880
         },
         "page": {
           "rows": 100,
-          "durationMs": 0.6157999999999788,
+          "durationMs": 0.5858000000000061,
           "allocatedHeapBytes": 260760,
           "retainedHeapBytes": 116336
         }
@@ -119,13 +119,13 @@
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 54.130000000000024,
-          "allocatedHeapBytes": 45773328,
+          "durationMs": 55.382300000000015,
+          "allocatedHeapBytes": 45771368,
           "retainedHeapBytes": 22517880
         },
         "page": {
           "rows": 100,
-          "durationMs": 0.6187000000000467,
+          "durationMs": 0.6176000000000386,
           "allocatedHeapBytes": 260760,
           "retainedHeapBytes": 116080
         }
@@ -135,13 +135,13 @@
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 54.39769999999996,
-          "allocatedHeapBytes": 45766832,
+          "durationMs": 55.704199999999986,
+          "allocatedHeapBytes": 45773160,
           "retainedHeapBytes": 22517880
         },
         "page": {
           "rows": 100,
-          "durationMs": 0.7092999999999847,
+          "durationMs": 0.6370000000000005,
           "allocatedHeapBytes": 260760,
           "retainedHeapBytes": 116080
         }
@@ -151,34 +151,34 @@
       {
         "inputBytes": 52428800,
         "chunkBytes": 65536,
-        "durationMs": 81.22969999999998,
+        "durationMs": 88.0686,
         "peakArrayBufferDeltaBytes": 33591296,
         "finalArrayBufferDeltaBytes": 19129576,
-        "rssDeltaBytes": 19267584
+        "rssDeltaBytes": 19443712
       },
       {
         "inputBytes": 52428800,
         "chunkBytes": 65536,
-        "durationMs": 82.89960000000002,
+        "durationMs": 84.4848,
         "peakArrayBufferDeltaBytes": 33591296,
         "finalArrayBufferDeltaBytes": 19129576,
-        "rssDeltaBytes": 19415040
+        "rssDeltaBytes": 19357696
       },
       {
         "inputBytes": 52428800,
         "chunkBytes": 65536,
-        "durationMs": 87.618,
+        "durationMs": 81.21229999999997,
         "peakArrayBufferDeltaBytes": 33591296,
         "finalArrayBufferDeltaBytes": 19129576,
-        "rssDeltaBytes": 19111936
+        "rssDeltaBytes": 19537920
       }
     ],
     "retention": [
       {
         "sourceEvents": 50000,
         "batch": 500,
-        "durationMs": 340.9318,
-        "maxEventLoopGapMs": 23.057999999999993,
+        "durationMs": 337.8253,
+        "maxEventLoopGapMs": 23.250999999999976,
         "deleted": {
           "events": 50000,
           "summaries": 0,
@@ -188,8 +188,8 @@
       {
         "sourceEvents": 50000,
         "batch": 500,
-        "durationMs": 340.77329999999995,
-        "maxEventLoopGapMs": 22.62259999999992,
+        "durationMs": 346.23679999999996,
+        "maxEventLoopGapMs": 24.042400000000043,
         "deleted": {
           "events": 50000,
           "summaries": 0,
@@ -199,8 +199,8 @@
       {
         "sourceEvents": 50000,
         "batch": 500,
-        "durationMs": 336.5198,
-        "maxEventLoopGapMs": 21.745799999999974,
+        "durationMs": 337.70179999999993,
+        "maxEventLoopGapMs": 22.755199999999945,
         "deleted": {
           "events": 50000,
           "summaries": 0,

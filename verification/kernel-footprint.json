@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "status": "passed",
-  "startedAt": "2026-10-23T00:38:46.912Z",
-  "completedAt": "2026-10-23T00:38:51.573Z",
+  "startedAt": "2026-10-23T01:21:05.085Z",
+  "completedAt": "2026-10-23T01:21:09.772Z",
   "environment": {
     "node": "v22.23.2",
     "platform": "win32",
@@ -27,70 +27,70 @@
   "samples": [
     {
       "version": "0.12.1",
-      "pid": 11424,
-      "readyMs": 329.86240000000004,
-      "rssBytes": 119865344,
-      "heapUsedBytes": 33180720,
+      "pid": 28172,
+      "readyMs": 334.4295,
+      "rssBytes": 120877056,
+      "heapUsedBytes": 33182312,
       "externalBytes": 3998062,
-      "processMaxRssBytes": 119865344,
+      "processMaxRssBytes": 120877056,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 23576,
-      "readyMs": 331.7557,
-      "rssBytes": 119410688,
-      "heapUsedBytes": 33178152,
+      "pid": 24800,
+      "readyMs": 342.6028,
+      "rssBytes": 120668160,
+      "heapUsedBytes": 33185744,
       "externalBytes": 3998062,
-      "processMaxRssBytes": 119410688,
+      "processMaxRssBytes": 120668160,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 20592,
-      "readyMs": 329.41429999999997,
-      "rssBytes": 120356864,
-      "heapUsedBytes": 33172832,
+      "pid": 25484,
+      "readyMs": 340.4048,
+      "rssBytes": 121221120,
+      "heapUsedBytes": 33194376,
       "externalBytes": 3998062,
-      "processMaxRssBytes": 120356864,
+      "processMaxRssBytes": 121221120,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 44512,
-      "readyMs": 338.2104,
-      "rssBytes": 120111104,
-      "heapUsedBytes": 33214368,
+      "pid": 8272,
+      "readyMs": 332.8624,
+      "rssBytes": 120852480,
+      "heapUsedBytes": 33184904,
       "externalBytes": 3998062,
-      "processMaxRssBytes": 120111104,
+      "processMaxRssBytes": 120852480,
       "cleanup": "passed"
     },
     {
       "version": "0.12.1",
-      "pid": 43568,
-      "readyMs": 335.2027,
-      "rssBytes": 119992320,
-      "heapUsedBytes": 33213800,
+      "pid": 52392,
+      "readyMs": 340.7545,
+      "rssBytes": 121151488,
+      "heapUsedBytes": 33188456,
       "externalBytes": 3998062,
-      "processMaxRssBytes": 119992320,
+      "processMaxRssBytes": 121151488,
       "cleanup": "passed"
     }
   ],
   "statistics": {
     "readyMs": {
-      "median": 331.7557,
-      "minimum": 329.41429999999997,
-      "maximum": 338.2104
+      "median": 340.4048,
+      "minimum": 332.8624,
+      "maximum": 342.6028
     },
     "rssBytes": {
-      "median": 119992320,
-      "minimum": 119410688,
-      "maximum": 120356864
+      "median": 120877056,
+      "minimum": 120668160,
+      "maximum": 121221120
     },
     "heapUsedBytes": {
-      "median": 33180720,
-      "minimum": 33172832,
-      "maximum": 33214368
+      "median": 33185744,
+      "minimum": 33182312,
+      "maximum": 33194376
     },
     "externalBytes": {
       "median": 3998062,
@@ -98,9 +98,9 @@
       "maximum": 3998062
     },
     "processMaxRssBytes": {
-      "median": 119992320,
-      "minimum": 119410688,
-      "maximum": 120356864
+      "median": 120877056,
+      "minimum": 120668160,
+      "maximum": 121221120
     }
   },
   "errors": []

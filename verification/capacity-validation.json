@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-23T00:45:07.640Z",
+  "checkedAt": "2026-10-23T01:40:57.281Z",
   "status": "passed",
   "version": "0.12.1",
   "baseCommit": "7ca1f201d6f6b8504ebf2264c284182d7acf8518",
-  "sourceSha256": "8f51f0cbb293b3979c1a640b38c3e885f26713f238dd6c8894300b0e542454e0",
-  "distSha256": "a108a5b09421a87131d29c135b5a403c14bf2bebe9ff3c5773d276c061992af4",
-  "sourceManifestSha256": "241ae97730d8444eea94b22408a381f4845d20dbb51bac12d108b3ae449b939b",
+  "sourceSha256": "56c5df1d653c5bc75174fc617939244d84af89949c73f130856dae2124f91954",
+  "distSha256": "3ad7c135fb20ac64f2dd338a433db09ce44deaf49fab6fa06d50a4d92c84c32e",
+  "sourceManifestSha256": "a0e76f5577abf2792646fa0afde5a8d01cf7d85e0e1baa23d7d7fd83334f983e",
   "environment": {
     "node": "v22.23.2",
     "platform": "win32",
@@ -105,6 +105,33 @@
       "behavior": "Separate run engine assembly and MCP declaration schema with public SDK entry points retained."
     }
   ],
+  "additionalFixes": [
+    {
+      "id": "windows-path-aliases",
+      "files": [
+        "src/execution/process.ts",
+        "src/extensions/plugins/manager.ts"
+      ],
+      "behavior": "Use consistent canonical roots in trusted native command and plugin assembly; retain rejection of junctions and symlinks below a configured workspace."
+    },
+    {
+      "id": "windows-cleanup",
+      "files": [
+        "src/execution/native/AppContainerHost.cs",
+        "test/foundation-windows-sandbox.test.ts"
+      ],
+      "behavior": "Retry only transient sharing/locking conflicts for at most eight seconds after child-job termination; a real held file verifies cleanup cannot complete early. ACL assertions retain owners, ACEs and protection flags while normalizing only the OS auto-inherited marker."
+    },
+    {
+      "id": "portable-test-runner",
+      "files": [
+        "scripts/run-core-tests.mjs",
+        "test/foundation-isolation.test.ts",
+        "test/event-stream-backpressure.test.ts"
+      ],
+      "behavior": "Deterministic TAP and 180-second test timeout, controlled missing-Docker fixture, explicitly resumed paused HTTP readers and inherited child standard handles."
+    }
+  ],
   "validation": {
     "quality": {
       "status": "passed",
@@ -153,12 +180,12 @@
         }
       ],
       "coreTests": {
-        "total": 609,
-        "passed": 609,
+        "total": 612,
+        "passed": 612,
         "failed": 0,
         "skipped": 0,
         "cancelled": 0,
-        "durationMs": 241699.27
+        "durationMs": 258569.5545
       },
       "evidence": "verification/report.json"
     },
@@ -171,10 +198,198 @@
         "failed": 0,
         "skipped": 0,
         "cancelled": 0,
-        "durationMs": 16770.6433
+        "durationMs": 16971.4732
       },
       "evidence": "verification/capacity-host-integration.log",
-      "sha256": "3ea03b1bea327f2a284f6df4a8c5800493a91358d642114da74b430209f0d893"
+      "sha256": "d50b5265c59a9da5ec9c8629692b19629a03be5fd7863402f8b493d4d4ac8a88"
+    },
+    "remoteCi": {
+      "status": "passed",
+      "checkedAt": "2026-10-23T01:40:56.637Z",
+      "repository": "youxiandechilun/agent-foundation",
+      "workflow": "Quality",
+      "runId": 39884005099,
+      "url": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39884005099",
+      "codeCommit": "d4848d3f4ee84f9f4d92a94951a9c0e34bb150a9",
+      "platform": "windows-2025",
+      "jobs": [
+        {
+          "id": 120187811443,
+          "name": "windows (22)",
+          "node": "v22.23.4",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39884005099/job/120187811443",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run check:quality",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run build",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm test",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run pack:sdk",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run verify:sdk",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npx playwright install chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run build:host",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run test:host -- --filter=browser-app --filter=browser-bridge-app --filter=office-app --filter=host-route-boundaries --filter=host-nodes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ],
+          "tests": {
+            "core": {
+              "total": 612,
+              "passed": 612,
+              "failed": 0,
+              "cancelled": 0,
+              "skipped": 0,
+              "durationMs": 422074.1265
+            },
+            "host": {
+              "total": 22,
+              "passed": 22,
+              "failed": 0,
+              "cancelled": 0,
+              "skipped": 0,
+              "durationMs": 43097.2959
+            }
+          }
+        },
+        {
+          "id": 120187812181,
+          "name": "windows (24)",
+          "node": "v24.21.0",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39884005099/job/120187812181",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run check:quality",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run build",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm test",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run pack:sdk",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run verify:sdk",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npx playwright install chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run build:host",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run test:host -- --filter=browser-app --filter=browser-bridge-app --filter=office-app --filter=host-route-boundaries --filter=host-nodes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ],
+          "tests": {
+            "core": {
+              "total": 612,
+              "passed": 612,
+              "failed": 0,
+              "cancelled": 0,
+              "skipped": 0,
+              "durationMs": 574906.529
+            },
+            "host": {
+              "total": 22,
+              "passed": 22,
+              "failed": 0,
+              "cancelled": 0,
+              "skipped": 0,
+              "durationMs": 77595.3965
+            }
+          }
+        }
+      ]
     },
     "sdk": {
       "status": "passed",
@@ -182,8 +397,8 @@
         "npm run pack:sdk",
         "npm run verify:sdk"
       ],
-      "sha256": "5d25eb68ed4ecff35986bd1e5a6520bcaf291bbe1d5fa7318f6db0c5ad85faf3",
-      "bytes": 567003,
+      "sha256": "2c27c710dd3ef3727ae348d28434dcf69bd9204efb54c17935438e6431e56834",
+      "bytes": 567449,
       "published": false,
       "runtimes": [
         {
@@ -218,13 +433,13 @@
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 91.53789999999992,
-          "allocatedHeapBytes": 36855104,
+          "durationMs": 95.38929999999999,
+          "allocatedHeapBytes": 36855552,
           "retainedHeapBytes": 25943144
         },
         "checkpoint": {
           "rows": 201,
-          "durationMs": 1.5308999999999742,
+          "durationMs": 1.7069000000000187,
           "allocatedHeapBytes": 664392,
           "retainedHeapBytes": 261624
         }
@@ -234,22 +449,22 @@
         "activeRows": 202,
         "durableRows": 19902,
         "originalReleased": true,
-        "fullHeapBytes": 37084528,
-        "compactHeapBytes": 13061848,
-        "releasedHeapBytes": 24022592
+        "fullHeapBytes": 37084808,
+        "compactHeapBytes": 13062232,
+        "releasedHeapBytes": 24022576
       },
       "lists": {
         "sourceRows": 19900,
         "textBytesPerRow": 1024,
         "full": {
           "rows": 19900,
-          "durationMs": 54.39769999999996,
-          "allocatedHeapBytes": 45771328,
+          "durationMs": 55.382300000000015,
+          "allocatedHeapBytes": 45771368,
           "retainedHeapBytes": 22517880
         },
         "page": {
           "rows": 100,
-          "durationMs": 0.6187000000000467,
+          "durationMs": 0.6176000000000386,
           "allocatedHeapBytes": 260760,
           "retainedHeapBytes": 116080
         }
@@ -257,16 +472,16 @@
       "upload": {
         "inputBytes": 52428800,
         "chunkBytes": 65536,
-        "durationMs": 82.89960000000002,
+        "durationMs": 84.4848,
         "peakArrayBufferDeltaBytes": 33591296,
         "finalArrayBufferDeltaBytes": 19129576,
-        "rssDeltaBytes": 19267584
+        "rssDeltaBytes": 19443712
       },
       "retention": {
         "sourceEvents": 50000,
         "batch": 500,
-        "durationMs": 340.77329999999995,
-        "maxEventLoopGapMs": 22.62259999999992,
+        "durationMs": 337.8253,
+        "maxEventLoopGapMs": 23.250999999999976,
         "deleted": {
           "events": 50000,
           "summaries": 0,
@@ -276,19 +491,19 @@
     },
     "idle": {
       "readyMs": {
-        "median": 331.7557,
-        "minimum": 329.41429999999997,
-        "maximum": 338.2104
+        "median": 340.4048,
+        "minimum": 332.8624,
+        "maximum": 342.6028
       },
       "rssBytes": {
-        "median": 119992320,
-        "minimum": 119410688,
-        "maximum": 120356864
+        "median": 120877056,
+        "minimum": 120668160,
+        "maximum": 121221120
       },
       "heapUsedBytes": {
-        "median": 33180720,
-        "minimum": 33172832,
-        "maximum": 33214368
+        "median": 33185744,
+        "minimum": 33182312,
+        "maximum": 33194376
       },
       "externalBytes": {
         "median": 3998062,
@@ -296,9 +511,9 @@
         "maximum": 3998062
       },
       "processMaxRssBytes": {
-        "median": 119992320,
-        "minimum": 119410688,
-        "maximum": 120356864
+        "median": 120877056,
+        "minimum": 120668160,
+        "maximum": 121221120
       }
     },
     "evidence": [
@@ -321,9 +536,9 @@
   },
   "limitations": [
     "Capacity workloads are local synthetic samples; checkpoint and compaction summaries are fixed synthetic content. Model summary quality and paid provider behavior were not evaluated.",
-    "First uncached full history recovery remains O(n); metadata tracking and row-wise parsing increased that case from about 65 ms to 92 ms in this benchmark. Idle RSS remains about 114 MiB.",
+    "First uncached full history recovery remains O(n); metadata tracking and row-wise parsing increased that case from about 65 ms to 95 ms in this benchmark. Idle RSS is about 115 MiB versus about 114 MiB before the changes.",
     "Upload baseline measures request-body buffering; the new upload includes disk writes and hashing. Buffer allocation snapshots, GC and timing probes have distinct scopes.",
-    "Native interactive desktop acceptance, Node 24 runtime execution, Docker, Linux/macOS, remote business services and long-running concurrency/leak tests were not run in this repair pass. Node 24 is configured in CI; a workflow definition is not evidence of a completed run.",
+    "Native interactive desktop acceptance, Docker, Linux/macOS, remote business services and long-running concurrency/leak tests were not run in this repair pass. Node 22 and Node 24 Windows runtimes were exercised by the recorded GitHub Actions matrix; local validation uses Node v22.23.2.",
     "API pagination requires callers that previously consumed an entire list to follow the returned cursor. Verified HTTP downloads use extra disk I/O; SDK buffer reads retain their existing return contract."
   ]
 }

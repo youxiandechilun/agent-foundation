@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T01:15:45.780Z",
+  "checkedAt": "2026-10-23T01:40:18.296Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -1219,8 +1219,8 @@
     },
     {
       "path": "docs/CAPACITY-OPTIMIZATION.md",
-      "bytes": 7216,
-      "sha256": "9f0e59413589d258376d0e0033f16c946f931cc0de08fef9f609792024dccfdb"
+      "bytes": 8165,
+      "sha256": "d74cb979cadd843cfa3876a78aceff5d994ce1d58c6b846738f5bc28e015b7c9"
     },
     {
       "path": "docs/COLLABORATION.md",
@@ -1504,8 +1504,8 @@
     },
     {
       "path": "test/event-stream-backpressure.test.ts",
-      "bytes": 7160,
-      "sha256": "8e373c91445f1fe7062d5412dcd96e5c2072e644f36cff7e5831a2afcddf34a1"
+      "bytes": 7283,
+      "sha256": "030eed132b5956884ef2652d208c8734a02a5aec78c3a792d5475e95757a242d"
     },
     {
       "path": "test/extension-isolation.test.ts",
@@ -1539,8 +1539,8 @@
     },
     {
       "path": "test/foundation-windows-sandbox.test.ts",
-      "bytes": 38314,
-      "sha256": "08bde7327152a9d4b649ad3aec6a081ffdc0e27168b3c95df32def7898c7d762"
+      "bytes": 38449,
+      "sha256": "cea67ae734b40ace05b667aee3fa788967f96162a7770e88e9d7836a4c99e364"
     },
     {
       "path": "test/hook-cancellation.test.ts",
@@ -2040,7 +2040,7 @@
     {
       "path": "README.md",
       "bytes": 20813,
-      "sha256": "35a4a8c43c08dcfcd25abf122f47cd572e26812386d57e9bd71d032608d1f610"
+      "sha256": "36c552645b70871445ca9e8e251940945696795464cd7bb613e87341636ea112"
     }
   ]
 }
