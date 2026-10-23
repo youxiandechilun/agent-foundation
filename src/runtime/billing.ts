@@ -39,6 +39,8 @@ export interface BillingCharge {
 }
 
 export interface BillingOutcome {
+  /** Monotonic per-charge outcome version; redelivery keeps the same revision. */
+  revision: number;
   /** settled: the provider reported usage; void: nothing was sent; unknown: the outcome is unclear. */
   status: "settled" | "void" | "unknown";
   tokens?: BillingTokens;
@@ -46,13 +48,21 @@ export interface BillingOutcome {
   /** Kernel price in USD micros when the route is priced. */
   chargedMicros?: number;
   reference?: string;
+  /** Provider response identifier for reconciliation, when available. */
+  responseId?: string;
+  /** Diagnostic explanation for an unknown or void outcome. */
+  reason?: string;
 }
 
 /**
  * Host billing, such as prepaid credits. `authorize` runs before every model,
  * embedding and media call and may throw to refuse it. `record` reports the final
  * outcome; it can repeat for one charge with the latest values and after a
- * restart, so apply it idempotently by `charge.id`.
+ * restart, so apply it idempotently by `charge.id` and ignore older/equal
+ * `outcome.revision` values. A rejected or interrupted authorization still receives
+ * `void`: the provider was not called, but the host may have committed a hold.
+ * Serialize authorize/record for each ID and retain void tombstones so a late
+ * authorization cannot recreate a released hold, including across host restarts.
  */
 export interface BillingProvider {
   authorize(charge: BillingCharge, signal?: AbortSignal): void | Promise<void>;
@@ -69,6 +79,16 @@ export interface BillingDeliveryOptions {
   concurrency?: number;
   timeoutMs?: number;
   shutdownTimeoutMs?: number;
+}
+
+/** Durable host delivery state. Completion requires all three counts to be zero. */
+export interface BillingDeliveryStatus {
+  /** Authorizations and outcomes not yet acknowledged, excluding failed attempts. */
+  pending: number;
+  /** Unacknowledged outcomes whose latest delivery failed or timed out. */
+  failed: number;
+  /** Callback promises still running, including callbacks that ignored cancellation. */
+  active: number;
 }
 
 const positive = (value: unknown) =>

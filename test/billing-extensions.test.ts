@@ -78,7 +78,10 @@ test("a billing refusal voids the reservation before any provider request", asyn
     assert.ok(entries.length >= 1);
     assert.ok(entries.every((entry) => entry.status === "void"));
     await x.kernel.costs.drain();
-    assert.equal(billing.recorded.length, 0);
+    assert.equal(billing.recorded.length, entries.length);
+    assert.ok(
+      billing.recorded.every(({ outcome }) => outcome.status === "void"),
+    );
   } finally {
     await x.close();
   }

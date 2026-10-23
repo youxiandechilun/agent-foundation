@@ -16,6 +16,7 @@ import type {
   BillingProvider,
   BillingTokens,
   BillingDeliveryOptions,
+  BillingDeliveryStatus,
   MediaUnits,
 } from "./billing.js";
 
@@ -40,6 +41,7 @@ export interface CostEntry extends CostScope {
     state: "authorizing" | "authorized" | "recorded" | "failed";
     error?: string;
     deliveryId?: string;
+    revision?: number;
   };
   endpoint: string;
   responseId?: string;
@@ -68,15 +70,34 @@ export function billingTokens(
   u: Usage,
   protocols: TextProtocolRegistry = defaultTextProtocols,
 ): BillingTokens {
+  invariant(
+    validUsage(adapter, u, protocols),
+    "Invalid provider usage: token counts or inclusive cache totals are inconsistent",
+    502,
+  );
   return {
     input:
       protocols.find(adapter)?.inputIncludesCache === false
         ? u.input
-        : Math.max(0, u.input - u.cacheRead - u.cacheWrite),
+        : u.input - u.cacheRead - u.cacheWrite,
     output: u.output,
     cacheRead: u.cacheRead,
     cacheWrite: u.cacheWrite,
   };
+}
+
+function validUsage(
+  adapter: string,
+  usage: Usage,
+  protocols: TextProtocolRegistry,
+): boolean {
+  return (
+    [usage.input, usage.output, usage.cacheRead, usage.cacheWrite].every(
+      (value) => Number.isSafeInteger(value) && value >= 0,
+    ) &&
+    (protocols.find(adapter)?.inputIncludesCache === false ||
+      usage.cacheRead <= usage.input - usage.cacheWrite)
+  );
 }
 
 /** Pure validation shared by standalone ledgers and Kernel's preflight. */
@@ -123,22 +144,47 @@ export class CostLedger {
     return this.scopes.run(scope, operation);
   }
   recover() {
-    this.store
-      .prepare(
-        "UPDATE e_cost_ledger SET body=json_set(body,'$.status','unknown','$.error','Interrupted request; charge requires reconciliation','$.updatedAt',?) WHERE json_extract(body,'$.status')='reserved'",
-      )
-      .run(now());
-    if (!this.billing) return;
-    // Rebuild durable work in SQL; a backlog never becomes an array of JS records.
-    this.store
-      .prepare(
-        "INSERT INTO billing_deliveries(charge_id,delivery_id) SELECT id,COALESCE(json_extract(body,'$.billing.deliveryId'),lower(hex(randomblob(16)))) FROM e_cost_ledger WHERE json_extract(body,'$.billing.state') IN ('authorizing','authorized','failed') AND json_extract(body,'$.status')<>'reserved' ORDER BY seq ON CONFLICT(charge_id) DO NOTHING",
-      )
-      .run();
+    this.store.transaction(() => {
+      // An incomplete authorization cannot have submitted a provider request.
+      this.store
+        .prepare(
+          "UPDATE e_cost_ledger SET body=json_set(body,'$.status','void','$.billing.state','authorized','$.error','Host authorization was interrupted; provider request was not submitted','$.updatedAt',?) WHERE json_extract(body,'$.billing.state')='authorizing'",
+        )
+        .run(now());
+      this.store
+        .prepare(
+          "UPDATE e_cost_ledger SET body=json_set(body,'$.status','unknown','$.error','Interrupted request; charge requires reconciliation','$.updatedAt',?) WHERE json_extract(body,'$.status')='reserved'",
+        )
+        .run(now());
+      if (!this.billing) return;
+      // Upgrade legacy pending deliveries once; restarts keep the same revision.
+      this.store
+        .prepare(
+          "UPDATE e_cost_ledger SET body=json_set(body,'$.billing.revision',COALESCE(json_extract(body,'$.billing.revision'),1),'$.billing.deliveryId',COALESCE(json_extract(body,'$.billing.deliveryId'),lower(hex(randomblob(16))))) WHERE json_extract(body,'$.billing.state') IN ('authorized','failed') AND json_extract(body,'$.status')<>'reserved'",
+        )
+        .run();
+      // Rebuild durable work in SQL; a backlog never becomes an array of JS records.
+      this.store
+        .prepare(
+          "INSERT INTO billing_deliveries(charge_id,delivery_id) SELECT id,json_extract(body,'$.billing.deliveryId') FROM e_cost_ledger WHERE json_extract(body,'$.billing.state') IN ('authorized','failed') AND json_extract(body,'$.status')<>'reserved' ORDER BY seq ON CONFLICT(charge_id) DO NOTHING",
+        )
+        .run();
+    });
     this.scheduleDeliveries();
   }
-  /** Wait up to the configured shutdown deadline; unfinished work remains durable. */
-  async drain(timeoutMs = this.deliveryOptions.shutdownTimeoutMs) {
+  /** Query delivery acknowledgement, independently of financial reconciliation. */
+  deliveryStatus(): BillingDeliveryStatus {
+    const counts = this.store
+      .prepare(
+        "SELECT COALESCE(SUM(CASE WHEN json_extract(body,'$.billing.state') IN ('authorizing','authorized') THEN 1 ELSE 0 END),0) AS pending, COALESCE(SUM(CASE WHEN json_extract(body,'$.billing.state')='failed' THEN 1 ELSE 0 END),0) AS failed FROM e_cost_ledger",
+      )
+      .get() as { pending: number; failed: number };
+    return { ...counts, active: this.deliveries.size };
+  }
+  /** Wait up to the deadline and return acknowledgement counts; failed work retries on recovery. */
+  async drain(
+    timeoutMs = this.deliveryOptions.shutdownTimeoutMs,
+  ): Promise<BillingDeliveryStatus> {
     invariant(
       Number.isSafeInteger(timeoutMs) && timeoutMs >= 0 && timeoutMs <= 3600000,
       "Invalid billing drain timeout",
@@ -146,7 +192,8 @@ export class CostLedger {
     const deadline = Date.now() + timeoutMs;
     while (!this.closed && !this.store.isClosed) {
       this.pumpDeliveries();
-      if (!this.deliveries.size || Date.now() >= deadline) return;
+      if (!this.deliveries.size || Date.now() >= deadline)
+        return this.deliveryStatus();
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
         await Promise.race([
@@ -162,6 +209,7 @@ export class CostLedger {
       }
       await new Promise<void>((resolve) => setImmediate(resolve));
     }
+    return this.deliveryStatus();
   }
   /** Stop scheduling before the store closes; callbacks that ignore abort cannot delay shutdown. */
   async close() {
@@ -178,6 +226,13 @@ export class CostLedger {
       ...this.store.get<CostEntry>("cost-ledger", key),
       ...patch,
       updatedAt: now(),
+    });
+  }
+  /** Commit an outcome and its outbox revision together, including reconciliation. */
+  private updateOutcome(key: string, patch: Partial<CostEntry>): CostEntry {
+    return this.store.transaction(() => {
+      this.deliver(this.update(key, patch));
+      return this.store.get<CostEntry>("cost-ledger", key);
     });
   }
   entries(filter: Partial<CostScope> = {}) {
@@ -355,56 +410,52 @@ export class CostLedger {
     try {
       const result = await operation();
       if (nativeSearch)
-        this.deliver(
-          this.update(entry.id, {
-            status: "unknown",
-            requiresReconciliation: true,
-            usage: result.usage,
-            ...(result.responseId ? { responseId: result.responseId } : {}),
-            error: "Provider-hosted web search charges require reconciliation",
-          }),
-        );
+        this.updateOutcome(entry.id, {
+          status: "unknown",
+          requiresReconciliation: true,
+          usage: result.usage,
+          ...(result.responseId ? { responseId: result.responseId } : {}),
+          error: "Provider-hosted web search charges require reconciliation",
+        });
       else this.settleUsage(entry.id, route, result.usage, result.responseId);
       return result;
     } catch (error) {
       const current = this.store.get<CostEntry>("cost-ledger", entry.id);
       if (current.status !== "settled")
-        this.deliver(
-          this.update(entry.id, {
-            status:
-              error &&
-              typeof error === "object" &&
-              "requestSent" in error &&
-              error.requestSent === false
-                ? "void"
-                : "unknown",
-            error: "No conclusive terminal usage received",
-          }),
-        );
+        this.updateOutcome(entry.id, {
+          status:
+            error &&
+            typeof error === "object" &&
+            "requestSent" in error &&
+            error.requestSent === false
+              ? "void"
+              : "unknown",
+          error: "No conclusive terminal usage received",
+        });
       throw error;
     }
   }
-  settleUsage(key: string, route: Route, u: Usage, responseId?: string) {
+  settleUsage(key: string, _route: Route, u: Usage, responseId?: string) {
     const entry = this.store.get<CostEntry>("cost-ledger", key),
       p = entry.pricing,
       response = responseId ? { responseId } : {};
+    if (u.reported && !validUsage(entry.adapter, u, this.protocols))
+      return this.updateOutcome(key, {
+        status: "unknown",
+        usage: u,
+        ...response,
+        requiresReconciliation: true,
+        error:
+          "Invalid provider usage: token counts or inclusive cache totals are inconsistent",
+      });
     if (!u.reported || !p) {
-      const marked = this.update(key, {
+      return this.updateOutcome(key, {
         status: "unknown",
         usage: u,
         ...response,
       });
-      this.deliver(marked);
-      return marked;
     }
-    invariant(
-      [u.input, u.output, u.cacheRead, u.cacheWrite].every(
-        (x) => Number.isSafeInteger(x) && x >= 0,
-      ),
-      "Invalid provider usage",
-      502,
-    );
-    const uncached = billingTokens(route.adapter, u, this.protocols).input;
+    const uncached = billingTokens(entry.adapter, u, this.protocols).input;
     const chargedMicros =
       Math.ceil(
         uncached * p.inputPerMillion +
@@ -425,12 +476,11 @@ export class CostLedger {
     },
     exceededMessage: string,
   ) {
-    const settled = this.update(entry.id, {
+    const settled = this.updateOutcome(entry.id, {
       ...charge,
       status: "settled",
       basis: "provider-usage",
     });
-    this.deliver(settled);
     if (entry.runId)
       this.store.emit(entry.runId, "cost.settled", {
         entry: settled,
@@ -473,9 +523,7 @@ export class CostLedger {
     const entry = this.store.get<CostEntry>("cost-ledger", key);
     // Settled and refused (void) charges keep their conclusive outcome.
     if (entry.status === "settled" || entry.status === "void") return entry;
-    const marked = this.update(key, { status: "unknown" });
-    this.deliver(marked);
-    return marked;
+    return this.updateOutcome(key, { status: "unknown" });
   }
   /** Only cancel a queued reservation before host authorization/provider submission. */
   voidUnsubmitted(
@@ -491,8 +539,8 @@ export class CostLedger {
     return this.update(key, { status: "void", error: reason });
   }
   /**
-   * Ask the host billing provider before the call is sent. A refusal voids the
-   * reservation and surfaces as `billing_refused`.
+   * Ask the host before submission. Any failed authorization durably reports
+   * void, including an ambiguous transport error after the host reserved funds.
    */
   async authorize(
     charge: CostEntry | string,
@@ -504,35 +552,35 @@ export class CostLedger {
       "Billing delivery is closed",
       503,
     );
-    const entry =
-      typeof charge === "string"
-        ? this.store.get<CostEntry>("cost-ledger", charge)
-        : charge;
+    const entry = this.store.get<CostEntry>(
+      "cost-ledger",
+      typeof charge === "string" ? charge : charge.id,
+    );
+    invariant(
+      entry.status === "reserved" && !entry.billing,
+      "Charge authorization was already attempted or the charge is terminal",
+      409,
+    );
     if (!this.billing) return entry;
     this.update(entry.id, { billing: { state: "authorizing" } });
-    const uncertain = () =>
-      this.deliver(
-        this.update(entry.id, {
-          status: "unknown",
-          billing: { state: "authorized" },
-          error:
-            "Host authorization was interrupted; provider request was not submitted",
-        }),
-      );
+    const voidAuthorization = (reason: string) =>
+      this.updateOutcome(entry.id, {
+        status: "void",
+        billing: { state: "authorized" },
+        error: reason,
+      });
     try {
       await this.billing.authorize(this.charge(entry), signal);
     } catch (error) {
       // The callback may ignore cancellation and settle after its owner/store closes.
       if (this.closed || this.store.isClosed) throw error;
       if (signal?.aborted) {
-        uncertain();
+        voidAuthorization(
+          "Host authorization was interrupted; provider request was not submitted",
+        );
         signal.throwIfAborted();
       }
-      this.update(entry.id, {
-        status: "void",
-        billing: undefined,
-        error: `Billing refused: ${errorText(error)}`,
-      });
+      voidAuthorization(`Billing refused: ${errorText(error)}`);
       throw new AppError(
         402,
         "billing_refused",
@@ -544,7 +592,9 @@ export class CostLedger {
       throw new AppError(503, "billing_closed", "Billing delivery is closed");
     }
     if (signal?.aborted) {
-      uncertain();
+      voidAuthorization(
+        "Host authorization was interrupted; provider request was not submitted",
+      );
       signal.throwIfAborted();
     }
     return this.update(entry.id, { billing: { state: "authorized" } });
@@ -576,7 +626,12 @@ export class CostLedger {
       return;
     const deliveryId = id("billing-delivery");
     this.store.transaction(() => {
-      this.update(entry.id, { billing: { state: "authorized", deliveryId } });
+      const current = this.store.get<CostEntry>("cost-ledger", entry.id);
+      const revision = (current.billing?.revision ?? 0) + 1;
+      invariant(Number.isSafeInteger(revision), "Billing revision overflow");
+      this.update(entry.id, {
+        billing: { state: "authorized", deliveryId, revision },
+      });
       this.store
         .prepare(
           "INSERT INTO billing_deliveries(charge_id,delivery_id) VALUES(?,?) ON CONFLICT(charge_id) DO UPDATE SET delivery_id=excluded.delivery_id",
@@ -627,25 +682,33 @@ export class CostLedger {
     }
   }
   private startDelivery(entry: CostEntry, deliveryId: string) {
-    this.update(entry.id, { billing: { state: "authorized", deliveryId } });
+    const revision = entry.billing?.revision ?? 1;
+    this.update(entry.id, {
+      billing: { state: "authorized", deliveryId, revision },
+    });
     const markDelivery = (state: "recorded" | "failed", error?: string) => {
       if (this.closed || this.store.isClosed) return;
       const current = this.store.find<CostEntry>("cost-ledger", entry.id);
       if (current?.billing?.deliveryId === deliveryId)
         this.update(entry.id, {
-          billing: { state, deliveryId, ...(error ? { error } : {}) },
+          billing: { state, deliveryId, revision, ...(error ? { error } : {}) },
         });
     };
+    const hasValidUsage = Boolean(
+      entry.usage?.reported &&
+      validUsage(entry.adapter, entry.usage, this.protocols),
+    );
     const outcome: BillingOutcome = {
+      revision,
       // Reported usage on an unpriced route is conclusive for the host even though
       // the kernel's own USD ledger still needs reconciliation.
       status:
         entry.status === "unknown" &&
-        entry.usage?.reported &&
+        hasValidUsage &&
         !entry.requiresReconciliation
           ? "settled"
           : (entry.status as BillingOutcome["status"]),
-      ...(entry.usage?.reported
+      ...(hasValidUsage && entry.usage
         ? { tokens: billingTokens(entry.adapter, entry.usage, this.protocols) }
         : {}),
       ...(entry.units ? { units: entry.units } : {}),
@@ -653,6 +716,12 @@ export class CostLedger {
         ? {}
         : { chargedMicros: entry.chargedMicros }),
       ...(entry.reference === undefined ? {} : { reference: entry.reference }),
+      ...(entry.responseId === undefined
+        ? {}
+        : { responseId: entry.responseId }),
+      ...(entry.status !== "settled" && entry.error
+        ? { reason: entry.error }
+        : {}),
     };
     const controller = new AbortController();
     let timedOut = false;
@@ -752,14 +821,14 @@ export class CostLedger {
         reference,
         createdAt: now(),
       });
-      return this.update(key, {
+      return this.updateOutcome(key, {
         status: "settled",
         chargedMicros,
         basis: "operator",
         reference,
+        error: undefined,
       });
     });
-    if (reconciled.requiresReconciliation) this.deliver(reconciled);
     return reconciled;
   }
 }

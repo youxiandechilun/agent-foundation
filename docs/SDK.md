@@ -24,6 +24,8 @@ agent-foundation/
 
 当前包名为 `@local/agent-foundation`，版本由根 `package.json` 统一管理。包保持 `private: true`、`UNLICENSED`；授权条款尚未确定。本地打包和验证均不发布到 npm 或 GitHub，也不代表已授予商用或再分发许可。
 
+0.13.0 修正宿主计费的对账投递、异常缓存计量和授权响应丢失处理。升级时，宿主按 `charge.id` 与必填的 `outcome.revision` 幂等处理，并为 `void` 保留终态记录；生成 `BillingOutcome` 的 TypeScript 使用方需要补充版本号。`CostLedger.drain()` 现在返回投递状态，可用 `deliveryStatus()` 查询未确认工作；业务费用是否待核仍由宿主账本判定。
+
 ## 运行要求
 
 - Node.js `^22.19.0 || >=24.0.0`，使用 ESM。支持 Node 22 维护线的 22.19 及以后版本，以及 Node 24 及以后版本；不声明支持已停止维护的 Node 23。内核使用 `node:sqlite`，部分早期 Node 23 默认不提供该模块。建议使用仍在维护的 Node.js LTS；新主版本仍需先完成验证。
@@ -39,7 +41,7 @@ agent-foundation/
 在交付目录找到实际的 `.tgz` 文件；名称、版本和 SHA256 以同目录 `manifest.json` 与 `SHA256SUMS.txt` 为准。安装示例：
 
 ```powershell
-npm install --omit=optional C:\delivery\local-agent-foundation-0.12.1.tgz
+npm install --omit=optional C:\delivery\local-agent-foundation-0.13.0.tgz
 npm install --save-dev typescript @types/node
 ```
 
@@ -193,7 +195,15 @@ const kernel = new Kernel(config, {
 });
 ```
 
-以上也是默认值，针对结果投递 `record`，不限制授权回调 `authorize`。待投递结果保存在 SQLite，最多按并发数取出执行，同一 `charge.id` 顺序投递；宿主按该 ID 幂等更新，不能把重投当成第二次扣款。超时发出取消信号并记录失败；如果回调忽略信号，在它真正结束前保留槽位，避免超时重叠导致无限并发。关闭最多等待 `shutdownTimeoutMs` 的投递收尾并取消剩余投递，尚未完成的状态可在重启后恢复。这个时限只限定内核等待，不会强制停止宿主 I/O，也不是整个 `Kernel.close()` 的总时限。
+以上也是默认值，针对结果投递 `record`，不限制授权回调 `authorize`。待投递结果保存在 SQLite，最多按并发数取出执行，同一 `charge.id` 顺序投递。`BillingOutcome.revision` 是单笔费用的持久递增版本：首次为 1，新结果（包括普通文本的人工对账）递增，失败重投及重启恢复保持原版本。宿主应在同一事务中按 `charge.id` 校验账户和费用归属，只接受高于已应用版本的结果；相同版本重复请求返回已有确认，较旧版本不得覆盖新结果。内核将费用状态、投递版本和待投递记录放在同一事务中保存。
+
+`BillingOutcome` 的 `responseId` 为可用的供应商响应标识，`reason` 说明待核或作废原因。`tokens.input` 不含缓存 token；OpenAI 等包含缓存的输入口径必须满足 `cacheRead + cacheWrite <= input`，所有分类计数必须为非负安全整数。异常原始用量保留在费用记录中，向宿主投递 `unknown` 且省略 `tokens`；有价格和无价格路由均执行该检查。无价格路由若提供了有效用量，宿主仍可按 `settled` 和规范化 token 自行定价。
+
+授权回调抛错（包括宿主已经预占但响应丢失）或在回调完成前取消时，供应商请求尚未发出，因此费用为 `void`，内核仍持久投递结果，供宿主释放可能存在的预占。取消会等待授权 Promise 返回后再报告；如果内核关闭时授权还未结束，则保留 `authorizing` 状态，重启恢复为 `void` 后投递。宿主必须将同一 `charge.id` 的授权与结果更新串行化或使用数据库事务，并保留 `void` 终态幂等记录：较晚到达的授权不得重新预占。这也覆盖跨进程重启仍在网络中传输的旧授权请求。SDK 不会重新调用同一笔费用的 `authorize`；业务重试产生新的费用 ID。
+
+超时发出取消信号并记录失败；如果回调忽略信号，在它真正结束前保留槽位，避免超时重叠导致无限并发。`await kernel.costs.drain(timeoutMs?)` 返回 `BillingDeliveryStatus`，也可调用 `kernel.costs.deliveryStatus()` 查询：`pending` 为尚未确认的授权或待投递结果数，`failed` 为最近投递失败或超时的费用数，`active` 为仍在执行的结果回调数（包含忽略取消的回调）。三项均为 0 才表示当前投递全部确认；`drain()` 返回本身不代表成功，失败结果在重启恢复时重投。已确认的 `unknown` 仍需业务对账，不能仅根据投递完成就删除需要对账的持久数据。查询应在 `Kernel.close()` 之前执行。
+
+关闭最多等待 `shutdownTimeoutMs` 的投递收尾并取消剩余投递，尚未完成的状态可在重启后恢复。这个时限只限定内核等待，不会强制停止宿主 I/O，也不是整个 `Kernel.close()` 的总时限。
 
 `limits` 另外提供媒体并发/队列字节与迁移并发约束。媒体默认同时执行 2 个、额外等待 16 个，运行中与等待任务的序列化元数据共用 4 MiB 预算；迁移默认同时 1 个操作。`kernel.exportMigration(sessionId, signal?)` 可取消异步附件读取；迁移仍返回完整的 v1 包对象。默认值、内存口径及取消边界见 [容量与效率](CAPACITY-OPTIMIZATION.md)。
 
