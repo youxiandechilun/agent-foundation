@@ -1,0 +1,16 @@
+Checking isolated SDK consumer with v22.23.2...
+Checking isolated SDK consumer with v24.22.1...
+{
+  "status": "passed",
+  "package": "E:\\agent-foundation-main\\releases\\0.12.1\\local-agent-foundation-0.12.1.tgz",
+  "runtimes": [
+    {
+      "node": "v22.23.2",
+      "status": "passed"
+    },
+    {
+      "node": "v24.22.1",
+      "status": "passed"
+    }
+  ]
+}

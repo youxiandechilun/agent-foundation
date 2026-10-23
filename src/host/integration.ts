@@ -47,7 +47,8 @@ export function createApplicationIntegration(
   };
   return {
     id: reference ? profile : "applications-" + features.join("-"),
-    async install(kernel) {
+    async install(kernel, signal) {
+      signal?.throwIfAborted();
       invariant(!disposed, "Application plugins have closed", 503);
       invariant(
         !owner || owner === kernel,
@@ -67,6 +68,7 @@ export function createApplicationIntegration(
             : undefined,
           reference ? import("./nodes.js") : undefined,
         ]);
+        signal?.throwIfAborted();
         requireOwner(kernel);
         const serviceNames = [
           ...features,
@@ -102,7 +104,13 @@ export function createApplicationIntegration(
             (projectId, write, toolName) =>
               officeAccess(kernel, projectId, write, toolName),
           );
-        if (nodes) services.nodes = new nodes.NodeManager(kernel.store);
+        if (nodes)
+          services.nodes = new nodes.NodeManager(kernel.store, undefined, {
+            maxPendingTasks: kernel.config.limits.maxPendingNodeTasks,
+            maxPendingBytes: kernel.config.limits.maxNodeTaskBytes,
+            retentionDays: kernel.config.retention.nodeTaskDays,
+            retentionIntervalMs: kernel.config.retention.intervalMs,
+          });
         if (bridge) {
           const browserBridge = new bridge.BrowserBridge(kernel);
           Object.assign(services, {
@@ -113,6 +121,7 @@ export function createApplicationIntegration(
         Object.assign(kernel, services);
         if (office) {
           const { officeExtractor } = await import("./office/extractor.js");
+          signal?.throwIfAborted();
           requireOwner(kernel);
           unregisterExtractor = kernel.assets.extractors.register(
             officeExtractor(kernel.assets, services.office),

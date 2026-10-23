@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "startedAt": "2026-10-23T05:29:48.940Z",
+  "completedAt": "2026-10-23T05:29:54.326Z",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "win32",
+    "architecture": "x64",
+    "osRelease": "10.0.26200",
+    "cpu": "Intel(R) Core(TM) i5-14600KF",
+    "logicalCpus": 20,
+    "totalMemoryBytes": 16924135424
+  },
+  "sampleCount": 5,
+  "idleMs": 500,
+  "method": "串行启动独立 Node 子进程；动态导入 dist/index.js，使用全新 SQLite 数据目录初始化最小核心与端口 0 的 HTTP 服务；固定空闲后显式 GC，再采样。每个子进程关闭内核并清理临时目录。",
+  "scope": "空闲核心服务，默认内存功能配置、native 后端；没有项目、会话、模型调用、工具负载或可选宿主集成。",
+  "limitations": [
+    "readyMs 从动态导入开始计时，包含配置、SQLite 初始化和 HTTP 就绪；不包含 Node 进程创建及本脚本静态导入。",
+    "RSS 是采样时整个子进程的驻留内存；heapUsed 与 external 分别描述 V8 堆和关联原生分配，口径不同，不可相加为进程总内存。",
+    "processMaxRssBytes 若可用，表示该子进程启动至采样时的历史最大 RSS，并非稳态内存；0 或不可用时记录 null。",
+    "结果不含浏览器、办公工作线程、桌面桥接、真实模型请求、长会话及并发负载，不能作为其他产品的速度或内存对比。",
+    "显式 GC、磁盘缓存、操作系统和主机其他活动会影响结果；五个样本不代表长期峰值或内存泄漏测试。"
+  ],
+  "entrySha256": "6e1d62b970fae5db28b66a8a7a92d550f997b4bbb1b1e7bd602c152bd94d7111",
+  "samples": [
+    {
+      "version": "0.12.1",
+      "pid": 30712,
+      "readyMs": 633.8875,
+      "rssBytes": 124313600,
+      "heapUsedBytes": 33634992,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 124313600,
+      "cleanup": "passed"
+    },
+    {
+      "version": "0.12.1",
+      "pid": 43224,
+      "readyMs": 403.1952,
+      "rssBytes": 124891136,
+      "heapUsedBytes": 33631168,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 124891136,
+      "cleanup": "passed"
+    },
+    {
+      "version": "0.12.1",
+      "pid": 46676,
+      "readyMs": 404.6936,
+      "rssBytes": 124846080,
+      "heapUsedBytes": 33628456,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 124846080,
+      "cleanup": "passed"
+    },
+    {
+      "version": "0.12.1",
+      "pid": 53508,
+      "readyMs": 395.126,
+      "rssBytes": 125030400,
+      "heapUsedBytes": 33637912,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 125030400,
+      "cleanup": "passed"
+    },
+    {
+      "version": "0.12.1",
+      "pid": 42808,
+      "readyMs": 420.52650000000006,
+      "rssBytes": 124862464,
+      "heapUsedBytes": 33630208,
+      "externalBytes": 3998062,
+      "processMaxRssBytes": 124862464,
+      "cleanup": "passed"
+    }
+  ],
+  "statistics": {
+    "readyMs": {
+      "median": 404.6936,
+      "minimum": 395.126,
+      "maximum": 633.8875
+    },
+    "rssBytes": {
+      "median": 124862464,
+      "minimum": 124313600,
+      "maximum": 125030400
+    },
+    "heapUsedBytes": {
+      "median": 33631168,
+      "minimum": 33628456,
+      "maximum": 33637912
+    },
+    "externalBytes": {
+      "median": 3998062,
+      "minimum": 3998062,
+      "maximum": 3998062
+    },
+    "processMaxRssBytes": {
+      "median": 124862464,
+      "minimum": 124313600,
+      "maximum": 125030400
+    }
+  },
+  "errors": []
+}

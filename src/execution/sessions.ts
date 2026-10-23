@@ -635,7 +635,24 @@ export class ProcessManager {
     const entry = this.owned(processId, sessionId);
     if (["exited", "stopped", "failed"].includes(entry.status))
       return this.status(processId, sessionId);
-    await this.rpc(processId, { op: "stop" });
+    const endpointDeadline = Date.now() + 15000;
+    for (;;) {
+      try {
+        await this.rpc(processId, { op: "stop" });
+        break;
+      } catch (error) {
+        // spawn() can succeed before the broker publishes state.json and its
+        // authenticated control endpoint. An owned startup must remain pending
+        // until stop can actually reach that broker and confirm termination.
+        if (
+          !this.startingIds.has(processId) ||
+          (error as NodeJS.ErrnoException).code !== "ENOENT" ||
+          Date.now() >= endpointDeadline
+        )
+          throw error;
+        await new Promise<void>((resolve) => setTimeout(resolve, 25));
+      }
+    }
     const deadline = Date.now() + 10000;
     while (Date.now() < deadline) {
       const state = await this.status(processId, sessionId);

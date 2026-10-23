@@ -1,0 +1,55 @@
+{
+  "measuredAt": "2026-10-23T05:24:16.327Z",
+  "node": "v22.23.2",
+  "platform": "win32",
+  "scenario": "One empty device claim with 10,000 unrelated completed tasks; args/result each 1 KiB; fresh process and SQLite per sample, one warmup, explicit GC before measuring.",
+  "limitations": "Heap deltas are pre-GC allocations, not retained heap or precise peak memory. Local synthetic measurements do not predict complete agent throughput.",
+  "results": {
+    "current": [
+      {
+        "durationMs": 0.39980000000002747,
+        "allocatedHeapBytes": 115600,
+        "rssDeltaBytes": 0
+      },
+      {
+        "durationMs": 0.40049999999996544,
+        "allocatedHeapBytes": 115720,
+        "rssDeltaBytes": 0
+      },
+      {
+        "durationMs": 0.44069999999999254,
+        "allocatedHeapBytes": 114904,
+        "rssDeltaBytes": 0
+      }
+    ],
+    "baseline": [
+      {
+        "durationMs": 100.2088,
+        "allocatedHeapBytes": 46080840,
+        "rssDeltaBytes": 1163264
+      },
+      {
+        "durationMs": 107.4993,
+        "allocatedHeapBytes": 46080840,
+        "rssDeltaBytes": 745472
+      },
+      {
+        "durationMs": 104.34570000000002,
+        "allocatedHeapBytes": 46080840,
+        "rssDeltaBytes": 913408
+      }
+    ]
+  },
+  "medians": {
+    "current": {
+      "durationMs": 0.40049999999996544,
+      "allocatedHeapBytes": 115600,
+      "rssDeltaBytes": 0
+    },
+    "baseline": {
+      "durationMs": 104.34570000000002,
+      "allocatedHeapBytes": 46080840,
+      "rssDeltaBytes": 913408
+    }
+  }
+}

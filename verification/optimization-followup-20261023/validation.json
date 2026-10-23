@@ -1,0 +1,116 @@
+{
+  "status": "passed",
+  "checkedAt": "2026-10-23T05:50:41.501Z",
+  "baselineCommit": "9a392814dd8829d206eb57481424abb28e33d430",
+  "version": "0.12.1",
+  "checks": {
+    "windowsNode22": {
+      "log": "core-node22-final.log",
+      "tests": 672,
+      "pass": 672,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "windowsNode24": {
+      "log": "core-node24-final.log",
+      "tests": 672,
+      "pass": 672,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "host": {
+      "log": "host-final.log",
+      "tests": 42,
+      "pass": 41,
+      "fail": 0,
+      "skipped": 1,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "quality": "passed",
+    "sdkPack": "passed",
+    "sdkConsumers": [
+      {
+        "node": "v22.23.2",
+        "status": "passed"
+      },
+      {
+        "node": "v24.22.1",
+        "status": "passed"
+      }
+    ],
+    "compiledCoreSmoke": "passed",
+    "compiledHostSmoke": "passed",
+    "linuxNode22": {
+      "log": "linux-core-final.log",
+      "tests": 672,
+      "pass": 653,
+      "fail": 0,
+      "skipped": 19,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "windowsNode22OauthFinal": {
+      "log": "windows-oauth-fixture-final.log",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "windowsNode24OauthFinal": {
+      "log": "node24-oauth-fixture-final.log",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "linuxOauthFinal": {
+      "log": "linux-oauth-final.log",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "status": "passed"
+    },
+    "sourceVerification": "passed",
+    "benchmarkScriptSyntax": "passed",
+    "linuxSummary": "linux-summary.json",
+    "coreBuild": "passed"
+  },
+  "benchmarks": [
+    "device-queue.json",
+    "storage-benchmark.json",
+    "kernel-footprint.json"
+  ],
+  "validationBoundary": {
+    "livePaidProviders": false,
+    "interactiveDesktopSuite": false,
+    "actualChromium": true,
+    "windowsNativeBridge": true,
+    "longTermLeakTest": false,
+    "linux": "Official Node v22.23.2, checksummed download, Ubuntu 24.04 WSL ext4 workspace. 19 original Windows-specific skips. Source/test/config match the final workspace; only an auxiliary benchmark median helper changed afterward and was separately syntax/format checked.",
+    "publication": "Requested push to GitHub main; no npm publication.",
+    "windowsSnapshot": "Whole suites cover final product code; two later test-only wall-clock deadline loops were separately revalidated with all 31 OAuth device/keyring cases on both runtimes."
+  },
+  "initialFindings": {
+    "protocolClassCompatibility": "First full suites exposed an existing class-based adapter contract; hybrid registration now retains class receivers and copies plain declarations.",
+    "linuxProcessStartup": "Control endpoint ENOENT during startup cancellation is retried only for a locally owned startup, then real termination is confirmed.",
+    "partialHttpResponse": "A destroyed partial stream is never ended as a successful response.",
+    "wslTimerClock": "Monotonic timer elapsed 6004ms while wall clock advanced only 4892ms; OAuth fixtures now recheck their advertised wall-clock deadlines without changing request count or timeout assertions."
+  },
+  "delivery": {
+    "branch": "main",
+    "repository": "https://github.com/youxiandechilun/agent-foundation",
+    "npmPublished": false
+  },
+  "validationScope": "Pre-push local verification; GitHub Actions records post-push CI against the actual commit."
+}

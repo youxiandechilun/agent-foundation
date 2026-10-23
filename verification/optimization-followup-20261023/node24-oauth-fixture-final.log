@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP
+ok 1 - OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP
+  ---
+  duration_ms: 1157.6197
+  type: 'test'
+  ...
+# Subtest: OAuth device polling persists authorization_pending and slow_down with the required five-second increase
+ok 2 - OAuth device polling persists authorization_pending and slow_down with the required five-second increase
+  ---
+  duration_ms: 8136.6761
+  type: 'test'
+  ...
+# Subtest: OAuth device flow uses the five-second default and never polls early after restart
+ok 3 - OAuth device flow uses the five-second default and never polls early after restart
+  ---
+  duration_ms: 5067.1863
+  type: 'test'
+  ...
+# Subtest: OAuth device access_denied is terminal and cannot trigger automatic authorization or polling
+ok 4 - OAuth device access_denied is terminal and cannot trigger automatic authorization or polling
+  ---
+  duration_ms: 1075.8507
+  type: 'test'
+  ...
+# Subtest: OAuth device expired_token is terminal and cannot trigger automatic authorization or polling
+ok 5 - OAuth device expired_token is terminal and cannot trigger automatic authorization or polling
+  ---
+  duration_ms: 1074.4801
+  type: 'test'
+  ...
+# Subtest: OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling
+ok 6 - OAuth device invalid_client is terminal and cannot trigger automatic authorization or polling
+  ---
+  duration_ms: 1078.0022
+  type: 'test'
+  ...
+# Subtest: OAuth device flow expires locally without contacting the token endpoint
+ok 7 - OAuth device flow expires locally without contacting the token endpoint
+  ---
+  duration_ms: 1088.7583
+  type: 'test'
+  ...
+# Subtest: OAuth device connection failure doubles the persisted polling interval
+ok 8 - OAuth device connection failure doubles the persisted polling interval
+  ---
+  duration_ms: 3094.5221
+  type: 'test'
+  ...
+# Subtest: OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization
+ok 9 - OAuth device concurrent polls share one request and cancellation prevents a late token from reviving authorization
+  ---
+  duration_ms: 1308.3176
+  type: 'test'
+  ...
+# Subtest: OAuth device start cancellation and logout during discovery leave no resumable grant
+ok 10 - OAuth device start cancellation and logout during discovery leave no resumable grant
+  ---
+  duration_ms: 235.7913
+  type: 'test'
+  ...
+# Subtest: OAuth device dynamic none registration uses the issued credentials and device grant metadata
+ok 11 - OAuth device dynamic none registration uses the issued credentials and device grant metadata
+  ---
+  duration_ms: 1079.5067
+  type: 'test'
+  ...
+# Subtest: OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata
+ok 12 - OAuth device dynamic client_secret_basic registration uses the issued credentials and device grant metadata
+  ---
+  duration_ms: 1071.1662
+  type: 'test'
+  ...
+# Subtest: OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata
+ok 13 - OAuth device dynamic client_secret_post registration uses the issued credentials and device grant metadata
+  ---
+  duration_ms: 1079.63
+  type: 'test'
+  ...
+# Subtest: OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant
+ok 14 - OAuth device flow rejects unreviewed endpoints, verification origins and malformed intervals before saving a grant
+  ---
+  duration_ms: 59.3934
+  type: 'test'
+  ...
+# Subtest: OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata
+ok 15 - OAuth device flow is opt-in and callbackless configuration rejects authorization-code metadata
+  ---
+  duration_ms: 33.3799
+  type: 'test'
+  ...
+# Subtest: OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice
+ok 16 - OAuth device recovery recognizes a committed token after a failed final status write without redeeming the device code twice
+  ---
+  duration_ms: 1078.507
+  type: 'test'
+  ...
+# Subtest: OAuth device continuous waiting honors cancellation and can resume the same pending grant
+ok 17 - OAuth device continuous waiting honors cancellation and can resume the same pending grant
+  ---
+  duration_ms: 1042.973
+  type: 'test'
+  ...
+# Subtest: OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS
+ok 18 - OAuth device CIMD none completes callbackless authorization and refresh over trusted HTTPS
+  ---
+  duration_ms: 1502.4605
+  type: 'test'
+  ...
+# Subtest: OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS
+ok 19 - OAuth device CIMD managed completes callbackless authorization and refresh over trusted HTTPS
+  ---
+  duration_ms: 1548.4652
+  type: 'test'
+  ...
+# Subtest: OAuth short-lived assertion redaction expires without removing persistent credential redaction
+ok 20 - OAuth short-lived assertion redaction expires without removing persistent credential redaction
+  ---
+  duration_ms: 77.6759
+  type: 'test'
+  ...
+# Subtest: OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+ok 21 - OAuth managed RS256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+  ---
+  duration_ms: 168.3268
+  type: 'test'
+  ...
+# Subtest: OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+ok 22 - OAuth managed ES256 keys prepublish, rotate real signatures, retain public keys and erase retired private material
+  ---
+  duration_ms: 74.578
+  type: 'test'
+  ...
+# Subtest: OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material
+ok 23 - OAuth managed EdDSA keys prepublish, rotate real signatures, retain public keys and erase retired private material
+  ---
+  duration_ms: 76.7963
+  type: 'test'
+  ...
+# Subtest: OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock
+ok 24 - OAuth managed keys automatically stage on schedule and cannot activate before a JWKS GET has started the overlap clock
+  ---
+  duration_ms: 75.7981
+  type: 'test'
+  ...
+# Subtest: OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline
+ok 25 - OAuth managed keyring resumes staged and retained keys after restart without resetting their publication deadline
+  ---
+  duration_ms: 55.9117
+  type: 'test'
+  ...
+# Subtest: OAuth managed concurrent publication, signing and rotation share one active key and one successor
+ok 26 - OAuth managed concurrent publication, signing and rotation share one active key and one successor
+  ---
+  duration_ms: 214.1346
+  type: 'test'
+  ...
+# Subtest: OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys
+ok 27 - OAuth managed configuration rejects unsafe cache overlap, contradictory key sources and unpublished automatic keys
+  ---
+  duration_ms: 0.9606
+  type: 'test'
+  ...
+# Subtest: OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown
+ok 28 - OAuth managed key vault detects ciphertext tampering, identity changes and host shutdown
+  ---
+  duration_ms: 15.438
+  type: 'test'
+  ...
+# Subtest: OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm
+ok 29 - OAuth managed host configuration removal stops future rotation and cannot replace a live identity with a different key algorithm
+  ---
+  duration_ms: 65.8626
+  type: 'test'
+  ...
+# Subtest: OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication
+ok 30 - OAuth managed HTTP API publishes only public keys and HEAD cannot acknowledge prepublication
+  ---
+  duration_ms: 92.0195
+  type: 'test'
+  ...
+# Subtest: OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window
+ok 31 - OAuth managed key rotation completes actual HTTPS PKCE and refresh before and after the real prepublication window
+  ---
+  duration_ms: 60767.9278
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 94388.1933

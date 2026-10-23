@@ -235,3 +235,65 @@ test("cancelled process startup cannot leave a running managed process", async (
     await x.close();
   }
 });
+
+test("startup cancellation retries an unpublished endpoint before confirming real process termination", async () => {
+  const x = await setup();
+  const processes = x.kernel.processes;
+  const status = processes.status.bind(processes);
+  const target = processes as unknown as {
+    rpc(
+      processId: string,
+      request: Record<string, unknown>,
+      signal?: AbortSignal,
+      timeoutMs?: number,
+    ): Promise<unknown>;
+  };
+  const rpc = target.rpc.bind(target);
+  const controller = new AbortController();
+  let cancelled = false,
+    stopAttempts = 0,
+    childPid: number | undefined;
+  processes.status = async (...args) => {
+    const current = await status(...args);
+    if (!cancelled && current.status === "running") {
+      childPid = current.pid;
+      cancelled = true;
+      controller.abort(new Error("cancel-process-endpoint-window"));
+      controller.signal.throwIfAborted();
+    }
+    return current;
+  };
+  target.rpc = async (...args) => {
+    if (args[1].op === "stop" && ++stopAttempts === 1)
+      throw Object.assign(new Error("Broker state.json is not published"), {
+        code: "ENOENT",
+      });
+    return rpc(...args);
+  };
+  try {
+    const session = await x.session("code");
+    await assert.rejects(
+      processes.start(
+        session.id,
+        {
+          command: process.execPath,
+          args: ["-e", "setInterval(()=>{},1000)"],
+        },
+        controller.signal,
+      ),
+      /cancel-process-endpoint-window/,
+    );
+    assert.ok(childPid);
+    assert.ok(stopAttempts >= 2);
+    assert.throws(() => process.kill(childPid!, 0));
+    assert.ok(
+      (await processes.list(session.id)).every(
+        (entry) => !["starting", "running"].includes(entry.status),
+      ),
+    );
+  } finally {
+    processes.status = status;
+    target.rpc = rpc;
+    await x.close();
+  }
+});

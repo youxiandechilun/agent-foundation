@@ -1,0 +1,288 @@
+
+> @local/agent-foundation@0.12.1 test:host
+> node scripts/run-core-tests.mjs --host --exclude-capability=interactive-desktop
+
+TAP version 13
+# (node:53388) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: application tools execute real office, browser and native work within a continuous multi-reply Agent run and publish durable owned assets
+ok 1 - application tools execute real office, browser and native work within a continuous multi-reply Agent run and publish durable owned assets
+  ---
+  duration_ms: 3007.6912
+  type: 'test'
+  ...
+# (node:58712) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: application browser pack independently exposes only browser tools and enforces API, owner and upload policies
+ok 2 - application browser pack independently exposes only browser tools and enforces API, owner and upload policies
+  ---
+  duration_ms: 977.7889
+  type: 'test'
+  ...
+# Subtest: managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes
+ok 3 - managed browser snapshots bind element references to a snapshot and target actual frames, selects and checkboxes
+  ---
+  duration_ms: 788.7648
+  type: 'test'
+  ...
+# Subtest: managed browser handles explicit dialogs and actual proxied WebSocket traffic
+ok 4 - managed browser handles explicit dialogs and actual proxied WebSocket traffic
+  ---
+  duration_ms: 687.508
+  type: 'test'
+  ...
+# Subtest: managed browser cancellation destroys its context, stops queued work and releases profile capacity
+ok 5 - managed browser cancellation destroys its context, stops queued work and releases profile capacity
+  ---
+  duration_ms: 556.5353
+  type: 'test'
+  ...
+# Subtest: browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock
+ok 6 - browser profiles hash untrusted owner input and repeated opens cannot release an existing profile lock
+  ---
+  duration_ms: 216.9408
+  type: 'test'
+  ...
+# Subtest: browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials
+ok 7 - browser network policy rejects reserved IPv4 and IPv6 forms and local proxy use requires its private credentials
+  ---
+  duration_ms: 44.2954
+  type: 'test'
+  ...
+# Subtest: browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes
+ok 8 - browser project deny policies apply to direct APIs and raw services, including network and screenshot asset writes
+  ---
+  duration_ms: 288.4061
+  type: 'test'
+  ...
+# Subtest: browser proxy terminates an actual open WebSocket when a project network grant is revoked
+ok 9 - browser proxy terminates an actual open WebSocket when a project network grant is revoked
+  ---
+  duration_ms: 620.5699
+  type: 'test'
+  ...
+# Subtest: aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context
+ok 10 - aborting the direct browser HTTP client cancels the actual waiting action and closes its managed context
+  ---
+  duration_ms: 378.9769
+  type: 'test'
+  ...
+# (node:58416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation
+ok 11 - independent browser pack pairs a real Chrome extension with host URL review, explicit tab grants, screenshots and revocation
+  ---
+  duration_ms: 6010.385
+  type: 'test'
+  ...
+# Subtest: browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller
+ok 12 - browser node transport serializes real WebSocket tasks and revocation marks unconfirmed effects unknown and rejects the pending caller
+  ---
+  duration_ms: 158.2703
+  type: 'test'
+  ...
+# (node:59224) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual Chromium navigation, DOM input/click, screenshots, file upload and download
+ok 13 - actual Chromium navigation, DOM input/click, screenshots, file upload and download
+  ---
+  duration_ms: 1471.6769
+  type: 'test'
+  ...
+# Subtest: actual CDP attachment controls a separate browser and disconnect preserves its tabs
+ok 14 - actual CDP attachment controls a separate browser and disconnect preserves its tabs
+  ---
+  duration_ms: 813.0656
+  type: 'test'
+  ...
+# Subtest: real PDF generation and bounded text extraction
+ok 15 - real PDF generation and bounded text extraction
+  ---
+  duration_ms: 1339.1931
+  type: 'test'
+  ...
+# Subtest: Windows native controller compiles its input helpers and reads actual desktop state without sending input
+ok 16 - Windows native controller compiles its input helpers and reads actual desktop state without sending input # SKIP Interactive desktop capability excluded
+  ---
+  duration_ms: 0.3348
+  type: 'test'
+  ...
+# Subtest: actual Chrome extension bridge connects, inspects, fills and clicks only its allowed test tab
+ok 17 - actual Chrome extension bridge connects, inspects, fills and clicks only its allowed test tab
+  ---
+  duration_ms: 769.8461
+  type: 'test'
+  ...
+# (node:58160) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: device claims ignore unrelated history, keep FIFO and never duplicate a running task
+ok 18 - device claims ignore unrelated history, keep FIFO and never duplicate a running task
+  ---
+  duration_ms: 61.1031
+  type: 'test'
+  ...
+# Subtest: device admission bounds pending work and releases capacity after cancellation and completion
+ok 19 - device admission bounds pending work and releases capacity after cancellation and completion
+  ---
+  duration_ms: 22.0869
+  type: 'test'
+  ...
+# Subtest: device shutdown wakes HTTP-polled calls and pending byte limits reject before writing
+ok 20 - device shutdown wakes HTTP-polled calls and pending byte limits reject before writing
+  ---
+  duration_ms: 20.6972
+  type: 'test'
+  ...
+# Subtest: device dispatch failures record uncertainty and do not strand an admission slot
+ok 21 - device dispatch failures record uncertainty and do not strand an admission slot
+  ---
+  duration_ms: 31.8332
+  type: 'test'
+  ...
+# Subtest: device retention removes only old confirmed outcomes, retaining unknown and recent completions
+ok 22 - device retention removes only old confirmed outcomes, retaining unknown and recent completions
+  ---
+  duration_ms: 19.3566
+  type: 'test'
+  ...
+# (node:59104) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a cancelled host installation cannot add services or extractors
+ok 23 - a cancelled host installation cannot add services or extractors
+  ---
+  duration_ms: 59.7029
+  type: 'test'
+  ...
+# Subtest: application pack closes later services after a browser cleanup failure
+ok 24 - application pack closes later services after a browser cleanup failure
+  ---
+  duration_ms: 276.0236
+  type: 'test'
+  ...
+# Subtest: reference desktop closes later services after a browser cleanup failure
+ok 25 - reference desktop closes later services after a browser cleanup failure
+  ---
+  duration_ms: 37.2692
+  type: 'test'
+  ...
+# Subtest: reference desktop validates untrusted node results before completing tasks
+ok 26 - reference desktop validates untrusted node results before completing tasks
+  ---
+  duration_ms: 34.6316
+  type: 'test'
+  ...
+# (node:58496) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: paired node HTTP transport uses scoped auth, actual queued tasks and explicit results
+ok 27 - paired node HTTP transport uses scoped auth, actual queued tasks and explicit results
+  ---
+  duration_ms: 383.6329
+  type: 'test'
+  ...
+# Subtest: real WebSocket node channel authenticates, dispatches once and records results
+ok 28 - real WebSocket node channel authenticates, dispatches once and records results
+  ---
+  duration_ms: 59.2413
+  type: 'test'
+  ...
+# (node:56548) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX
+ok 29 - office reads actual CSV, computes grouped statistics, transforms rows, creates and reparses DOCX/XLSX/PPTX
+  ---
+  duration_ms: 2497.1777
+  type: 'test'
+  ...
+# (node:42444) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: desktop and application routes reject extra segments before host effects
+ok 30 - desktop and application routes reject extra segments before host effects
+  ---
+  duration_ms: 575.1217
+  type: 'test'
+  ...
+# (node:58708) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: office pack exposes independent tools and authenticated APIs with project, schema and preview-write enforcement
+ok 31 - office pack exposes independent tools and authenticated APIs with project, schema and preview-write enforcement
+  ---
+  duration_ms: 238.5058
+  type: 'test'
+  ...
+# Subtest: DOCX edits span real styled runs, preserve opaque parts and styles, and enforce exact matches and immutable source digests
+ok 32 - DOCX edits span real styled runs, preserve opaque parts and styles, and enforce exact matches and immutable source digests
+  ---
+  duration_ms: 323.7691
+  type: 'test'
+  ...
+# Subtest: PPTX inspection follows presentation relationships and source-preserving edits retain images and slide order
+ok 33 - PPTX inspection follows presentation relationships and source-preserving edits retain images and slide order
+  ---
+  duration_ms: 455.5888
+  type: 'test'
+  ...
+# Subtest: XLSX range edits preserve styles and unknown parts, invalidate formula caches and report recalculation honestly
+ok 34 - XLSX range edits preserve styles and unknown parts, invalidate formula caches and report recalculation honestly
+  ---
+  duration_ms: 1025.457
+  type: 'test'
+  ...
+# Subtest: PDF generation, page composition, rotation, extraction and raster preview execute on actual PDFs
+ok 35 - PDF generation, page composition, rotation, extraction and raster preview execute on actual PDFs
+  ---
+  duration_ms: 2543.299
+  type: 'test'
+  ...
+# Subtest: Office ZIP preflight rejects actual CRC damage, expanded data, XML entities, duplicate names and macros
+ok 36 - Office ZIP preflight rejects actual CRC damage, expanded data, XML entities, duplicate names and macros
+  ---
+  duration_ms: 5.8496
+  type: 'test'
+  ...
+# Subtest: Office worker cancellation, bounded capacity, closing and CSV formula-neutralization do real work without publishing cancelled output
+ok 37 - Office worker cancellation, bounded capacity, closing and CSV formula-neutralization do real work without publishing cancelled output
+  ---
+  duration_ms: 98.0707
+  type: 'test'
+  ...
+# Subtest: office edits recheck exact tool policy and source-read authorization after actual worker processing before publishing a derived asset
+ok 38 - office edits recheck exact tool policy and source-read authorization after actual worker processing before publishing a derived asset
+  ---
+  duration_ms: 823.6693
+  type: 'test'
+  ...
+# (node:58552) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual managed context closure releases its profile, proxy and capacity before reopening
+ok 39 - actual managed context closure releases its profile, proxy and capacity before reopening
+  ---
+  duration_ms: 434.9008
+  type: 'test'
+  ...
+# Subtest: actual CDP disconnection releases capacity without closing the user's browser or tabs
+ok 40 - actual CDP disconnection releases capacity without closing the user's browser or tabs
+  ---
+  duration_ms: 245.3055
+  type: 'test'
+  ...
+# Subtest: a failed second Kernel installation cannot close the first Kernel's application services
+ok 41 - a failed second Kernel installation cannot close the first Kernel's application services
+  ---
+  duration_ms: 90.3412
+  type: 'test'
+  ...
+# Subtest: overlapping application packs reject service replacement and retain the original cleanup owner
+ok 42 - overlapping application packs reject service replacement and retain the original cleanup owner
+  ---
+  duration_ms: 25.4046
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 34857.9136

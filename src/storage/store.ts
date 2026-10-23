@@ -22,6 +22,7 @@ import type {
 import { activeRunStatuses, terminalStatuses } from "../contracts.js";
 import {
   id,
+  hash,
   now,
   invariant,
   redactJsonText,
@@ -95,6 +96,13 @@ export class Store {
   constructor(dataDir: string, options: { exclusiveKernel?: boolean } = {}) {
     mkdirSync(dataDir, { recursive: true });
     this.db = new DatabaseSync(path.join(dataDir, "foundation.sqlite"));
+    // Every writer registers this before opening an expression index. Keep the
+    // derived digest outside public memory JSON and avoid indexing large text.
+    this.db.function(
+      "foundation_content_hash",
+      { deterministic: true },
+      (value) => (typeof value === "string" ? hash(value) : null),
+    );
     this.db
       .exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=3000;
       PRAGMA temp_store=MEMORY; PRAGMA recursive_triggers=ON; PRAGMA cache_size=-8192;
@@ -168,6 +176,16 @@ export class Store {
       this.db.exec(`
         CREATE TABLE IF NOT EXISTS memory_fts_map(fts_rowid INTEGER PRIMARY KEY,memory_id TEXT NOT NULL);
         CREATE INDEX IF NOT EXISTS memory_fts_map_id ON memory_fts_map(memory_id);
+        CREATE TABLE IF NOT EXISTS memory_vector_norms(id TEXT PRIMARY KEY,norm REAL NOT NULL);
+        CREATE TRIGGER IF NOT EXISTS memory_vector_norm_insert AFTER INSERT ON memory_vectors BEGIN
+          DELETE FROM memory_vector_norms WHERE id=new.id;
+        END;
+        CREATE TRIGGER IF NOT EXISTS memory_vector_norm_update AFTER UPDATE ON memory_vectors BEGIN
+          DELETE FROM memory_vector_norms WHERE id=old.id OR id=new.id;
+        END;
+        CREATE TRIGGER IF NOT EXISTS memory_vector_norm_delete AFTER DELETE ON memory_vectors BEGIN
+          DELETE FROM memory_vector_norms WHERE id=old.id;
+        END;
         CREATE TABLE IF NOT EXISTS billing_deliveries(seq INTEGER PRIMARY KEY AUTOINCREMENT,charge_id TEXT NOT NULL UNIQUE,delivery_id TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS cost_ledger_total(slot INTEGER PRIMARY KEY CHECK(slot=1),total INTEGER NOT NULL,dirty INTEGER NOT NULL DEFAULT 0);
         INSERT OR IGNORE INTO cost_ledger_total VALUES(1,0,0);
@@ -1031,6 +1049,14 @@ export class Store {
       });
     for (const node of this.list<{ id: string; connected: boolean }>("nodes"))
       this.write("nodes", { ...node, connected: false });
+    // Only startup recovery owns this transition. Another NodeManager can share
+    // the live store, so constructing one must not revoke an active caller.
+    this.prepare(
+      "UPDATE e_node_tasks SET body=json_set(body,'$.status',CASE json_extract(body,'$.status') WHEN 'queued' THEN 'cancelled' ELSE 'unknown' END,'$.finishedAt',?,'$.error',?) WHERE json_extract(body,'$.status') IN ('queued','running')",
+    ).run(
+      now(),
+      "Host restarted during a node task; inspect device before repeating",
+    );
   }
   /**
    * Delete data that only long-finished runs reference, in bounded batches so a

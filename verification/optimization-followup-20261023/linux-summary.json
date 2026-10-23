@@ -1,0 +1,165 @@
+{
+  "status": "passed",
+  "checkedAt": "2026-10-23T05:49:42.341Z",
+  "environment": {
+    "distribution": "REA-Ubuntu-24.04 via WSL2",
+    "kernel": "6.18.54.1-microsoft-standard-WSL2 x86_64",
+    "node": "v22.23.2",
+    "npm": "10.9.8",
+    "runtimeDownload": "https://nodejs.org/dist/v22.23.2/node-v22.23.2-linux-x64.tar.xz",
+    "runtimeSha256": "d60acfe00a2932254bb0ad20e01b0d74397a0875595de719654b214f4b03f307",
+    "officialShasumsVerified": true,
+    "filesystem": "WSL ext4 temporary workspace",
+    "dependencies": "Workspace core dependencies, TypeScript, ssh2, ws and their installed transitive packages were copied to ext4. No apt or system package installation.",
+    "dependencyList": "linux-dependencies.txt"
+  },
+  "finalCoreRun": {
+    "log": "linux-core-final.log",
+    "tests": 672,
+    "passed": 653,
+    "failed": 0,
+    "skipped": 19,
+    "durationMs": 215720.574442
+  },
+  "command": "node scripts/run-core-tests.mjs",
+  "sourceBoundary": {
+    "snapshotAt": "2026-10-23T05:45:21Z",
+    "baseGitHead": "9a392814dd8829d206eb57481424abb28e33d430",
+    "manifest": "linux-final-source-sha256.txt",
+    "manifestSha256": "2ac600570a4a759a51ddc2678dcf0c4e458788f0369a27b823bc9844cb3a9841",
+    "includes": [
+      "src",
+      "test",
+      "scripts",
+      "examples",
+      "extensions",
+      ".github",
+      "package.json",
+      "package-lock.json",
+      "tsconfig*.json",
+      "config.json",
+      "config.example.json",
+      "eslint.config.js"
+    ],
+    "excludes": [
+      "verification logs and manifests",
+      "docs",
+      "README.md",
+      "node_modules",
+      "dist"
+    ],
+    "laterWorkspaceDifferences": [
+      {
+        "file": "scripts/benchmark-followup-storage.mjs",
+        "testedSnapshotSha256": "41516ce159f8ac7039c91973f3bad17fa47c7f761ff534f7d2e92187b6d873ea",
+        "currentSha256": "20224151fe912e07d7a1c4eb0fca95a113d6faaf225793c592dda16ea688ce2a"
+      }
+    ],
+    "coreRuntimeAndTestSourcesMatchWorkspace": true,
+    "laterDifferenceBoundary": "The standalone storage benchmark script changed after the frozen source copy; the core test runner does not execute it. No runtime, test or configuration differences remain."
+  },
+  "skippedCategories": [
+    {
+      "count": 18,
+      "reason": "Existing Windows AppContainer, ConPTY, Windows sandbox ACL and job/process integration cases are Windows-only."
+    },
+    {
+      "count": 1,
+      "reason": "Existing credential-vault case-insensitive Windows path alias case is Windows-only."
+    }
+  ],
+  "additionalChecks": {
+    "linuxProtocol": {
+      "log": "linux-protocol-final.log",
+      "tests": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 1779.218885
+    },
+    "linuxMemoryHttp": {
+      "log": "linux-memory-final.log",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 2320.362819
+    },
+    "linuxProcess": {
+      "log": "linux-process-final.log",
+      "rounds": [
+        14,
+        7,
+        7
+      ],
+      "passed": 28,
+      "failed": 0,
+      "note": "The original startup cancellation case and deterministic unpublished-endpoint regression passed all three rounds."
+    },
+    "linuxOAuthFixtures": {
+      "log": "linux-oauth-final.log",
+      "tests": 31,
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 93829.045649
+    },
+    "windowsNode22OAuthFixtures": {
+      "log": "windows-oauth-fixture-final.log",
+      "tests": 31,
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 95732.8639
+    }
+  },
+  "historicalDiagnostics": {
+    "drvfs": {
+      "log": "linux-core-drvfs.log",
+      "status": "stopped",
+      "reason": "Reading the full barrel module from /mnt/e took 10689ms before the lease-owner child became ready, exceeding the existing 5000ms fixture deadline. Ext4 passed the unchanged lease case."
+    },
+    "initialExt4": {
+      "log": "linux-core.log",
+      "tests": 669,
+      "passed": 647,
+      "failed": 3,
+      "skipped": 19,
+      "durationMs": 213786.004672,
+      "sourceManifest": "linux-source-sha256.txt",
+      "resolvedFailures": [
+        "Unpublished process broker endpoint startup cancellation race",
+        "Class-based text protocol method receiver compatibility",
+        "Partial HTTP stream end after destroy changed writableFinished"
+      ]
+    },
+    "beforeClockFixtureFix": {
+      "log": "linux-core-wallclock-before-fix.log",
+      "tests": 672,
+      "passed": 651,
+      "failed": 2,
+      "skipped": 19,
+      "durationMs": 211243.811405,
+      "sourceManifest": "linux-wallclock-before-fix-source-sha256.txt",
+      "failures": [
+        "OAuth device single-timer wait returned before the advertised poll deadline",
+        "Managed-key single-timer wait returned before the advertised activation deadline"
+      ]
+    },
+    "wallClockEvidence": {
+      "log": "linux-oauth-probe.log",
+      "round": 8,
+      "requestedTimerMs": 6004,
+      "actualMonotonicElapsedMs": 6004.406312,
+      "wallClockBeforeMs": 1792734139573,
+      "wallClockAfterMs": 1792734144465,
+      "wallClockElapsedMs": 4892,
+      "remainingToAdvertisedDeadlineMs": 1092,
+      "explanation": "WSL wall time moved backwards relative to the monotonic timer. The fixture now rechecks the same advertised wall-clock deadline with the original 20ms device/100ms key activation margins. HTTP request-count, real signing/rotation checks and test timeouts were preserved; product OAuth behavior was unchanged."
+    },
+    "startupRaceEvidence": {
+      "log": "linux-process-probe.log",
+      "reason": "Two instrumented rounds observed ENOENT on state.json in stop while the manager still owned the starting process; later journal publication made the record running. Final product cleanup now waits for the owned startup endpoint and confirms real termination."
+    }
+  }
+}

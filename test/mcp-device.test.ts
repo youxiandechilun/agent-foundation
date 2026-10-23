@@ -27,9 +27,11 @@ function install(x: any, peer: any, extra: any = {}) {
   return { id: d.id, url: d.url!, oauth: d.oauth! };
 }
 async function due(status: any) {
-  await sleep(
-    Math.max(1, Date.parse(required(status.nextPollAt)) - Date.now() + 20),
-  );
+  const deadline = Date.parse(required(status.nextPollAt)) + 20;
+  assert.ok(Number.isFinite(deadline), "Device poll deadline must be valid");
+  // Timers are monotonic; the advertised protocol deadline uses the wall clock,
+  // which can move backwards in a VM while the timer is running.
+  while (Date.now() < deadline) await sleep(Math.max(1, deadline - Date.now()));
 }
 test("OAuth device flow performs callbackless discovery, user verification, token exchange and refresh over HTTP", async () => {
   const x = await setup(),

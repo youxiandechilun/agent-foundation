@@ -3,6 +3,7 @@ import http from "node:http";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { test, type TestContext } from "node:test";
 import { parseConfig } from "../src/core/config.js";
 import type { MemoryEntry } from "../src/contracts.js";
@@ -156,4 +157,98 @@ test("concurrent semantic scans retain independent cursors while synchronous que
       result.map((entry) => entry.id),
       ["winner"],
     );
+});
+
+test("vector norms are cached for legacy rows and invalidated by updates, replacements and deletion", async (t) => {
+  const { store, memory, add } = await fixture(t);
+  add("legacy", [3, 4]);
+  const norm = () =>
+    store
+      .prepare("SELECT norm FROM memory_vector_norms WHERE id=?")
+      .get("legacy")?.norm;
+  assert.equal(norm(), undefined);
+  const first = await memory.semanticSearch("project", "query", 1);
+  assert.equal(first[0].score, 0.6);
+  assert.equal(norm(), 5);
+  assert.deepEqual(await memory.semanticSearch("project", "query", 1), first);
+  store
+    .prepare("UPDATE memory_vectors SET vector=? WHERE id=?")
+    .run(JSON.stringify([4, 3]), "legacy");
+  assert.equal(norm(), undefined);
+  assert.equal(
+    (await memory.semanticSearch("project", "query", 1))[0].score,
+    0.8,
+  );
+  assert.equal(norm(), 5);
+  store
+    .prepare(
+      "INSERT OR REPLACE INTO memory_vectors SELECT id,model,? FROM memory_vectors WHERE id=?",
+    )
+    .run(JSON.stringify([0, 1]), "legacy");
+  assert.equal(norm(), undefined);
+  assert.equal(
+    (await memory.semanticSearch("project", "query", 1))[0].score,
+    0,
+  );
+  assert.equal(norm(), 1);
+  await memory.embed("legacy");
+  assert.equal(norm(), 1);
+  memory.remove("legacy", "project");
+  assert.equal(norm(), undefined);
+});
+
+test("a semantic scan yielding across vector changes cannot republish stale norms", async (t) => {
+  const { store, memory, add } = await fixture(t);
+  store.transaction(() => {
+    for (let index = 0; index < 900; index++) add(`row-${index}`, [1, 0]);
+  });
+  const controller = new AbortController();
+  const check = controller.signal.throwIfAborted.bind(controller.signal);
+  const writer = new DatabaseSync(
+    path.join(memory.config.dataDir, "foundation.sqlite"),
+  );
+  let scheduled = false;
+  let updated = false;
+  controller.signal.throwIfAborted = () => {
+    check();
+    if (
+      !scheduled &&
+      Number(
+        store
+          .prepare("SELECT COUNT(*) AS count FROM memory_vector_norms")
+          .get()!.count,
+      ) > 0
+    ) {
+      scheduled = true;
+      setImmediate(() => {
+        writer
+          .prepare("UPDATE memory_vectors SET vector=?")
+          .run(JSON.stringify([2, 2]));
+        updated = true;
+      });
+    }
+  };
+  try {
+    await memory.semanticSearch(
+      "project",
+      "query",
+      1,
+      undefined,
+      controller.signal,
+    );
+    assert.ok(updated, "the first scan yielded while vectors were changed");
+    const second = await memory.semanticSearch("project", "query", 100);
+    const expected = 2 / Math.sqrt(8);
+    assert.ok(second.every((entry) => entry.score === expected));
+    assert.equal(
+      store
+        .prepare(
+          "SELECT COUNT(*) AS count FROM memory_vector_norms WHERE norm<>?",
+        )
+        .get(Math.sqrt(8))!.count,
+      0,
+    );
+  } finally {
+    writer.close();
+  }
 });

@@ -1,0 +1,36 @@
+TAP version 13
+# (node:51530) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: memory HTTP export streams the v1 format without full-list loading and enforces byte budgets
+ok 1 - memory HTTP export streams the v1 format without full-list loading and enforces byte budgets
+  ---
+  duration_ms: 250.053146
+  type: 'test'
+  ...
+# Subtest: memory export uses a consistent snapshot and releases capacity on cancellation
+ok 2 - memory export uses a consistent snapshot and releases capacity on cancellation
+  ---
+  duration_ms: 117.782663
+  type: 'test'
+  ...
+# Subtest: HTTP search disconnect cancels embedding work and frees its admission slot
+ok 3 - HTTP search disconnect cancels embedding work and frees its admission slot
+  ---
+  duration_ms: 137.31004
+  type: 'test'
+  ...
+# Subtest: a paused HTTP memory export keeps its slot until timeout and releases its WAL snapshot
+ok 4 - a paused HTTP memory export keeps its slot until timeout and releases its WAL snapshot
+  ---
+  duration_ms: 1267.823802
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2320.362819

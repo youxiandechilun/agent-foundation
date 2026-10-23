@@ -1,0 +1,186 @@
+INSTRUMENTED FOUNDATION PROCESS ROUND 1
+TAP version 13
+# (node:50502) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 201.733265
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 208.570673
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 168.616285
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1576.533803
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 158.587124
+  type: 'test'
+  ...
+# LINUX_START_CANCEL_STOP_ERROR {"before":{"id":"process_6429130b-b41c-4dfe-81b5-5fac6c512a9f","projectId":"project_4c4c08d3-6fc5-4850-8d2b-dc28a0fb0771","sessionId":"session_e6a584c0-b88d-4407-b007-616520e02874","host":"DESKTOP-S8DISO3","command":"/tmp/foundation-linux-validation-zGVVYP/node-v22.23.2-linux-x64/bin/node","args":["-e","setInterval(()=>{},1000)"],"cwd":"","pty":true,"boundary":"native","status":"starting","createdAt":"2026-10-23T05:33:52.881Z","updatedAt":"2026-10-23T05:33:52.881Z"},"error":{"code":"ENOENT","message":"ENOENT: no such file or directory, open '/tmp/foundation-v2-OXtKI7/data/processes/process_6429130b-b41c-4dfe-81b5-5fac6c512a9f/state.json'"},"journal":{"code":"ENOENT","message":"ENOENT: no such file or directory, open '/tmp/foundation-v2-OXtKI7/data/processes/process_6429130b-b41c-4dfe-81b5-5fac6c512a9f/state.json'"}}
+# LINUX_START_CANCEL_AFTER_REJECTION [{"id":"process_6429130b-b41c-4dfe-81b5-5fac6c512a9f","projectId":"project_4c4c08d3-6fc5-4850-8d2b-dc28a0fb0771","sessionId":"session_e6a584c0-b88d-4407-b007-616520e02874","host":"DESKTOP-S8DISO3","command":"/tmp/foundation-linux-validation-zGVVYP/node-v22.23.2-linux-x64/bin/node","args":["-e","setInterval(()=>{},1000)"],"cwd":"","pty":true,"boundary":"native","status":"unknown","createdAt":"2026-10-23T05:33:52.881Z","updatedAt":"2026-10-23T05:33:52.910Z","error":"cancel-process-start"}]
+# Subtest: cancelled process startup cannot leave a running managed process
+not ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 1096.97372
+  type: 'test'
+  location: '/tmp/foundation-linux-validation-ext4-NGlu22/.agent-data-tests/compiled-tests-6dmx01/test/foundation-process.test.js:189:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+
+      assert.ok((await x.kernel.processes.list(s.id)).every((p) => !["starting", "running"].includes(p.status)))
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/foundation-linux-validation-ext4-NGlu22/.agent-data-tests/compiled-tests-6dmx01/test/foundation-process.test.js:215:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3904.389576
+INSTRUMENTED FOUNDATION PROCESS ROUND 2
+TAP version 13
+# (node:50618) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 184.930004
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 136.788843
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 156.985365
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1587.569009
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 131.644001
+  type: 'test'
+  ...
+# LINUX_START_CANCEL_STOP_ERROR {"before":{"id":"process_41282c48-68d6-4ccc-be95-4f98f4cfe39a","projectId":"project_f1ece60f-084c-4071-8499-40273db7d165","sessionId":"session_07a45844-f163-4a3f-9a5f-4586a2f32090","host":"DESKTOP-S8DISO3","command":"/tmp/foundation-linux-validation-zGVVYP/node-v22.23.2-linux-x64/bin/node","args":["-e","setInterval(()=>{},1000)"],"cwd":"","pty":true,"boundary":"native","status":"starting","createdAt":"2026-10-23T05:33:57.425Z","updatedAt":"2026-10-23T05:33:57.425Z"},"error":{"code":"ENOENT","message":"ENOENT: no such file or directory, open '/tmp/foundation-v2-7sjEIG/data/processes/process_41282c48-68d6-4ccc-be95-4f98f4cfe39a/state.json'"},"journal":{"code":"ENOENT","message":"ENOENT: no such file or directory, open '/tmp/foundation-v2-7sjEIG/data/processes/process_41282c48-68d6-4ccc-be95-4f98f4cfe39a/state.json'"}}
+# LINUX_START_CANCEL_AFTER_REJECTION [{"id":"process_41282c48-68d6-4ccc-be95-4f98f4cfe39a","projectId":"project_f1ece60f-084c-4071-8499-40273db7d165","sessionId":"session_07a45844-f163-4a3f-9a5f-4586a2f32090","host":"DESKTOP-S8DISO3","command":"/tmp/foundation-linux-validation-zGVVYP/node-v22.23.2-linux-x64/bin/node","args":["-e","setInterval(()=>{},1000)"],"cwd":"","pty":true,"boundary":"native","status":"unknown","createdAt":"2026-10-23T05:33:57.425Z","updatedAt":"2026-10-23T05:33:57.453Z","error":"cancel-process-start"}]
+# Subtest: cancelled process startup cannot leave a running managed process
+not ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 1091.608009
+  type: 'test'
+  location: '/tmp/foundation-linux-validation-ext4-NGlu22/.agent-data-tests/compiled-tests-5D5MuQ/test/foundation-process.test.js:189:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+
+      assert.ok((await x.kernel.processes.list(s.id)).every((p) => !["starting", "running"].includes(p.status)))
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/foundation-linux-validation-ext4-NGlu22/.agent-data-tests/compiled-tests-5D5MuQ/test/foundation-process.test.js:215:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3542.691912
+INSTRUMENTED FOUNDATION PROCESS ROUND 3
+TAP version 13
+# (node:50739) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 246.274864
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 211.703515
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 281.33493
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1690.07368
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 219.564277
+  type: 'test'
+  ...
+# LINUX_START_CANCEL_AFTER_REJECTION [{"id":"process_3c5dbf78-c51c-4835-9740-7405018bf672","projectId":"project_b4fe9248-68b2-4c42-be53-41bc73db1f80","sessionId":"session_d2b59431-cc16-4793-aa91-c40766b88ed4","host":"DESKTOP-S8DISO3","command":"/tmp/foundation-linux-validation-zGVVYP/node-v22.23.2-linux-x64/bin/node","args":["-e","setInterval(()=>{},1000)"],"cwd":"","pty":true,"boundary":"native","status":"failed","createdAt":"2026-10-23T05:34:02.958Z","updatedAt":"2026-10-23T05:34:04.034Z","brokerPid":50829,"error":"cancel-process-start","backend":"posix-pty","startedAt":"2026-10-23T05:34:02.980Z","pid":50837,"endedAt":"2026-10-23T05:34:03.991Z"}]
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 1195.211679
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4125.462089

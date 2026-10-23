@@ -124,6 +124,7 @@ test("cancellation settles an uncooperative tool promptly and records its uncert
     x.kernel.cancel(runId);
     const result = await x.kernel.wait(runId);
     assert.equal(result.status, "cancelled");
+    assert.equal(x.kernel.scheduler.state.active, 1);
     assert.equal(
       x.kernel.store.list<any>("effects").find((e) => e.runId === runId).status,
       "unknown",

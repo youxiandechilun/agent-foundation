@@ -70,6 +70,7 @@ export class ToolExecution {
   async execute(
     call: ToolCall,
     effectiveRoute: string,
+    retain?: (operation: Promise<unknown>) => void,
   ): Promise<{ result: ToolResult; argsHash: string }> {
     const { options, tools, validators, signal } = this.context;
     const { store, runId, publish } = options;
@@ -78,6 +79,12 @@ export class ToolExecution {
     let effect: ToolEffect | undefined;
     const effectId = `${runId}:${call.id}`,
       argsHash = hash(JSON.stringify(call.arguments));
+    // Cancellation ends the run's wait, not the actual host operation. Its
+    // scheduler lease must survive until the returned promise really settles.
+    const wait = <T>(operation: Promise<T>): Promise<T> => {
+      retain?.(operation);
+      return abortable(operation, signal);
+    };
     try {
       invariant(
         ++this.toolCount <= options.maxToolCalls,
@@ -99,10 +106,7 @@ export class ToolExecution {
       );
       const authorize = (args: ToolCall["arguments"]) =>
         options.authorize &&
-        abortable(
-          options.authorize(tool, args, call.id, signal, effectiveRoute),
-          signal,
-        );
+        wait(options.authorize(tool, args, call.id, signal, effectiveRoute));
       const previous = store.find<ToolEffect>("effects", effectId);
       if (previous) {
         await authorize(call.arguments);
@@ -143,9 +147,8 @@ export class ToolExecution {
         });
         let args = call.arguments;
         if (options.hooks) {
-          const decision = await abortable(
+          const decision = await wait(
             options.hooks.preToolUse(call, tool, signal),
-            signal,
           );
           if (decision.deny) {
             publish("hook.denied", {
@@ -190,7 +193,7 @@ export class ToolExecution {
           updatedAt: now(),
         } satisfies ToolEffect);
         publish("tool.started", { toolCallId: call.id, name: call.name });
-        result = await abortable(
+        result = await wait(
           tool.execute(
             call.id,
             args,
@@ -204,14 +207,10 @@ export class ToolExecution {
               ),
             { routeId: effectiveRoute },
           ),
-          signal,
         );
         signal.throwIfAborted();
         if (options.normalizeResult)
-          result = await abortable(
-            options.normalizeResult(result, signal),
-            signal,
-          );
+          result = await wait(options.normalizeResult(result, signal));
         invariant(
           isToolResult(result),
           `Tool ${call.name} returned invalid content`,
@@ -224,13 +223,12 @@ export class ToolExecution {
           updatedAt: now(),
         } satisfies ToolEffect);
         if (options.hooks && !result.isError)
-          result = await abortable(
+          result = await wait(
             options.hooks.postToolUse(
               { ...call, arguments: args },
               result,
               signal,
             ),
-            signal,
           );
         invariant(
           isToolResult(result),

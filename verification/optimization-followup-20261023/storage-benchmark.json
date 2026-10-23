@@ -1,0 +1,138 @@
+{
+  "node": "v22.23.2",
+  "platform": "win32",
+  "architecture": "x64",
+  "samplesPerVariant": 3,
+  "method": "Fresh child processes and SQLite directories, alternating baseline/current order; no model or network calls. Checkpoint memory sampled every 2ms plus end-of-call; GC is explicit only before the measured call.",
+  "limitation": "Local synthetic measurements vary with machine load, JIT, filesystem and GC. Sampled RSS/ArrayBuffer deltas are not exact allocation peaks or evidence of long-term leaks. Synchronous import remains atomic and can pause the event loop during its final commit.",
+  "records": [
+    {
+      "scenario": "memory-import",
+      "variants": [
+        {
+          "name": "baseline",
+          "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-followup-baseline-dist",
+          "samples": [
+            {
+              "rows": 4000,
+              "elapsedMs": 4186.3341,
+              "digestIndexPresent": false
+            },
+            {
+              "rows": 4000,
+              "elapsedMs": 4301.4588,
+              "digestIndexPresent": false
+            },
+            {
+              "rows": 4000,
+              "elapsedMs": 4096.8886,
+              "digestIndexPresent": false
+            }
+          ],
+          "medians": {
+            "rows": 4000,
+            "elapsedMs": 4186.3341
+          }
+        },
+        {
+          "name": "current",
+          "runtime": "E:\\agent-foundation-main\\dist",
+          "samples": [
+            {
+              "rows": 4000,
+              "elapsedMs": 632.0375000000001,
+              "digestIndexPresent": true
+            },
+            {
+              "rows": 4000,
+              "elapsedMs": 655.8946000000001,
+              "digestIndexPresent": true
+            },
+            {
+              "rows": 4000,
+              "elapsedMs": 692.5188,
+              "digestIndexPresent": true
+            }
+          ],
+          "medians": {
+            "rows": 4000,
+            "elapsedMs": 655.8946000000001
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "checkpoint-conflict",
+      "variants": [
+        {
+          "name": "baseline",
+          "runtime": "E:\\agent-foundation-main\\.agent-data-tests\\optimization-followup-baseline-dist",
+          "samples": [
+            {
+              "fileMiB": 128,
+              "elapsedMs": 108.15790000000004,
+              "sampledRssDeltaMiB": 128.16796875,
+              "sampledArrayBuffersDeltaMiB": 128.04901885986328,
+              "sampleCount": 29
+            },
+            {
+              "fileMiB": 128,
+              "elapsedMs": 111.8829,
+              "sampledRssDeltaMiB": 120.54296875,
+              "sampledArrayBuffersDeltaMiB": 128.04901885986328,
+              "sampleCount": 30
+            },
+            {
+              "fileMiB": 128,
+              "elapsedMs": 113.87510000000003,
+              "sampledRssDeltaMiB": 128.234375,
+              "sampledArrayBuffersDeltaMiB": 128.04901885986328,
+              "sampleCount": 29
+            }
+          ],
+          "medians": {
+            "fileMiB": 128,
+            "elapsedMs": 111.8829,
+            "sampledRssDeltaMiB": 128.16796875,
+            "sampledArrayBuffersDeltaMiB": 128.04901885986328,
+            "sampleCount": 29
+          }
+        },
+        {
+          "name": "current",
+          "runtime": "E:\\agent-foundation-main\\dist",
+          "samples": [
+            {
+              "fileMiB": 128,
+              "elapsedMs": 132.81760000000003,
+              "sampledRssDeltaMiB": 1.36328125,
+              "sampledArrayBuffersDeltaMiB": 0.45407867431640625,
+              "sampleCount": 67
+            },
+            {
+              "fileMiB": 128,
+              "elapsedMs": 126.94619999999998,
+              "sampledRssDeltaMiB": 1.16796875,
+              "sampledArrayBuffersDeltaMiB": 0.45407867431640625,
+              "sampleCount": 64
+            },
+            {
+              "fileMiB": 128,
+              "elapsedMs": 126.96859999999998,
+              "sampledRssDeltaMiB": 1.51171875,
+              "sampledArrayBuffersDeltaMiB": 0.45407867431640625,
+              "sampleCount": 65
+            }
+          ],
+          "medians": {
+            "fileMiB": 128,
+            "elapsedMs": 126.96859999999998,
+            "sampledRssDeltaMiB": 1.36328125,
+            "sampledArrayBuffersDeltaMiB": 0.45407867431640625,
+            "sampleCount": 65
+          }
+        }
+      ]
+    }
+  ]
+}

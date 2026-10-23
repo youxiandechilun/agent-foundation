@@ -9,6 +9,25 @@ permissions:
   contents: read
 
 jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check:quality
+      - run: npm run build
+      - run: npm test
+      - run: npm run pack:sdk
+      - run: npm run verify:sdk
   windows:
     runs-on: windows-2025
     timeout-minutes: 25

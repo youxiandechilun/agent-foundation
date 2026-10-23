@@ -35,6 +35,7 @@ interface InputHost {
 /** Associates server input with exactly one live originating request or task. */
 export class MCPClientInput {
   private incoming = new Map<RpcId, AbortController>();
+  private activeHandlers = 0;
   constructor(private host: InputHost) {}
   cancel(requestId: RpcId): void {
     this.incoming
@@ -225,6 +226,25 @@ export class MCPClientInput {
       403,
     );
     context.signal.throwIfAborted();
-    return await abortable(handler(params, context), context.signal);
+    invariant(
+      this.activeHandlers < 16,
+      "Too many concurrent client input handlers",
+      429,
+    );
+    this.activeHandlers++;
+    let operation: Promise<unknown>;
+    try {
+      operation = Promise.resolve(handler(params, context));
+    } catch (error) {
+      this.activeHandlers--;
+      throw error;
+    }
+    const release = () => {
+      this.activeHandlers--;
+    };
+    // The RPC may be cancelled before its host handler stops. Keep the handler
+    // in capacity even after receive() has sent an error and removed the RPC.
+    void operation.then(release, release);
+    return await abortable(operation, context.signal);
   }
 }

@@ -1,0 +1,226 @@
+TAP version 13
+# (node:3092) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 304.2784
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 717.5917
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 665.6898
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 2079.8727
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 686.3703
+  type: 'test'
+  ...
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 76.6006
+  type: 'test'
+  ...
+# Subtest: startup cancellation retries an unpublished endpoint before confirming real process termination
+ok 7 - startup cancellation retries an unpublished endpoint before confirming real process termination
+  ---
+  duration_ms: 707.1784
+  type: 'test'
+  ...
+# (node:21060) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: memory HTTP export streams the v1 format without full-list loading and enforces byte budgets
+ok 8 - memory HTTP export streams the v1 format without full-list loading and enforces byte budgets
+  ---
+  duration_ms: 111.6753
+  type: 'test'
+  ...
+# Subtest: memory export uses a consistent snapshot and releases capacity on cancellation
+ok 9 - memory export uses a consistent snapshot and releases capacity on cancellation
+  ---
+  duration_ms: 49.8567
+  type: 'test'
+  ...
+# Subtest: HTTP search disconnect cancels embedding work and frees its admission slot
+ok 10 - HTTP search disconnect cancels embedding work and frees its admission slot
+  ---
+  duration_ms: 110.9543
+  type: 'test'
+  ...
+# Subtest: a paused HTTP memory export keeps its slot until timeout and releases its WAL snapshot
+ok 11 - a paused HTTP memory export keeps its slot until timeout and releases its WAL snapshot
+  ---
+  duration_ms: 1102.7692
+  type: 'test'
+  ...
+# (node:45660) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: same-name protocols remain independent across Kernels after the assembly registries are unregistered
+ok 12 - same-name protocols remain independent across Kernels after the assembly registries are unregistered
+  ---
+  duration_ms: 155.3196
+  type: 'test'
+  ...
+# Subtest: configuration loading, route updates and restart restoration use the Kernel's custom protocol registry
+ok 13 - configuration loading, route updates and restart restoration use the Kernel's custom protocol registry
+  ---
+  duration_ms: 73.7058
+  type: 'test'
+  ...
+# Subtest: built-in declarations and custom this headers cannot mutate another registry
+ok 14 - built-in declarations and custom this headers cannot mutate another registry
+  ---
+  duration_ms: 0.5646
+  type: 'test'
+  ...
+# Subtest: plain protocol registration preserves own helper fields on immutable snapshots
+ok 15 - plain protocol registration preserves own helper fields on immutable snapshots
+  ---
+  duration_ms: 0.2257
+  type: 'test'
+  ...
+# Subtest: legacy class protocol registration keeps private fields and prototype helpers
+ok 16 - legacy class protocol registration keeps private fields and prototype helpers
+  ---
+  duration_ms: 0.1897
+  type: 'test'
+  ...
+# Subtest: protocol factories give clones independent private and closure state
+ok 17 - protocol factories give clones independent private and closure state
+  ---
+  duration_ms: 0.2644
+  type: 'test'
+  ...
+# Subtest: protocol factories reject object reuse and inconsistent adapter IDs
+ok 18 - protocol factories reject object reuse and inconsistent adapter IDs
+  ---
+  duration_ms: 0.2172
+  type: 'test'
+  ...
+# Subtest: regex search times out without blocking host timers and terminates its worker
+ok 19 - regex search times out without blocking host timers and terminates its worker
+  ---
+  duration_ms: 530.9526
+  type: 'test'
+  ...
+# Subtest: regex worker preserves matching semantics, invalid-pattern errors, and cancellation
+ok 20 - regex worker preserves matching semantics, invalid-pattern errors, and cancellation
+  ---
+  duration_ms: 107.5017
+  type: 'test'
+  ...
+# Subtest: directory enumeration stops at capacity and closed handles allow cleanup
+ok 21 - directory enumeration stops at capacity and closed handles allow cleanup
+  ---
+  duration_ms: 25.0452
+  type: 'test'
+  ...
+# Subtest: ignore rules are scoped to their directory and oversize inputs fail explicitly
+ok 22 - ignore rules are scoped to their directory and oversize inputs fail explicitly
+  ---
+  duration_ms: 117.1153
+  type: 'test'
+  ...
+# Subtest: Anthropic history stores large content once and replays signed and unknown blocks exactly
+ok 23 - Anthropic history stores large content once and replays signed and unknown blocks exactly
+  ---
+  duration_ms: 15.3925
+  type: 'test'
+  ...
+# Subtest: coalesced native text segments keep their exact original boundaries
+ok 24 - coalesced native text segments keep their exact original boundaries
+  ---
+  duration_ms: 0.341
+  type: 'test'
+  ...
+# Subtest: protocol registries isolate identical adapter IDs, immutable snapshots, and provider assembly
+ok 25 - protocol registries isolate identical adapter IDs, immutable snapshots, and provider assembly
+  ---
+  duration_ms: 19.8488
+  type: 'test'
+  ...
+# Subtest: protocol snapshots preserve class-based adapters and their method receiver
+ok 26 - protocol snapshots preserve class-based adapters and their method receiver
+  ---
+  duration_ms: 0.223
+  type: 'test'
+  ...
+# Subtest: compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes
+ok 27 - compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes
+  ---
+  duration_ms: 30.5839
+  type: 'test'
+  ...
+# Subtest: redaction cache observes environment rotations and late registrations
+ok 28 - redaction cache observes environment rotations and late registrations
+  ---
+  duration_ms: 1.0016
+  type: 'test'
+  ...
+# Subtest: concurrent process tree cleanup shares one operation and stops the child
+ok 29 - concurrent process tree cleanup shares one operation and stops the child
+  ---
+  duration_ms: 434.2198
+  type: 'test'
+  ...
+# Subtest: command cancellation stops output delivery and the running process
+ok 30 - command cancellation stops output delivery and the running process
+  ---
+  duration_ms: 489.8856
+  type: 'test'
+  ...
+# Subtest: an output observer failure rejects the command after terminating its process
+ok 31 - an output observer failure rejects the command after terminating its process
+  ---
+  duration_ms: 460.1443
+  type: 'test'
+  ...
+# Subtest: command output limits retain bounded output and terminate a flooding process
+ok 32 - command output limits retain bounded output and terminate a flooding process
+  ---
+  duration_ms: 473.4625
+  type: 'test'
+  ...
+# Subtest: command timeout terminates execution and pre-cancelled commands never start
+ok 33 - command timeout terminates execution and pre-cancelled commands never start
+  ---
+  duration_ms: 541.9539
+  type: 'test'
+  ...
+# Subtest: cancellation during abort listener registration is observed immediately
+ok 34 - cancellation during abort listener registration is observed immediately
+  ---
+  duration_ms: 452.0401
+  type: 'test'
+  ...
+# Subtest: successful commands preserve split UTF-8 output, streams and exit status
+ok 35 - successful commands preserve split UTF-8 output, streams and exit status
+  ---
+  duration_ms: 165.6302
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12220.2527

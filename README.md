@@ -57,6 +57,8 @@
 
 活动历史、上传/下载、媒体、迁移、输入队列和 SSE 的容量约束，以及列表分页迁移见 [容量与效率](docs/CAPACITY-OPTIMIZATION.md)。2026-10-23 的协议实例隔离、计费投递、搜索、存储及宿主生命周期优化，兼容边界和复现命令集中在 [本轮优化说明](docs/OPTIMIZATION-20261023.md)。完整开发质量检查为 `npm run check:quality`，包含测试和示例的严格类型检查；它与运行时测试分别执行。
 
+后续全量审查的修复还覆盖工具与 MCP 取消后的真实容量、记忆内容索引和批量准备、流式检查点、设备任务索引与恢复、带快照的记忆流式导出、扩展安装取消、协议工厂和窄服务接口。生产 JavaScript worker 现已纳入静态检查，CI 增加 Linux 核心验证；配置、兼容边界和复现入口见 [后续优化说明](docs/OPTIMIZATION-FOLLOWUP-20261023.md)。
+
 ## 多账户用量与计费接入
 
 已有的 `Project.billingAccount` 与 `KernelOptions.billing` 可把不同项目的模型费用关联到宿主的业务账户。宿主实现 `BillingProvider`，按自己的余额、积分或套餐规则处理每次调用：

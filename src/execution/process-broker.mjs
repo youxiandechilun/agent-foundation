@@ -404,6 +404,7 @@ const child = spawn(
 child.stdin.on("error", () => {});
 const lifetime = setTimeout(() => stop("lifetime-limit"), cfg.timeoutMs);
 function markRunning(pid, backend) {
+  if (stopping || settled) return;
   if (!cfg.sandbox) {
     state = { ...state, status: "running", pid, backend };
     persist();
@@ -411,6 +412,7 @@ function markRunning(pid, backend) {
     return;
   }
   const check = () => {
+    if (stopping || settled) return false;
     try {
       const sandbox = JSON.parse(fs.readFileSync(cfg.sandbox.state, "utf8"));
       if (sandbox.error) {

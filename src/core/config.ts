@@ -380,6 +380,8 @@ export const configSchema = z
         eventDays: z.number().int().min(0).max(36_500).default(0),
         /** Delete unreferenced compaction summaries and run context records older than this. */
         cacheDays: z.number().int().min(0).max(36_500).default(0),
+        /** Confirmed terminal device tasks; unknown outcomes always remain. */
+        nodeTaskDays: z.number().int().min(0).max(36_500).default(0),
         intervalMs: z
           .number()
           .int()
@@ -439,6 +441,25 @@ export const configSchema = z
         maxRunMs: z.number().int().min(100).default(900_000),
         maxConcurrentRuns: z.number().int().min(1).default(4),
         maxConcurrentTools: z.number().int().min(1).max(64).default(4),
+        maxPendingNodeTasks: z.number().int().min(1).max(10000).default(64),
+        maxNodeTaskBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(8 * 1024 * 1024),
+        maxConcurrentMemoryExports: z.number().int().min(1).max(64).default(2),
+        maxMemoryExportBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(128 * 1024 * 1024),
+        memoryExportTimeoutMs: z
+          .number()
+          .int()
+          .min(100)
+          .max(600000)
+          .default(60000),
+        maxConcurrentMemorySearches: z.number().int().min(1).max(64).default(4),
         maxConcurrentMediaJobs: z.number().int().min(1).max(64).default(2),
         maxQueuedMediaJobs: z.number().int().min(0).max(1000).default(16),
         maxMediaQueueBytes: z

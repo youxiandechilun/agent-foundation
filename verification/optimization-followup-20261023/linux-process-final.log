@@ -1,0 +1,206 @@
+TAP version 13
+# (node:50960) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 199.109697
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 142.92318
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 154.055608
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1588.731036
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 129.339745
+  type: 'test'
+  ...
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 1137.842549
+  type: 'test'
+  ...
+# Subtest: startup cancellation retries an unpublished endpoint before confirming real process termination
+ok 7 - startup cancellation retries an unpublished endpoint before confirming real process termination
+  ---
+  duration_ms: 163.828893
+  type: 'test'
+  ...
+# Subtest: concurrent process tree cleanup shares one operation and stops the child
+ok 8 - concurrent process tree cleanup shares one operation and stops the child
+  ---
+  duration_ms: 4.933416
+  type: 'test'
+  ...
+# Subtest: command cancellation stops output delivery and the running process
+ok 9 - command cancellation stops output delivery and the running process
+  ---
+  duration_ms: 17.828357
+  type: 'test'
+  ...
+# Subtest: an output observer failure rejects the command after terminating its process
+ok 10 - an output observer failure rejects the command after terminating its process
+  ---
+  duration_ms: 14.93626
+  type: 'test'
+  ...
+# Subtest: command output limits retain bounded output and terminate a flooding process
+ok 11 - command output limits retain bounded output and terminate a flooding process
+  ---
+  duration_ms: 19.30193
+  type: 'test'
+  ...
+# Subtest: command timeout terminates execution and pre-cancelled commands never start
+ok 12 - command timeout terminates execution and pre-cancelled commands never start
+  ---
+  duration_ms: 102.545771
+  type: 'test'
+  ...
+# Subtest: cancellation during abort listener registration is observed immediately
+ok 13 - cancellation during abort listener registration is observed immediately
+  ---
+  duration_ms: 2.228358
+  type: 'test'
+  ...
+# Subtest: successful commands preserve split UTF-8 output, streams and exit status
+ok 14 - successful commands preserve split UTF-8 output, streams and exit status
+  ---
+  duration_ms: 59.335503
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4184.948443
+FINAL FOUNDATION PROCESS ROUND 2
+TAP version 13
+# (node:51139) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 166.698101
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 135.086172
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 158.233384
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1584.594183
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 124.118004
+  type: 'test'
+  ...
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 130.932323
+  type: 'test'
+  ...
+# Subtest: startup cancellation retries an unpublished endpoint before confirming real process termination
+ok 7 - startup cancellation retries an unpublished endpoint before confirming real process termination
+  ---
+  duration_ms: 165.360322
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2699.659118
+FINAL FOUNDATION PROCESS ROUND 3
+TAP version 13
+# (node:51273) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+ok 1 - persistent pipe processes accept input across calls, preserve cursors and enforce session ownership
+  ---
+  duration_ms: 169.156354
+  type: 'test'
+  ...
+# Subtest: real PTY exposes a terminal, accepts raw input and applies window resizing
+ok 2 - real PTY exposes a terminal, accepts raw input and applies window resizing
+  ---
+  duration_ms: 135.75239
+  type: 'test'
+  ...
+# Subtest: process brokers reconnect after kernel restart without rerunning commands
+ok 3 - process brokers reconnect after kernel restart without rerunning commands
+  ---
+  duration_ms: 141.643743
+  type: 'test'
+  ...
+# Subtest: persistent processes enforce lifetime, output retention and global process capacity
+ok 4 - persistent processes enforce lifetime, output retention and global process capacity
+  ---
+  duration_ms: 1580.002326
+  type: 'test'
+  ...
+# Subtest: stopping a managed process terminates its actual child tree
+ok 5 - stopping a managed process terminates its actual child tree
+  ---
+  duration_ms: 169.80279
+  type: 'test'
+  ...
+# Subtest: cancelled process startup cannot leave a running managed process
+ok 6 - cancelled process startup cannot leave a running managed process
+  ---
+  duration_ms: 151.456504
+  type: 'test'
+  ...
+# Subtest: startup cancellation retries an unpublished endpoint before confirming real process termination
+ok 7 - startup cancellation retries an unpublished endpoint before confirming real process termination
+  ---
+  duration_ms: 143.33719
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2712.393537

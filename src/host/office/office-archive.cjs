@@ -109,7 +109,8 @@ function readOfficeArchive(buffer, limits = {}) {
     expanded += content.length;
     if (
       /\.(xml|rels)$/i.test(name) &&
-      (content.includes(0) || /<!DOCTYPE|<!ENTITY/i.test(content.toString("utf8")))
+      (content.includes(0) ||
+        /<!DOCTYPE|<!ENTITY/i.test(content.toString("utf8")))
     )
       throw Error("Office XML document types and entities are forbidden");
     if (/(^|\/)vbaProject\.bin$/i.test(name))

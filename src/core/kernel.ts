@@ -105,6 +105,7 @@ export class Kernel {
   private runHooks = new Set<RunHooks>();
   readonly integrations: readonly KernelIntegration[];
   private initialization?: Promise<void>;
+  private readonly initializationAbort = new AbortController();
   private readonly buildInput: ReturnType<typeof createInputBuilder>;
   readonly store: Store;
   readonly assets: Assets;
@@ -180,9 +181,22 @@ export class Kernel {
       this.redaction.run(() => this.redaction.bind(factory()));
     this.registerRouteSecrets();
     this.integrations = Object.freeze([...(options.integrations || [])]);
-    for (const integration of this.integrations)
-      if (integration.tools)
-        this.toolRegistry.register(integration.id, integration.tools);
+    for (const integration of this.integrations) {
+      invariant(
+        !integration.tools || !integration.serviceTools,
+        "An integration must select tools or serviceTools",
+      );
+      if (integration.serviceTools)
+        this.toolRegistry.registerServices(
+          integration.id,
+          integration.serviceTools.bind(integration),
+        );
+      else if (integration.tools)
+        this.toolRegistry.register(
+          integration.id,
+          integration.tools.bind(integration),
+        );
+    }
     this.store = create(
       () => new Store(config.dataDir, { exclusiveKernel: true }),
     );
@@ -276,8 +290,11 @@ export class Kernel {
     }));
   }
   private async initialize() {
+    const signal = this.initializationAbort.signal;
+    signal.throwIfAborted();
     this.migrations.recover();
     this.sandboxRecovery = await recoverWindowsSandboxes(this.config);
+    signal.throwIfAborted();
     invariant(
       !this.sandboxRecovery.some(
         (entry) => !entry.confirmed && !entry.preservedLiveOwner,
@@ -287,15 +304,39 @@ export class Kernel {
       "isolation_cleanup_failed",
     );
     await loadPersistedRoutes(this.config, this.textProtocols);
+    signal.throwIfAborted();
     for (const root of [
       ...this.config.workspaceRoots,
       ...this.config.extensions.allowedRoots,
     ])
       await mkdir(root, { recursive: true });
     await this.assets.init();
-    for (const integration of this.integrations)
-      await integration.install?.(this);
+    signal.throwIfAborted();
+    for (const integration of this.integrations) {
+      const timeout = new AbortController();
+      const timer = setTimeout(
+        () =>
+          timeout.abort(
+            new Error(`Integration ${integration.id} installation timed out`),
+          ),
+        this.config.extensions.timeoutMs,
+      );
+      const installationSignal = AbortSignal.any([signal, timeout.signal]);
+      try {
+        installationSignal.throwIfAborted();
+        await abortable(
+          Promise.resolve().then(() =>
+            integration.install?.(this, installationSignal),
+          ),
+          installationSignal,
+        );
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    signal.throwIfAborted();
     await this.mcp.init();
+    signal.throwIfAborted();
     for (const definition of this.store.list<unknown>("mode-profiles"))
       this.modes.put(definition);
     const { eventDays, cacheDays, intervalMs } = this.config.retention;
@@ -1188,6 +1229,10 @@ export class Kernel {
     return this.closeCompletion;
   }
   private async closeOnce() {
+    this.lifecycle.closing = true;
+    this.initializationAbort.abort(
+      new Error("Kernel shutting down during initialization"),
+    );
     clearInterval(this.retentionTimer);
     this.retentionAbort.abort(new Error("Kernel shutting down"));
     await this.retentionWork?.catch(() => undefined);

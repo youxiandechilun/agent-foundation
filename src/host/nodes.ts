@@ -10,7 +10,6 @@ import {
   hash,
   now,
   invariant,
-  delay,
   errorText,
   registerSecret,
 } from "../core/util.js";
@@ -38,6 +37,13 @@ export interface NodeTask {
   error?: string;
   createdAt: string;
   deadline: string;
+  finishedAt?: string;
+}
+export interface NodeManagerOptions {
+  maxPendingTasks?: number;
+  maxPendingBytes?: number;
+  retentionDays?: number;
+  retentionIntervalMs?: number;
 }
 export class NodeManager {
   readonly websocket = new WebSocketServer({
@@ -46,6 +52,10 @@ export class NodeManager {
   });
   private sockets = new Map<string, WebSocket>();
   private closed = false;
+  private readonly waiters = new Map<string, () => void>();
+  private readonly options: Required<NodeManagerOptions>;
+  private retentionTimer?: ReturnType<typeof setInterval>;
+  private retentionWork?: Promise<number>;
   constructor(
     readonly store: Store,
     private authorize?: (
@@ -53,8 +63,32 @@ export class NodeManager {
       capability?: string,
       args?: unknown,
     ) => void,
+    options: NodeManagerOptions = {},
   ) {
     captureRedaction(this);
+    this.options = {
+      maxPendingTasks: options.maxPendingTasks ?? 64,
+      maxPendingBytes: options.maxPendingBytes ?? 8 * 1024 * 1024,
+      retentionDays: options.retentionDays ?? 0,
+      retentionIntervalMs: options.retentionIntervalMs ?? 3_600_000,
+    };
+    invariant(
+      Number.isSafeInteger(this.options.maxPendingTasks) &&
+        this.options.maxPendingTasks > 0 &&
+        Number.isSafeInteger(this.options.maxPendingBytes) &&
+        this.options.maxPendingBytes > 0 &&
+        Number.isSafeInteger(this.options.retentionDays) &&
+        this.options.retentionDays >= 0 &&
+        Number.isSafeInteger(this.options.retentionIntervalMs) &&
+        this.options.retentionIntervalMs >= 1000,
+      "Invalid node task limits",
+    );
+    if (this.options.retentionDays) {
+      this.retentionTimer = setInterval(() => {
+        void this.prune().catch(() => undefined);
+      }, this.options.retentionIntervalMs).unref();
+      void this.prune().catch(() => undefined);
+    }
   }
   pair(input: unknown) {
     const p = z
@@ -121,13 +155,18 @@ export class NodeManager {
     this.unavailable(nodeId, "Node was revoked");
   }
   private unavailable(nodeId: string, reason: string) {
-    for (const task of this.store.list<NodeTask>("node-tasks"))
-      if (task.nodeId === nodeId && ["queued", "running"].includes(task.status))
-        this.store.put("node-tasks", {
-          ...task,
-          status: task.status === "queued" ? "cancelled" : "unknown",
-          error: reason,
-        });
+    for (const task of this.store.selectJson<NodeTask>(
+      "SELECT body FROM e_node_tasks WHERE json_extract(body,'$.nodeId')=? AND json_extract(body,'$.status') IN ('queued','running')",
+      [nodeId],
+    )) {
+      this.store.put("node-tasks", {
+        ...task,
+        status: task.status === "queued" ? "cancelled" : "unknown",
+        error: reason,
+        finishedAt: now(),
+      });
+      this.waiters.get(task.id)?.();
+    }
   }
   heartbeat(nodeId: string) {
     const node = this.store.get<DeviceNode>("nodes", nodeId);
@@ -141,18 +180,16 @@ export class NodeManager {
     return this.store.transaction(() => {
       if (
         this.store
-          .list<NodeTask>("node-tasks")
-          .some((t) => t.nodeId === nodeId && t.status === "running")
+          .prepare(
+            "SELECT 1 FROM e_node_tasks WHERE json_extract(body,'$.nodeId')=? AND json_extract(body,'$.status')='running' LIMIT 1",
+          )
+          .get(nodeId)
       )
         return;
-      const task = this.store
-        .list<NodeTask>("node-tasks")
-        .find(
-          (t) =>
-            t.nodeId === nodeId &&
-            t.status === "queued" &&
-            Date.parse(t.deadline) > Date.now(),
-        );
+      const task = this.store.selectJsonOne<NodeTask>(
+        "SELECT body FROM e_node_tasks WHERE json_extract(body,'$.nodeId')=? AND json_extract(body,'$.status')='queued' AND json_extract(body,'$.deadline')>? ORDER BY rowid LIMIT 1",
+        [nodeId, now()],
+      );
       if (!task) return;
       return this.store.put("node-tasks", {
         ...task,
@@ -182,12 +219,15 @@ export class NodeManager {
       409,
     );
     this.heartbeat(nodeId);
-    return this.store.put("node-tasks", {
+    const completed = this.store.put("node-tasks", {
       ...task,
       status: p.ok ? "completed" : "failed",
       result: p.result,
       error: p.error,
+      finishedAt: now(),
     });
+    this.waiters.get(taskId)?.();
+    return completed;
   }
   async call(
     projectId: string,
@@ -226,11 +266,27 @@ export class NodeManager {
       createdAt: now(),
       deadline: new Date(Date.now() + timeoutMs).toISOString(),
     };
-    this.store.put("node-tasks", task);
-    this.dispatch(nodeId);
+    this.store.transaction(() => {
+      const pending = this.store
+        .prepare(
+          "SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(body AS BLOB))),0) AS bytes FROM e_node_tasks WHERE json_extract(body,'$.status') IN ('queued','running')",
+        )
+        .get() as { count: number; bytes: number };
+      invariant(
+        pending.count < this.options.maxPendingTasks &&
+          pending.bytes + Buffer.byteLength(JSON.stringify(task)) <=
+            this.options.maxPendingBytes,
+        "Node task capacity reached",
+        429,
+        "node_capacity",
+      );
+      this.store.put("node-tasks", task);
+    });
     try {
+      this.dispatch(nodeId);
       while (true) {
         signal?.throwIfAborted();
+        invariant(!this.closed, "Node service closed", 503);
         const live = this.store.get<DeviceNode>("nodes", nodeId);
         invariant(live.enabled, "Node was revoked", 403);
         this.authorize?.(live, capability, args);
@@ -248,7 +304,11 @@ export class NodeManager {
           "Node task deadline exceeded; inspect device before retry",
           504,
         );
-        await delay(30, signal);
+        await this.waitForChange(
+          task.id,
+          Math.min(1000, Math.max(1, Date.parse(task.deadline) - Date.now())),
+          signal,
+        );
       }
     } catch (error) {
       const current = this.store.get<NodeTask>("node-tasks", task.id);
@@ -257,12 +317,62 @@ export class NodeManager {
           ...current,
           status: current.status === "queued" ? "cancelled" : "unknown",
           error: errorText(error),
+          finishedAt: now(),
         });
       const socket = this.sockets.get(nodeId);
       if (socket?.readyState === WebSocket.OPEN)
         socket.send(JSON.stringify({ type: "cancel", taskId: task.id }));
       throw error;
     }
+  }
+  private waitForChange(
+    taskId: string,
+    timeoutMs: number,
+    signal?: AbortSignal,
+  ) {
+    signal?.throwIfAborted();
+    return new Promise<void>((resolve, reject) => {
+      const finish = (error?: unknown) => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
+        if (this.waiters.get(taskId) === wake) this.waiters.delete(taskId);
+        if (error) reject(error);
+        else resolve();
+      };
+      const wake = () => finish();
+      const abort = () => finish(signal?.reason || new Error("Cancelled"));
+      const timer = setTimeout(wake, timeoutMs);
+      this.waiters.set(taskId, wake);
+      signal?.addEventListener("abort", abort, { once: true });
+    });
+  }
+  /** Delete only confirmed terminal tasks; unknown outcomes remain for inspection. */
+  prune(): Promise<number> {
+    if (this.retentionWork) return this.retentionWork;
+    const run = async () => {
+      if (!this.options.retentionDays) return 0;
+      const cutoff = new Date(
+        Date.now() - this.options.retentionDays * 86_400_000,
+      ).toISOString();
+      let total = 0;
+      while (!this.closed && !this.store.isClosed) {
+        const removed = Number(
+          this.store
+            .prepare(
+              "DELETE FROM e_node_tasks WHERE id IN (SELECT id FROM e_node_tasks WHERE json_extract(body,'$.status') IN ('completed','failed','cancelled') AND COALESCE(json_extract(body,'$.finishedAt'),json_extract(body,'$.createdAt'))<? LIMIT 500)",
+            )
+            .run(cutoff).changes,
+        );
+        total += removed;
+        if (removed < 500) break;
+        await new Promise<void>((resolve) => setImmediate(resolve));
+      }
+      return total;
+    };
+    this.retentionWork = run().finally(() => {
+      this.retentionWork = undefined;
+    });
+    return this.retentionWork;
   }
   private dispatch(nodeId: string) {
     const socket = this.sockets.get(nodeId);
@@ -349,11 +459,13 @@ export class NodeManager {
   }
   close() {
     this.closed = true;
+    clearInterval(this.retentionTimer);
     for (const [nodeId, socket] of this.sockets) {
       socket.terminate();
       this.unavailable(nodeId, "Node service closed");
     }
     this.sockets.clear();
+    for (const wake of this.waiters.values()) wake();
     this.websocket.close();
   }
 }

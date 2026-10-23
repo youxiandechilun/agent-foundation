@@ -172,7 +172,9 @@ await kernel.init();
 
 `parseConfig(input, baseDir?, protocols?)` 的 registry 是第三参数，`loadConfig(file, protocols?)` 是第二参数。每个 registry 自带内置协议，内置 ID 及保留的媒体/embedding ID 不能被覆盖。不同 Kernel 可以在各自 registry 中使用相同的自定义 ID；Kernel 构造时复制注册表，之后注销原 registry 的条目不会改变该 Kernel。运行时路由更新、持久化路由恢复、文本请求、上下文压缩、MCP sampling 和计费 token 语义都使用所属实例的协议。
 
-注册时复制并冻结协议声明与静态 headers，固定所注册的方法；类实例方法保留接收者。宿主仍应自行管理回调闭包或类实例中的可变状态，注册表快照不是深度隔离任意外部对象。既有 `registerTextProtocol()` 与 `textProtocolIds()` 保留进程级默认注册方式；未指定 `textProtocols` 的 Kernel 在构造时取得该默认表的快照。自定义协议应在解析配置和构造 Kernel 之前注册。
+普通对象通过 `register(protocol)` 注册时，复制其自有声明字段与静态 headers，方法的 `this` 绑定到冻结快照，保留自有 helper 与额外字段。既有类实例注册继续保留原实例接收者，兼容私有字段和原型方法；该兼容路径的实例状态仍由宿主管理。需要每个 Kernel 独立的类实例或可变闭包时，使用 `registerFactory(id, factory)`；每次注册表克隆和 Kernel 装配都由工厂创建新实例。工厂必须返回新对象，需要隔离的闭包状态也应在工厂内部创建；注册表无法自动复制任意外部对象。既有 `registerTextProtocol()` 与 `textProtocolIds()` 保留进程级默认注册方式；未指定 `textProtocols` 的 Kernel 在构造时取得该默认表的快照。自定义协议应在解析配置和构造 Kernel 之前注册。
+
+宿主扩展可选择 `KernelIntegration.serviceTools` / `ToolRegistry.registerServices()`，使用公开的 `ServiceToolContext` 与只读 `KernelServices` 门面，减少对完整 Kernel 的依赖；旧 `tools` 与 `context.kernel` 继续支持。`install(kernel, signal?)` 的可选信号在安装超时或内核关闭时中止；安装时限复用 `extensions.timeoutMs`。工具取消后仍未结束的实际 Promise 会继续持有调度槽与资源锁，工具实现应让其 Promise 覆盖实际 I/O 与清理的完整生命周期。记忆异步准备、流式导出及新增容量配置见 [后续优化说明](OPTIMIZATION-FOLLOWUP-20261023.md)。
 
 ## 计费投递与容量
 

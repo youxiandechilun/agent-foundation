@@ -10,6 +10,41 @@ export interface ApiResult {
   data: unknown;
   status?: number;
 }
+/** Internal streaming response; never materializes the complete exported document. */
+export class JsonStreamResponse {
+  constructor(
+    readonly chunks: AsyncIterable<string>,
+    readonly close: () => void,
+    readonly signal?: AbortSignal,
+  ) {}
+}
+
+export async function respondChunkStream(
+  req: IncomingMessage,
+  res: ServerResponse,
+  response: JsonStreamResponse,
+  status = 200,
+) {
+  const transfer = requestSignal(req, res);
+  try {
+    const signal = AbortSignal.any([
+      transfer.signal,
+      ...(response.signal ? [response.signal] : []),
+    ]);
+    signal.throwIfAborted();
+    res.writeHead(status, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    });
+    await pipeline(Readable.from(response.chunks, { objectMode: false }), res, {
+      signal,
+    });
+  } finally {
+    response.close();
+    transfer.close();
+  }
+}
 
 /** true means a binary response or event stream has already been written. */
 export type HttpResult = ApiResult | true | undefined;

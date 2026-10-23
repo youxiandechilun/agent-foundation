@@ -7,7 +7,13 @@ export { TokenCounterRegistry } from "./runtime/token-counter.js";
 export type { TokenCounter } from "./runtime/token-counter.js";
 export type { KernelOptions } from "./core/kernel.js";
 export { ToolRegistry } from "./runtime/registry.js";
-export type { KernelIntegration, ToolContext } from "./runtime/registry.js";
+export type {
+  KernelIntegration,
+  ToolContext,
+  KernelServices,
+  ServiceToolContext,
+  ServiceToolFactory,
+} from "./runtime/registry.js";
 export { ExtractorRegistry } from "./runtime/extractors.js";
 export type { AssetExtractor } from "./runtime/extractors.js";
 export { MCPClient, MCPProtocolError } from "./extensions/mcp/client.js";
@@ -82,6 +88,7 @@ export {
   TextProtocolRegistry,
   defaultTextProtocols,
 } from "./providers/registry.js";
+export type { TextProtocolFactory } from "./providers/registry.js";
 export type { BillingDeliveryOptions } from "./runtime/billing.js";
 export { ResponseBuilder, parseArgs } from "./providers/protocol.js";
 export type {
@@ -123,6 +130,8 @@ export { SkillManager } from "./extensions/skills.js";
 export { PluginManager } from "./extensions/plugins/manager.js";
 export { MCPManager } from "./extensions/mcp/manager.js";
 export { MemoryStore } from "./storage/memory.js";
+export type { MemoryStoreOptions } from "./storage/memory.js";
+export type { CheckpointReadOptions } from "./sessions/checkpoints.js";
 export { WebClient, htmlToText, proxyFor } from "./web/client.js";
 export type {
   WebSearchProvider,

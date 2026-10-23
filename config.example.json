@@ -146,6 +146,12 @@
   },
   "limits": {
     "maxConcurrentTools": 4,
+    "maxPendingNodeTasks": 64,
+    "maxNodeTaskBytes": 8388608,
+    "maxConcurrentMemoryExports": 2,
+    "maxMemoryExportBytes": 134217728,
+    "memoryExportTimeoutMs": 60000,
+    "maxConcurrentMemorySearches": 4,
     "maxConcurrentMediaJobs": 2,
     "maxQueuedMediaJobs": 16,
     "maxMediaQueueBytes": 4194304,
@@ -190,6 +196,7 @@
   "retention": {
     "eventDays": 0,
     "cacheDays": 0,
+    "nodeTaskDays": 0,
     "intervalMs": 3600000
   },
   "securityAudit": {

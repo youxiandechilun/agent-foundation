@@ -1,0 +1,22 @@
+
+> @local/agent-foundation@0.12.1 check:quality
+> npm run check:host && npm run check:tests && npm run lint && npm run format:check
+
+
+> @local/agent-foundation@0.12.1 check:host
+> tsc -p tsconfig.json --noEmit
+
+
+> @local/agent-foundation@0.12.1 check:tests
+> tsc -p tsconfig.test.json --noEmit
+
+
+> @local/agent-foundation@0.12.1 lint
+> eslint "src/**/*.{ts,mjs,cjs}" "test/**/*.ts" "examples/**/*.ts"
+
+
+> @local/agent-foundation@0.12.1 format:check
+> prettier --check "src/**/*.{ts,mjs,cjs}" "test/**/*.ts" "examples/**/*.{ts,mts}" "scripts/**/*.mjs"
+
+Checking formatting...
+All matched files use Prettier code style!

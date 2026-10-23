@@ -8,6 +8,9 @@ import {
   type TeamBinding,
   type TeamBindingInput,
   type KernelIntegration,
+  type KernelServices,
+  type TextProtocolFactory,
+  TextProtocolRegistry,
 } from "@local/agent-foundation";
 import { FoundationClient } from "@local/agent-foundation/client";
 import {
@@ -28,7 +31,42 @@ const config: Config = parseConfig({
 });
 const hostOptions: ApplicationOptions = { office: true };
 const integration: KernelIntegration = applicationIntegration(hostOptions);
-const kernel = new Kernel(config, { integrations: [integration] });
+const protocolFactory: TextProtocolFactory = () => {
+  let calls = 0;
+  return {
+    id: "sdk-private-state",
+    url: (base) => base,
+    body: () => ({ calls: ++calls }),
+    async event() {},
+  };
+};
+const protocols = new TextProtocolRegistry();
+protocols.registerFactory("sdk-private-state", protocolFactory);
+const projectName = (services: Pick<KernelServices, "projects">, id: string) =>
+  services.projects.get(id).name;
+const custom: KernelIntegration = {
+  id: "service-context",
+  install(_kernel, signal) {
+    signal?.throwIfAborted();
+  },
+  serviceTools: ({ services, session }) => [
+    {
+      name: "current_project",
+      description: "Current project name",
+      parameters: { type: "object" },
+      risk: "read",
+      execute: async () => ({
+        content: [
+          { type: "text", text: projectName(services, session.projectId) },
+        ],
+      }),
+    },
+  ],
+};
+const kernel = new Kernel(config, {
+  integrations: [integration, custom],
+  textProtocols: protocols,
+});
 const definition: AgentDefinition = {
   id: "writer",
   name: "Writer",

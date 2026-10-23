@@ -1,7 +1,7 @@
 import type { IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import type { Kernel } from "../core/kernel.js";
-import type { Session } from "../contracts.js";
+import type { Project, Session } from "../contracts.js";
 import type { ToolDefinition } from "./types.js";
 import { CAPABILITIES } from "./types.js";
 import { invariant, abortable } from "../core/util.js";
@@ -14,16 +14,62 @@ export interface ToolContext {
   session: Session;
   routeId: string;
 }
+/** Optional extension surface: query/use services without depending on the full Kernel. */
+export interface KernelServices {
+  readonly projects: { get(projectId: string): Project };
+  readonly assets: Pick<
+    Kernel["assets"],
+    "owned" | "read" | "create" | "createStream" | "openVerified"
+  >;
+  readonly memory: Pick<Kernel["memory"], "get" | "retrieve" | "propose">;
+  readonly permissions: Pick<Kernel["permissions"], "evaluate">;
+}
+export interface ServiceToolContext extends Omit<ToolContext, "kernel"> {
+  services: KernelServices;
+}
+export type ServiceToolFactory = (
+  context: ServiceToolContext,
+) => ToolDefinition[] | Promise<ToolDefinition[]>;
+
+const serviceFacades = new WeakMap<Kernel, KernelServices>();
+function servicesFor(kernel: Kernel): KernelServices {
+  let services = serviceFacades.get(kernel);
+  if (!services) {
+    services = Object.freeze({
+      projects: Object.freeze({ get: kernel.store.project.bind(kernel.store) }),
+      assets: Object.freeze({
+        owned: kernel.assets.owned.bind(kernel.assets),
+        read: kernel.assets.read.bind(kernel.assets),
+        create: kernel.assets.create.bind(kernel.assets),
+        createStream: kernel.assets.createStream.bind(kernel.assets),
+        openVerified: kernel.assets.openVerified.bind(kernel.assets),
+      }),
+      memory: Object.freeze({
+        get: kernel.memory.get.bind(kernel.memory),
+        retrieve: kernel.memory.retrieve.bind(kernel.memory),
+        propose: kernel.memory.propose.bind(kernel.memory),
+      }),
+      permissions: Object.freeze({
+        evaluate: kernel.permissions.evaluate.bind(kernel.permissions),
+      }),
+    });
+    serviceFacades.set(kernel, services);
+  }
+  return services;
+}
 export interface IntegrationResponse {
   data: unknown;
   status?: number;
 }
 export interface KernelIntegration {
   id: string;
-  install?: (kernel: Kernel) => void | Promise<void>;
+  /** Bounded by extensions.timeoutMs; observe signal to stop initialization I/O. */
+  install?: (kernel: Kernel, signal?: AbortSignal) => void | Promise<void>;
   tools?: (
     context: ToolContext,
   ) => ToolDefinition[] | Promise<ToolDefinition[]>;
+  /** Alternative to tools, with an injectable, narrow context for extension tests. */
+  serviceTools?: ServiceToolFactory;
   authorize?: (
     context: ToolContext,
     tool: ToolDefinition,
@@ -61,6 +107,11 @@ export class ToolRegistry {
     const entry = { generation: Symbol(id), factory };
     this.entries.set(id, entry);
     return () => this.entries.get(id) === entry && this.entries.delete(id);
+  }
+  registerServices(id: string, factory: ServiceToolFactory) {
+    return this.register(id, ({ kernel, ...context }) =>
+      factory({ ...context, services: servicesFor(kernel) }),
+    );
   }
   list() {
     return [...this.entries.keys()];

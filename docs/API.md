@@ -227,6 +227,8 @@ AgentDefinition 包含 id/name/instructions/mode/routeId/skillIds/toolAllowlist/
 - GET /v1/plugins/{id}/export 返回经过安装树校验的 {manifest,files,hash}，供复核与重装。
 - 自动记忆注入仅在权限为 allow 时执行，ask 不会自动通过；备用模型单独过滤所需权限。原始用户历史已经包含的信息不构成通用数据防泄漏隔离。
 - 自动检索的 embedding 失败可退回全文搜索并发送 memory.retrieval.degraded；显式 semantic-search 仍返回实际失败。
+- 记忆导出保持 foundation-memory-v1 格式，使用只读快照分批流式发送；默认最多 2 个导出、128 MiB/次、60 秒传输时限，断连或超时释放快照。空 namespace 与省略参数等价。字节预算超限在响应前返回 413，并发超限返回 429。
+- 记忆导入在准备阶段分批让出执行并可随 HTTP 断连取消，最终提交仍是同步原子事务；显式 semantic-search 与单条 embed 共用默认 4 个搜索名额，并向实际工作传递取消信号。配置与实现边界见 [后续优化说明](OPTIMIZATION-FOLLOWUP-20261023.md)。
 - 记忆摘要受独立预算约束，截断项含 truncated 和 memory_read 引用；原记录保留。
 - context_length_exceeded 等已识别上下文错误，在尚未输出时可触发一次分层压缩重试。最新完整消息组仍放不下则明确失败；不会无限重试或执行截断参数。
 - tool.skipped 表示新 steering 到达后尚未开始的工具；effect.status 可为 skipped。tool.loop_detected 表示达到配置的相同结果阈值，运行以 failed 结算。

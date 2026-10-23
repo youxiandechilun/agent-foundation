@@ -3,6 +3,29 @@ import type { MemoryEntry, MemoryProposal } from "../../contracts.js";
 import { invariant } from "../../core/util.js";
 import { apiRoutes, input, status } from "../route-table.js";
 import { cursor, entityList, type ApiContext } from "../shared.js";
+import { memoryExport } from "../memory-export.js";
+import { Capacity } from "../../runtime/capacity.js";
+import type { Kernel } from "../../core/kernel.js";
+
+const searches = new WeakMap<Kernel, Capacity>();
+async function memorySearch<T>(
+  context: ApiContext,
+  operation: () => Promise<T>,
+) {
+  let capacity = searches.get(context.k);
+  if (!capacity) {
+    capacity = new Capacity(
+      context.k.config.limits.maxConcurrentMemorySearches,
+    );
+    searches.set(context.k, capacity);
+  }
+  const release = capacity.reserve();
+  try {
+    return await operation();
+  } finally {
+    release();
+  }
+}
 
 function projectId({ url }: ApiContext): string {
   const value = url.searchParams.get("projectId");
@@ -56,13 +79,7 @@ export const memoryRoutes = apiRoutes({
     k.memory.remove(id, memory.projectId);
     return { deleted: true };
   },
-  "GET memories/export": (context) => ({
-    format: "foundation-memory-v1",
-    memories: context.k.memory.list(
-      projectId(context),
-      context.url.searchParams.get("namespace") || undefined,
-    ),
-  }),
+  "GET memories/export": memoryExport,
   "POST memories/import": input(
     z
       .object({
@@ -70,8 +87,12 @@ export const memoryRoutes = apiRoutes({
         entries: z.array(z.unknown()).max(10000),
       })
       .strict(),
-    ({ k }, value) => ({
-      memories: k.memory.import(value.projectId, value.entries),
+    async ({ k, signal }, value) => ({
+      memories: await k.memory.importAsync(
+        value.projectId,
+        value.entries,
+        signal,
+      ),
     }),
   ),
   "POST memories/merge": input(
@@ -88,21 +109,28 @@ export const memoryRoutes = apiRoutes({
     z.object({ projectId: z.string() }).strict(),
     ({ k }, value) => k.memory.pruneExpired(value.projectId),
   ),
-  "POST memories/semantic-search": async ({ k, json }) => {
+  "POST memories/semantic-search": async (context) => {
+    const { k, json, signal } = context;
     const value = await json();
     return {
-      memories: await k.memory.semanticSearch(
-        value.projectId,
-        value.query,
-        value.limit,
-        value.namespace,
+      memories: await memorySearch(context, () =>
+        k.memory.semanticSearch(
+          value.projectId,
+          value.query,
+          value.limit,
+          value.namespace,
+          signal,
+        ),
       ),
     };
   },
   "GET memories/:id/history": (context) => ({
     revisions: context.k.memory.history(context.id, projectId(context)),
   }),
-  "POST memories/:id/embed": ({ k, id }) => k.memory.embed(id),
+  "POST memories/:id/embed": (context) =>
+    memorySearch(context, () =>
+      context.k.memory.embed(context.id, context.signal),
+    ),
   "GET memory-proposals": (context) => {
     const project = projectId(context);
     context.k.store.project(project);

@@ -17,6 +17,8 @@ import {
   json,
   respond,
   respondJsonStream,
+  respondChunkStream,
+  JsonStreamResponse,
   requestSignal,
   type HttpContext,
 } from "./shared.js";
@@ -53,7 +55,9 @@ export async function serve(kernel: Kernel, token?: string) {
     void kernel.redaction.run(() =>
       handle(req, res).catch((error: unknown) => {
         if (res.headersSent) {
-          res.end();
+          // A failed partial stream must not acquire a normal completion marker
+          // after pipeline has destroyed it (notably after the close event).
+          if (!res.destroyed) res.destroy();
           return;
         }
         const status =
@@ -200,14 +204,16 @@ export async function serve(kernel: Kernel, token?: string) {
     const releaseTransfer = isMigration
       ? kernel.migrations.reserveTransfer()
       : undefined;
-    const migrationSignal = isMigration ? requestSignal(req, res) : undefined;
-    context.signal = migrationSignal?.signal;
+    const transferSignal = requestSignal(req, res);
+    context.signal = transferSignal.signal;
     try {
       for (const route of [management, sessionRoutes, resourceRoutes]) {
         const result = await route(context);
         if (result === undefined) continue;
         if (result !== true) {
-          if (isMigration)
+          if (result.data instanceof JsonStreamResponse)
+            await respondChunkStream(req, res, result.data, result.status);
+          else if (isMigration)
             await respondJsonStream(req, res, result.data, result.status);
           else respond(res, result.data, result.status);
         }
@@ -215,7 +221,7 @@ export async function serve(kernel: Kernel, token?: string) {
       }
       throw new AppError(404, "not_found", "Endpoint not found");
     } finally {
-      migrationSignal?.close();
+      transferSignal.close();
       releaseTransfer?.();
     }
   }

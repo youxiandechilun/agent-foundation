@@ -39,29 +39,42 @@ export const bridgeActionSchema = z
 export class BrowserBridge {
   readonly nodes: NodeManager;
   constructor(private kernel: Kernel) {
-    this.nodes = new NodeManager(kernel.store, (node, cap, args) => {
-      invariant(
-        node.kind === "browser" &&
-          node.capabilities.length === 1 &&
-          node.capabilities[0] === "browser.control" &&
-          (!cap || cap === "browser.control"),
-        "Paired node is not a browser bridge",
-        403,
-      );
-      const action = wireMember(args, "action");
-      hostApplicationAccess(
-        kernel,
-        node.projectId,
-        [
-          "node",
-          "browser",
-          "network",
-          ...(action === "screenshot" ? ["files.write" as const] : []),
-        ],
-        "browser_action",
-      );
-      invariant(kernel.config.browser.enabled, "Browser bridge disabled", 403);
-    });
+    this.nodes = new NodeManager(
+      kernel.store,
+      (node, cap, args) => {
+        invariant(
+          node.kind === "browser" &&
+            node.capabilities.length === 1 &&
+            node.capabilities[0] === "browser.control" &&
+            (!cap || cap === "browser.control"),
+          "Paired node is not a browser bridge",
+          403,
+        );
+        const action = wireMember(args, "action");
+        hostApplicationAccess(
+          kernel,
+          node.projectId,
+          [
+            "node",
+            "browser",
+            "network",
+            ...(action === "screenshot" ? ["files.write" as const] : []),
+          ],
+          "browser_action",
+        );
+        invariant(
+          kernel.config.browser.enabled,
+          "Browser bridge disabled",
+          403,
+        );
+      },
+      {
+        maxPendingTasks: kernel.config.limits.maxPendingNodeTasks,
+        maxPendingBytes: kernel.config.limits.maxNodeTaskBytes,
+        retentionDays: kernel.config.retention.nodeTaskDays,
+        retentionIntervalMs: kernel.config.retention.intervalMs,
+      },
+    );
   }
   pair(projectId: string, name: string) {
     hostApplicationAccess(

@@ -1,7 +1,28 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { applicationIntegration } from "../src/host/applications.js";
+import {
+  applicationIntegration,
+  officeIntegration,
+} from "../src/host/applications.js";
 import { setup } from "./support/wire-server.js";
+
+test("a cancelled host installation cannot add services or extractors", async () => {
+  const x = await setup();
+  const integration = officeIntegration();
+  const cancellation = new AbortController();
+  cancellation.abort(new Error("stop host installation"));
+  try {
+    await assert.rejects(
+      async () => integration.install?.(x.kernel, cancellation.signal),
+      /stop host installation/,
+    );
+    assert.equal("office" in x.kernel, false);
+    assert.deepEqual(x.kernel.assets.extractors.list(), []);
+  } finally {
+    await integration.close?.(x.kernel);
+    await x.close();
+  }
+});
 
 for (const reference of [false, true]) {
   test(`${reference ? "reference desktop" : "application pack"} closes later services after a browser cleanup failure`, async (t) => {

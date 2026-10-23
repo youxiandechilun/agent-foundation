@@ -115,6 +115,10 @@ export const committedCostExpression = `CASE json_extract(body,'$.status')
 const pendingEffect = "json_extract(body,'$.status') IN ('running','prepared')";
 // Query shapes used by memory, cost and event lookups beyond plain field filters.
 const special: Partial<Record<Table, readonly string[]>> = {
+  "node-tasks": [
+    "CREATE INDEX IF NOT EXISTS node_tasks_claim ON e_node_tasks(json_extract(body,'$.nodeId'),json_extract(body,'$.status'),json_extract(body,'$.deadline'))",
+    "CREATE INDEX IF NOT EXISTS node_tasks_status ON e_node_tasks(json_extract(body,'$.status'))",
+  ],
   jobs: [
     "CREATE INDEX IF NOT EXISTS jobs_idempotency ON e_jobs(json_extract(body,'$.projectId'),json_extract(body,'$.idempotencyKey'))",
   ],
@@ -126,6 +130,7 @@ const special: Partial<Record<Table, readonly string[]>> = {
   ],
   memories: [
     "CREATE INDEX IF NOT EXISTS memories_project_namespace ON e_memories(json_extract(body,'$.projectId'),json_extract(body,'$.namespace'))",
+    "CREATE INDEX IF NOT EXISTS memories_content_lookup ON e_memories(json_extract(body,'$.projectId'),json_extract(body,'$.namespace'),foundation_content_hash(json_extract(body,'$.content')))",
   ],
   "memory-revisions": [
     "CREATE INDEX IF NOT EXISTS memory_revisions_latest ON e_memory_revisions(json_extract(body,'$.memoryId'),json_extract(body,'$.revision') DESC)",

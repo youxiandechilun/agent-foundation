@@ -307,15 +307,15 @@ try {
       const publication = await fetch(origin + "/oauth/client.json"),
         published = await publication.json();
       const announced = await x.client.mcpOAuthKeys("cimd");
-      await new Promise((resolve) =>
-        setTimeout(
-          resolve,
-          Math.max(
-            1,
-            Date.parse(announced.pending.activateAfter) - Date.now() + 100,
-          ),
-        ),
-      );
+      const activateAt = Date.parse(announced.pending.activateAfter) + 100;
+      if (!Number.isFinite(activateAt))
+        throw Error("Managed key activation deadline must be valid");
+      // Respect the advertised wall-clock deadline even if VM time moves back
+      // while a monotonic timer is waiting through the publication window.
+      while (Date.now() < activateAt)
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.max(1, activateAt - Date.now())),
+        );
       const next = await x.client.beginMCPOAuth("cimd"),
         secondRedirect = await fetch(next.authorizationUrl, {
           redirect: "manual",

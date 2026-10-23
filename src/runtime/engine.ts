@@ -549,6 +549,7 @@ ${feedback}
           continue;
         }
         let release: (() => void) | undefined;
+        let pending: Promise<unknown> | undefined;
         try {
           const tool = this.tools.get(call.name);
           release = tool?.scheduling?.detached
@@ -566,7 +567,9 @@ ${feedback}
             this.skip(call, "Skipped because this tool batch was interrupted");
             continue;
           }
-          await this.execute(call, route);
+          await this.execute(call, route, (operation) => {
+            pending = operation;
+          });
         } catch (error) {
           failure ??= { error };
           if (!this.batchResults.has(call.id))
@@ -575,7 +578,12 @@ ${feedback}
               "Skipped because tool scheduling or execution was interrupted",
             );
         } finally {
-          release?.();
+          // Preserve both capacity and resource locks for callbacks that ignore
+          // cancellation, while allowing the cancelled run to finish promptly.
+          if (release) {
+            if (pending) void pending.then(release, release);
+            else release();
+          }
         }
       }
     };
@@ -594,7 +602,11 @@ ${feedback}
       if (worker.status === "rejected") throw worker.reason;
     this.controller.signal.throwIfAborted();
   }
-  private async execute(call: ToolCall, effectiveRoute: string) {
+  private async execute(
+    call: ToolCall,
+    effectiveRoute: string,
+    retain: (operation: Promise<unknown>) => void,
+  ) {
     this.options.publish("tool.dispatched", {
       toolCallId: call.id,
       name: call.name,
@@ -602,6 +614,7 @@ ${feedback}
     const { result, argsHash } = await this.toolExecution.execute(
       call,
       effectiveRoute,
+      retain,
     );
     const publish = this.options.publish,
       signal = this.controller.signal;
