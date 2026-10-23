@@ -1,6 +1,6 @@
 {
   "version": "0.12.1",
-  "checkedAt": "2026-10-23T05:48:51.031Z",
+  "checkedAt": "2026-10-23T06:05:42.897Z",
   "runtime": "foundation-owned",
   "agentFrameworkDependencies": [],
   "mcpSdkDependencies": [],
@@ -1354,8 +1354,8 @@
     },
     {
       "path": "docs/OPTIMIZATION-FOLLOWUP-20261023.md",
-      "bytes": 8369,
-      "sha256": "1dabb42c9016a69516d180e12dcbe136e21f2de0219d14079712612bc357932a"
+      "bytes": 8910,
+      "sha256": "a1369d3b9f40976e220834ea55576a6f3874003c2ff6800a73adc6e04d6a3a10"
     },
     {
       "path": "docs/OPTIMIZATION.md",
@@ -1809,8 +1809,8 @@
     },
     {
       "path": "test/optimization-runtime.test.ts",
-      "bytes": 13235,
-      "sha256": "24dbf6e0354242fff8248820446c4aa909934c2054db2cb6d1bd53ce9c4c6d10"
+      "bytes": 13549,
+      "sha256": "4326a53fa7389c67b4b6f49d06486732c19e9ad1ec09978109d94ebdaf730739"
     },
     {
       "path": "test/optimization-storage.test.ts",

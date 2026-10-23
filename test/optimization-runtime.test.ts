@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import { RegexSearch } from "../src/runtime/regex-search.js";
 import { boundedDirectory, walkProject } from "../src/runtime/project-walk.js";
 import {
@@ -339,7 +338,9 @@ test("protocol snapshots preserve class-based adapters and their method receiver
   );
 });
 
-test("compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes", async () => {
+test("compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes", (t) => {
+  let clock = Date.now();
+  const time = t.mock.method(Date, "now", () => clock);
   const first = new RedactionScope({ mode: "registered" }),
     second = new RedactionScope({ mode: "registered" });
   try {
@@ -355,12 +356,19 @@ test("compiled redaction handles overlapping and escaped secrets, expiry, and is
       first.run(() => redactJson({ text: special })),
       { text: "[REDACTED]" },
     );
-    first.register("temporary-only", 1);
+    first.register("temporary-only", 10);
     assert.equal(
       first.run(() => redactSecrets("temporary-only")),
       "[REDACTED]",
     );
-    await delay(20);
+    // Move to the millisecond before expiry, then the exact expiry boundary.
+    // Runner scheduling must not decide whether the initial assertion is valid.
+    clock += 9;
+    assert.equal(
+      first.run(() => redactSecrets("temporary-only")),
+      "[REDACTED]",
+    );
+    clock += 1;
     assert.equal(
       first.run(() => redactSecrets("temporary-only")),
       "temporary-only",
@@ -383,6 +391,7 @@ test("compiled redaction handles overlapping and escaped secrets, expiry, and is
   } finally {
     first.close();
     second.close();
+    time.mock.restore();
   }
 });
 

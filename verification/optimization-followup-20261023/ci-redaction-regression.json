@@ -1,0 +1,26 @@
+{
+  "status": "local-regression-passed",
+  "initialCommit": "6e22e0a1345116972fe64cbab895151974308c9f",
+  "initialRun": "https://github.com/youxiandechilun/agent-foundation/actions/runs/39908423162",
+  "initialWindowsNode24": {
+    "tests": 672,
+    "pass": 671,
+    "fail": 1,
+    "skipped": 0,
+    "failedTest": "compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes",
+    "expected": "[REDACTED]",
+    "actual": "temporary-only",
+    "cause": "A real 1 ms TTL could expire before the initial assertion on the CI runner."
+  },
+  "fix": {
+    "productionChanges": false,
+    "clock": "Scoped Date.now mock with explicit restoration",
+    "assertions": ["registration time", "1 ms before expiry", "exact expiry boundary"]
+  },
+  "localChecks": {
+    "windowsNode22": { "tests": 10, "pass": 10, "fail": 0, "log": "ci-redaction-node22.log" },
+    "windowsNode24": { "tests": 10, "pass": 10, "fail": 0, "log": "ci-redaction-node24.log" },
+    "quality": "passed"
+  },
+  "scope": "Supplemental local regression after the first push; final remote CI results belong to the subsequent commit's GitHub Actions run."
+}

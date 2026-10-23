@@ -84,7 +84,8 @@
     "sourceVerification": "passed",
     "benchmarkScriptSyntax": "passed",
     "linuxSummary": "linux-summary.json",
-    "coreBuild": "passed"
+    "coreBuild": "passed",
+    "ciRedactionRegression": "ci-redaction-regression.json"
   },
   "benchmarks": [
     "device-queue.json",

@@ -1,0 +1,71 @@
+Runtime: E:/nodejs/node.exe
+TAP version 13
+# Subtest: regex search times out without blocking host timers and terminates its worker
+ok 1 - regex search times out without blocking host timers and terminates its worker
+  ---
+  duration_ms: 552.8929
+  type: 'test'
+  ...
+# Subtest: regex worker preserves matching semantics, invalid-pattern errors, and cancellation
+ok 2 - regex worker preserves matching semantics, invalid-pattern errors, and cancellation
+  ---
+  duration_ms: 108.2782
+  type: 'test'
+  ...
+# Subtest: directory enumeration stops at capacity and closed handles allow cleanup
+ok 3 - directory enumeration stops at capacity and closed handles allow cleanup
+  ---
+  duration_ms: 22.9773
+  type: 'test'
+  ...
+# Subtest: ignore rules are scoped to their directory and oversize inputs fail explicitly
+ok 4 - ignore rules are scoped to their directory and oversize inputs fail explicitly
+  ---
+  duration_ms: 132.5919
+  type: 'test'
+  ...
+# Subtest: Anthropic history stores large content once and replays signed and unknown blocks exactly
+ok 5 - Anthropic history stores large content once and replays signed and unknown blocks exactly
+  ---
+  duration_ms: 16.3114
+  type: 'test'
+  ...
+# Subtest: coalesced native text segments keep their exact original boundaries
+ok 6 - coalesced native text segments keep their exact original boundaries
+  ---
+  duration_ms: 0.5863
+  type: 'test'
+  ...
+# Subtest: protocol registries isolate identical adapter IDs, immutable snapshots, and provider assembly
+ok 7 - protocol registries isolate identical adapter IDs, immutable snapshots, and provider assembly
+  ---
+  duration_ms: 22.2179
+  type: 'test'
+  ...
+# Subtest: protocol snapshots preserve class-based adapters and their method receiver
+ok 8 - protocol snapshots preserve class-based adapters and their method receiver
+  ---
+  duration_ms: 0.2796
+  type: 'test'
+  ...
+# Subtest: compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes
+ok 9 - compiled redaction handles overlapping and escaped secrets, expiry, and isolated scopes
+  ---
+  duration_ms: 11.4404
+  type: 'test'
+  ...
+# Subtest: redaction cache observes environment rotations and late registrations
+ok 10 - redaction cache observes environment rotations and late registrations
+  ---
+  duration_ms: 0.9266
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1393.6546
