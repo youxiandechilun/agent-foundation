@@ -210,6 +210,7 @@ export function createRunEngine(
     scheduler: kernel.scheduler,
     maxRepeatedToolResults: kernel.config.limits.maxRepeatedToolResults,
     maxOutputContinuations: kernel.config.limits.maxOutputContinuations,
+    modelRecovery: kernel.config.limits.modelRecovery,
     finishTool: setup.finishTool,
     hooks: options.hooks,
     maxStopContinuations: kernel.config.hooks.maxStopContinuations,

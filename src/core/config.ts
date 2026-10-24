@@ -457,6 +457,24 @@ export const configSchema = z
           .default(6),
         maxSearchEntries: z.number().int().min(1).max(100000).default(3000),
         maxRunMs: z.number().int().min(100).default(900_000),
+        modelRecovery: z
+          .object({
+            maxRetries: z.number().int().min(0).max(10).default(0),
+            initialDelayMs: z.number().int().min(0).max(60_000).default(1000),
+            maxDelayMs: z.number().int().min(0).max(300_000).default(10_000),
+            maxElapsedMs: z
+              .number()
+              .int()
+              .min(100)
+              .max(3_600_000)
+              .default(300_000),
+          })
+          .strict()
+          .refine(
+            (recovery) => recovery.initialDelayMs <= recovery.maxDelayMs,
+            "Model recovery initialDelayMs cannot exceed maxDelayMs",
+          )
+          .prefault({}),
         maxConcurrentRuns: z.number().int().min(1).default(4),
         maxConcurrentTools: z.number().int().min(1).max(64).default(4),
         maxPendingNodeTasks: z.number().int().min(1).max(10000).default(64),

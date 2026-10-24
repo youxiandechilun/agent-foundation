@@ -83,6 +83,12 @@ export {
   applyCacheBreakpoints,
 } from "./providers/text.js";
 export type { RetryPolicy, RetryNotice } from "./providers/text.js";
+export { ProviderError, canRecoverProviderError } from "./providers/sse.js";
+export type {
+  ProviderFailureReason,
+  ProviderErrorOptions,
+  RecoverableProviderError,
+} from "./providers/sse.js";
 export { registerTextProtocol, textProtocolIds } from "./providers/registry.js";
 export {
   TextProtocolRegistry,

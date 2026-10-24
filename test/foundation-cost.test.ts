@@ -5,6 +5,7 @@ import { setup, collect, until } from "./support/wire-server.js";
 import { CostLedger } from "../src/runtime/cost.js";
 import { RouteRouter } from "../src/providers/text.js";
 import { emptyUsage } from "../src/runtime/types.js";
+import { listenHttp } from "../src/transport/http-listener.js";
 const pricing = {
   currency: "USD" as const,
   inputPerMillion: 2,
@@ -126,7 +127,25 @@ test("cache accounting distinguishes inclusive OpenAI usage from Anthropic cache
   }
 });
 
-test("fallback attempts keep distinct price snapshots and the failed attempt's reservation", async () => {
+test("fallback attempts keep distinct price snapshots and the failed attempt's reservation", async (t) => {
+  let interruptedRequests = 0;
+  const disconnected = http.createServer(async (request, response) => {
+    for await (const _ of request) {
+      // Receive the billed request, then lose its acknowledgement before headers.
+    }
+    interruptedRequests++;
+    response.destroy();
+  });
+  const address = await listenHttp(disconnected, {
+    host: "127.0.0.1",
+    port: 0,
+  });
+  t.after(async () => {
+    disconnected.closeAllConnections();
+    await new Promise<void>((resolve, reject) => {
+      disconnected.close((error) => (error ? reject(error) : resolve()));
+    });
+  });
   const x = await setup();
   x.config.routes.text.pricing = pricing;
   x.config.routes.fallback = {
@@ -134,7 +153,7 @@ test("fallback attempts keep distinct price snapshots and the failed attempt's r
     pricing: { ...pricing, inputPerMillion: 5 },
   };
   x.config.routes.text.fallbackRouteIds = ["fallback"];
-  x.config.routes.text.baseUrl = "http://127.0.0.1:1";
+  x.config.routes.text.baseUrl = `http://127.0.0.1:${address.port}`;
   try {
     const s = await x.session("code"),
       r = await x.client.submit(s.id, { text: "fallback" });
@@ -142,11 +161,15 @@ test("fallback attempts keep distinct price snapshots and the failed attempt's r
     assert.equal((await x.kernel.wait(r.runId)).status, "completed");
     const entries = x.kernel.costs.entries({ runId: r.runId });
     assert.equal(entries.length, 2);
-    assert.equal(entries.find((e) => e.routeId === "text")?.status, "unknown");
-    assert.equal(
-      entries.find((e) => e.routeId === "fallback")?.chargedMicros,
-      98,
-    );
+    assert.equal(interruptedRequests, 1);
+    const primary = entries.find((e) => e.routeId === "text");
+    const fallback = entries.find((e) => e.routeId === "fallback");
+    assert.equal(primary?.status, "unknown");
+    assert.ok(primary && primary.reservedMicros > 0);
+    assert.equal(primary.chargedMicros, undefined);
+    assert.deepEqual(primary.pricing, pricing);
+    assert.deepEqual(fallback?.pricing, { ...pricing, inputPerMillion: 5 });
+    assert.equal(fallback?.chargedMicros, 98);
   } finally {
     await x.close();
   }

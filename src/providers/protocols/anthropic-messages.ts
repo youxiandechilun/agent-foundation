@@ -1,8 +1,8 @@
-import { errorText, invariant } from "../../core/util.js";
+import { invariant } from "../../core/util.js";
 import { wireMember, wireObject } from "../../core/wire.js";
 import { anthropicEvent, anthropicJson } from "./wire.js";
 import { textOf } from "../../runtime/types.js";
-import { ProviderError } from "../sse.js";
+import { providerStreamError } from "../sse.js";
 import { anthropicMessages as serializeMessages } from "../serialize.js";
 import { parseArgs, wantsReasoning, type TextProtocol } from "../protocol.js";
 import { compactAnthropicItems } from "../replay-state.js";
@@ -137,6 +137,9 @@ export const anthropicMessages: TextProtocol = {
       };
   },
   async event(value, response) {
+    const streamError = wireMember(value, "error");
+    if (streamError !== undefined && streamError !== null)
+      throw providerStreamError(streamError, response.started);
     if (
       ![
         "message_start",
@@ -227,13 +230,7 @@ export const anthropicMessages: TextProtocol = {
         );
     }
     if (event.type === "error")
-      throw new ProviderError(
-        errorText(
-          wireMember(event.error, "message") || "Anthropic streaming error",
-        ),
-        502,
-        response.started,
-      );
+      throw providerStreamError(event.error, response.started);
   },
   jsonEvents(input) {
     const value = anthropicJson.parse(input);

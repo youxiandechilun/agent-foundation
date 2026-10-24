@@ -2,6 +2,8 @@ import { id, invariant } from "../../core/util.js";
 import { completionsMessages, functionTools } from "../serialize.js";
 import type { TextProtocol } from "../protocol.js";
 import { completionEvent } from "./wire.js";
+import { wireMember } from "../../core/wire.js";
+import { providerStreamError } from "../sse.js";
 
 export const openaiCompletions: TextProtocol = {
   id: "openai-completions",
@@ -33,6 +35,11 @@ export const openaiCompletions: TextProtocol = {
       body.reasoning_effort = effort ?? body.reasoning_effort ?? "medium";
   },
   async event(value, response) {
+    const error = wireMember(value, "error");
+    if (error !== undefined && error !== null)
+      throw providerStreamError(error, response.started);
+    if (wireMember(value, "type") === "error")
+      throw providerStreamError(value, response.started);
     const event = completionEvent.parse(value);
     const choice = event.choices?.[0],
       d = choice?.delta || choice?.message;
