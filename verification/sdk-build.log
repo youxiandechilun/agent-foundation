@@ -1,4 +1,4 @@
 
-> @local/agent-foundation@0.13.1 build:host
+> @local/agent-foundation@0.14.0 build:host
 > tsc -p tsconfig.json && node scripts/copy-runtime.mjs --host
 

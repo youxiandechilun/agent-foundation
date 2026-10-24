@@ -1,10 +1,11 @@
-import { errorText, invariant } from "../../core/util.js";
+import { invariant } from "../../core/util.js";
 import { wireMember } from "../../core/wire.js";
 import { responseEvent, responseCall, responseJson } from "./wire.js";
 import { functionTools, responsesInput } from "../serialize.js";
 import type { ResponseBuilder, TextProtocol } from "../protocol.js";
 import { nativeWebSearchEnabled } from "../responses-search.js";
 import { ResponsesText } from "./responses-text.js";
+import { providerStreamError } from "../sse.js";
 
 const textStates = new WeakMap<ResponseBuilder, ResponsesText>();
 function textState(response: ResponseBuilder) {
@@ -66,8 +67,14 @@ export const openaiResponses: TextProtocol = {
     };
   },
   async event(value, response) {
+    const streamError = wireMember(value, "error");
+    if (streamError !== undefined && streamError !== null)
+      throw providerStreamError(streamError, response.started);
+    if (wireMember(value, "type") === "error")
+      throw providerStreamError(value, response.started);
     if (response.webSearch.observe(value)) {
       response.started = true;
+      response.nativeActivity = true;
       invariant(
         response.nativeWebSearch,
         "Provider returned native web search without request authorization",
@@ -167,9 +174,9 @@ export const openaiResponses: TextProtocol = {
             : "error",
       );
       if (result?.error)
-        output.errorMessage = errorText(
-          wireMember(result.error, "message") || result.error,
-        );
+        throw providerStreamError(result.error, response.started);
+      if (event.type === "response.failed")
+        throw providerStreamError(undefined, response.started);
       await textState(response).terminal(result?.output, response);
       const indices = new Map(
         [...calls].map(([index, call]) => [call.id, index]),

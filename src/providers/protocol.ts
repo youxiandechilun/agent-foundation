@@ -1,5 +1,6 @@
 import type { Route } from "../core/config.js";
-import { invariant } from "../core/util.js";
+import { errorText, invariant } from "../core/util.js";
+import { ProviderError } from "./sse.js";
 import { usagePayload, type NativeBlock } from "./protocols/wire.js";
 import { ResponsesWebSearch, responsesOutputText } from "./responses-search.js";
 import type { WireObject } from "../core/wire.js";
@@ -107,6 +108,7 @@ export class ResponseBuilder {
   private readonly thoughts = new Map<number, ThinkingPart>();
   started = false;
   finished = false;
+  nativeActivity = false;
   private inputUsageSeen = false;
   private outputUsageSeen = false;
   constructor(
@@ -135,7 +137,7 @@ export class ResponseBuilder {
       this.output.content.push(part);
     }
     part.text += value;
-    await this.delta?.({ type: "text", text: value });
+    await this.emit({ type: "text", text: value });
   }
   async thought(value: string, index = -1, signature?: string) {
     if (!value && index < 0) return;
@@ -148,14 +150,28 @@ export class ResponseBuilder {
     }
     part.thinking += value;
     if (signature) part.signature = signature;
-    if (value) await this.delta?.({ type: "thinking", text: value });
+    if (value) await this.emit({ type: "thinking", text: value });
   }
   appendSignature(index: number, signature: string) {
     const part = this.thoughts.get(index);
     if (part) part.signature = (part.signature || "") + signature;
   }
   async toolArguments(callId: string, text: string) {
-    await this.delta?.({ type: "tool-arguments", callId, text });
+    await this.emit({ type: "tool-arguments", callId, text });
+  }
+  private async emit(event: ModelDelta) {
+    try {
+      await this.delta?.(event);
+    } catch (error) {
+      throw new ProviderError(
+        errorText(error),
+        502,
+        this.started,
+        false,
+        undefined,
+        { reason: "consumer" },
+      );
+    }
   }
   /**
    * Record provider usage. `cacheSeparate` counts cache tokens outside input (Anthropic);

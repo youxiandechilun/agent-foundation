@@ -8,7 +8,12 @@ import {
   abortable,
   deepFreeze,
   redactJsonText,
+  delay,
 } from "../core/util.js";
+import {
+  canRecoverProviderError,
+  type RecoverableProviderError,
+} from "../providers/sse.js";
 import type { EngineHooks } from "./hooks.js";
 import type { ToolEffect, InboxEntry } from "../contracts.js";
 import { Store } from "../storage/store.js";
@@ -24,6 +29,15 @@ import {
   type TextProvider,
   textOf,
 } from "./types.js";
+
+export interface ModelRecoveryPolicy {
+  /** Total additional attempts across all model steps in this run; 0 disables recovery. */
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  /** One model step's recovery window, starting with its first transport failure. */
+  maxElapsedMs: number;
+}
 
 export interface EngineOptions {
   signal?: AbortSignal;
@@ -60,6 +74,8 @@ export interface EngineOptions {
   maxStopContinuations?: number;
   /** Continue a reply cut off by the output limit (no tool calls) up to this many times (default 0). */
   maxOutputContinuations?: number;
+  /** Regenerate only an uncommitted model step after a classified transport failure. */
+  modelRecovery?: ModelRecoveryPolicy;
   /** Structured output: a successful call to this tool ends the run; finishing without it is retried, then fails. */
   finishTool?: string;
   store: Store;
@@ -108,6 +124,7 @@ export class ExecutionEngine {
     { digest: string; count: number }
   >();
   private stopReason?: "cancelled" | "timeout";
+  private recoveryAttempts = 0;
   private readonly onParentAbort = () => {
     const reason: unknown = this.options.signal?.reason;
     this.abort(
@@ -318,47 +335,10 @@ export class ExecutionEngine {
           );
           this.checkHistoryCapacity();
         }
-        const messageId = id("message");
-        this.options.publish("assistant.message.started", {
-          messageId,
-          step: this.steps,
-        });
-        let assistant: AssistantMessage;
-        const deltas = new DeltaBuffer((type, data) =>
-          this.options.publish(type, data, false),
+        const { assistant, messageId } = await this.completeModelStep(
+          context,
+          signal,
         );
-        try {
-          assistant = await abortable(
-            this.options.provider.complete(
-              {
-                routeId: this.options.routeId,
-                ...this.options.modelSettings,
-                messages: context,
-                tools: this.toolList.slice(),
-              },
-              async (event) => {
-                deltas.push(
-                  event.type === "text"
-                    ? "assistant.message.delta"
-                    : event.type === "thinking"
-                      ? "assistant.reasoning.delta"
-                      : "tool.arguments.delta",
-                  messageId,
-                  event.type === "tool-arguments" ? event.callId : undefined,
-                  event.text,
-                );
-              },
-              signal,
-            ),
-            signal,
-          );
-        } catch (error) {
-          deltas.flush();
-          const partial = (error as { partial?: AssistantMessage }).partial;
-          if (partial) this.commit(partial, messageId);
-          throw error;
-        }
-        deltas.flush();
         const calls = assistant.content.filter(
           (part): part is ToolCall => part.type === "toolCall",
         );
@@ -496,6 +476,157 @@ ${feedback}
       this.queuedBytes = 0;
       this.isRunning = false;
     }
+  }
+  /**
+   * A failed provider attempt has not dispatched any tools. Regenerate only that
+   * attempt from the committed context, retaining all earlier tool results.
+   */
+  private async completeModelStep(
+    context: Message[],
+    signal: AbortSignal,
+  ): Promise<{ assistant: AssistantMessage; messageId: string }> {
+    const policy = this.options.modelRecovery;
+    let recovery:
+      | {
+          signal: AbortSignal;
+          timer: ReturnType<typeof setTimeout>;
+          deadline: number;
+          retries: number;
+          reason: RecoverableProviderError["reason"];
+        }
+      | undefined;
+    try {
+      while (true) {
+        const attemptSignal = recovery?.signal ?? signal;
+        attemptSignal.throwIfAborted();
+        const messageId = id("message");
+        this.options.publish("assistant.message.started", {
+          messageId,
+          step: this.steps,
+        });
+        const deltas = new DeltaBuffer((type, data) =>
+          this.options.publish(type, data, false),
+        );
+        try {
+          const assistant = await abortable(
+            this.options.provider.complete(
+              {
+                routeId: this.options.routeId,
+                ...this.options.modelSettings,
+                messages: context,
+                tools: this.toolList.slice(),
+              },
+              async (event) => {
+                attemptSignal.throwIfAborted();
+                deltas.push(
+                  event.type === "text"
+                    ? "assistant.message.delta"
+                    : event.type === "thinking"
+                      ? "assistant.reasoning.delta"
+                      : "tool.arguments.delta",
+                  messageId,
+                  event.type === "tool-arguments" ? event.callId : undefined,
+                  event.text,
+                );
+              },
+              attemptSignal,
+            ),
+            attemptSignal,
+          );
+          attemptSignal.throwIfAborted();
+          deltas.flush();
+          if (recovery && policy)
+            this.options.publish("model.recovery.completed", {
+              step: this.steps,
+              attempt: this.recoveryAttempts,
+              maxRetries: policy.maxRetries,
+              delayMs: 0,
+              reason: recovery.reason,
+            });
+          return { assistant, messageId };
+        } catch (error) {
+          deltas.flush();
+          if (recovery?.signal.aborted) {
+            this.options.publish("assistant.message.discarded", {
+              messageId,
+              step: this.steps,
+              reason: recovery.reason,
+            });
+            signal.throwIfAborted();
+            throw error;
+          }
+          // Retry eligibility comes from the provider's typed transport boundary,
+          // never HTTP 502 or an upstream error message. The router already owns
+          // failures before output starts, so those do not gain another retry loop.
+          const recoverable =
+            policy &&
+            policy.maxRetries > 0 &&
+            canRecoverProviderError(error) &&
+            error.started;
+          if (!recoverable) {
+            const partial = (error as { partial?: AssistantMessage }).partial;
+            if (partial) this.commit(partial, messageId);
+            throw error;
+          }
+          // Even an exhausted recovery leaves no truncated tool JSON or provider
+          // state in the transcript. Consumers discard this attempt's draft too.
+          this.options.publish("assistant.message.discarded", {
+            messageId,
+            step: this.steps,
+            reason: error.reason,
+          });
+          signal.throwIfAborted();
+          if (
+            this.recoveryAttempts >= policy.maxRetries ||
+            this.hasUncertainToolEffects()
+          )
+            throw error;
+          if (!recovery) {
+            const controller = new AbortController();
+            recovery = {
+              signal: AbortSignal.any([signal, controller.signal]),
+              deadline: Date.now() + policy.maxElapsedMs,
+              retries: 0,
+              reason: error.reason,
+              timer: setTimeout(
+                () =>
+                  controller.abort(
+                    new Error("Model recovery time limit reached"),
+                  ),
+                policy.maxElapsedMs,
+              ),
+            };
+          }
+          recovery.signal.throwIfAborted();
+          const delayMs = Math.min(
+            policy.maxDelayMs,
+            policy.initialDelayMs * 2 ** recovery.retries,
+          );
+          if (Date.now() + delayMs >= recovery.deadline) throw error;
+          recovery.retries++;
+          recovery.reason = error.reason;
+          this.recoveryAttempts++;
+          this.options.publish("model.recovery.scheduled", {
+            step: this.steps,
+            attempt: this.recoveryAttempts,
+            maxRetries: policy.maxRetries,
+            delayMs,
+            reason: error.reason,
+          });
+          await delay(delayMs, recovery.signal);
+        }
+      }
+    } finally {
+      if (recovery) clearTimeout(recovery.timer);
+    }
+  }
+  private hasUncertainToolEffects(): boolean {
+    return this.options.store
+      .list<ToolEffect>("effects", {
+        runId: this.options.runId,
+        status: ["prepared", "running", "unknown"],
+      })
+      .some((effect) => this.tools.get(effect.tool)?.risk !== "read");
   }
   private lastRejection = "";
   /** Run UserPromptSubmit hooks, then commit; a blocked input is marked rejected, never applied. */

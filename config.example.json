@@ -145,6 +145,12 @@
     "executionBoundary": "native"
   },
   "limits": {
+    "modelRecovery": {
+      "maxRetries": 0,
+      "initialDelayMs": 1000,
+      "maxDelayMs": 10000,
+      "maxElapsedMs": 90000
+    },
     "maxConcurrentJsonRequests": 8,
     "maxInFlightJsonBytes": 268435456,
     "maxConcurrentSessionExports": 2,

@@ -2,7 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import { parseConfig } from "../src/core/config.js";
-import { HttpTextProvider } from "../src/providers/text.js";
+import { HttpTextProvider, RouteRouter } from "../src/providers/text.js";
+import {
+  ProviderError,
+  canRecoverProviderError,
+} from "../src/providers/sse.js";
 import { ResponseBuilder } from "../src/providers/protocol.js";
 import { openaiResponses } from "../src/providers/protocols/openai-responses.js";
 import {
@@ -13,11 +17,18 @@ import type { ModelDelta } from "../src/runtime/types.js";
 
 type Adapter = "openai-completions" | "openai-responses" | "anthropic-messages";
 
-async function complete(adapter: Adapter, reply: unknown, streaming = false) {
+async function complete(
+  adapter: Adapter,
+  reply: unknown,
+  streaming = false,
+  routed = false,
+) {
+  let requests = 0;
   const server = http.createServer(async (request, response) => {
     for await (const _chunk of request) {
       /* Drain the real HTTP request. */
     }
+    requests++;
     response.writeHead(200, {
       "Content-Type": streaming ? "text/event-stream" : "application/json",
     });
@@ -39,16 +50,24 @@ async function complete(adapter: Adapter, reply: unknown, streaming = false) {
       },
     });
     const deltas: ModelDelta[] = [];
-    const message = await new HttpTextProvider(
-      "text",
-      config.routes.text,
-    ).complete({ routeId: "text", messages: [], tools: [] }, (delta) => {
-      deltas.push(delta);
-    });
+    const provider = routed
+      ? new RouteRouter(config)
+      : new HttpTextProvider("text", config.routes.text);
+    const message = await provider.complete(
+      { routeId: "text", messages: [], tools: [] },
+      (delta) => {
+        deltas.push(delta);
+      },
+    );
     return { message, deltas };
   } finally {
     server.closeAllConnections();
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    assert.equal(
+      requests,
+      1,
+      "Protocol success or semantic failure must not replay this request",
+    );
   }
 }
 
@@ -230,7 +249,6 @@ for (const completed of [false, true])
 for (const [status, stopReason] of [
   ["completed", "stop"],
   ["incomplete", "length"],
-  ["failed", "error"],
 ] as const) {
   test(`Responses JSON ${status} retains its terminal status`, async () => {
     const { message } = await complete("openai-responses", {
@@ -242,15 +260,59 @@ for (const [status, stopReason] of [
           content: [{ type: "output_text", text: "partial" }],
         },
       ],
-      ...(status === "failed"
-        ? { error: { message: "generation failed" } }
-        : {}),
     });
     assert.equal(message.stopReason, stopReason);
-    if (status === "failed")
-      assert.equal(message.errorMessage, "generation failed");
   });
 }
+
+for (const streaming of [false, true])
+  test(`Responses ${streaming ? "stream" : "JSON"} failed terminal rejects without retry and retains partial metadata`, async () => {
+    const response = {
+      id: "terminal",
+      status: "failed",
+      output: [
+        {
+          type: "message",
+          content: [{ type: "output_text", text: "uncommitted" }],
+        },
+        call("uncommitted-call", "{}"),
+      ],
+      usage: { input_tokens: 23, output_tokens: 5 },
+      error: { message: "generation failed" },
+    };
+    await assert.rejects(
+      complete(
+        "openai-responses",
+        streaming
+          ? stream(
+              { type: "response.output_text.delta", delta: "partial" },
+              { type: "response.failed", response },
+            )
+          : response,
+        streaming,
+        true,
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof ProviderError);
+        assert.equal(error.reason, "protocol");
+        assert.equal(error.retryable, false);
+        assert.equal(error.started, streaming);
+        assert.equal(canRecoverProviderError(error), false);
+        assert.equal(error.requestSent, true);
+        assert.equal(error.partial?.stopReason, "error");
+        assert.equal(error.partial?.errorMessage, "generation failed");
+        assert.equal(error.partial?.responseId, "terminal");
+        assert.equal(error.partial?.usage.reported, true);
+        assert.equal(error.partial?.usage.input, 23);
+        assert.equal(error.partial?.usage.output, 5);
+        assert.deepEqual(
+          error.partial?.content,
+          streaming ? [{ type: "text", text: "partial" }] : [],
+        );
+        return true;
+      },
+    );
+  });
 
 test("Responses merges sparse streamed calls with terminal-only calls without losing IDs", async () => {
   const first = call("first", '{"path":"a"}');

@@ -1,4 +1,4 @@
-# Agent Foundation API v1 · runtime 0.12.1
+# Agent Foundation API v1 · runtime 0.14.0
 
 统一供网页、Electron、CLI 和其他可信接入端使用。默认内核只有 HTTP JSON / SSE；办公、浏览器、桌面和设备端点属于显式加载的可选宿主集成。本轮不做 UI 或 ESP32。
 
@@ -126,6 +126,16 @@ input.accepted → run.status(running) → input.applied
 ```
 
 一条完整回复提交并不结束任务。run.completed 的 status 才表示运行结算；completed 不是语义正确性的自动证明，仍应展示实际验证结果。
+
+0.14.0 在显式开启 `limits.modelRecovery` 后增加以下持久事件，恢复过程仍使用原 `runId`：
+
+| 事件 | data | 接入端行为 |
+|---|---|---|
+| `assistant.message.discarded` | `{messageId,step,reason}` | 按 `messageId` 删除该次临时文字、推理和工具参数草稿；不要拼接到新回复 |
+| `model.recovery.scheduled` | `{step,attempt,maxRetries,delayMs,reason}` | 保持任务进行中，可以显示正在自动重连 |
+| `model.recovery.completed` | `{step,attempt,maxRetries,delayMs:0,reason}` | 当前模型步骤已取得完整可用响应，后续工具与任务仍继续执行 |
+
+`attempt` 是单 run 累计恢复次数，`reason` 为 `network`、`timeout` 或 `stream_interrupted`。失败草稿不会进入正式历史；恢复后由新的 `assistant.message.started` 开始新草稿。`model.recovery.completed` 不代表整个任务成功，仍以 `run.completed` 为准。此机制处理模型上游断流，与下面 HTTP/SSE 客户端按游标恢复事件连接分别配置；不通过 `resume` 新建 run。
 
 持久事件带 seq 和 SSE id，按游标重放；文本/推理/参数/命令输出增量 seq=null，不重放。重连后用相同 messageId 的完整消息替换临时内容。FoundationClient.events 自动重连 GET、按持久游标去重，401 等永久错误不重试。POST 不自动重试。断开 SSE 不取消运行。
 

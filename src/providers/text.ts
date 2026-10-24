@@ -4,6 +4,7 @@ import {
   estimateTextTokens,
 } from "../runtime/token-counter.js";
 import {
+  AppError,
   invariant,
   errorText,
   redactJsonText,
@@ -17,6 +18,8 @@ import {
   ProviderError,
   retryAfter,
   TRANSIENT_STATUSES,
+  exhaustedProviderQuota,
+  type ProviderFailureReason,
 } from "./sse.js";
 import type { CostLedger, CostScope } from "../runtime/cost.js";
 import { isOutputTool } from "../runtime/structured-output.js";
@@ -32,6 +35,33 @@ import type {
 } from "../runtime/types.js";
 
 export { applyCacheBreakpoints } from "./protocols/anthropic-messages.js";
+
+const networkCodes = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ECONNABORTED",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "EPIPE",
+  "UND_ERR_SOCKET",
+]);
+const timeoutCodes = new Set([
+  "ETIMEDOUT",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_BODY_TIMEOUT",
+]);
+/** Fetch also throws TypeError for invalid options; only typed network failures qualify. */
+function fetchFailureReason(error: unknown): ProviderFailureReason {
+  const code = wireMember(error, "code") ?? wireMember(error, "cause", "code");
+  if (typeof code === "string") {
+    if (timeoutCodes.has(code)) return "timeout";
+    if (networkCodes.has(code)) return "network";
+  }
+  return "protocol";
+}
 
 export function routeHeaders(
   route: Route,
@@ -98,6 +128,7 @@ export class HttpTextProvider implements TextProvider {
       nativeWebSearchEnabled(r, request),
     );
     let requestSent = false;
+    let requestTimeout: AbortSignal | undefined;
     const body = protocol.body(input);
     if (request.toolChoice) {
       invariant(
@@ -113,19 +144,40 @@ export class HttpTextProvider implements TextProvider {
     }
     applyReasoning(body, r, request, input.budget, this.protocols);
     try {
+      signal?.throwIfAborted();
       const headers = routeHeaders(r, this.protocols),
         payload = redactJsonText(body);
+      requestTimeout = AbortSignal.timeout(r.timeoutMs);
+      const transportSignal = AbortSignal.any([
+        ...(signal ? [signal] : []),
+        requestTimeout,
+      ]);
       requestSent = true;
-      const reply = await fetch(protocol.url(r.baseUrl.replace(/\/$/, "")), {
-        method: "POST",
-        headers,
-        body: payload,
-        signal: AbortSignal.any([
-          ...(signal ? [signal] : []),
-          AbortSignal.timeout(r.timeoutMs),
-        ]),
-        redirect: "error",
-      });
+      let reply: Response;
+      try {
+        reply = await fetch(protocol.url(r.baseUrl.replace(/\/$/, "")), {
+          method: "POST",
+          headers,
+          body: payload,
+          signal: transportSignal,
+          redirect: "error",
+        });
+      } catch (error) {
+        throw new ProviderError(
+          errorText(error),
+          502,
+          false,
+          false,
+          undefined,
+          {
+            reason: signal?.aborted
+              ? "cancelled"
+              : requestTimeout.aborted
+                ? "timeout"
+                : fetchFailureReason(error),
+          },
+        );
+      }
       if (!reply.ok) {
         const error = await readJson(reply).catch(() => ({}));
         const code =
@@ -150,24 +202,52 @@ export class HttpTextProvider implements TextProvider {
           false,
           contextOverflow,
           retryAfter(reply.headers),
+          {
+            reason: "http",
+            retryable: !exhaustedProviderQuota(wireMember(error, "error")),
+          },
         );
       }
-      if (reply.headers.get("content-type")?.includes("application/json")) {
-        const value = await readJson(reply);
+      const isJsonResponse = reply.headers
+        .get("content-type")
+        ?.includes("application/json");
+      if (isJsonResponse) {
+        let value: unknown;
+        try {
+          value = await readJson(reply);
+        } catch (error) {
+          throw new ProviderError(
+            errorText(error),
+            502,
+            false,
+            false,
+            undefined,
+            {
+              reason:
+                error instanceof SyntaxError || error instanceof AppError
+                  ? "protocol"
+                  : "stream_interrupted",
+            },
+          );
+        }
         for (const event of protocol.jsonEvents
           ? protocol.jsonEvents(value)
           : [value])
           await protocol.event(event, response);
       } else
-        for await (const event of sse(reply, signal)) {
+        for await (const event of sse(reply, transportSignal)) {
           if (event.data !== "[DONE]")
             await protocol.event(JSON.parse(event.data), response);
         }
-      invariant(
-        response.finished,
-        "Provider stream ended without a terminal status",
-        502,
-      );
+      if (!response.finished)
+        throw new ProviderError(
+          "Provider stream ended without a terminal status",
+          502,
+          response.started,
+          false,
+          undefined,
+          { reason: isJsonResponse ? "protocol" : "stream_interrupted" },
+        );
       response.finalizeCalls();
       protocol.finalize?.(response);
       return response.output;
@@ -176,8 +256,28 @@ export class HttpTextProvider implements TextProvider {
       const failure =
         error instanceof ProviderError
           ? error
-          : new ProviderError(errorText(error), 502, response.started);
+          : new ProviderError(
+              errorText(error),
+              502,
+              response.started,
+              false,
+              undefined,
+              { reason: "protocol" },
+            );
+      if (signal?.aborted) {
+        failure.reason = "cancelled";
+        failure.retryable = false;
+      } else if (
+        requestTimeout?.aborted &&
+        ["network", "cancelled", "stream_interrupted", "timeout"].includes(
+          failure.reason,
+        )
+      ) {
+        failure.reason = "timeout";
+        failure.retryable = true;
+      }
       failure.started ||= response.started;
+      failure.nativeActivity ||= response.nativeActivity;
       Object.assign(failure, {
         requestSent,
         partial: {
@@ -379,6 +479,9 @@ export interface RetryNotice {
 }
 const isTransient = (error: unknown): error is ProviderError =>
   error instanceof ProviderError &&
+  error.retryable &&
+  !error.nativeActivity &&
+  ["http", "network", "timeout", "stream_interrupted"].includes(error.reason) &&
   !error.started &&
   !error.contextOverflow &&
   TRANSIENT_STATUSES.has(error.upstreamStatus);
@@ -398,5 +501,8 @@ export function retryDelay(
       ? error.retryAfterMs
       : undefined;
   const base = Math.min(policy.maxDelayMs, policy.initialDelayMs * 2 ** retry);
-  return Math.round(base * (0.75 + random() * 0.5));
+  return Math.min(
+    policy.maxDelayMs,
+    Math.round(base * (0.75 + random() * 0.5)),
+  );
 }

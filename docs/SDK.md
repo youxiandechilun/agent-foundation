@@ -28,6 +28,8 @@ agent-foundation/
 
 0.13.1 修正 Responses 流式文本的归属与完成快照校验：文本按输出项及内容块索引合并，核对 item ID，完成快照补齐缺失后缀且不重复输出。同一文本块的矛盾内容仍会中止运行。此修复不改变计费契约，也不会自动重发模型请求或重结历史 `unknown` 账单。
 
+0.14.0 增加可显式开启的模型步骤自动恢复。部分输出后遇到明确的网络中断或供应商请求超时，内核可以在同一 run 中重新生成当前模型步骤，保留此前完整消息及工具结果。默认关闭；配置、计费与事件边界见下文。
+
 ## 运行要求
 
 - Node.js `^22.19.0 || >=24.0.0`，使用 ESM。支持 Node 22 维护线的 22.19 及以后版本，以及 Node 24 及以后版本；不声明支持已停止维护的 Node 23。内核使用 `node:sqlite`，部分早期 Node 23 默认不提供该模块。建议使用仍在维护的 Node.js LTS；新主版本仍需先完成验证。
@@ -43,7 +45,7 @@ agent-foundation/
 在交付目录找到实际的 `.tgz` 文件；名称、版本和 SHA256 以同目录 `manifest.json` 与 `SHA256SUMS.txt` 为准。安装示例：
 
 ```powershell
-npm install --omit=optional C:\delivery\local-agent-foundation-0.13.1.tgz
+npm install --omit=optional C:\delivery\local-agent-foundation-0.14.0.tgz
 npm install --save-dev typescript @types/node
 ```
 
@@ -156,6 +158,34 @@ node http-client.mjs <会话ID> "根据已确认需求完成工作"
 扩展的配置格式、可信来源、哈希确认及启用方式以 [EXTENSIONS.md](EXTENSIONS.md) 为准。服务器档案、加密凭据和 SSH/SFTP 的可选集成见 [SERVERS.md](SERVERS.md)。
 
 已有模型协议、工具与扩展足够时，配置可以完成组合。新增业务系统接口通常需要编写独立 Plugin、MCP 服务或宿主集成；这部分代码位于调用方或扩展中，内核可以保持不变。私有且不兼容的模型协议需要兼容网关或相应适配。SDK 是单用户可信宿主内核，多租户身份和账号隔离由上层系统实现。
+
+## 模型请求重试与步骤恢复
+
+文本路由的 `retry` 处理尚未产生输出的瞬态失败：默认最多重试 2 次，初始等待 1 秒，指数退避并加入随机抖动，等待不超过 30 秒；首次请求不计入重试次数。408、409、429、500、502、503、504、529 等临时状态可进入该策略；明确的凭据、参数、额度耗尽、协议或消费回调错误不重试。供应商请求已产生输出后，路由不会直接重发或回退到其他路由。
+
+需要处理中途断流的宿主可以显式设置：
+
+```javascript
+const config = parseConfig({
+  // routes、defaultRoutes 等沿用宿主配置
+  limits: {
+    modelRecovery: {
+      maxRetries: 3,
+      initialDelayMs: 2000,
+      maxDelayMs: 20000,
+      maxElapsedMs: 300000,
+    },
+  },
+});
+```
+
+`limits.modelRecovery` 默认 `{ maxRetries: 0, initialDelayMs: 1000, maxDelayMs: 10000, maxElapsedMs: 90000 }`。`maxRetries` 是单个 run 累计恢复上限；`maxElapsedMs` 是当前逻辑模型步骤从首次可恢复失败开始的恢复窗口，包含等待与重新请求耗时。等待按指数增长并受 `maxDelayMs` 限制；恢复窗口、原 run 总时限和取消信号共同约束在途请求。未输出的失败仍只走路由策略，不叠加步骤恢复次数。
+
+步骤恢复仅接受已开始输出、且明确标记为 `network`、`timeout` 或 `stream_interrupted` 的供应商故障。内核丢弃本次未完成草稿、工具参数和供应商延续状态，使用新的 `messageId` 从已提交上下文重新生成当前步骤；此前完成的工具批次不会由恢复机制重跑。存在状态不确定的写工具效果或已启动供应商原生搜索时停止恢复。语义矛盾、协议损坏、宿主增量回调异常、凭据或额度错误、预算不足、取消与总时限不会作为网络故障反复重试。对于启用恢复且符合条件的故障，次数或窗口耗尽后也不会将截断草稿提交到会话。
+
+每次真实请求继续通过原路由与 `CostLedger`，产生独立费用 ID；前一次 `unknown` 费用保留占用并等待业务对账，不能因重连成功而清零。预算不足时停止。恢复在工具调度前进行，并不提供跨供应商、跨调用 ID 的通用 exactly-once 保证，也不等同于进程重启后自动续跑。
+
+根入口公开 `ProviderError`、`ProviderFailureReason` 和 `canRecoverProviderError`，供自定义协议明确分类。宿主不得仅按 HTTP 502 或异常文字推断部分输出可安全恢复。事件及前端草稿处理见 [API.md](API.md) 的输入与运行部分。
 
 ## 每个 Kernel 的文本协议
 
