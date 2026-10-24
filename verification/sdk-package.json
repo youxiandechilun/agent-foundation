@@ -1,19 +1,19 @@
 {
-  "version": "0.13.0",
-  "checkedAt": "2026-10-23T15:05:28.353Z",
+  "version": "0.13.1",
+  "checkedAt": "2026-10-24T14:56:57.221Z",
   "node": "v22.22.0",
   "platform": "win32",
   "status": "passed",
   "published": false,
-  "tarball": "E:\\agent-foundation\\releases\\0.13.0\\local-agent-foundation-0.13.0.tgz",
-  "sha256": "5fa95553e4c6f69f6ac954319e4fa543ca4d580c65214e5daf95e675f55509dd",
-  "bytes": 623957,
-  "unpackedBytes": 2432958,
+  "tarball": "E:\\agent-foundation\\releases\\0.13.1\\local-agent-foundation-0.13.1.tgz",
+  "sha256": "4ef22fc49aa9a4157c0853c2741b379886c472963e88fb9b394998c84cebafca",
+  "bytes": 625767,
+  "unpackedBytes": 2441753,
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "entryChecks": {
-    "files": 409,
+    "files": 411,
     "exportTargets": [
       "./dist/index.d.ts",
       "./dist/index.js",

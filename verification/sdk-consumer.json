@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-10-23T15:05:38.205Z",
+  "checkedAt": "2026-10-24T14:57:37.186Z",
   "status": "passed",
   "published": false,
   "checks": [
     {
       "binary": "C:\\Program Files\\nodejs\\node.exe",
       "node": "v22.22.0",
-      "consumer": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1",
+      "consumer": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-8RkLtJ\\1",
       "status": "passed",
       "portableClientWithoutNodeBuiltins": true,
       "exampleSyntaxChecks": [
@@ -18,8 +18,8 @@
       "publicContractCompatibility": true,
       "runtime": {
         "node": "v22.22.0",
-        "version": "0.13.0",
-        "packageRoot": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1\\node_modules\\@local\\agent-foundation\\",
+        "version": "0.13.1",
+        "packageRoot": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-8RkLtJ\\1\\node_modules\\@local\\agent-foundation\\",
         "checks": {
           "modelAndFileWrite": true,
           "httpAndSseClient": true,
@@ -32,22 +32,22 @@
             "exec_stop"
           ],
           "packagedOfficeWorkerCsv": true,
-          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1\\node_modules\\@local\\agent-foundation\\package.json",
+          "optionalOfficeMissing": "500: Cannot find module 'docx'\nRequire stack:\n- C:\\WINDOWS\\TEMP\\agent-foundation-sdk-8RkLtJ\\1\\node_modules\\@local\\agent-foundation\\package.json",
           "cli": {
             "started": true,
             "runtime": "v22.22.0",
             "command": "agent-foundation serve --config <file>",
-            "installedBin": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW\\1\\node_modules\\.bin\\agent-foundation.cmd"
+            "installedBin": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-8RkLtJ\\1\\node_modules\\.bin\\agent-foundation.cmd"
           }
         },
         "status": "passed"
       }
     }
   ],
-  "package": "E:\\agent-foundation\\releases\\0.13.0\\local-agent-foundation-0.13.0.tgz",
-  "sha256": "5fa95553e4c6f69f6ac954319e4fa543ca4d580c65214e5daf95e675f55509dd",
-  "version": "0.13.0",
-  "consumerDirectory": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-Ca02GW",
+  "package": "E:\\agent-foundation\\releases\\0.13.1\\local-agent-foundation-0.13.1.tgz",
+  "sha256": "4ef22fc49aa9a4157c0853c2741b379886c472963e88fb9b394998c84cebafca",
+  "version": "0.13.1",
+  "consumerDirectory": "C:\\WINDOWS\\TEMP\\agent-foundation-sdk-8RkLtJ",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },

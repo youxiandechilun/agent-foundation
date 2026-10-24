@@ -65,16 +65,14 @@ export const completionEvent = z
   })
   .passthrough();
 
+const responseContent = z
+  .object({ type: z.string(), text: z.string().optional() })
+  .passthrough();
 const responseItem = z
   .object({
     type: z.string(),
-    content: z
-      .array(
-        z
-          .object({ type: z.string(), text: z.string().optional() })
-          .passthrough(),
-      )
-      .optional(),
+    id: z.string().optional(),
+    content: z.array(responseContent).optional(),
   })
   .passthrough();
 export const responseCall = z
@@ -99,10 +97,16 @@ export const responseEvent = z
     type: z.string(),
     response: responseBody.optional(),
     delta: z.string().optional(),
+    text: z.string().optional(),
     output_index: index.optional(),
+    content_index: index.optional(),
+    item_id: z.string().optional(),
     item: responseItem.optional(),
+    part: responseContent.optional(),
   })
   .passthrough();
+export type ResponseEvent = z.infer<typeof responseEvent>;
+export type ResponseItem = z.infer<typeof responseItem>;
 export const responseJson = responseBody;
 
 export const anthropicEvent = z.discriminatedUnion("type", [
