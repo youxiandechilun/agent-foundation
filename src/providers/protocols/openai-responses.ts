@@ -2,11 +2,16 @@ import { errorText, invariant } from "../../core/util.js";
 import { wireMember } from "../../core/wire.js";
 import { responseEvent, responseCall, responseJson } from "./wire.js";
 import { functionTools, responsesInput } from "../serialize.js";
-import type { TextProtocol } from "../protocol.js";
-import {
-  nativeWebSearchEnabled,
-  responsesOutputText,
-} from "../responses-search.js";
+import type { ResponseBuilder, TextProtocol } from "../protocol.js";
+import { nativeWebSearchEnabled } from "../responses-search.js";
+import { ResponsesText } from "./responses-text.js";
+
+const textStates = new WeakMap<ResponseBuilder, ResponsesText>();
+function textState(response: ResponseBuilder) {
+  let state = textStates.get(response);
+  if (!state) textStates.set(response, (state = new ResponsesText()));
+  return state;
+}
 
 const terminal = new Set([
   "response.completed",
@@ -75,6 +80,9 @@ export const openaiResponses: TextProtocol = {
       ![
         "response.created",
         "response.output_text.delta",
+        "response.output_text.done",
+        "response.content_part.added",
+        "response.content_part.done",
         "response.reasoning_summary_text.delta",
         "response.output_item.added",
         "response.function_call_arguments.delta",
@@ -85,16 +93,9 @@ export const openaiResponses: TextProtocol = {
       return;
     const event = responseEvent.parse(value);
     const { output, calls } = response;
+    await textState(response).observe(event, response);
     if (event.type === "response.created")
       output.responseId = event.response?.id;
-    if (event.type === "response.output_text.delta") {
-      invariant(
-        typeof event.delta === "string",
-        "Invalid Responses text delta",
-        502,
-      );
-      await response.text(event.delta);
-    }
     if (event.type === "response.reasoning_summary_text.delta") {
       invariant(
         typeof event.delta === "string",
@@ -169,19 +170,7 @@ export const openaiResponses: TextProtocol = {
         output.errorMessage = errorText(
           wireMember(result.error, "message") || result.error,
         );
-      const terminalText = responsesOutputText(result?.output);
-      if (terminalText !== undefined) {
-        const received = output.content
-          .filter((p) => p.type === "text")
-          .map((p) => p.text)
-          .join("");
-        invariant(
-          terminalText.startsWith(received),
-          "Responses terminal text differs from streamed text",
-          502,
-        );
-        await response.text(terminalText.slice(received.length));
-      }
+      await textState(response).terminal(result?.output, response);
       const indices = new Map(
         [...calls].map(([index, call]) => [call.id, index]),
       );

@@ -26,6 +26,8 @@ agent-foundation/
 
 0.13.0 修正宿主计费的对账投递、异常缓存计量和授权响应丢失处理。升级时，宿主按 `charge.id` 与必填的 `outcome.revision` 幂等处理，并为 `void` 保留终态记录；生成 `BillingOutcome` 的 TypeScript 使用方需要补充版本号。`CostLedger.drain()` 现在返回投递状态，可用 `deliveryStatus()` 查询未确认工作；业务费用是否待核仍由宿主账本判定。
 
+0.13.1 修正 Responses 流式文本的归属与完成快照校验：文本按输出项及内容块索引合并，核对 item ID，完成快照补齐缺失后缀且不重复输出。同一文本块的矛盾内容仍会中止运行。此修复不改变计费契约，也不会自动重发模型请求或重结历史 `unknown` 账单。
+
 ## 运行要求
 
 - Node.js `^22.19.0 || >=24.0.0`，使用 ESM。支持 Node 22 维护线的 22.19 及以后版本，以及 Node 24 及以后版本；不声明支持已停止维护的 Node 23。内核使用 `node:sqlite`，部分早期 Node 23 默认不提供该模块。建议使用仍在维护的 Node.js LTS；新主版本仍需先完成验证。
@@ -41,7 +43,7 @@ agent-foundation/
 在交付目录找到实际的 `.tgz` 文件；名称、版本和 SHA256 以同目录 `manifest.json` 与 `SHA256SUMS.txt` 为准。安装示例：
 
 ```powershell
-npm install --omit=optional C:\delivery\local-agent-foundation-0.13.0.tgz
+npm install --omit=optional C:\delivery\local-agent-foundation-0.13.1.tgz
 npm install --save-dev typescript @types/node
 ```
 
