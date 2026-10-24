@@ -194,6 +194,10 @@ test("billing timeouts preserve slots for callbacks ignoring abort and close lea
     release = resolve;
   });
   const signals: AbortSignal[] = [];
+  let started!: () => void;
+  const bothStarted = new Promise<void>((resolve) => {
+    started = resolve;
+  });
   const ledger = new CostLedger(
     store,
     config,
@@ -201,15 +205,58 @@ test("billing timeouts preserve slots for callbacks ignoring abort and close lea
       authorize() {},
       async record(_charge, _outcome, signal) {
         signals.push(signal!);
+        if (signals.length === 2) started();
         await gate;
       },
     },
     { concurrency: 2, timeoutMs: 10, shutdownTimeoutMs: 20 },
   );
   ledger.recover();
-  await new Promise((resolve) => setTimeout(resolve, 40));
-  assert.equal(signals.length, 2);
-  assert.ok(signals.every((signal) => signal.aborted));
+  const listeners = new Map<AbortSignal, () => void>();
+  const bothAborted = async () => {
+    await bothStarted;
+    assert.equal(signals.length, 2);
+    await Promise.all(
+      signals.map(
+        (signal) =>
+          new Promise<void>((resolve) => {
+            if (signal.aborted) return resolve();
+            const onAbort = () => resolve();
+            listeners.set(signal, onAbort);
+            signal.addEventListener("abort", onAbort, { once: true });
+          }),
+      ),
+    );
+    // Give any incorrectly freed slot a chance to start another callback.
+    await turn();
+  };
+  let deadline!: ReturnType<typeof setTimeout>;
+  // Delivery timers are unref'ed: a referenced failure deadline also keeps the wait alive.
+  const expired = new Promise<never>((_resolve, reject) => {
+    deadline = setTimeout(
+      () =>
+        reject(
+          new Error(
+            "Billing callbacks did not start and abort within 10 seconds",
+          ),
+        ),
+      10000,
+    );
+  });
+  try {
+    await Promise.race([bothAborted(), expired]);
+    assert.equal(signals.length, 2);
+    assert.ok(signals.every((signal) => signal.aborted));
+  } catch (error) {
+    await ledger.close();
+    release();
+    await turn();
+    throw error;
+  } finally {
+    clearTimeout(deadline);
+    for (const [signal, listener] of listeners)
+      signal.removeEventListener("abort", listener);
+  }
   await ledger.close();
   store.close();
   release();
