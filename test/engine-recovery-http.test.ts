@@ -11,7 +11,8 @@ async function recoveryKernel(
   t: TestContext,
   adapter: Adapter,
   maxRunUsd = 1,
-  drop: "eof" | "socket" = "eof",
+  drop: "eof" | "socket" | "json-prefix" | "json-body" = "eof",
+  structured = false,
 ) {
   const requests: Record<string, unknown>[] = [];
   const server = http.createServer(async (request, response) => {
@@ -20,18 +21,55 @@ async function recoveryKernel(
     requests.push(JSON.parse(Buffer.concat(chunks).toString()));
     const first = requests.length === 1;
     const text = first ? "stale-draft" : "analysis completed";
+    if (drop === "json-body") {
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(
+        first
+          ? '{"choices":[{"message":{"content":"split'
+          : JSON.stringify({
+              choices: [{ message: { content: text }, finish_reason: "stop" }],
+              usage: {
+                prompt_tokens: 10,
+                completion_tokens: 12,
+                total_tokens: 22,
+              },
+            }),
+      );
+      return;
+    }
     const send = (value: unknown) =>
       response.write(`data: ${JSON.stringify(value)}\n\n`);
     response.writeHead(200, { "Content-Type": "text/event-stream" });
     if (adapter === "openai-completions") {
       send({
         id: `chat-${requests.length}`,
-        choices: [{ delta: { content: text }, finish_reason: null }],
+        choices: [
+          {
+            delta: structured
+              ? {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: `call-${requests.length}`,
+                      type: "function",
+                      function: {
+                        name: "submit_result",
+                        arguments: first ? '{"answer":' : '{"answer":42}',
+                      },
+                    },
+                  ],
+                }
+              : { content: text },
+            finish_reason: null,
+          },
+        ],
       });
       if (!first) {
         send({
           id: `chat-${requests.length}`,
-          choices: [{ delta: {}, finish_reason: "stop" }],
+          choices: [
+            { delta: {}, finish_reason: structured ? "tool_calls" : "stop" },
+          ],
           usage: { prompt_tokens: 10, completion_tokens: 12, total_tokens: 22 },
         });
         response.write("data: [DONE]\n\n");
@@ -92,7 +130,9 @@ async function recoveryKernel(
         send({ type: "message_stop" });
       }
     }
-    if (first && drop === "socket") {
+    if (first && drop === "json-prefix")
+      response.end('data: {"unfinished":"split');
+    else if (first && drop === "socket") {
       // A separate turn lets fetch receive and parse the streamed output before
       // the TCP connection disappears, rather than turning this into a pre-output failure.
       setTimeout(() => response.destroy(), 50);
@@ -119,7 +159,11 @@ async function recoveryKernel(
         baseUrl: `http://127.0.0.1:${address.port}/v1`,
         contextWindow: 128000,
         maxOutputTokens: 64,
-        retry: { maxRetries: 0 },
+        retry: {
+          maxRetries: drop === "json-body" ? 2 : 0,
+          initialDelayMs: 0,
+          maxDelayMs: 0,
+        },
         pricing: {
           currency: "USD",
           inputPerMillion: 1,
@@ -238,5 +282,77 @@ test("a real TCP disconnect after visible output recovers only its model step", 
   assert.equal(
     events.filter((event) => event.type === "model-step.started").length,
     1,
+  );
+});
+
+test("structured result recovery discards truncated parameters before executing the output tool", async (t) => {
+  const x = await recoveryKernel(
+    t,
+    "openai-completions",
+    1,
+    "json-prefix",
+    true,
+  );
+  const session = await x.session();
+  const submitted = await x.client.submit(session.id, {
+    text: "compute",
+    outputSchema: {
+      type: "object",
+      properties: { answer: { type: "integer" } },
+      required: ["answer"],
+      additionalProperties: false,
+    },
+  });
+  const events = await collect(x.client, submitted.runId);
+  const result = await x.kernel.wait(submitted.runId);
+  assert.equal(result.status, "completed", result.error);
+  assert.deepEqual(result.output, { answer: 42 });
+  assert.equal(x.requests.length, 2);
+  assert.doesNotMatch(JSON.stringify(x.requests[1]), /call-1|unfinished/);
+  assert.equal(
+    events.filter((event) => event.type === "assistant.message.discarded")
+      .length,
+    1,
+  );
+  assert.equal(events.filter((event) => event.type === "run.output").length, 1);
+  assert.equal(
+    events.filter((event) => event.type === "tool.started").length,
+    1,
+  );
+  assert.deepEqual(
+    x.kernel.costs
+      .entries({ runId: submitted.runId })
+      .map((entry) => entry.status)
+      .sort(),
+    ["settled", "unknown"],
+  );
+});
+
+test("a truncated non-streaming JSON body uses route retry with independent unknown and settled charges", async (t) => {
+  const x = await recoveryKernel(t, "openai-completions", 1, "json-body");
+  const session = await x.session();
+  const submitted = await x.client.submit(session.id, {
+    text: "compute locally",
+  });
+  const events = await collect(x.client, submitted.runId);
+  const result = await x.kernel.wait(submitted.runId);
+  assert.equal(result.status, "completed", result.error);
+  assert.equal(x.requests.length, 2);
+  assert.equal(
+    textOf(x.kernel.store.transcript(session.id).at(-1)!.message),
+    "analysis completed",
+  );
+  assert.equal(
+    events.filter((event) => event.type === "model.recovery.scheduled").length,
+    0,
+  );
+  const entries = x.kernel.costs.entries({ runId: submitted.runId });
+  assert.equal(new Set(entries.map((entry) => entry.id)).size, 2);
+  assert.deepEqual(entries.map((entry) => entry.status).sort(), [
+    "settled",
+    "unknown",
+  ]);
+  assert.ok(
+    entries.find((entry) => entry.status === "unknown")!.reservedMicros > 0,
   );
 });

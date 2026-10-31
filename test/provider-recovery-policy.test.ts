@@ -377,6 +377,42 @@ for (const adapter of adapters) {
       },
     );
   });
+  test(`${adapter}: an unfinished JSON prefix in the final unterminated frame is recoverable`, async () => {
+    await fixture(
+      adapter,
+      (response) => response.end(text(adapter) + 'data: {"unfinished":"split'),
+      async ({ provider }) => {
+        await assert.rejects(
+          provider.complete(request()),
+          failure("stream_interrupted", true),
+        );
+      },
+    );
+  });
+  test(`${adapter}: framing and confirmed terminal status prevent replaying malformed JSON`, async () => {
+    for (const tail of ['data: {"unfinished":"split\n\n', "data: {invalid"])
+      await fixture(
+        adapter,
+        (response) => response.end(text(adapter) + tail),
+        async ({ provider }) => {
+          await assert.rejects(
+            provider.complete(request()),
+            failure("protocol", false),
+          );
+        },
+      );
+    await fixture(
+      adapter,
+      (response) =>
+        response.end(success(adapter) + 'data: {"unfinished":"split'),
+      async ({ provider }) => {
+        await assert.rejects(
+          provider.complete(request()),
+          failure("protocol", false),
+        );
+      },
+    );
+  });
   test(`${adapter}: consumer errors are never mistaken for reconnectable failures`, async () => {
     await fixture(
       adapter,
@@ -387,6 +423,21 @@ for (const adapter of adapters) {
             throw new DOMException("fixture consumer", "TimeoutError");
           }),
           failure("consumer", false),
+        );
+      },
+    );
+  });
+  test(`${adapter}: a socket failure after confirmed completion never replays the model step`, async () => {
+    await fixture(
+      adapter,
+      (response) => {
+        response.write(success(adapter));
+        setTimeout(() => response.destroy(), 30);
+      },
+      async ({ provider }) => {
+        await assert.rejects(
+          provider.complete(request()),
+          failure("stream_interrupted", false),
         );
       },
     );
@@ -553,6 +604,22 @@ test("malformed JSON response cannot become a transport retry", async () => {
         failure("protocol", false, false),
       );
       assert.equal(requests(), 1);
+    },
+  );
+});
+
+test("a non-streaming JSON response cut off within valid syntax is a transport interruption", async () => {
+  await fixture(
+    "openai-completions",
+    (response) => {
+      response.setHeader("Content-Type", "application/json");
+      response.end('{"choices":[{"message":{"content":"split');
+    },
+    async ({ provider }) => {
+      await assert.rejects(
+        provider.complete(request()),
+        failure("stream_interrupted", true, false),
+      );
     },
   );
 });

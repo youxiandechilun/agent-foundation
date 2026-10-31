@@ -1,19 +1,19 @@
 {
-  "version": "0.14.0",
-  "checkedAt": "2026-10-24T18:06:31.933Z",
-  "node": "v22.22.0",
+  "version": "0.14.1",
+  "checkedAt": "2026-10-31T07:26:53.560Z",
+  "node": "v22.23.2",
   "platform": "win32",
   "status": "passed",
   "published": false,
-  "tarball": "E:\\agent-foundation\\releases\\0.14.0\\local-agent-foundation-0.14.0.tgz",
-  "sha256": "6e0028d052d82aaa75ae6697ebeda10fe623fc5e30354f758a51d4ca5b6cc12e",
-  "bytes": 631111,
-  "unpackedBytes": 2462760,
+  "tarball": "E:\\Vimix\\data\\audit\\sdk-recovery-20261031\\releases\\0.14.1\\local-agent-foundation-0.14.1.tgz",
+  "sha256": "08b0fa02d19888e11c8129eaed0313b2a99112c3239b015e35ffe26f3ff4507a",
+  "bytes": 632579,
+  "unpackedBytes": 2468621,
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
   "entryChecks": {
-    "files": 411,
+    "files": 413,
     "exportTargets": [
       "./dist/index.d.ts",
       "./dist/index.js",

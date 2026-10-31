@@ -15,6 +15,7 @@ import { wireMember } from "../core/wire.js";
 import {
   sse,
   readJson,
+  parseProviderJson,
   ProviderError,
   retryAfter,
   TRANSIENT_STATUSES,
@@ -216,6 +217,7 @@ export class HttpTextProvider implements TextProvider {
         try {
           value = await readJson(reply);
         } catch (error) {
+          if (error instanceof ProviderError) throw error;
           throw new ProviderError(
             errorText(error),
             502,
@@ -237,7 +239,13 @@ export class HttpTextProvider implements TextProvider {
       } else
         for await (const event of sse(reply, transportSignal)) {
           if (event.data !== "[DONE]")
-            await protocol.event(JSON.parse(event.data), response);
+            await protocol.event(
+              parseProviderJson(
+                event.data,
+                !response.finished && event.unterminated === true,
+              ),
+              response,
+            );
         }
       if (!response.finished)
         throw new ProviderError(
@@ -278,6 +286,9 @@ export class HttpTextProvider implements TextProvider {
       }
       failure.started ||= response.started;
       failure.nativeActivity ||= response.nativeActivity;
+      // A trailing usage frame may be lost after the model already finished.
+      // Replaying that completed response is not an interrupted model step.
+      if (response.finished) failure.retryable = false;
       Object.assign(failure, {
         requestSent,
         partial: {

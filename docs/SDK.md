@@ -30,6 +30,8 @@ agent-foundation/
 
 0.14.0 增加可显式开启的模型步骤自动恢复。部分输出后遇到明确的网络中断或供应商请求超时，内核可以在同一 run 中重新生成当前模型步骤，保留此前完整消息及工具结果。默认关闭；配置、计费与事件边界见下文。
 
+0.14.1 同时识别在 EOF 处截断的合法 JSON 前缀。未以空行结束的最后一帧 SSE、或读取结束的 JSON 响应，仅在追加字节仍可能补成合法文档时归为 `stream_interrupted`；不修补、不执行部分工具参数。完整分帧中的畸形 JSON 仍是协议错误。已确认模型终态后连接中断不重放该步骤；缺失的用量继续按原账本记录核对。语义拒绝也不会被当作断流重试。
+
 ## 运行要求
 
 - Node.js `^22.19.0 || >=24.0.0`，使用 ESM。支持 Node 22 维护线的 22.19 及以后版本，以及 Node 24 及以后版本；不声明支持已停止维护的 Node 23。内核使用 `node:sqlite`，部分早期 Node 23 默认不提供该模块。建议使用仍在维护的 Node.js LTS；新主版本仍需先完成验证。
@@ -45,7 +47,7 @@ agent-foundation/
 在交付目录找到实际的 `.tgz` 文件；名称、版本和 SHA256 以同目录 `manifest.json` 与 `SHA256SUMS.txt` 为准。安装示例：
 
 ```powershell
-npm install --omit=optional C:\delivery\local-agent-foundation-0.14.0.tgz
+npm install --omit=optional C:\delivery\local-agent-foundation-0.14.1.tgz
 npm install --save-dev typescript @types/node
 ```
 
@@ -179,7 +181,7 @@ const config = parseConfig({
 });
 ```
 
-`limits.modelRecovery` 默认 `{ maxRetries: 0, initialDelayMs: 1000, maxDelayMs: 10000, maxElapsedMs: 90000 }`。`maxRetries` 是单个 run 累计恢复上限；`maxElapsedMs` 是当前逻辑模型步骤从首次可恢复失败开始的恢复窗口，包含等待与重新请求耗时。等待按指数增长并受 `maxDelayMs` 限制；恢复窗口、原 run 总时限和取消信号共同约束在途请求。未输出的失败仍只走路由策略，不叠加步骤恢复次数。
+`limits.modelRecovery` 默认 `{ maxRetries: 0, initialDelayMs: 1000, maxDelayMs: 10000, maxElapsedMs: 300000 }`。`maxRetries` 是单个 run 累计恢复上限；`maxElapsedMs` 是当前逻辑模型步骤从首次可恢复失败开始的恢复窗口，包含等待与重新请求耗时。等待按指数增长并受 `maxDelayMs` 限制；恢复窗口、原 run 总时限和取消信号共同约束在途请求。未输出的失败仍只走路由策略，不叠加步骤恢复次数。
 
 步骤恢复仅接受已开始输出、且明确标记为 `network`、`timeout` 或 `stream_interrupted` 的供应商故障。内核丢弃本次未完成草稿、工具参数和供应商延续状态，使用新的 `messageId` 从已提交上下文重新生成当前步骤；此前完成的工具批次不会由恢复机制重跑。存在状态不确定的写工具效果或已启动供应商原生搜索时停止恢复。语义矛盾、协议损坏、宿主增量回调异常、凭据或额度错误、预算不足、取消与总时限不会作为网络故障反复重试。对于启用恢复且符合条件的故障，次数或窗口耗尽后也不会将截断草稿提交到会话。
 

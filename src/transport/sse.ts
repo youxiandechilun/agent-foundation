@@ -4,6 +4,8 @@ export interface ServerEvent {
   data: string;
   id?: string;
   retry?: number;
+  /** Opt-in marker for a final event received without its blank-line delimiter. */
+  unterminated?: true;
 }
 
 interface StreamOptions {
@@ -12,6 +14,7 @@ interface StreamOptions {
   maxBytes?: number;
   maxFrameBytes?: number;
   emitEmptyFrames?: boolean;
+  markUnterminated?: boolean;
   error?: (message: string) => Error;
 }
 
@@ -120,7 +123,10 @@ export async function* decodeEventStream(
         }
         options.signal?.throwIfAborted();
         const last = events.finish();
-        if (last) yield last;
+        if (last)
+          yield options.markUnterminated
+            ? { ...last, unterminated: true }
+            : last;
         return;
       }
       bytes += value.byteLength;

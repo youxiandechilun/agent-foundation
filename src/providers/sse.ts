@@ -3,6 +3,7 @@ import { wireMember } from "../core/wire.js";
 import { decodeEventStream } from "../transport/sse.js";
 import type { ServerEvent } from "../transport/sse.js";
 import type { AssistantMessage } from "../runtime/types.js";
+import { isIncompleteJson } from "./json-prefix.js";
 export type { ServerEvent } from "../transport/sse.js";
 
 /** Incremental SSE decoder: CRLF, split UTF-8, multi-line data and bounded frames. */
@@ -16,6 +17,7 @@ export async function* sse(
       signal,
       maxBytes: 32 * 1024 * 1024,
       maxFrameChars: 2 * 1024 * 1024,
+      markUnterminated: true,
       error: (message) =>
         new ProviderError(message, 502, false, false, undefined, {
           reason: "protocol",
@@ -44,9 +46,27 @@ export async function readJson(
       invariant(size <= max, "JSON response exceeds limit", 502);
       parts.push(Buffer.from(value));
     }
-    return JSON.parse(Buffer.concat(parts).toString("utf8"));
+    return parseProviderJson(Buffer.concat(parts).toString("utf8"), true);
   } finally {
     await reader.cancel().catch(() => undefined);
+  }
+}
+
+/** Only a syntactically valid prefix at EOF is a transport interruption. */
+export function parseProviderJson(text: string, atEof = false): unknown {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    if (atEof && error instanceof SyntaxError && isIncompleteJson(text))
+      throw new ProviderError(
+        "Provider JSON ended before completion",
+        502,
+        false,
+        false,
+        undefined,
+        { reason: "stream_interrupted" },
+      );
+    throw error;
   }
 }
 /** Only transport failures can resume a model step after partial output. */

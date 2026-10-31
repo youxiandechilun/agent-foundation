@@ -26,7 +26,7 @@ test("shared SSE decoder preserves mixed line endings, split Unicode and final e
       events.push(event);
     assert.deepEqual(events, [
       { event: "delta", id: "valid", data: "中文😀\n\ntail" },
-      { data: "eof" },
+      { data: "eof", unterminated: true },
     ]);
   }
 });
